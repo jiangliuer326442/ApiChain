@@ -1,0 +1,18 @@
+{
+  "name": "ApiChain",
+  "version": "0.0.6",
+  "description": "是一款类似 PostMan 的接口请求软件",
+  "license": "MIT",
+  "author": {
+    "name": "方海亮",
+    "email": "fanghailiang2016@gmail.com",
+    "url": "https://gitee.com/onlinetool/mypostman"
+  },
+  "main": "./dist/main/main.js",
+  "scripts": {
+    "rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
+    "postinstall": "npm run rebuild && npm run link-modules",
+    "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
+  },
+  "dependencies": {}
+}
