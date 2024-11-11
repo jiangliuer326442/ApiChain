@@ -21,19 +21,18 @@ import {
 } from '../../config/unittest';
 
 import { 
-    TABLE_UNITTEST_EXECUTOR_NAME, TABLE_UNITTEST_EXECUTOR_FIELDS,
+    TABLE_REQUEST_HISTORY_FIELDS, TABLE_UNITTEST_EXECUTOR_FIELDS,
 } from '../../config/db';
 
-let field_unittest_executor_batch = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_BATCH_UUID;
-let field_unittest_executor_iterator = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_ITERATOR_UUID;
-let field_unittest_executor_unittest = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_UNITTEST_UUID;
-let field_unittest_executor_step = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_STEPS_UUID;
-let field_unittest_executor_delFlg = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_DELFLG;
-let field_unittest_executor_header = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_HEADER;
-let field_unittest_executor_param = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_PARAM;
-let field_unittest_executor_path_variable = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let field_unittest_executor_body = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_BODY;
-let field_unittest_executor_response = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_RESPONSE;
+import { getSingleExecutorStep } from '../actions/unittest';
+
+let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
+let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
+let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
+let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
+let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
+let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
 export default class {
 
@@ -48,6 +47,9 @@ export default class {
     //当前项目
     private currentProject : string;
 
+    //当前迭代
+    private currentIteration : string;
+
     //数据源类型 引用步骤参数 或者 环境变量 & 固定值
     private dataSourceType : string | null = null;
     //选择框 选中的步骤
@@ -61,9 +63,10 @@ export default class {
 
     private dispatch : any;
 
-    constructor(project: string, content : string, dispatch : any) {
+    constructor(project: string, iteration: string, content : string, dispatch : any) {
         this.project = project;
         this.currentProject = project;
+        this.currentIteration = iteration;
         this.dispatch = dispatch;
         if (getType(content) === "String") {
             this.parseFromStandardExpression(content);
@@ -74,7 +77,7 @@ export default class {
         }
 
         this.envVarTips = new RequestSendTips();
-        this.envVarTips.init(this.currentProject, this.env, this.dispatch, env_vars => {});
+        this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.dispatch, env_vars => {});
     }
 
     setEnv(env: string) {
@@ -102,7 +105,7 @@ export default class {
         if (this.selectedProject !== UNITTEST_STEP_PROJECT_CURRENT) {
             this.currentProject = this.selectedProject.substring(UNITTEST_STEP_PROJECT_POINTED.length);
         }
-        this.envVarTips.init(this.currentProject, "", this.dispatch, env_vars => {});
+        this.envVarTips.init(this.currentProject, "", this.currentIteration, this.dispatch, env_vars => {});
     }
 
     getSelectedProject() : string {
@@ -273,28 +276,27 @@ export default class {
                 return this.getDataSourceByPathArr(dataSource, pathArr);
             } else {
                 let stepId = this.selectedStep.substring(UNITTEST_STEP_POINTED.length);
-                let unitTestExecutorRow = await window.db[TABLE_UNITTEST_EXECUTOR_NAME]
-                .where([field_unittest_executor_iterator, field_unittest_executor_unittest, field_unittest_executor_batch, field_unittest_executor_step])
-                .equals([unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, stepId])
-                .first();
-                if (unitTestExecutorRow !== undefined && unitTestExecutorRow[field_unittest_executor_delFlg] === 0) {
+
+                let unitTestExecutorRow = await getSingleExecutorStep(unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, stepId);
+
+                if (unitTestExecutorRow !== null) {
                     //数据来源
                     let dataSource : any;
                     if (this.selectedDataSource === UNITTEST_STEP_PARAM) {
                         //指定步骤param
-                        dataSource = unitTestExecutorRow[field_unittest_executor_param];
+                        dataSource = unitTestExecutorRow[request_history_param];
                     } else if (this.selectedDataSource === UNITTEST_STEP_PATH_VARIABLE) {
                         //指定步骤pathVariable
-                        dataSource = unitTestExecutorRow[field_unittest_executor_path_variable];
+                        dataSource = unitTestExecutorRow[request_history_path_variable];
                     } else if (this.selectedDataSource === UNITTEST_STEP_HEADER) {
                         //指定步骤header
-                        dataSource = unitTestExecutorRow[field_unittest_executor_header];
+                        dataSource = unitTestExecutorRow[request_history_header];
                     } else if (this.selectedDataSource === UNITTEST_STEP_BODY) {
                         //指定步骤body
-                        dataSource = unitTestExecutorRow[field_unittest_executor_body];
+                        dataSource = unitTestExecutorRow[request_history_body];
                     } else {
                         //指定步骤response
-                        dataSource = unitTestExecutorRow[field_unittest_executor_response];
+                        dataSource = JSON.parse(unitTestExecutorRow[request_history_response]);
                     }
                     let pathArr = this.splitStr(this.assertPrev);
                     return this.getDataSourceByPathArr(dataSource, pathArr);
@@ -338,7 +340,7 @@ export default class {
     }
 
     private parseFromStandardExpression(content : string) {
-        if (!isStringEmpty(content)) {
+        if (!isStringEmpty(content) || content === "") {
             //步骤
             if (content.indexOf(UNITTEST_STEP_CURRENT) > 0 || content.indexOf(UNITTEST_STEP_POINTED) > 0) {
                 this.dataSourceType = UNITTEST_DATASOURCE_TYPE_REF;

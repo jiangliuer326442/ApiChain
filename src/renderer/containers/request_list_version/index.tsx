@@ -4,7 +4,6 @@ import { Breadcrumb, Layout, Flex, ConfigProvider, FloatButton, Collapse, Popcon
 import { EyeOutlined, DeleteOutlined, FileTextOutlined } from '@ant-design/icons';
 import { TinyColor } from '@ctrl/tinycolor';
 import type { FormProps } from 'antd';
-// import * as Showdown from 'showdown';
 import { encode } from 'base-64';
 
 import { 
@@ -332,12 +331,14 @@ class RequestListVersion extends Component {
                             </Flex>
                         </Flex>
                         {Object.keys(this.state.requestsJsxDividered).map(prj => (
-                            <Flex vertical key={prj}>
-                                <Divider orientation="left">
-                                    <p>{ "项目：" + (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "") }</p >
-                                </Divider>
-                                <Collapse items={this.state.requestsJsxDividered[prj]} />
-                            </Flex>
+                            (this.props.prjs.length > 0 && this.props.prjs.find(row => row[prj_label] === prj) ? 
+                                <Flex vertical key={prj}>
+                                    <Divider orientation="left">
+                                        <p>{ "项目：" + (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "") }</p >
+                                    </Divider>
+                                    <Collapse items={this.state.requestsJsxDividered[prj]} />
+                                </Flex>
+                            : null)
                         ))}
                         <Flex vertical gap={"middle"}>
                             <Flex>

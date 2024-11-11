@@ -60,7 +60,7 @@ export default class {
                 this.prj = "";
             }
             if (isStringEmpty(this.env)) {
-                getKeys(this.prj).then(keys => {
+                getKeys(this.prj, this.iteration).then(keys => {
                     cb(this.appendEnvKeys(keys))
                 });
                 return;
@@ -178,26 +178,26 @@ export default class {
         return this.envKeyVar.get(ENV_VALUE_API_HOST) as string;
     }
 
-    private getTipsByEnvVars() : Array<string> {
-        let envKeys : Array<string> = [];
+    private getTipsByEnvVars() : Set<string> {
+        let envKeys = new Set<string>;
         for(let env_value of this.env_vars) {
             let tip_key = env_value[env_var_pname];
-            envKeys.push(tip_key);
+            envKeys.add(tip_key);
             this.envKeyVar.set(env_value[env_var_pname], env_value[env_var_pvalue]);
         }
         return this.appendEnvKeys(envKeys);
     }
 
-    private appendEnvKeys(envKeys : Array<string>) : Array<string> {
-        envKeys.push(ENV_VALUE_RANDOM_STRING);
-        envKeys.push(ENV_VALUE_RANDOM_INT);
-        envKeys.push(ENV_VALUE_RANDOM_LONG);
-        envKeys.push(ENV_VALUE_CURRENT_DATETIME_STR);
-        envKeys.push(ENV_VALUE_CURRENT_DATE_STR);
-        envKeys.push(ENV_VALUE_CURRENT_DATETIME_INT);
-        envKeys.push(ENV_VALUE_CURRENT_DATE_IMT);
-        envKeys.push(ENV_VALUE_CURRENT_TIMESTAMP_SECOND);
-        envKeys.push(ENV_VALUE_CURRENT_TIMESTAMP_MICRO);
+    private appendEnvKeys(envKeys : Set<string>) : Set<string> {
+        envKeys.add(ENV_VALUE_RANDOM_STRING);
+        envKeys.add(ENV_VALUE_RANDOM_INT);
+        envKeys.add(ENV_VALUE_RANDOM_LONG);
+        envKeys.add(ENV_VALUE_CURRENT_DATETIME_STR);
+        envKeys.add(ENV_VALUE_CURRENT_DATE_STR);
+        envKeys.add(ENV_VALUE_CURRENT_DATETIME_INT);
+        envKeys.add(ENV_VALUE_CURRENT_DATE_IMT);
+        envKeys.add(ENV_VALUE_CURRENT_TIMESTAMP_SECOND);
+        envKeys.add(ENV_VALUE_CURRENT_TIMESTAMP_MICRO);
         return envKeys;
     }
 

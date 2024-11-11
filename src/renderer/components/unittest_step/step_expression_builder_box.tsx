@@ -29,7 +29,7 @@ import {
     TABLE_MICRO_SERVICE_FIELDS,
 } from '../../../config/db';
 import { 
-    getVersionIteratorRequestsByProject 
+    getUnitTestRequests 
 } from '../../actions/version_iterator_requests';
 import { 
     getUnitTests
@@ -62,7 +62,7 @@ class StepExpressionBuilderBox extends Component {
 
         let content = props.value;
 
-        this.paramTips  = new JsonParamTips(props.project, content, props.dispatch);
+        this.paramTips  = new JsonParamTips(props.project, props.iteratorId, content, props.dispatch);
 
         this.state = {
             loadeadFlg: false,
@@ -160,7 +160,7 @@ class StepExpressionBuilderBox extends Component {
             } else {
                 let selectedStepId = this.state.selectedStep.replace(UNITTEST_STEP_POINTED, "");
                 let step = this.state.steps.find(row => row[unittest_step_uuid] === selectedStepId);
-                getVersionIteratorRequestsByProject(this.props.iteratorId, step[unittest_step_prj], null, "", step[unittest_step_uri]).then(requests => {
+                getUnitTestRequests(step[unittest_step_prj], this.props.iteratorId, step[unittest_step_uri]).then(requests => {
                     let request = requests.find(row => row[iteration_request_method] === step[unittest_step_method]);
 
                     let selectedDataSource = this.state.selectedDataSource;
@@ -204,7 +204,6 @@ class StepExpressionBuilderBox extends Component {
     }
 
     handleDataSourceCallback = (dataSource) => {
-        console.debug("dataSource", dataSource);
         if (Object.keys(dataSource).length > 0) {
             this.setState({dataSource})
             this.paramTips.setDataSourceJson(dataSource);

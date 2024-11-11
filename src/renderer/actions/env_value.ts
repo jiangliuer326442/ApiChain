@@ -1,6 +1,9 @@
 import {
     mixedSort
 } from '../util'
+import {
+    sub, union
+} from '../util/sets'
 import { 
     TABLE_ENV_KEY_NAME, TABLE_ENV_KEY_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
@@ -34,25 +37,52 @@ export async function getVarsByKey(prj, pname) {
     return envVarItems;
 }
 
-export async function getKeys(prj) {
+export async function getKeys(prj, iteration) {
     let envKeys = await window.db[TABLE_ENV_KEY_NAME]
     .where('[' + env_key_delFlg + '+' + env_key_prj + ']')
     .equals([0, prj])
-    .reverse()
     .toArray();
 
-    let keyArr = envKeys.map(envKey => envKey[env_key_pname]);
-    return keyArr;
+    let prjKeyArr = new Set<String>(envKeys.map(envKey => envKey[env_key_pname]));
+    let iterationKeyArr = new Set<String>();
+
+    if (iteration) {
+        let iterationKeys = await window.db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_micro_service + '+' + env_var_iteration + ']')
+        .equals(['', iteration])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        iterationKeyArr = new Set(iterationKeys.map(iterationKey => iterationKey[env_var_pname]));
+    }
+
+    let globalArrays = await db[TABLE_ENV_VAR_NAME]
+    .where('[' + env_var_micro_service + '+' + env_var_iteration + ']')
+    .equals(["", ""])
+    .filter(row => {
+        if (row[env_var_delFlg]) {
+            return false;
+        }
+        return true;
+    })
+    .toArray();  
+    let globalKeyArr = new Set<String>(globalArrays.map(item => ( item[env_var_pname])));
+
+    return union(prjKeyArr, iterationKeyArr, globalKeyArr);
 }
 
 export async function getEnvValues(prj, env, iterator, pname, dispatch, cb) : Promise<Array<any>> {
     const env_vars = []; 
 
     // 优先级 迭代+项目 > 迭代 > 项目 > 全局
-    let iteratorPlusPrjKeys = new Set();
-    let iteratorKeys = new Set();
-    let projectKeys = new Set();
-    let globalKeys = new Set();
+    let iteratorPlusPrjKeys = new Set<String>();
+    let iteratorKeys = new Set<String>();
+    let projectKeys = new Set<String>();
+    let globalKeys = new Set<String>();
     if (iterator && prj) {
         let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + ']')
@@ -92,7 +122,7 @@ export async function getEnvValues(prj, env, iterator, pname, dispatch, cb) : Pr
             iteratorKeys = new Set([pname]);
         } else {
             let _keys = iteratorArrays.map(item => ( item[env_var_pname]));
-            iteratorKeys = new Set([..._keys].filter(x => !iteratorPlusPrjKeys.has(x)));
+            iteratorKeys = sub(_keys, iteratorPlusPrjKeys);
         }
         for (let iteratorRow of iteratorArrays) {
             let _pname = iteratorRow[env_var_pname];
@@ -117,8 +147,8 @@ export async function getEnvValues(prj, env, iterator, pname, dispatch, cb) : Pr
             projectKeys = new Set([pname]);
         } else {
             let _keys = projectArrays.map(item => ( item[env_var_pname]));
-            _keys = new Set([..._keys].filter(x => !iteratorPlusPrjKeys.has(x)));
-            projectKeys = new Set([..._keys].filter(x => !iteratorKeys.has(x)));
+            _keys = sub(_keys, iteratorPlusPrjKeys);
+            projectKeys = sub(_keys, iteratorKeys);
         }
         for (let projectRow of projectArrays) {
             let _pname = projectRow[env_var_pname];
@@ -143,9 +173,9 @@ export async function getEnvValues(prj, env, iterator, pname, dispatch, cb) : Pr
         globalKeys = new Set([pname]);
     } else {
         let _keys = globalArrays.map(item => ( item[env_var_pname]));
-        _keys = new Set([..._keys].filter(x => !iteratorPlusPrjKeys.has(x)));
-        _keys = new Set([..._keys].filter(x => !iteratorKeys.has(x)));
-        globalKeys = new Set([..._keys].filter(x => !projectKeys.has(x)));
+        _keys = sub(_keys, iteratorPlusPrjKeys);
+        _keys = sub(_keys, iteratorKeys);
+        globalKeys = sub(_keys, projectKeys);
     }
     for (let globalRow of globalArrays) {
         let _pname = globalRow[env_var_pname];

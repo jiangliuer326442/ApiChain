@@ -22,7 +22,7 @@ import {
     TABLE_UNITTEST_STEP_ASSERT_FIELDS,
 } from '../../../config/db';
 import RequestSendTips from '../../classes/RequestSendTips';
-import { getVersionIteratorRequestsByProject } from '../../actions/version_iterator_requests';
+import { getUnitTestRequests } from '../../actions/version_iterator_requests';
 import { 
     getUnitTests,
     addUnitTestStep,
@@ -101,12 +101,7 @@ class UnittestStepContainer extends Component {
         let requestHead = {};
         let requestBody = {};
 
-        let prjs = this.props.versionIterators.find(row => row[version_iterator_uuid] === iteratorId)[version_iterator_prjs]
-        let prjsSelectector = [];
-        for(let prj of prjs) {
-            let prjRemark = this.props.projects.find(row => row[prj_label] === prj)[prj_remark];
-            prjsSelectector.push({label: prjRemark, value: prj});
-        }
+        let prjsSelectector = this.props.projects.map(_prj => ({label: _prj[prj_remark], value: _prj[prj_label]}));
 
         if (this.props.unittest[iteratorId]) {
             for (let unitTest of this.props.unittest[iteratorId]) {
@@ -238,6 +233,7 @@ class UnittestStepContainer extends Component {
         } else {
             requestBody = this.state.requestBody;
             for (let _key in requestBody) {
+                if (!(_key in formRequestBodyData)) continue;
                 formRequestBodyData[_key][TABLE_FIELD_VALUE] = requestBody[_key];
             }
         }
@@ -290,7 +286,7 @@ class UnittestStepContainer extends Component {
     }
 
     initPrj = (iteratorId, prj, dispatch) => {
-        getVersionIteratorRequestsByProject(iteratorId, prj, null, "", "").then(requests => {
+        getUnitTestRequests(prj, iteratorId, "").then(requests => {
             let urisSelector = [];
             for (let request of requests) {
                 let item = {};
@@ -304,7 +300,7 @@ class UnittestStepContainer extends Component {
                 }
             } );
         });
-        this.requestSendTip.init(prj, "", dispatch, env_vars => {});
+        this.requestSendTip.init(prj, "", iteratorId, dispatch, env_vars => {});
     }
 
     buildApiSelectValue = (method : string, uri : string) : string => {

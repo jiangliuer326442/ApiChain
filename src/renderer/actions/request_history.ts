@@ -31,11 +31,12 @@ export async function getRequestHistorys(env : string, prj : string, btime : num
     cb(records);
 }
 
-export async function getRequestHistory(id : number, cb) {
+export async function getRequestHistory(id : number) : Promise<any> {
     let record = await window.db[TABLE_REQUEST_HISTORY_NAME].get(id);
-    if (record !== undefined && record[request_history_delFlg] === 0) {
-        cb(record);
+    if (record === undefined || record[request_history_delFlg] === 1) {
+        return null;
     }
+    return record;
 }
 
 export async function clearRequestHistory(cb) {
@@ -57,7 +58,7 @@ export async function delRequestHistory(row, cb) {
 
 export async function addRequestHistory(
     env : string, prj : string, uri : string, method : string,
-    head : Array<any>, body : Array<any>, pathVariable : Array<any>, param : Array<any>, file : Array<any>,
+    head, body, pathVariable, param, file,
     response : string, jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean, cb) {
 
     for (let _key in file) {

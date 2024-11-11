@@ -241,7 +241,7 @@ export async function setProjectRequestSort(project : string, method : string, u
     cb();
 }
 
-export async function getProjectRequests(project : string, fold : string, title : string, uri : string) {
+export async function getProjectRequests(project : string, fold : string | null, title : string, uri : string) {
     let project_requests = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where([ project_request_delFlg, project_request_project ])
     .equals([ 0, project ])

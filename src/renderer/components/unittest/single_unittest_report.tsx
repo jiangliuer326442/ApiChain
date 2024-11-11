@@ -1,4 +1,5 @@
 import { Component, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import JsonView from 'react-json-view';
 import { Descriptions, Typography } from "antd";
@@ -16,6 +17,7 @@ import {
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_STEP_ASSERT_FIELDS,
     TABLE_UNITTEST_EXECUTOR_FIELDS,
+    TABLE_REQUEST_HISTORY_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
 } from '../../../config/db';
 import {
@@ -32,6 +34,13 @@ let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
 
+let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
+let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
+let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
+let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
+let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
+
 let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 let unittest_step_title = TABLE_UNITTEST_STEPS_FIELDS.FIELD_TITLE;
 let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
@@ -42,12 +51,8 @@ let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_L
 let unittest_step_assert_operator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
 let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
 
-let unittest_executor_delFlg = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_DELFLG;
-let unittest_executor_url = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_URL;
-let unittest_executor_param = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_PARAM;
-let unittest_executor_body = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_BODY;
+let unittest_executor_history_id = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_HISTORY_ID;
 let unittest_executor_cost_time = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_COST_TIME;
-let unittest_executor_response = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_RESPONSE;
 let unittest_executor_assert_left = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_ASSERT_LEFT;
 let unittest_executor_assert_right = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_ASSERT_RIGHT;
 let unittest_executor_result = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_RESULT;
@@ -143,16 +148,17 @@ class SingleUnitTestReport extends Component {
             let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unittestUuid, stepUuid);
 
             let singleExecutorStep = await getSingleExecutorStep(iteratorId, unittestUuid, batchUuid, stepUuid);
-            if (singleExecutorStep !== undefined && singleExecutorStep[unittest_executor_delFlg] === 0) {
-                let url = singleExecutorStep[unittest_executor_url];
+            if (singleExecutorStep !== null) {
+                let historyId = singleExecutorStep[unittest_executor_history_id];
+                let url = singleExecutorStep[request_history_uri];
                 let data = {};
-                let response = singleExecutorStep[unittest_executor_response];
+                let response = singleExecutorStep[request_history_response];
                 let assertResult = singleExecutorStep[unittest_executor_result];
                 let costTime = singleExecutorStep[unittest_executor_cost_time];
                 if (method === REQUEST_METHOD_POST) {
-                    data = singleExecutorStep[unittest_executor_body];
+                    data = singleExecutorStep[request_history_body];
                 } else if (method === REQUEST_METHOD_GET) {
-                    data = singleExecutorStep[unittest_executor_param];
+                    data = singleExecutorStep[request_history_param];
                 }
                 let assertLeftArr = singleExecutorStep[unittest_executor_assert_left];
                 let assertRightArr = singleExecutorStep[unittest_executor_assert_right];
@@ -161,7 +167,9 @@ class SingleUnitTestReport extends Component {
                 stepExecutorItem.title = stepTitle;
                 stepExecutorItem.sort = stepSort;
                 stepExecutorItem.url = url;
+                stepExecutorItem.historyId = historyId;
                 stepExecutorItem.input = data;
+                stepExecutorItem.isJson = singleExecutorStep[request_history_jsonFlg];
                 stepExecutorItem.output = response;
                 stepExecutorItem.assertArr = unitTestAsserts;
                 stepExecutorItem.assertLeftArr = assertLeftArr;
@@ -192,7 +200,7 @@ class SingleUnitTestReport extends Component {
                         {
                             key: '1',
                             label: '请求地址',
-                            children: <Text copyable={{text: item.url}}>{ item.url }</Text>,
+                            children: <Text copyable={{text: item.url}}><Link to={"/internet_request_send_by_history/" + item.historyId}>{ item.url }</Link></Text>,
                         },
                         {
                             key: '2',
@@ -212,8 +220,8 @@ class SingleUnitTestReport extends Component {
                         {
                             key: '3',
                             label: '流出',
-                            children: <JsonView 
-                                src={item.output}   
+                            children: (item.isJson ? <JsonView 
+                                src={JSON.parse(item.output)}   
                                 name="response"
                                 theme={ "bright" }
                                 collapsed={true}  
@@ -222,7 +230,7 @@ class SingleUnitTestReport extends Component {
                                 enableClipboard={true}
                                 displayObjectSize={false}
                                 displayDataTypes={false}
-                                collapseStringsAfterLength={40}  />,
+                                collapseStringsAfterLength={40}  /> : null),
                         },
                         {
                             key: '4',

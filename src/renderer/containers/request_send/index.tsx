@@ -164,30 +164,32 @@ class RequestSendContainer extends Component {
       } )
     } else if (pathKey === 'internet_request_send_by_history') {
       let key = Number(this.props.match.params.id);
-      getRequestHistory(key, record => {
-        let headerData = record[request_history_head];
-        let contentType = headerData[CONTENT_TYPE];
-        let method = record[request_history_method];
-        this.setRequestMethod(method);
-        this.setState({
-          id: key,
-          showFlg: true,
-          prj: record[request_history_micro_service],
-          env: record[request_history_env],
-          requestUri: record[request_history_uri],
-          requestMethod: method,
-          responseData: record[request_history_response],
-          isResponseJson: record[request_history_jsonFlg],
-          isResponseHtml: record[request_history_htmlFlg],
-          isResponsePic: record[request_history_picFlg],
-          isResponseFile: record[request_history_fileFlg],
-          requestHeadData: headerData,
-          contentType,
-          requestBodyData: record[request_history_body],
-          requestFileData: record[request_history_file],
-          requestPathVariableData: record[request_history_path_variable],
-          requestParamData: record[request_history_param],
-        });
+      let record = await getRequestHistory(key);
+      if (record == null) {
+        return;
+      }
+      let headerData = record[request_history_head];
+      let contentType = headerData[CONTENT_TYPE];
+      let method = record[request_history_method];
+      this.setRequestMethod(method);
+      this.setState({
+        id: key,
+        showFlg: true,
+        prj: record[request_history_micro_service],
+        env: record[request_history_env],
+        requestUri: record[request_history_uri],
+        requestMethod: method,
+        responseData: record[request_history_response],
+        isResponseJson: record[request_history_jsonFlg],
+        isResponseHtml: record[request_history_htmlFlg],
+        isResponsePic: record[request_history_picFlg],
+        isResponseFile: record[request_history_fileFlg],
+        requestHeadData: headerData,
+        contentType,
+        requestBodyData: record[request_history_body],
+        requestFileData: record[request_history_file],
+        requestPathVariableData: record[request_history_path_variable],
+        requestParamData: record[request_history_param],
       });
     } else if (pathKey === 'internet_request_send_by_api') {
       let iteratorId = this.props.match.params.iteratorId;
@@ -274,7 +276,8 @@ class RequestSendContainer extends Component {
       this.state.requestBodyData = JSON.parse(data);
     } else if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
       let obj : any = {};
-      let file : any = this.state.requestFileData;
+      let file : any = {};
+      let originFile : any = this.state.requestFileData;
       if (data.length > 0) {
         for (let item of data) {
           let value = item.value;
@@ -285,31 +288,35 @@ class RequestSendContainer extends Component {
               value = "";
             }
             obj[item.key] = value;
-            this.state.requestBodyData = obj;
           } else if (item.type === INPUTTYPE_FILE) {
-            if (getType(value) === "File") {
+            if (getType(value) === "File" && value.path) {
               let _file : any = {};
               _file.name = value.name;
               _file.type = value.type;
               _file.path = value.path;
+              file[item.key] = _file;
               var reader = new FileReader();
               reader.readAsArrayBuffer(value);
               let that = this;
               reader.onload = function(e) {
-                  var blob = e.target.result;
-                  _file.blob = blob;
-                  file[item.key] = _file;
-                  that.state.requestFileData = file;
+                let _file = that.state.requestFileData[item.key];
+                let blob = e.target.result;
+                _file.blob = blob;
               };
-            } else if (item.key in this.state.requestFileData) {
-              if (!('blob' in file[item.key])) {
-                file[item.key].blob = "";
-                let path = file[item.key].path;
+            } else if (item.key in originFile) {
+              let _file = originFile[item.key];
+              if (!('blob' in _file)) {
+                _file.blob = "";
+                let path = _file.path;
                 window.electron.ipcRenderer.sendMessage(ChannelsReadFileStr, item.key, path);
               }
+              file[item.key] = _file;
             }
           }
         }
+
+        this.state.requestFileData = file;
+        this.state.requestBodyData = obj;
       }
     } else {
       let obj = {};

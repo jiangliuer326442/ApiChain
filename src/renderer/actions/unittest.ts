@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
+import { cloneDeep } from 'lodash';
 
 import { 
     TABLE_UNITTEST_NAME, TABLE_UNITTEST_FIELDS,
@@ -7,33 +8,42 @@ import {
     TABLE_UNITTEST_EXECUTOR_NAME, TABLE_UNITTEST_EXECUTOR_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME, TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
+    TABLE_REQUEST_HISTORY_FIELDS,
 } from '../../config/db';
-
 import {
     ChannelsReadFileStr,
     CONTENT_TYPE,
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST
 } from '../../config/global_config';
-
 import {
-    CONTENT_TYPE_FORMDATA,
+    CONTENT_TYPE_HTML,
     CONTENT_TYPE_JSON,
+    CONTENT_TYPE_IMAGE_JPG,
+    CONTENT_TYPE_IMAGE_PNG,
+    CONTENT_TYPE_IMAGE_GIF,
+    CONTENT_TYPE_IMAGE_WEBP,
+    CONTENT_TYPE_ATTACH_GZIP1,
+    CONTENT_TYPE_ATTACH_GZIP2,
+    CONTENT_TYPE_ATTACH_ZIP,
+    CONTENT_TYPE_ATTACH_TAR,
+    CONTENT_TYPE_ATTACH_STREAM,
+    CONTENT_TYPE_URLENCODE,
+    CONTENT_TYPE_FORMDATA,
 } from '../../config/contentType';
-
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
     UNITTEST_RESULT_UNKNOWN
 } from '../../config/unittest';
-
 import { GET_ITERATOR_TESTS } from '../../config/redux';
+
+import { addRequestHistory, getRequestHistory } from './request_history';
 
 import { getType, isStringEmpty, isJsonString, paramToString } from '../util';
 
 import RequestSendTips from '../classes/RequestSendTips';
 import JsonParamTips from '../classes/JsonParamTips';
-import { cloneDeep } from 'lodash';
 
 let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let field_unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
@@ -79,12 +89,7 @@ let unittest_executor_batch = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_BATCH_UUID;
 let unittest_executor_iterator = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_ITERATOR_UUID;
 let unittest_executor_unittest = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_UNITTEST_UUID;
 let unittest_executor_step = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_STEPS_UUID;
-let unittest_executor_url = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_URL;
-let unittest_executor_header = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_HEADER;
-let unittest_executor_param = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_PARAM;
-let unittest_executor_path_variable = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let unittest_executor_body = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_BODY;
-let unittest_executor_response = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_REQUEST_RESPONSE;
+let unittest_executor_history_id = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_HISTORY_ID;
 let unittest_executor_delFlg = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_DELFLG;
 let unittest_executor_ctime = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_CTIME;
 let unittest_executor_assert_left = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_ASSERT_LEFT;
@@ -102,6 +107,14 @@ let unittest_report_result = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_RESULT;
 let unittest_report_step = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_STEP;
 let unittest_report_cost_time = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST_TIME;
 let unittest_report_failure_reason = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_REASON;
+
+let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
+let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
+let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
+let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
+let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
+let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
 export async function addUnitTest(versionIteratorId : string, title : string, folder : string, device : object, cb) {
     let unit_test : any = {};
@@ -468,22 +481,35 @@ export async function executeUnitTest(
     return batch_uuid;
 }
 
-async function stepsExecutor(steps : Array<any>, iteratorId : string, unitTestId : string, batch_uuid : string, env : string, dispatch : any) : Promise<any> {
+async function stepsExecutor(
+    steps : Array<any>, 
+    iteratorId : string, 
+    unitTestId : string, 
+    batch_uuid : string,
+    env : string, 
+    dispatch : any
+) : Promise<any> {
     let btime = Date.now();
     let success = UNITTEST_RESULT_SUCCESS;
     let errorMessage = "";
     let firstStepUuid = steps.at(0)[field_unittest_step_uuid];
     let recentStepUuid = "";
-    for (let _unit_test_step of steps) {  
+    let index = 0;
+    outerLoop1: for (let _unit_test_step of steps) {  
+        index++;
         let unit_test_step = cloneDeep(_unit_test_step);
         let stepUuid = unit_test_step[field_unittest_step_uuid];
         let project = unit_test_step[unittest_step_project];
         let requestUri = unit_test_step[unittest_step_uri];
+        let method = unit_test_step[unittest_step_method];
         let header = unit_test_step[unittest_step_header];
         let param = unit_test_step[unittest_step_param];
         let pathVariable = unit_test_step[unittest_step_path_variable] ? unit_test_step[unittest_step_path_variable] : {};
         let body = unit_test_step[unittest_step_body];
+        let file = new Object();
         let isContinue = unit_test_step[unittest_step_continue];
+
+        let breakFlg = true;
 
         //不继续了，且不是最后一步，结果就是未知的，并且记录下最后执行的步骤 uuid，以便于继续执行
         if (!(isContinue == 1) && stepUuid !== firstStepUuid) {
@@ -493,10 +519,9 @@ async function stepsExecutor(steps : Array<any>, iteratorId : string, unitTestId
         recentStepUuid = stepUuid;
 
         let promises : any = {};
-        let method = unit_test_step[unittest_step_method];
         let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unitTestId, stepUuid);
         let envVarTips = new RequestSendTips();
-        envVarTips.init(project, env, dispatch, env_vars => {});
+        envVarTips.init(project, env, iteratorId, dispatch, env_vars => {});
         let requestHost = await envVarTips.getHostAsync();
         let url = requestHost + requestUri;
 
@@ -507,19 +532,34 @@ async function stepsExecutor(steps : Array<any>, iteratorId : string, unitTestId
                 if (_key === CONTENT_TYPE) {
                     contentType = header[_key];
                 }
-                let jsonParamTips = new JsonParamTips(project, header[_key], dispatch);
+                let jsonParamTips = new JsonParamTips(project, iteratorId, header[_key], dispatch);
                 jsonParamTips.setEnv(env);
-                header[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                try {
+                    header[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                } catch (error) {
+                    errorMessage = error.message;
+                    success = UNITTEST_RESULT_FAILURE;
+                    break outerLoop1;
+                }
             }
         }
+
         if (Object.keys(pathVariable).length > 0) {
             for (let _key in pathVariable) {
-                let jsonParamTips = new JsonParamTips(project, pathVariable[_key], dispatch);
+                let jsonParamTips = new JsonParamTips(project, iteratorId, pathVariable[_key], dispatch);
                 jsonParamTips.setEnv(env);
-                let value = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
-                url = url.replaceAll("{{" + _key + "}}", value);
+                try {
+                    let value = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                    pathVariable[_key] = value;
+                    url = url.replaceAll("{{" + _key + "}}", value);
+                } catch (error) {
+                    errorMessage = error.message;
+                    success = UNITTEST_RESULT_FAILURE;
+                    break outerLoop1;
+                }
             }
         }
+
         if (Object.keys(body).length > 0) {
             for (let _key in body) {
                 if (contentType === CONTENT_TYPE_FORMDATA) {
@@ -527,6 +567,7 @@ async function stepsExecutor(steps : Array<any>, iteratorId : string, unitTestId
                     if (getType(body[_key]) === "Object") {
                         let path = body[_key].path;
                         promises[_key] = {};
+                        file[_key] = cloneDeep(body[_key]);
                         promises[_key].promise = new Promise((resolve, reject) => {
                             promises[_key].listener = window.electron.ipcRenderer.on(ChannelsReadFileStr, (key, path, blob) => {
                                 if (key === _key) {
@@ -538,23 +579,42 @@ async function stepsExecutor(steps : Array<any>, iteratorId : string, unitTestId
                             window.electron.ipcRenderer.sendMessage(ChannelsReadFileStr, _key, path);
                         });
                     } else {
-                        let jsonParamTips = new JsonParamTips(project, body[_key], dispatch);
+                        let jsonParamTips = new JsonParamTips(project, iteratorId, body[_key], dispatch);
                         jsonParamTips.setEnv(env);
-                        body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                        try {
+                            body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                        } catch (error) {
+                            errorMessage = error.message;
+                            success = UNITTEST_RESULT_FAILURE;
+                            break outerLoop1;
+                        }
                     }
                 } else {
-                    let jsonParamTips = new JsonParamTips(project, body[_key], dispatch);
+                    let jsonParamTips = new JsonParamTips(project, iteratorId, body[_key], dispatch);
                     jsonParamTips.setEnv(env);
-                    body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                    try {
+                        body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                    } catch (error) {
+                        errorMessage = error.message;
+                        success = UNITTEST_RESULT_FAILURE;
+                        break outerLoop1;
+                    }
                 }
 
             }
         }
+
         if (Object.keys(param).length > 0) {
             for (let _key in param) {
-                let jsonParamTips = new JsonParamTips(project, param[_key], dispatch);
+                let jsonParamTips = new JsonParamTips(project, iteratorId, param[_key], dispatch);
                 jsonParamTips.setEnv(env);
-                param[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                try {
+                    param[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
+                } catch (error) {
+                    errorMessage = error.message;
+                    success = UNITTEST_RESULT_FAILURE;
+                    break outerLoop1;
+                }
             }
         }
 
@@ -618,15 +678,49 @@ async function stepsExecutor(steps : Array<any>, iteratorId : string, unitTestId
             }
         }
         let executorEtime = Date.now();
-
-        let breakFlg = true;
-        let responseData = {};
         let assertLeftValue : any[] = [];
         let assertRightValue : any[] = [];
 
-        if (response !== null && isStringEmpty(errorMessage)) {
-            if (isJsonString(JSON.stringify(response.data)) || (response.headers[CONTENT_TYPE] && response.headers[CONTENT_TYPE].toString().indexOf(CONTENT_TYPE_JSON) >= 0)) {
-                responseData = response.data;
+        let isResponseJson = false;
+        let isResponseHtml = false;
+        let isResponsePic = false;
+        let isResponseFile = false;
+        let content = "";
+        
+        if(response !== null && isStringEmpty(errorMessage)) {
+            console.log(response);
+            if (response.headers['content-type'] && response.headers['content-type'].toString().indexOf(CONTENT_TYPE_HTML) >= 0) {
+                isResponseHtml = true;
+                content = response.data;
+                breakFlg = false;
+            } else if (
+                response.headers['content-type'] && (
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_JPG) >= 0 || 
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_PNG) >= 0 || 
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_GIF) >= 0 || 
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_WEBP) >= 0 
+                )) {
+                    isResponsePic = true;
+                    content = url;
+                    breakFlg = false;
+            } else if (
+                response.headers['content-type'] && (
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_GZIP1) >= 0 || 
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_GZIP2) >= 0 || 
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_ZIP) >= 0 || 
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_TAR) >= 0 ||
+                response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_STREAM) >= 0
+                )) {
+                    isResponseFile = true;
+                    content = "[!返回了一个文件]";
+                    breakFlg = false;
+            } else if (
+                (response.headers['content-type'] && response.headers['content-type'].toString().indexOf(CONTENT_TYPE_JSON) >= 0) || 
+                isJsonString(JSON.stringify(response.data))
+            ) {
+                isResponseJson = true;
+                breakFlg = false;
+                content = JSON.stringify(response.data);
 
                 for (let _key in unitTestAsserts) {
                     let keyNumber = Number(_key) as number;
@@ -636,13 +730,25 @@ async function stepsExecutor(steps : Array<any>, iteratorId : string, unitTestId
                     let assertRight = unitTestAssert[unittest_step_assert_right];
                     let assertOperator = unitTestAssert[unittest_step_assert_operator];
     
-                    let leftJsonParamTips = new JsonParamTips(project, assertLeft, dispatch);
+                    let leftJsonParamTips = new JsonParamTips(project, iteratorId, assertLeft, dispatch);
                     leftJsonParamTips.setEnv(env);
-                    assertLeftValue[keyNumber] = await leftJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.data, iteratorId, unitTestId, batch_uuid);
+                    try {
+                        assertLeftValue[keyNumber] = await leftJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.data, iteratorId, unitTestId, batch_uuid);
+                    } catch (error) {
+                        errorMessage = error.message;
+                        breakFlg = true;
+                        break;
+                    }
     
-                    let rightJsonParamTips = new JsonParamTips(project, assertRight, dispatch);
+                    let rightJsonParamTips = new JsonParamTips(project, iteratorId, assertRight, dispatch);
                     rightJsonParamTips.setEnv(env);
-                    assertRightValue[keyNumber] = await rightJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.data, iteratorId, unitTestId, batch_uuid);
+                    try {
+                        assertRightValue[keyNumber] = await rightJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.data, iteratorId, unitTestId, batch_uuid);
+                    } catch (error) {
+                        errorMessage = error.message;
+                        breakFlg = true;
+                        break;
+                    }
 
                     if (typeof assertLeftValue[keyNumber] === "number") {
                         assertLeftValue[keyNumber] = assertLeftValue[keyNumber].toString();
@@ -669,28 +775,27 @@ async function stepsExecutor(steps : Array<any>, iteratorId : string, unitTestId
                     }
                 }
             } else {
+                content = response.data;
                 breakFlg = false;
             }
         }
-
-        let unit_test_executor : any = {};
-        unit_test_executor[unittest_executor_batch] = batch_uuid;
-        unit_test_executor[unittest_executor_iterator] = iteratorId;
-        unit_test_executor[unittest_executor_unittest] = unitTestId;
-        unit_test_executor[unittest_executor_step] = stepUuid;
-        unit_test_executor[unittest_executor_url] = url;
-        unit_test_executor[unittest_executor_header] = header;
-        unit_test_executor[unittest_executor_param] = param;
-        unit_test_executor[unittest_executor_path_variable] = pathVariable;
-        unit_test_executor[unittest_executor_body] = body;
-        unit_test_executor[unittest_executor_response] = responseData;
-        unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
-        unit_test_executor[unittest_executor_assert_right] = assertRightValue;
-        unit_test_executor[unittest_executor_result] = !breakFlg;
-        unit_test_executor[unittest_executor_cost_time] = executorEtime - executorBtime;
-        unit_test_executor[unittest_executor_delFlg] = 0;
-        unit_test_executor[unittest_executor_ctime] = Date.now();
-        await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
+        addRequestHistory(env, project, requestUri, method, 
+            header, body, pathVariable, param, file, 
+            content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile, async requestHistoryId => {
+            let unit_test_executor : any = {};
+            unit_test_executor[unittest_executor_batch] = batch_uuid;
+            unit_test_executor[unittest_executor_iterator] = iteratorId;
+            unit_test_executor[unittest_executor_unittest] = unitTestId;
+            unit_test_executor[unittest_executor_step] = stepUuid;
+            unit_test_executor[unittest_executor_history_id] = requestHistoryId;
+            unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
+            unit_test_executor[unittest_executor_assert_right] = assertRightValue;
+            unit_test_executor[unittest_executor_result] = !breakFlg;
+            unit_test_executor[unittest_executor_cost_time] = executorEtime - executorBtime;
+            unit_test_executor[unittest_executor_delFlg] = 0;
+            unit_test_executor[unittest_executor_ctime] = Date.now();
+            await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
+        });
 
         //遇到错误结束
         if (breakFlg) {
@@ -733,6 +838,26 @@ export async function getSingleExecutorStep(iteratorId : string, unittestId : st
     .where([unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, unittest_executor_step])
     .equals([iteratorId, unittestId, batchId, stepId])
     .first();
+
+    if (unitTestStep === undefined || unitTestStep[unittest_executor_delFlg] === 1) {
+        return null;
+    }
+
+    let historyId = unitTestStep[unittest_executor_history_id];
+
+    let historyRecord = await getRequestHistory(historyId);
+
+    if (historyRecord === null) {
+        return null;
+    }
+
+    unitTestStep[request_history_uri] = historyRecord[request_history_uri];
+    unitTestStep[request_history_response] = historyRecord[request_history_response];
+    unitTestStep[request_history_body] = historyRecord[request_history_body];
+    unitTestStep[request_history_jsonFlg] = historyRecord[request_history_jsonFlg];
+    unitTestStep[request_history_param] = historyRecord[request_history_param];
+    unitTestStep[request_history_header] = historyRecord[request_history_header];
+    unitTestStep[request_history_path_variable] = historyRecord[request_history_path_variable];
 
     return unitTestStep;
 }

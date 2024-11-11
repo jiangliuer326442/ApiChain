@@ -1,8 +1,10 @@
 import { 
     TABLE_VERSION_ITERATION_REQUEST_NAME, 
+    TABLE_PROJECT_REQUEST_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS 
 } from '../../config/db';
 import { isStringEmpty } from '../util';
+import { getProjectRequests } from './project_request';
 
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -31,6 +33,8 @@ let iteration_request_cuname = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CUNA
 let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
 let iteration_request_ctime = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CTIME;
 
+let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
+
 export async function getVersionIteratorRequest(iteration_uuid : string, project : string, method : string, uri : string) {
     let version_iteration_request = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
     .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])
@@ -55,6 +59,22 @@ export async function delVersionIteratorRequest(record, cb) {
         await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
         cb();
     }
+}
+
+export async function getUnitTestRequests(project : string, iteration_uuid : string, uri : string) {
+    let uris = new Set();
+    let requests = await getVersionIteratorRequestsByProject(iteration_uuid, project, null, "", uri);
+    for (let _request of requests) {
+        uris.add(_request[iteration_request_uri]);
+    }
+    let projectRequests = await getProjectRequests(project, null, "", uri);
+    for (let _request of projectRequests) {
+        if (!uris.has(_request[project_request_uri])) {
+            requests.push(_request);
+            uris.add(_request[project_request_uri]);
+        }
+    }
+    return requests;
 }
 
 export async function getVersionIteratorRequestsByProject(iteration_uuid : string, project : string, fold : string | null, title : string, uri : string) {

@@ -44,7 +44,7 @@ export function getdayjs(timestamp : number) : dayjs.Dayjs  {
   return dayjs(timestamp);
 }
 
-export function getType(obj : any) {  
+export function getType(obj : any) {
   return Object.prototype.toString.call(obj).slice(8, -1);  
 }
 
