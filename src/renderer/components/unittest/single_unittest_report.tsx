@@ -11,6 +11,7 @@ import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST
 } from '../../../config/global_config';
+import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
 import {
     TABLE_UNITTEST_FIELDS,
     TABLE_ENV_FIELDS,
@@ -19,14 +20,25 @@ import {
     TABLE_UNITTEST_EXECUTOR_FIELDS,
     TABLE_REQUEST_HISTORY_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
+    TABLE_VERSION_ITERATION_FIELDS,
+    TABLE_ENV_VAR_FIELDS,
 } from '../../../config/db';
+
 import {
     getSingleExecutorReport,
     getSingleExecutorStep,
     getUnitTestStepAsserts,
 } from '../../actions/unittest';
+import {
+    getEnvValues
+} from '../../actions/env_value';
 
 const { Text } = Typography;
+
+let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
+let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
+let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
+let env_var_prj = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
@@ -45,6 +57,8 @@ let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 let unittest_step_title = TABLE_UNITTEST_STEPS_FIELDS.FIELD_TITLE;
 let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
 let unittest_step_request_method = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_METHOD;
+let unittest_step_prj = TABLE_UNITTEST_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
+let unittest_step_uri = TABLE_UNITTEST_STEPS_FIELDS.FIELD_URI;
 
 let unittest_step_assert_title = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TITLE;
 let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
@@ -73,7 +87,7 @@ class SingleUnitTestReport extends Component {
             recentBatchUuid: "",
             recentUnitTestReport: {},
             recentStepResult: [],
-            openFlg: false
+            openFlg: false,
         };
     }
 
@@ -90,9 +104,19 @@ class SingleUnitTestReport extends Component {
         return null;
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    async componentDidUpdate(prevProps, prevState) {
         if (this.props.batchUuid !== prevProps.batchUuid) {
-            this.buildRecentExecutorResult(this.props.iteratorId, this.props.unittestUuid, this.props.batchUuid);
+            let prjs = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.props.iteratorId)[version_iterator_prjs]
+            let promises = []
+            for(let prj of prjs) {
+                promises.push(getEnvValues(prj, this.props.env, this.props.iteratorId, ENV_VALUE_API_HOST, this.props.dispatch, result => {}));
+            }
+            let values = await Promise.all(promises);
+            let hosts : any = {};
+            for (let _value of values) {
+                hosts[_value[0][env_var_prj]] =  _value[0][env_var_pvalue];
+            }
+            this.buildRecentExecutorResult(this.props.iteratorId, this.props.unittestUuid, this.props.batchUuid, hosts);
         }
     }
 
@@ -133,7 +157,7 @@ class SingleUnitTestReport extends Component {
         ];
     }
 
-    buildRecentExecutorResult = async (iteratorId: string, unittestUuid : string, batchUuid : string) => {
+    buildRecentExecutorResult = async (iteratorId: string, unittestUuid : string, batchUuid : string, hosts : any) => {
         //单测报告
         let unitTestReport = await getSingleExecutorReport(iteratorId, unittestUuid, batchUuid);
         let steps = cloneDeep(this.props.unittest[iteratorId].find(row => row[unittest_uuid] === unittestUuid)?.children);
@@ -144,13 +168,14 @@ class SingleUnitTestReport extends Component {
 
             let stepTitle = _step[unittest_step_title];
             let stepSort = _step[unittest_step_sort];
+            let prj = _step[unittest_step_prj];
             let method = _step[unittest_step_request_method];
             let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unittestUuid, stepUuid);
 
             let singleExecutorStep = await getSingleExecutorStep(iteratorId, unittestUuid, batchUuid, stepUuid);
             if (singleExecutorStep !== null) {
                 let historyId = singleExecutorStep[unittest_executor_history_id];
-                let url = singleExecutorStep[request_history_uri];
+                let url = isStringEmpty(hosts[prj]) ? singleExecutorStep[request_history_uri] : hosts[prj] + singleExecutorStep[request_history_uri];
                 let data = {};
                 let response = singleExecutorStep[request_history_response];
                 let assertResult = singleExecutorStep[unittest_executor_result];
@@ -159,6 +184,9 @@ class SingleUnitTestReport extends Component {
                     data = singleExecutorStep[request_history_body];
                 } else if (method === REQUEST_METHOD_GET) {
                     data = singleExecutorStep[request_history_param];
+                }
+                if (Object.keys(data).length === 0) {
+                    data = singleExecutorStep[request_history_path_variable];
                 }
                 let assertLeftArr = singleExecutorStep[unittest_executor_assert_left];
                 let assertRightArr = singleExecutorStep[unittest_executor_assert_right];
@@ -277,6 +305,7 @@ function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
         envs: state.env.list,
+        versionIterators: state['version_iterator'].list,
     }
 }
       

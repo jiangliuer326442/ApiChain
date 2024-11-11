@@ -116,6 +116,7 @@ class UnittestExecutorList extends Component {
                         iteratorId={ this.state.iteratorId }
                         unittestUuid={ this.state.unitTestId }
                         batchUuid={ this.state.batchUuid }
+                        env={ this.state.env }
                         cb={ () => {
                         } }
                     />
