@@ -627,7 +627,7 @@ class RequestSaveContainer extends Component {
 
     getEnvValueData = (prj: string, env: string) => {
         if(!(isStringEmpty(prj) || isStringEmpty(env))) {
-          getEnvValues(prj, env, this.state.iteratorId, "", this.props.dispatch, env_vars => {
+          getEnvValues(prj, env, this.state.iteratorId, "", "", this.props.dispatch, env_vars => {
             if(env_vars.length === 0) {
               message.error("项目和环境已被删除，该请求无法保存到迭代");
               return;

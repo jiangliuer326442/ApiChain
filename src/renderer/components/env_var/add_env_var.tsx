@@ -82,7 +82,7 @@ class AddEnvVarComponent extends Component {
                 type: SHOW_ADD_PROPERTY_MODEL,
                 open: false
             });
-            getEnvValues(this.props.prj, this.props.env, this.props.iteration, "", this.props.dispatch, env_vars => {});
+            getEnvValues(this.props.prj, this.props.env, this.props.iteration, "", "", this.props.dispatch, env_vars => {});
         });
     }
 

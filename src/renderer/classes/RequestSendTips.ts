@@ -65,7 +65,7 @@ export default class {
                 });
                 return;
             }
-            getEnvValues(this.prj, this.env, this.iteration, "", this.dispatch, env_vars => {
+            getEnvValues(this.prj, this.env, this.iteration, "", "", this.dispatch, env_vars => {
                 this.env_vars = env_vars;
                 cb(this.getTipsByEnvVars());
                 this.cb(env_vars);
@@ -87,7 +87,7 @@ export default class {
 
     getHost(cb: (result: string) => void) : void { 
         if (this.env_vars.length === 0) {
-            getEnvValues(this.prj, this.env, this.iteration, "", this.dispatch, env_vars => {
+            getEnvValues(this.prj, this.env, this.iteration, "", "", this.dispatch, env_vars => {
                 this.env_vars = env_vars;
                 cb(this.getApiHost());
             });

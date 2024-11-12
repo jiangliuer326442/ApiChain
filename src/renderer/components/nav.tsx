@@ -33,6 +33,7 @@ class Nav extends Component {
         require('../reducers/db/20240613001');
         require('../reducers/db/20241028001');
         require('../reducers/db/20241111001');
+        require('../reducers/db/20241112001');
 
         this.state = {
           collapsed: false

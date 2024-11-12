@@ -23,6 +23,7 @@ let env_key_ctime = TABLE_ENV_KEY_FIELDS.FIELD_CTIME;
 let env_var_env = TABLE_ENV_VAR_FIELDS.FIELD_ENV_LABEL;
 let env_var_micro_service = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let env_var_iteration = TABLE_ENV_VAR_FIELDS.FIELD_ITERATION;
+let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
@@ -75,7 +76,7 @@ export async function getKeys(prj, iteration) {
     return union(prjKeyArr, iterationKeyArr, globalKeyArr);
 }
 
-export async function getEnvValues(prj, env, iterator, pname, dispatch, cb) : Promise<Array<any>> {
+export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch, cb) : Promise<Array<any>> {
     const env_vars = []; 
 
     // 优先级 迭代+项目 > 迭代 > 项目 > 全局
@@ -85,8 +86,8 @@ export async function getEnvValues(prj, env, iterator, pname, dispatch, cb) : Pr
     let globalKeys = new Set<String>();
     if (iterator && prj) {
         let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + ']')
-        .equals([env, prj, iterator])
+        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+        .equals([env, prj, iterator, ""])
         .filter(row => {
             if (row[env_var_delFlg]) {
                 return false;

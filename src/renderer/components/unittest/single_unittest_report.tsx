@@ -109,7 +109,7 @@ class SingleUnitTestReport extends Component {
             let prjs = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.props.iteratorId)[version_iterator_prjs]
             let promises = []
             for(let prj of prjs) {
-                promises.push(getEnvValues(prj, this.props.env, this.props.iteratorId, ENV_VALUE_API_HOST, this.props.dispatch, result => {}));
+                promises.push(getEnvValues(prj, this.props.env, this.props.iteratorId, "", ENV_VALUE_API_HOST, this.props.dispatch, result => {}));
             }
             let values = await Promise.all(promises);
             let hosts : any = {};

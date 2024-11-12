@@ -21,11 +21,12 @@ export const TABLE_MICRO_SERVICE_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
-export const TABLE_ENV_VAR_NAME = "env_vars_241028001";
+export const TABLE_ENV_VAR_NAME = "env_vars_241112001";
 export const TABLE_ENV_VAR_FIELDS = {
     FIELD_ENV_LABEL : "env",
     FIELD_MICRO_SERVICE_LABEL : "microservices",
     FIELD_ITERATION : "iteration",
+    FIELD_UNITTEST : "unittest",
     FIELD_PARAM_NAME : "param_name",
     FIELD_PARAM_VAR : "param_var",
     FIELD_CUID : "create_uid",

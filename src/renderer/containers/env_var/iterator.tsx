@@ -86,7 +86,7 @@ class EnvVar extends Component {
                   description="确定删除该环境变量吗？"
                   onConfirm={e => {
                       delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", record, ()=>{
-                        getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", this.props.dispatch, env_vars=>{});
+                        getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", "", this.props.dispatch, env_vars=>{});
                       });
                   }}
                   okText="删除"
@@ -160,7 +160,7 @@ class EnvVar extends Component {
         this.setState( { prj, tips } );
       });
       if(!isStringEmpty(env)) {
-        getEnvValues(prj, env, iterator, paramName, this.props.dispatch, env_vars => {
+        getEnvValues(prj, env, iterator, "", paramName, this.props.dispatch, env_vars => {
           if (!paramName) {
             this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
           }
