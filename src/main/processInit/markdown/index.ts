@@ -7,13 +7,17 @@ import {
     setAccess,
     getAccess
 } from '../../store/config/doc';
+import { getIpV4 } from '../../util/util';
 import { isVip } from '../../store/config/vip';
 import { 
+    TABLE_ENV_FIELDS,
+    TABLE_ENV_VAR_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS, 
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
 } from '../../../config/db';
 import { 
+    GLobalPort,
     ChannelsMarkdownStr, 
     ChannelsMarkdownShowStr,
     ChannelsMarkdownQueryStr,
@@ -40,11 +44,18 @@ let version_iterator_content = TABLE_VERSION_ITERATION_FIELDS.FIELD_CONTENT;
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
+let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
+let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
+
+let envvar_env_label = TABLE_ENV_VAR_FIELDS.FIELD_ENV_LABEL;
+let envvar_param_var = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
+
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 let iteration_request_prj = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
@@ -130,7 +141,7 @@ export default function (mainWindow : BrowserWindow){
     });
 
     //查询文档内容
-    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs) => {
+    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs, envs, envVars) => {
         if (action !== ChannelsMarkdownQueryResultStr) return;
         //迭代已经关闭，没有权限
         if (versionIteration === undefined || versionIteration[version_iterator_del] === 1 || versionIteration[version_iterator_open] === 0) {
@@ -165,7 +176,7 @@ export default function (mainWindow : BrowserWindow){
             }
 
             let iteratorTitle = versionIteration[version_iterator_title];
-            let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs);
+            let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs, envs, envVars);
             const data = {
                 code: 1000,
                 message: '',
@@ -186,7 +197,7 @@ export default function (mainWindow : BrowserWindow){
     });
 
     //导出迭代文档
-    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs) => {
+    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs, envs, envVars) => {
         if (action !== ChannelsMarkdownSaveHtmlStr) return;
 
         let iterationTitle = versionIteration[version_iterator_title];
@@ -199,7 +210,7 @@ export default function (mainWindow : BrowserWindow){
             ]
         });
 
-        let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs);
+        let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs, envs, envVars);
 
         let converter = new Showdown.Converter({
             omitExtraWLInCodeBlocks: true,
@@ -222,7 +233,7 @@ export default function (mainWindow : BrowserWindow){
         });
     });
 
-    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs) => {
+    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs, envs, envVars) => {
         if (action !== ChannelsMarkdownSaveMarkdownStr) return;
 
         let iterationTitle = versionIteration[version_iterator_title];
@@ -235,7 +246,7 @@ export default function (mainWindow : BrowserWindow){
             ]
         });
 
-        let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs);
+        let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs, envs, envVars);
         fs.writeFile(filePath, markdownContent, err => {
             if (err != null) {
                 log.error("保存文件到 markdown 失败", err);
@@ -244,19 +255,21 @@ export default function (mainWindow : BrowserWindow){
     });
 
     //展示迭代文档
-    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs) => {
+    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs, envs, envVars) => {
         
         if (action !== ChannelsMarkdownShowStr) return;
 
         let iterationUUID = versionIteration[version_iterator_uuid];
-        let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs);
+        let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs, envs, envVars);
 
         event.reply(ChannelsMarkdownStr, action, iterationUUID, versionIteration[version_iterator_title], markdownContent);
     });
 
 }
 
-function getMarkDownContent(versionIteration, version_iteration_requests, prjs) : string {
+function getMarkDownContent(versionIteration, version_iteration_requests, prjs, envs, envVars : any) : string {
+    let iterationUUID = versionIteration[version_iterator_uuid];
+    let ip = getIpV4();
     let markdownContent = "";
 
     let formattedRequests : any = {};
@@ -283,23 +296,43 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs) 
     markdownContent += versionIteration[version_iterator_content] + "\n\n";
     
     Object.keys(formattedRequests).map(_prj => {
+
+        if (!prjs.find(row => row[prj_label] === _prj)) return;
     
         let _prjName = prjs.find(row => row[prj_label] === _prj)[prj_remark];
     
         //项目
-        markdownContent += "## " + _prjName + "\n\n";
+        markdownContent += "\n## " + _prjName + "\n\n";
+
+        for (let _env of envs) {
+            let selectedEnvVar = envVars[_prj].filter(_envVar => _envVar[envvar_env_label] === _env[env_label]);
+            markdownContent += _env[env_remark] + "：" + selectedEnvVar[0][envvar_param_var] + "\n\n" ;
+        }
+        markdownContent += "mock服务器" + "：" + "http://" + ip + ":" + GLobalPort + "/mockserver/" + iterationUUID + "/" + _prj + "/" + "\n\n" ;
+        markdownContent += "\n";
     
         Object.keys(formattedRequests[_prj]).map(_fold => {
-            //文件夹
-            markdownContent += "### " + " /" + _fold + "\n\n";
+
+            let nextLevel;
+            if (!isStringEmpty(_fold)) {
+                //文件夹
+                markdownContent += "### " + " /" + _fold + "\n\n";
+                nextLevel = "#### ";
+            } else {
+                nextLevel = "### ";
+            }
     
             formattedRequests[_prj][_fold].map(_request => {
     
                 //接口名称
-                markdownContent += "#### " + _request[iteration_request_title] + "\n\n";
+                markdownContent += nextLevel + _request[iteration_request_title] + "\n\n";
     
                 //接口 uri
                 markdownContent +=  "uri：" + _request[iteration_request_method] + " " + _request[iteration_request_uri] + "\n\n";
+
+                if (!isStringEmpty(_request[iteration_request_desc])) {
+                    markdownContent += _request[iteration_request_desc] + "\n\n";
+                }
 
                 let pathVariable = _request[iteration_request_path_variable];
                 if (pathVariable != null && Object.keys(pathVariable).length > 0) {

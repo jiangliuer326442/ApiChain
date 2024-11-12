@@ -13,6 +13,7 @@ let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MIC
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 let iteration_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let iteration_request_header_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_HEADER_HASH;
@@ -37,6 +38,7 @@ let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 let project_request_sort = TABLE_PROJECT_REQUEST_FIELDS.FIELD_SORT;
 let project_request_title = TABLE_PROJECT_REQUEST_FIELDS.FIELD_TITLE;
+let project_request_desc = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DESC;
 let project_request_fold = TABLE_PROJECT_REQUEST_FIELDS.FIELD_FOLD;
 let project_request_header = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let project_request_header_hash = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_HEADER_HASH;
@@ -58,7 +60,7 @@ let project_request_cuname = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CUNAME;
 let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
 let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
-export async function addProjectRequest(project : string, method : string, uri : string, title : string, fold : string,
+export async function addProjectRequest(project : string, method : string, uri : string, title : string, desc : string, fold : string,
     header : object, headerHash : string, body : object, bodyHash : string, param : object, paramHash : string, pathVariable : object, pathVariableHash : string, response : object, responseHash : string, responseDemo : string,
     jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean, device : object) {
     let existedProjectRequest = await window.db[TABLE_PROJECT_REQUEST_NAME]
@@ -72,6 +74,7 @@ export async function addProjectRequest(project : string, method : string, uri :
         projectRequest[project_request_method] = method;
         projectRequest[project_request_uri] = uri;
         projectRequest[project_request_title] = title;
+        projectRequest[project_request_desc] = desc;
         projectRequest[project_request_fold] = fold;
         projectRequest[project_request_header] = header;
         projectRequest[project_request_header_hash] = headerHash;
@@ -95,6 +98,8 @@ export async function addProjectRequest(project : string, method : string, uri :
         await window.db[TABLE_PROJECT_REQUEST_NAME].put(projectRequest);
     } else {
         //存在判断是否需要更新
+        existedProjectRequest[project_request_title] = title;
+        existedProjectRequest[project_request_desc] = desc;
         existedProjectRequest[project_request_header] = header;
         existedProjectRequest[project_request_header_hash] = headerHash;
         existedProjectRequest[project_request_body] = body;
@@ -137,6 +142,7 @@ export async function addProjectRequestFromVersionIterator(version_iteration_req
         projectRequest[project_request_method] = version_iteration_request[iteration_request_method];
         projectRequest[project_request_uri] = version_iteration_request[iteration_request_uri];
         projectRequest[project_request_title] = version_iteration_request[iteration_request_title];
+        projectRequest[project_request_desc] = version_iteration_request[iteration_request_desc];
         projectRequest[project_request_fold] = foldName;
         projectRequest[project_request_header] = version_iteration_request[iteration_request_header];
         projectRequest[project_request_header_hash] = version_iteration_request[iteration_request_header_hash];
@@ -247,7 +253,7 @@ export async function getProjectRequests(project : string, fold : string | null,
     .equals([ 0, project ])
     .filter(row => {
         if (!isStringEmpty(title)) {
-            if (row[project_request_title].indexOf(title) < 0) {
+            if (row[project_request_title].indexOf(title) < 0 && row[project_request_desc].indexOf(title) < 0) {
                 return false;
             }
         }
@@ -295,10 +301,11 @@ export async function delProjectRequest(record, cb) {
 
 export async function editProjectRequest(
     project : string, method : string, uri : string, 
-    title: string, fold: string, header: object, body: object, param: object, pathVariable: object, response: object
+    title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, response: object
 ) {
     let project_request = await getProjectRequest(project, method, uri);
     project_request[project_request_title] = title;
+    project_request[project_request_desc] = desc;
     project_request[project_request_fold] = fold;
     project_request[project_request_header] = header;
     project_request[project_request_body] = body;

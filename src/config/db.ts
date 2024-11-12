@@ -107,6 +107,7 @@ export const TABLE_VERSION_ITERATION_REQUEST_FIELDS = {
     FIELD_ITERATOR_UUID : "iterator_uuid",
     FIELD_MICRO_SERVICE_LABEL : "microservices",
     FIELD_TITLE : "title",
+    FIELD_DESC : "description",
     FIELD_SORT : "sort",
     FIELD_FOLD : "fold",
     FIELD_URI : "uri",
@@ -136,6 +137,7 @@ export const TABLE_PROJECT_REQUEST_NAME = "project_request";
 export const TABLE_PROJECT_REQUEST_FIELDS = {
     FIELD_PROJECT_LABEL : "project",
     FIELD_TITLE : "title",
+    FIELD_DESC : "description",
     FIELD_SORT : "sort",
     FIELD_FOLD : "fold",
     FIELD_URI : "uri",

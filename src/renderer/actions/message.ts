@@ -1,6 +1,11 @@
 import IDBExportImport from 'indexeddb-export-import';
 
 import { 
+    TABLE_VERSION_ITERATION_FIELDS,
+    TABLE_MICRO_SERVICE_FIELDS,
+} from '../../config/db';
+import { ENV_VALUE_API_HOST } from '../../config/envKeys';
+import { 
     ChannelsMarkdownStr,
     ChannelsDbStr, 
     ChannelsDbExportStr,
@@ -15,12 +20,16 @@ import {
     ChannelsMockServerQueryStr,
     ChannelsMockServerQueryResultStr,
 } from '../../config/global_config';
+import { SET_DEVICE_INFO } from '../../config/redux';
 
+import { getVarsByKey } from '../actions/env_value';
 import { getPrjs } from '../actions/project';
+import { getEnvs } from '../actions/env';
 import { getVersionIterator } from '../actions/version_iterator';
 import { getVersionIteratorRequestsByProject } from '../actions/version_iterator_requests';
 
-import { SET_DEVICE_INFO } from '../../config/redux';
+let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
+let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 
 /**
  * 处理消息通用类
@@ -65,9 +74,21 @@ export default function(dispatch, cb) : void {
         window.electron.ipcRenderer.on(ChannelsMarkdownStr, async (action, iteratorId) => {
             if (action !== ChannelsMarkdownQueryStr) return;
             let prjs = await getPrjs(null);
+            let envs = await getEnvs(null);
             let versionIteration = await getVersionIterator(iteratorId);
             let requests = await getVersionIteratorRequestsByProject(iteratorId, "", null, "", "");
-            window.electron.ipcRenderer.sendMessage(ChannelsMarkdownStr, ChannelsMarkdownQueryResultStr, versionIteration, requests, prjs);
+
+            let versionIterationPrjs = versionIteration[version_iterator_projects];
+            prjs = prjs.filter(_prj => versionIterationPrjs.includes(_prj[prj_label]));
+
+            let envVars : any = {};
+            for (let _prj of prjs) {
+                let projectLabel = _prj[prj_label];
+                const envVarItems = await getVarsByKey(projectLabel, ENV_VALUE_API_HOST);
+                envVars[projectLabel] = envVarItems;
+            }
+
+            window.electron.ipcRenderer.sendMessage(ChannelsMarkdownStr, ChannelsMarkdownQueryResultStr, versionIteration, requests, prjs, envs, envVars);
         });
 
         //刷迭代接口

@@ -89,7 +89,7 @@ class Vip extends Component {
         let mockServers = [];
         for (let project of projects) {
             let serviceName = this.props.prjs.find(row => row[prj_label] === project)[prj_remark];
-            let url = "http://" + props.ip + ":" + GLobalPort + "/mockserver/" + iteratorId + "/" + project;
+            let url = "http://" + props.ip + ":" + GLobalPort + "/mockserver/" + iteratorId + "/" + project + "/";
             let mockUrl = <Text copyable={{text: url}}>{ url }</Text>
             mockServers.push({key: project,serviceName, mockUrl});
         }

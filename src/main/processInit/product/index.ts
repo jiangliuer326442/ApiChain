@@ -1,3 +1,7 @@
+/**
+ * 拿到产品名称和版本号
+ */
+
 import fs from 'fs-extra';
 import { ipcMain, IpcMainEvent } from 'electron';
 import { getPackageJson, getIpV4, resolveHtmlPath } from '../../util/util';

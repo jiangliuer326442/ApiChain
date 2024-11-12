@@ -10,6 +10,7 @@ let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FI
 let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_sort = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_SORT;
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
@@ -83,7 +84,7 @@ export async function getVersionIteratorRequestsByProject(iteration_uuid : strin
     .equals([ 0, iteration_uuid ])
     .filter(row => {
         if (!isStringEmpty(title)) {
-            if (row[iteration_request_title].indexOf(title) < 0) {
+            if (row[iteration_request_title].indexOf(title) < 0 && row[iteration_request_desc].indexOf(title) < 0) {
                 return false;
             }
         }
@@ -123,7 +124,7 @@ export async function getVersionIteratorRequestsByProject(iteration_uuid : strin
 export async function editVersionIteratorRequest(
     initMethod : string, initUri : string,
     iteration_uuid : string, project : string, method : string, uri : string, 
-    title: string, fold: string, header: object, body: object, param: object, pathVariable: object, response: object
+    title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, response: object
 ) {
     window.db.transaction('rw',
         window.db[TABLE_VERSION_ITERATION_REQUEST_NAME],
@@ -132,6 +133,7 @@ export async function editVersionIteratorRequest(
             if (initMethod === method && initUri === uri) {
                 let version_iteration_request = await getVersionIteratorRequest(iteration_uuid, project, method, uri);
                 version_iteration_request[iteration_request_title] = title;
+                version_iteration_request[iteration_request_desc] = desc;
                 version_iteration_request[iteration_request_fold] = fold;
                 version_iteration_request[iteration_request_header] = header;
                 version_iteration_request[iteration_request_body] = body;
@@ -151,6 +153,7 @@ export async function editVersionIteratorRequest(
                 version_iteration_request[iteration_request_method] = method;
                 version_iteration_request[iteration_request_uri] = uri;
                 version_iteration_request[iteration_request_title] = title;
+                version_iteration_request[iteration_request_desc] = desc;
                 version_iteration_request[iteration_request_fold] = fold;
                 version_iteration_request[iteration_request_header] = header;
                 version_iteration_request[iteration_request_body] = body;
@@ -169,16 +172,17 @@ export async function editVersionIteratorRequest(
 
 export async function addVersionIteratorRequest(
     iteration_uuid : string, project : string, method : string, uri : string, 
-    title: string, fold: string, 
+    title: string, desc: string, fold: string, 
     header: object, headerHash: string, body: object, bodyHash: string, param: object, paramHash: string, pathVariable: object, pathVariableHash: string, response: object, responseHash: string, response_demo: object,
     json_flg: boolean, html_flg: boolean, pic_flg: boolean, file_flg: boolean,
-    device) {
+    device : any) {
     let version_iteration_request : any = {};
     version_iteration_request[iteration_request_iteration_uuid] = iteration_uuid;
     version_iteration_request[iteration_request_project] = project;
     version_iteration_request[iteration_request_method] = method;
     version_iteration_request[iteration_request_uri] = uri;
     version_iteration_request[iteration_request_title] = title;
+    version_iteration_request[iteration_request_desc] = desc;
     version_iteration_request[iteration_request_fold] = fold;
     version_iteration_request[iteration_request_header] = header;
     version_iteration_request[iteration_request_header_hash] = headerHash;

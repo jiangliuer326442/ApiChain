@@ -63,6 +63,7 @@ import JsonSaveBodyTableContainer from "../../components/request_save/json_save_
 import JsonSaveHeaderTableContainer from "../../components/request_save/json_save_table_header";
 import JsonSaveResponseTableComponent from "../../components/request_save/json_save_table_response";
 
+const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
 
 let request_history_env = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ENV_LABEL;
@@ -81,6 +82,7 @@ let request_history_picFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_PICFLG;
 let request_history_fileFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_FILEFLG;
 
 let version_iterator_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let version_iterator_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let version_iterator_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 let version_iterator_request_jsonflg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_JSONFLG;
 let version_iterator_request_htmlflg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_HTMLFLG;
@@ -93,6 +95,7 @@ let version_iterator_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIE
 let version_iterator_request_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
 
 let project_request_title = TABLE_PROJECT_REQUEST_FIELDS.FIELD_TITLE;
+let project_request_desc = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DESC;
 let project_request_fold = TABLE_PROJECT_REQUEST_FIELDS.FIELD_FOLD;
 let project_request_jsonflg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_JSONFLG;
 let project_request_picflg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PICFLG;
@@ -134,6 +137,7 @@ class RequestSaveContainer extends Component {
             prj : null,
             env : "",
             title : "",
+            description: "",
             requestHost: "",
             requestUri: "",
             requestMethod: "",
@@ -245,6 +249,7 @@ class RequestSaveContainer extends Component {
                         prj,
                         env: record[request_history_env],
                         title: versionIterationRequest[version_iterator_request_title],
+                        description: versionIterationRequest[version_iterator_request_desc],
                         selectedFolder: versionIterationRequest[version_iterator_request_fold],
                         requestUri: uri,
                         requestMethod: method,
@@ -318,6 +323,7 @@ class RequestSaveContainer extends Component {
                         prj,
                         env: record[request_history_env],
                         title: projectRequest[project_request_title],
+                        description: projectRequest[project_request_desc],
                         selectedFolder: projectRequest[project_request_fold],
                         requestUri: uri,
                         requestMethod: method,
@@ -497,7 +503,7 @@ class RequestSaveContainer extends Component {
 
             //新增迭代接口
             await addVersionIteratorRequest(this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri,
-                this.state.title, this.state.selectedFolder, 
+                this.state.title, this.state.description, this.state.selectedFolder, 
                 this.state.formRequestHeadData, this.state.requestHeaderHash, 
                 this.state.formRequestBodyData, this.state.requestBodyHash, 
                 this.state.formRequestParamData, this.state.requestParamHash, 
@@ -513,7 +519,7 @@ class RequestSaveContainer extends Component {
             if (isStringEmpty(this.state.iteratorId)){
                 //编辑项目接口
                 await addProjectRequest(this.state.prj, this.state.requestMethod, this.state.requestUri,
-                    this.state.title, this.state.selectedFolder,
+                    this.state.title, this.state.description, this.state.selectedFolder,
                     this.state.formRequestHeadData, this.state.requestHeaderHash, 
                     this.state.formRequestBodyData, this.state.requestBodyHash, 
                     this.state.formRequestParamData, this.state.requestParamHash, 
@@ -527,7 +533,7 @@ class RequestSaveContainer extends Component {
             } else {
                 //编辑迭代接口
                 await addVersionIteratorRequest(this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri,
-                    this.state.title, this.state.selectedFolder, 
+                    this.state.title, this.state.description, this.state.selectedFolder, 
                     this.state.formRequestHeadData, this.state.requestHeaderHash, 
                     this.state.formRequestBodyData, this.state.requestBodyHash, 
                     this.state.formRequestParamData, this.state.requestParamHash, 
@@ -779,6 +785,7 @@ class RequestSaveContainer extends Component {
                                 onClick={ this.handleSave }
                                 >保存</Button>
                         </Flex>
+                        <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
                         <Divider orientation="left">响应</Divider>
                         <Flex>

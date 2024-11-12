@@ -36,6 +36,7 @@ import { editVersionIteratorRequest, getVersionIteratorRequest } from '../../act
 import { editProjectRequest, getProjectRequest } from '../../actions/project_request';
 import JsonSaveTableComponent from "../../components/request_save/json_save_table";
 
+const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
@@ -52,12 +53,14 @@ let iteration_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIE
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 let iteration_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_iteration_uname = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CUNAME;
 let iteration_request_iteration_ctime = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CTIME;
 let iteration_response_demo = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_DEMO;
 
 let project_request_title = TABLE_PROJECT_REQUEST_FIELDS.FIELD_TITLE;
+let project_request_desc = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DESC;
 let project_request_fold = TABLE_PROJECT_REQUEST_FIELDS.FIELD_FOLD;
 let project_request_header = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let project_request_body = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_BODY;
@@ -82,6 +85,7 @@ class RequestSaveContainer extends Component {
         this.state = {
             prj : props.match.params.prj,
             title : "",
+            description: "",
             requestHost: "",
             initRequestUri: decode(props.match.params.uri),
             initRequestMethod: props.match.params.method,
@@ -123,6 +127,7 @@ class RequestSaveContainer extends Component {
             this.setState({
                 showFlg: true,
                 title: record[project_request_title],
+                description: record[project_request_desc],
                 selectedFolder: record[project_request_fold],
                 isResponseJson: record[project_request_jsonFlg],
                 isResponseHtml: record[project_request_htmlFlg],
@@ -142,6 +147,7 @@ class RequestSaveContainer extends Component {
             this.setState({
                 showFlg: true,
                 title: record[iteration_request_title],
+                description: record[iteration_request_desc],
                 versionIterator: record[iteration_request_iteration_uuid],
                 selectedFolder: record[iteration_request_fold],
                 isResponseJson: record[iteration_request_jsonFlg],
@@ -194,7 +200,7 @@ class RequestSaveContainer extends Component {
         }
         if (isStringEmpty(this.state.versionIterator)){
             await editProjectRequest(this.state.prj, this.state.requestMethod, this.state.requestUri,
-                this.state.title, this.state.selectedFolder, 
+                this.state.title, this.state.description, this.state.selectedFolder, 
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
                 this.state.formResponseData
             );
@@ -202,7 +208,7 @@ class RequestSaveContainer extends Component {
             await editVersionIteratorRequest(
                 this.state.initRequestMethod, this.state.initRequestUri, 
                 this.state.versionIterator, this.state.prj, this.state.requestMethod, this.state.requestUri,
-                this.state.title, this.state.selectedFolder, 
+                this.state.title, this.state.description, this.state.selectedFolder, 
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
                 this.state.formResponseData
             );
@@ -375,6 +381,7 @@ class RequestSaveContainer extends Component {
                                 href={this.state.versionIterator ? "#/internet_request_send_by_api/" + this.state.versionIterator + "/" + this.state.prj + "/" + this.state.initRequestMethod + "/" + encode(this.state.initRequestUri) : "#/internet_request_send_by_api/" + this.state.prj + "/" + this.state.initRequestMethod + "/" + encode(this.state.initRequestUri)}
                                 >发送请求</Button>
                         </Flex>
+                        <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
                         {this.state.isResponseJson ? 
                         <>

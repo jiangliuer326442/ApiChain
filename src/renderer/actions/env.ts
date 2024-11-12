@@ -14,10 +14,13 @@ export async function getEnvs(dispatch) {
     .reverse()
     .toArray();
 
-    dispatch({
-        type: GET_ENVS,
-        envs
-    });
+    if (dispatch !== null) {
+        dispatch({
+            type: GET_ENVS,
+            envs
+        });
+    }
+    return envs;
 }
 
 export async function delEnv(row, cb) {

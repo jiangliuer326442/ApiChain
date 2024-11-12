@@ -79,6 +79,13 @@ const startServer = (cb) => {
         let method = req.method;
         getRequestByIterator(iteratorId, project, method, uri, res);
       });
+      app.post('/mockserver/:iteratorId/:project/*', (req, res) => {
+        let iteratorId = req.params.iteratorId;
+        let project = req.params.project;
+        let uri = req.originalUrl.split("/").slice(4).join("/");
+        let method = req.method;
+        getRequestByIterator(iteratorId, project, method, uri, res);
+      });
       app.post('/sprint/docs', (req, res) => {
         let iteratorId = req.body.iteratorId;
         getMarkdownContentByIteratorId(iteratorId, res);

@@ -32,8 +32,8 @@ let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 export async function getVarsByKey(prj, pname) {
     const envVarItems = await db[TABLE_ENV_VAR_NAME]
-    .where('[' + env_var_micro_service + '+' + env_var_pname + ']')
-    .equals([prj, pname]).toArray();
+    .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_pname + ']')
+    .equals([prj, "", pname]).toArray();
     return envVarItems;
 }
 
