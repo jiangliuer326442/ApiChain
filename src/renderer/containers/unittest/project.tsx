@@ -11,7 +11,7 @@ import {
     MergeOutlined, 
     DeleteOutlined, 
     MoreOutlined, 
-    CarryOutOutlined 
+    AppstoreOutlined,
 } from '@ant-design/icons';
 
 import { 
@@ -34,8 +34,8 @@ import {
     getProjectUnitTests, 
     delUnitTest, 
     delUnitTestStep,
-    executeUnitTest,
-    continueExecuteUnitTest,
+    executeProjectUnitTest,
+    continueProjectExecuteUnitTest,
     copyFromIteratorToProject,
     copyFromProjectToIterator,
 } from '../../actions/unittest';
@@ -45,6 +45,7 @@ import AddUnittestComponent from '../../components/unittest/add_unittest';
 const { Header, Content, Footer } = Layout;
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
+let unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
@@ -126,6 +127,7 @@ class UnittestListVersion extends Component {
                     title: '操作',
                     dataIndex: 'operater',
                     render: (_, record) => {
+                        let iteratorId = record[unittest_iterator];
                         //整体
                         if (record[unittest_folder] !== undefined) {
                             let unittestUuid = record[unittest_uuid];
@@ -141,7 +143,7 @@ class UnittestListVersion extends Component {
                                             unittestUuid: "",
                                             batchUuid: "",
                                         })
-                                        let batchUuid = await executeUnitTest(iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch);
+                                        let batchUuid = await executeProjectUnitTest(iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch);
                                         this.setState({ unittestUuid, batchUuid})
                                     }}>执行用例</Button>
                                     {record.result !== undefined ? 
@@ -169,7 +171,7 @@ class UnittestListVersion extends Component {
                                             batchUuid: "",
                                         });
 
-                                        let batchUuid = await continueExecuteUnitTest(iteratorId, valueUnittestStepUnittestUuid, record[unittest_report_batch], valueUnittestReportStep, record[unittest_report_env], this.props.dispatch);
+                                        let batchUuid = await continueProjectExecuteUnitTest(iteratorId, valueUnittestStepUnittestUuid, record[unittest_report_batch], valueUnittestReportStep, record[unittest_report_env], this.props.dispatch);
 
                                         this.setState({
                                             unittestUuid: valueUnittestStepUnittestUuid,
@@ -183,7 +185,7 @@ class UnittestListVersion extends Component {
                                         description="确定删除该步骤吗？"
                                         onConfirm={e => {
                                             delUnitTestStep(valueUnittestStepUuid, ()=>{
-                                                getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+                                                getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
                                             });
                                         }}
                                         okText="删除"
@@ -234,32 +236,16 @@ class UnittestListVersion extends Component {
         if (record[unittest_folder] !== undefined) {
             return {'items': [{
                 key: "1",
-                label: <Button type="link" icon={<CarryOutOutlined />} href={ "#/version_iterator_tests_step_add/" + this.state.iteratorId + "/" + record[unittest_uuid] }>添加步骤</Button>
-            },{
-                key: "2",
                 label: (record[unittest_collectFlg] ? 
                     <Button type='text' icon={<MergeOutlined />} onClick={()=>this.undoExportUnitTestClick(record)}>从项目移除</Button> 
                 : 
                     <Button type='text' icon={<MergeOutlined />} onClick={()=>this.exportUnitTestClick(record)}>导出到项目</Button>),
             },{
-                key: "3",
+                key: "2",
                 label: <Button type='text' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>编辑</Button>,
             },{
-                key: "4",
-                danger: true,
-                label:  <Popconfirm
-                            title="删除测试用例"
-                            description="确定删除该测试用例吗？"
-                            onConfirm={e => {
-                                delUnitTest(record, ()=>{
-                                    getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
-                                });
-                            }}
-                            okText="删除"
-                            cancelText="取消"
-                            >
-                            <Button danger type="link" icon={<DeleteOutlined />}>删除</Button>
-                        </Popconfirm>,
+                key: "3",
+                label: <Button type='text' icon={<AppstoreOutlined />} onClick={()=>this.editUnitTestClick(record)}>环境变量</Button>,
             }]};
         } else {
             return {'items': [] };
@@ -268,7 +254,7 @@ class UnittestListVersion extends Component {
 
     setEnvironmentChange = (value: string) => {
         this.setState({env: value});
-        getIterationUnitTests(this.state.iteratorId, value, this.props.dispatch);
+        getProjectUnitTests(this.state.project, value, this.props.dispatch);
     }
 
     undoExportUnitTestClick = (record) => {
@@ -276,7 +262,7 @@ class UnittestListVersion extends Component {
         let unittestId = record[unittest_uuid];
         copyFromProjectToIterator(iteratorId, unittestId, ()=>{
             message.success("已成功从项目删除该单测");
-            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+            getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
         });
     }
 
@@ -285,7 +271,7 @@ class UnittestListVersion extends Component {
         let unittestId = record[unittest_uuid];
         copyFromIteratorToProject(iteratorId, unittestId, ()=>{
             message.success("导出单测到项目成功");
-            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+            getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
         });
     }
 
@@ -343,10 +329,10 @@ class UnittestListVersion extends Component {
                         env={ this.state.env }
                         cb={ () => {
                             this.setState({executeFlg: true});
-                            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+                            getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
                         } }
                         />
-                    <Table columns={this.state.column} dataSource={this.props.unittest[this.state.iteratorId] ? this.props.unittest[this.state.iteratorId] : []} />
+                    <Table columns={this.state.column} dataSource={this.props.unittest[this.state.project] ? this.props.unittest[this.state.project] : []} />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                 ApiChain ©{new Date().getFullYear()} Created by 方海亮

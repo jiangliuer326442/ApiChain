@@ -421,7 +421,7 @@ class RequestSendContainer extends Component {
 
   getEnvValueData = (prj: string, env: string) => {
     this.setState(this.getClearState());
-    this.requestSendTip.init(prj, env, this.state.iteratorId, this.props.dispatch, env_vars => {
+    this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.dispatch, env_vars => {
       if(env_vars.length === 0) {
         this.setState({ alertMessage: "请到设置菜单配置项目和环境，否则无法发送请求" });
         return;

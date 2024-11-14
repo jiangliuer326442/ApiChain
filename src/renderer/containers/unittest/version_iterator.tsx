@@ -34,8 +34,8 @@ import {
     getIterationUnitTests, 
     delUnitTest, 
     delUnitTestStep,
-    executeUnitTest,
-    continueExecuteUnitTest,
+    executeIteratorUnitTest,
+    continueIteratorExecuteUnitTest,
     copyFromIteratorToProject,
     copyFromProjectToIterator,
 } from '../../actions/unittest';
@@ -141,7 +141,7 @@ class UnittestListVersion extends Component {
                                             unittestUuid: "",
                                             batchUuid: "",
                                         })
-                                        let batchUuid = await executeUnitTest(iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch);
+                                        let batchUuid = await executeIteratorUnitTest(iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch);
                                         this.setState({ unittestUuid, batchUuid})
                                     }}>执行用例</Button>
                                     {record.result !== undefined ? 
@@ -169,7 +169,7 @@ class UnittestListVersion extends Component {
                                             batchUuid: "",
                                         });
 
-                                        let batchUuid = await continueExecuteUnitTest(iteratorId, valueUnittestStepUnittestUuid, record[unittest_report_batch], valueUnittestReportStep, record[unittest_report_env], this.props.dispatch);
+                                        let batchUuid = await continueIteratorExecuteUnitTest(iteratorId, valueUnittestStepUnittestUuid, record[unittest_report_batch], valueUnittestReportStep, record[unittest_report_env], this.props.dispatch);
 
                                         this.setState({
                                             unittestUuid: valueUnittestStepUnittestUuid,

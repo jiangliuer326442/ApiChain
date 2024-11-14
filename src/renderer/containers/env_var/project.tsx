@@ -135,7 +135,7 @@ class EnvVar extends Component {
 
     getEnvValueData = (prj: string, env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
-      requestSendTip.init(prj, "", "", this.props.dispatch, env_vars => {});
+      requestSendTip.init(prj, "", "", "", this.props.dispatch, env_vars => {});
       requestSendTip.getTips(envKeys => {
         let tips = [];
         for(let envKey of envKeys) {

@@ -50,6 +50,9 @@ export default class {
     //当前迭代
     private currentIteration : string;
 
+    //当前单测
+    private currentUnittest : string;
+
     //数据源类型 引用步骤参数 或者 环境变量 & 固定值
     private dataSourceType : string | null = null;
     //选择框 选中的步骤
@@ -63,10 +66,11 @@ export default class {
 
     private dispatch : any;
 
-    constructor(project: string, iteration: string, content : string, dispatch : any) {
+    constructor(project: string, iteration: string, unittest: string, content : string, dispatch : any) {
         this.project = project;
         this.currentProject = project;
         this.currentIteration = iteration;
+        this.currentUnittest = unittest;
         this.dispatch = dispatch;
         if (getType(content) === "String") {
             this.parseFromStandardExpression(content);
@@ -77,7 +81,7 @@ export default class {
         }
 
         this.envVarTips = new RequestSendTips();
-        this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.dispatch, env_vars => {});
+        this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
     }
 
     setEnv(env: string) {
@@ -105,7 +109,7 @@ export default class {
         if (this.selectedProject !== UNITTEST_STEP_PROJECT_CURRENT) {
             this.currentProject = this.selectedProject.substring(UNITTEST_STEP_PROJECT_POINTED.length);
         }
-        this.envVarTips.init(this.currentProject, "", this.currentIteration, this.dispatch, env_vars => {});
+        this.envVarTips.init(this.currentProject, "", this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
     }
 
     getSelectedProject() : string {

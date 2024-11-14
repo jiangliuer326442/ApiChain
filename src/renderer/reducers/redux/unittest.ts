@@ -3,7 +3,8 @@ import { cloneDeep } from 'lodash';
 import { 
     SHOW_ADD_UNITTEST_MODEL,
     SHOW_EDIT_UNITTEST_MODEL,
-    GET_ITERATOR_TESTS
+    GET_ITERATOR_TESTS,
+    GET_PROJECT_TESTS
 } from '../../../config/redux';
 
 import { 
@@ -19,6 +20,7 @@ export default function (state = {
     list: {},
     showAddUnittestModelFlg: false,
     iteratorId: "",
+    project: "",
     unitTestUuid: "",
     title: "",
     folder: null,
@@ -40,11 +42,11 @@ export default function (state = {
                 title: action.title,
                 folder: action.folder,
             });
-        case GET_ITERATOR_TESTS:
-            let iteratorId = action.iteratorId;
-            let list = cloneDeep(state.list);
-            list[iteratorId] = action.unitTests;
-            for(let unittest of list[iteratorId]) {
+        case GET_PROJECT_TESTS:
+            let project = action.project;
+            let listProject = cloneDeep(state.list);
+            listProject[project] = action.unitTests;
+            for(let unittest of listProject[project]) {
                 unittest.key = unittest[unittest_uuid];
                 let children = unittest.children;
                 for(let unittest_step of children) {
@@ -52,7 +54,21 @@ export default function (state = {
                 }
             }
             return Object.assign({}, state, {
-                list
+                list: listProject
+            });
+        case GET_ITERATOR_TESTS:
+            let iteratorId = action.iteratorId;
+            let listIterator = cloneDeep(state.list);
+            listIterator[iteratorId] = action.unitTests;
+            for(let unittest of listIterator[iteratorId]) {
+                unittest.key = unittest[unittest_uuid];
+                let children = unittest.children;
+                for(let unittest_step of children) {
+                    unittest_step.key = unittest_step[step_unittest_uuid] + "$$" + unittest_step[step_uuid];
+                }
+            }
+            return Object.assign({}, state, {
+                list: listIterator
             });
         default:
             return state;

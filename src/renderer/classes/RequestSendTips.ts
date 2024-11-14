@@ -34,6 +34,8 @@ export default class {
 
     private iteration: string = "";
 
+    private unittest: string = "";
+
     private dispatch: any = null;
 
     private cb: (envKeyVar: Array<any>) => void = () => {};
@@ -42,7 +44,14 @@ export default class {
 
     private envKeyVar: Map<string, string> = new Map();
 
-    init(prj : string, env : string, iteration : string, dispatch : any, cb : (envKeyVar: Array<any>) => void) {  
+    init(
+        prj : string, 
+        env : string, 
+        iteration : string, 
+        unittest : string,
+        dispatch : any, 
+        cb : (envKeyVar: Array<any>) => void
+    ) {  
         if (this.prj !== prj || this.env !== env) {
             this.env_vars = [];
             this.envKeyVar = new Map();
@@ -50,6 +59,7 @@ export default class {
         this.prj = prj;
         this.env = env;
         this.iteration = iteration;
+        this.unittest = unittest;
         this.dispatch = dispatch;
         this.cb = cb;
     }

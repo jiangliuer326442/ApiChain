@@ -37,7 +37,7 @@ import {
     UNITTEST_RESULT_FAILURE,
     UNITTEST_RESULT_UNKNOWN
 } from '../../config/unittest';
-import { GET_ITERATOR_TESTS } from '../../config/redux';
+import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '../../config/redux';
 
 import { addRequestHistory, getRequestHistory } from './request_history';
 
@@ -320,9 +320,6 @@ export async function getProjectUnitTests(project : string, env : string|null, d
     .where(unittest_projects)
     .equals(project)
     .filter(row => {
-        if (row[unittest_iterator_uuid]) {
-            return false;
-        }
         if (!row[unittest_collectFlg]) {
             return false;
         }
@@ -336,6 +333,7 @@ export async function getProjectUnitTests(project : string, env : string|null, d
 
     for (let unitTest of unitTests) {
         let unittest_uuid = unitTest[field_unittest_uuid];
+        let iterator_uuid = unitTest[unittest_iterator_uuid];
         let batch_uuid = "";
         //拿整体执行报告
         let unittestReport;
@@ -364,7 +362,7 @@ export async function getProjectUnitTests(project : string, env : string|null, d
 
         let unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
         .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-        .equals([0, "", unittest_uuid])
+        .equals([0, iterator_uuid, unittest_uuid])
         .toArray();
 
         if (!isStringEmpty(unitTest[unittest_report_step])) {
@@ -416,11 +414,9 @@ export async function getProjectUnitTests(project : string, env : string|null, d
         unitTest['children'] = unitTestSteps;
     }
 
-    console.debug(unitTests);
-
     dispatch({
-        type: GET_ITERATOR_TESTS,
-        iteratorId: "",
+        type: GET_PROJECT_TESTS,
+        project: project,
         unitTests
     });
 }
@@ -532,7 +528,7 @@ export async function getUnitTestStepAsserts(iteratorId : string, unitTestId : s
     return unitTestAsserts;
 }
 
-export async function continueExecuteUnitTest(
+export async function continueIteratorExecuteUnitTest(
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
     env : string, dispatch : any) {
 
@@ -553,7 +549,17 @@ export async function continueExecuteUnitTest(
         }
         steps.push(_unit_test_step);
     }
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, dispatch);
+    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
+        (project : string) => {
+            let envVarTips = new RequestSendTips();
+            envVarTips.init(project, env, iteratorId, "", dispatch, env_vars => {});
+            return envVarTips;
+        },
+        (project : string, content : string) => {
+            let jsonParamTips = new JsonParamTips(project, iteratorId, "", content, dispatch);
+            jsonParamTips.setEnv(env);
+            return jsonParamTips;
+        }, dispatch);
     let success = ret.success;
     let recentStepUuid = ret.recentStepUuid;
     let errorMessage = ret.errorMessage;
@@ -570,14 +576,112 @@ export async function continueExecuteUnitTest(
     return batchId;
 }
 
+export async function continueProjectExecuteUnitTest(
+    iteratorId : string, unitTestId : string, batchId : string, stepId : string,
+    env : string, dispatch : any) {
 
-export async function executeUnitTest(
+    let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+    .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+    .equals([0, iteratorId, unitTestId])
+    .toArray();
+
+    let executeFlg = false;
+    let steps = [];
+    for (let _unit_test_step of allSteps) {  
+        let stepUuid = _unit_test_step[field_unittest_step_uuid];
+        if (stepUuid === stepId) {
+            executeFlg = true;
+        }
+        if (!executeFlg) {
+            continue;
+        }
+        steps.push(_unit_test_step);
+    }
+    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
+        (project : string) => {
+            let envVarTips = new RequestSendTips();
+            envVarTips.init(project, env, "", unitTestId, dispatch, env_vars => {});
+            return envVarTips;
+        },
+        (project : string, content : string) => {
+            let jsonParamTips = new JsonParamTips(project, "", unitTestId, content, dispatch);
+            jsonParamTips.setEnv(env);
+            return jsonParamTips;
+        }, dispatch);
+    let success = ret.success;
+    let recentStepUuid = ret.recentStepUuid;
+    let errorMessage = ret.errorMessage;
+    let btime = ret.btime;
+    let unitTestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
+    .where([unittest_report_iterator, unittest_report_unittest, unittest_report_batch])
+    .equals([iteratorId, unitTestId, batchId])
+    .first();
+    unitTestReport[unittest_report_result] = success;
+    unitTestReport[unittest_report_step] = recentStepUuid;
+    unitTestReport[unittest_report_failure_reason] = errorMessage;
+    unitTestReport[unittest_report_cost_time] = Date.now() - btime;
+    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unitTestReport);
+    return batchId;
+}
+
+export async function executeProjectUnitTest(
     iteratorId : string, unitTestId : string, 
     steps : Array<any>, env : string, dispatch : any) : Promise<string>
     {
     let batch_uuid = uuidv4() as string;
 
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, dispatch);
+    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+        (project : string) => {
+            let envVarTips = new RequestSendTips();
+            envVarTips.init(project, env, "", unitTestId, dispatch, env_vars => {});
+            return envVarTips;
+        },
+        (project : string, content : string) => {
+            let jsonParamTips = new JsonParamTips(project, "", unitTestId, content, dispatch);
+            jsonParamTips.setEnv(env);
+            return jsonParamTips;
+        }, dispatch);
+    let success = ret.success;
+    let recentStepUuid = ret.recentStepUuid;
+    let errorMessage = ret.errorMessage;
+    let btime = ret.btime;
+
+    let unittest_result : any = {};
+    unittest_result[unittest_report_iterator] = "";
+    unittest_result[unittest_report_env] = env;
+    unittest_result[unittest_report_unittest] = unitTestId;
+    unittest_result[unittest_report_batch] = batch_uuid;
+    unittest_result[unittest_report_delFlg] = 0;
+    unittest_result[unittest_report_ctime] = Date.now();
+    unittest_result[unittest_report_result] = success;
+    unittest_result[unittest_report_step] = recentStepUuid;
+    unittest_result[unittest_report_failure_reason] = errorMessage;
+    unittest_result[unittest_report_cost_time] = Date.now() - btime;
+
+    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
+
+    return batch_uuid;
+}
+
+
+export async function executeIteratorUnitTest(
+    iteratorId : string, unitTestId : string, 
+    steps : Array<any>, env : string, dispatch : any) : Promise<string>
+    {
+    let batch_uuid = uuidv4() as string;
+
+    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+        (project : string) => {
+            let envVarTips = new RequestSendTips();
+            envVarTips.init(project, env, iteratorId, "", dispatch, env_vars => {});
+            return envVarTips;
+        },
+        (project : string, content : string) => {
+            let jsonParamTips = new JsonParamTips(project, iteratorId, "", content, dispatch);
+            jsonParamTips.setEnv(env);
+            return jsonParamTips;
+        },
+        dispatch);
     let success = ret.success;
     let recentStepUuid = ret.recentStepUuid;
     let errorMessage = ret.errorMessage;
@@ -606,6 +710,8 @@ async function stepsExecutor(
     unitTestId : string, 
     batch_uuid : string,
     env : string, 
+    getEnvVarTipsFunc : Function,
+    getJsonParamTipsFunc : Function,
     dispatch : any
 ) : Promise<any> {
     let btime = Date.now();
@@ -639,8 +745,7 @@ async function stepsExecutor(
 
         let promises : any = {};
         let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unitTestId, stepUuid);
-        let envVarTips = new RequestSendTips();
-        envVarTips.init(project, env, iteratorId, dispatch, env_vars => {});
+        let envVarTips = getEnvVarTipsFunc(project);
         let requestHost = await envVarTips.getHostAsync();
         let url = requestHost + requestUri;
 
@@ -651,8 +756,7 @@ async function stepsExecutor(
                 if (_key === CONTENT_TYPE) {
                     contentType = header[_key];
                 }
-                let jsonParamTips = new JsonParamTips(project, iteratorId, header[_key], dispatch);
-                jsonParamTips.setEnv(env);
+                let jsonParamTips = getJsonParamTipsFunc(project, header[_key]);
                 try {
                     header[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
                 } catch (error) {
@@ -665,8 +769,7 @@ async function stepsExecutor(
 
         if (Object.keys(pathVariable).length > 0) {
             for (let _key in pathVariable) {
-                let jsonParamTips = new JsonParamTips(project, iteratorId, pathVariable[_key], dispatch);
-                jsonParamTips.setEnv(env);
+                let jsonParamTips = getJsonParamTipsFunc(project, pathVariable[_key]);
                 try {
                     let value = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
                     pathVariable[_key] = value;
@@ -698,8 +801,7 @@ async function stepsExecutor(
                             window.electron.ipcRenderer.sendMessage(ChannelsReadFileStr, _key, path);
                         });
                     } else {
-                        let jsonParamTips = new JsonParamTips(project, iteratorId, body[_key], dispatch);
-                        jsonParamTips.setEnv(env);
+                        let jsonParamTips = getJsonParamTipsFunc(project, body[_key]);
                         try {
                             body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
                         } catch (error) {
@@ -709,8 +811,7 @@ async function stepsExecutor(
                         }
                     }
                 } else {
-                    let jsonParamTips = new JsonParamTips(project, iteratorId, body[_key], dispatch);
-                    jsonParamTips.setEnv(env);
+                    let jsonParamTips = getJsonParamTipsFunc(project, body[_key]);
                     try {
                         body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
                     } catch (error) {
@@ -725,8 +826,7 @@ async function stepsExecutor(
 
         if (Object.keys(param).length > 0) {
             for (let _key in param) {
-                let jsonParamTips = new JsonParamTips(project, iteratorId, param[_key], dispatch);
-                jsonParamTips.setEnv(env);
+                let jsonParamTips = getJsonParamTipsFunc(project, param[_key]);
                 try {
                     param[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, iteratorId, unitTestId, batch_uuid);
                 } catch (error) {
@@ -849,8 +949,7 @@ async function stepsExecutor(
                     let assertRight = unitTestAssert[unittest_step_assert_right];
                     let assertOperator = unitTestAssert[unittest_step_assert_operator];
     
-                    let leftJsonParamTips = new JsonParamTips(project, iteratorId, assertLeft, dispatch);
-                    leftJsonParamTips.setEnv(env);
+                    let leftJsonParamTips = getJsonParamTipsFunc(project, assertLeft);
                     try {
                         assertLeftValue[keyNumber] = await leftJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.data, iteratorId, unitTestId, batch_uuid);
                     } catch (error) {
@@ -859,8 +958,7 @@ async function stepsExecutor(
                         break;
                     }
     
-                    let rightJsonParamTips = new JsonParamTips(project, iteratorId, assertRight, dispatch);
-                    rightJsonParamTips.setEnv(env);
+                    let rightJsonParamTips = getJsonParamTipsFunc(project, assertRight);
                     try {
                         assertRightValue[keyNumber] = await rightJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.data, iteratorId, unitTestId, batch_uuid);
                     } catch (error) {
@@ -1000,6 +1098,43 @@ export async function copyFromProjectToIterator(iteratorId : string, unittest_uu
         return;
     }
 
+    let envVarKeys : any[] = [];
+
+    let unitTestEnvVars = await db[TABLE_ENV_VAR_NAME]
+    .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
+    .equals(["", "", unittest_uuid])
+    .filter(row => {
+        if (row[env_var_delFlg]) {
+            return false;
+        }
+        return true;
+    })
+    .toArray();
+    if (unitTestEnvVars.length > 0) {
+        envVarKeys = envVarKeys.concat(unitTestEnvVars);
+    }
+
+    let prjs = unitTest[unittest_projects];
+    for (let prj of prjs) {
+        let prjEnvVars = await db[TABLE_ENV_VAR_NAME]
+        .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
+        .equals([prj, "", unittest_uuid])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        if (prjEnvVars.length > 0) {
+            envVarKeys = envVarKeys.concat(prjEnvVars);
+        }
+    }
+
+    let newEnvVarKeys = envVarKeys.map(obj => ({...obj, del_flg: 1}));
+    await window.db[TABLE_ENV_VAR_NAME].bulkPut(newEnvVarKeys);
+
+    unitTest[unittest_projects] = [];
     unitTest[unittest_collectFlg] = 0;
     
     await window.db[TABLE_UNITTEST_NAME].put(unitTest);
