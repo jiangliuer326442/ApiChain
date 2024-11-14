@@ -78,6 +78,8 @@ let version_iteration_test_folder_ctime = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CTIME
 
 let field_unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
+let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
+let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_delFlg = TABLE_UNITTEST_FIELDS.FIELD_DELFLG;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
@@ -113,7 +115,6 @@ let tables : any = {};
 tables[TABLE_ENV_NAME] = "&" + env_label + ", [" + env_delFlg + "+" + env_ctime + "]";
 tables[TABLE_MICRO_SERVICE_NAME] = "&" + micro_service_label + ", [" + micro_service_delFlg + "+" + micro_service_ctime + "]";
 tables[TABLE_ENV_KEY_NAME] = "&[" + env_key_micro_service + "+" + env_key_pname + "], [" + env_key_delFlg + "+" + env_key_micro_service + "+" + env_key_ctime + "]";
-tables['env_vars_241028001'] = "&[" + env_var_env + "+" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_pname + "], [" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_pname + "]";
 tables[TABLE_ENV_VAR_NAME] = "&[" + env_var_env + "+" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "+" + env_var_pname + "], [" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "+" + env_var_pname + "]";
 tables[TABLE_VERSION_ITERATION_NAME] = "&" + version_iteration_uuid 
 + ", *" + version_iteration_prjects
@@ -127,8 +128,11 @@ tables[TABLE_VERSION_ITERATION_REQUEST_NAME] = "&[" + iteration_request_iteratio
 tables[TABLE_PROJECT_REQUEST_NAME] = "&[" + project_request_project + "+" + project_request_method + "+" + project_request_uri + "], [" + project_request_delFlg + "+" + project_request_project + "+" + project_request_ctime + "]";
 tables[TABLE_UNITTEST_FOLD_NAME] = "&[" + version_iteration_test_folder_iterator + "+" + version_iteration_test_folder_name + "], [" + version_iteration_test_folder_delFlg + "+" + version_iteration_test_folder_iterator + "+" + version_iteration_test_folder_ctime + "]";
 tables[TABLE_UNITTEST_NAME] = "&" + field_unittest_uuid 
++ ", *" + unittest_projects
 + ", [" + unittest_delFlg + "+" + unittest_iterator_uuid + "+" + unittest_ctime + "]" 
-+ ", [" + unittest_delFlg + "+" + unittest_iterator_uuid + "+" + unittest_fold + "+" + unittest_ctime + "]";
++ ", [" + unittest_delFlg + "+" + unittest_iterator_uuid + "+" + unittest_fold + "+" + unittest_ctime + "], [" 
++ unittest_projects + "+" + unittest_collectFlg + "+" + unittest_delFlg + "+" + unittest_ctime + "]" 
++ ", [" + unittest_projects + "+" + unittest_collectFlg + "+" + unittest_delFlg + "+" + unittest_fold + "+" + unittest_ctime + "]";
 tables[TABLE_UNITTEST_STEPS_NAME] = "&" + unittest_step_uuid + ", "
 + "[" + unittest_step_delFlg + "+" + unittest_step_iterator_uuid + "+" + unittest_step_unittest_uuid + "+" + unittest_step_sort + "]";
 tables[TABLE_UNITTEST_STEP_ASSERTS_NAME] = "&" + unittest_step_assert_uuid + ", "
@@ -138,10 +142,10 @@ tables[TABLE_UNITTEST_EXECUTOR_NAME] = "&[" + unittest_executor_iterator + "+" +
 tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_batch + "], " 
 + "[" + unittest_report_delFlg + "+" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_env + "+" + unittest_report_ctime + "]";
 
-window.db.version(193).stores(tables).upgrade (async trans => {
-    let oldTableRows = await db['env_vars_241028001'].toArray();
-    let newTableRows = oldTableRows.map(obj => ({...obj, unittest: ''}));
-    await db[TABLE_ENV_VAR_NAME].bulkPut(newTableRows);
-    await db['env_vars_241028001'].clear();
-    return true;
+console.debug(tables);
+window.db.version(194).stores(tables).upgrade (trans => {
+    trans.table(TABLE_UNITTEST_NAME).toCollection().modify (unittest => {
+        unittest[unittest_collectFlg] = 0;
+        unittest[unittest_projects] = [];
+    });
 });

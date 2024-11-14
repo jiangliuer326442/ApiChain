@@ -12,7 +12,7 @@ import {
 import { SHOW_ADD_UNITTEST_MODEL } from '../../../config/redux';
 import { isStringEmpty } from '../../util';
 
-import { addUnitTest, getUnitTests, editUnitTest } from '../../actions/unittest';
+import { addUnitTest, getIterationUnitTests, editUnitTest } from '../../actions/unittest';
 import { addUnitTestFolder, getUnitTestFolders } from '../../actions/unittest_folders';
 
 class AddUnittestComponent extends Component {
@@ -68,7 +68,7 @@ class AddUnittestComponent extends Component {
                 this.setState({
                     loadingFlg: false
                 });
-                getUnitTests(this.props.iteratorId, null, this.props.dispatch);
+                getIterationUnitTests(this.props.iteratorId, null, this.props.dispatch);
                 this.props.dispatch({
                     type: SHOW_ADD_UNITTEST_MODEL,
                     open: false,
@@ -82,7 +82,7 @@ class AddUnittestComponent extends Component {
                 this.setState({
                     loadingFlg: false
                 });
-                getUnitTests(this.props.iteratorId, null, this.props.dispatch);
+                getIterationUnitTests(this.props.iteratorId, null, this.props.dispatch);
                 this.props.dispatch({
                     type: SHOW_ADD_UNITTEST_MODEL,
                     open: false,

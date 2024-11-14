@@ -8,7 +8,7 @@ import {
     EyeOutlined,  
     DeleteOutlined 
 } from '@ant-design/icons';
-import type { GetProps, FormProps } from 'antd';
+import type { FormProps } from 'antd';
 import JsonView from 'react-json-view';
 
 import { 
@@ -20,13 +20,11 @@ import {
     TABLE_REQUEST_HISTORY_FIELDS,
 } from '../../../config/db';
 import { 
-    clearRequestHistory,
     delRequestHistory,
     getRequestHistorys 
 } from "../../actions/request_history";
 import SelectPrjEnvComponent from "../../components/env_var/select_prj_env";
 
-type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
 const { Header, Content, Footer } = Layout;
 const { RangePicker } = DatePicker;
 
@@ -40,7 +38,6 @@ let id = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ID;
 let method = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_METHOD;
 let uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
 let body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
-let param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
 let jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
@@ -96,19 +93,6 @@ class RequestHistoryContainer extends Component {
         });
     }
 
-    cleanHistory = () => {
-        clearRequestHistory(()=>{
-            getRequestHistorys(this.state.env, this.state.prj, this.state.btime, this.state.etime, "", list => {
-                let datas = [];
-                list.map(item => {
-                    item.key = item[id];
-                    datas.push(item);
-                });
-                this.setState({list: datas});
-            });
-        });
-    }
-
     handleDel = (record) => {
         delRequestHistory(record, ()=>{
             getRequestHistorys(this.state.env, this.state.prj, this.state.btime, this.state.etime, this.state.uri, list => {
@@ -117,7 +101,6 @@ class RequestHistoryContainer extends Component {
                     item.key = item[id];
                     datas.push(item);
                 });
-                console.debug(datas);
                 this.setState({list: datas});
             });
         });
@@ -157,8 +140,6 @@ class RequestHistoryContainer extends Component {
                 title: '响应',
                 dataIndex: response,
                 render: (content, record) => {
-                    console.log(record); 
-
                     if (record[jsonFlg]) {
                         return <JsonView 
                         src={JSON.parse(content)}   
@@ -238,9 +219,6 @@ class RequestHistoryContainer extends Component {
                                     <Space>
                                         <Button type="primary" htmlType="submit">
                                             搜索
-                                        </Button>
-                                        <Button danger onClick={this.cleanHistory}>
-                                            清空
                                         </Button>
                                     </Space>
                                 </Form.Item>

@@ -3,6 +3,9 @@ import IDBExportImport from 'indexeddb-export-import';
 import { 
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
+    TABLE_REQUEST_HISTORY_NAME,
+    TABLE_UNITTEST_EXECUTOR_REPORT_NAME,
+    TABLE_UNITTEST_EXECUTOR_NAME,
 } from '../../config/db';
 import { ENV_VALUE_API_HOST } from '../../config/envKeys';
 import { 
@@ -11,6 +14,7 @@ import {
     ChannelsDbExportStr,
     ChannelsDbWriteStr,
     ChannelsDbImportStr,
+    ChannelsDbTrunkStr,
     ChannelsMarkdownQueryStr,
     ChannelsMarkdownQueryResultStr,
     ChannelsUserInfoSetUserinfoStr,
@@ -67,6 +71,23 @@ export default function(dispatch, cb) : void {
                       });
                     }
                 });
+            }
+        });
+
+        //清空缓存数据
+        window.electron.ipcRenderer.on(ChannelsDbStr, (action) => {
+            if (action === ChannelsDbTrunkStr) {
+                window.db.transaction('rw',
+                window.db[TABLE_REQUEST_HISTORY_NAME],
+                window.db[TABLE_UNITTEST_EXECUTOR_NAME],
+                window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME],
+                async () => {
+                  await window.db[TABLE_REQUEST_HISTORY_NAME].clear();
+                  await window.db[TABLE_UNITTEST_EXECUTOR_NAME].clear();
+                  await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].clear();
+                  alert("清空缓存成功!");
+                },
+              );
             }
         });
 

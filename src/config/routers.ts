@@ -8,8 +8,6 @@ export const ENVVAR_UNITTEST_LIST_ROUTE = "/unittest_envvars/:unittestId";
 export const ENVVAR_ITERATOR_LIST_ROUTE = "/iterator_envvars/:iteratorId";
 //全局环境变量管理
 export const ENVVAR_GLOBAL_LIST_ROUTE = "/global_envvars";
-//项目环境变量管理
-export const ENVVAR_PRJ_LIST_ROUTE = "/prj_envvars/:prj";
 //版本迭代管理
 export const VERSION_ITERATOR_LIST_ROUTE = "/version_iterators";
 //版本迭代详情
@@ -50,8 +48,12 @@ export const UNITTEST_STEP_EDIT_ROUTE = "/version_iterator_tests_step_edit/:iter
 export const REQUEST_HISTORY = "/request_history";
 //迭代文档
 export const VERSION_ITERATOR_DOC_ROUTE = "/version_iterator_doc/:uuid";
+//项目环境变量管理
+export const ENVVAR_PRJ_LIST_ROUTE = "/prj_envvars/:prj";
 //项目接口列表
 export const REQUEST_PROJECT_LIST_ROUTE = "/project_requests/:id";
+//项目单测列表
+export const UNITTEST_PROJECT_LIST_ROUTE = "/project_tests/:id";
 //迭代新增接口
 export const ITERATOR_ADD_REQUEST_ROUTE = "/interator_add_request/:versionIteratorId";
 

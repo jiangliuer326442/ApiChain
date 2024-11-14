@@ -1,7 +1,5 @@
 import {
   TABLE_REQUEST_HISTORY_NAME,
-  TABLE_UNITTEST_EXECUTOR_REPORT_NAME,
-  TABLE_UNITTEST_EXECUTOR_NAME,
   TABLE_REQUEST_HISTORY_FIELDS,
 } from '../../config/db';
 
@@ -40,20 +38,6 @@ export async function getRequestHistory(id : number) : Promise<any> {
         return null;
     }
     return record;
-}
-
-export async function clearRequestHistory(cb) {
-  window.db.transaction('rw',
-    window.db[TABLE_REQUEST_HISTORY_NAME],
-    window.db[TABLE_UNITTEST_EXECUTOR_NAME],
-    window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME],
-    async () => {
-      await window.db[TABLE_REQUEST_HISTORY_NAME].clear();
-      await window.db[TABLE_UNITTEST_EXECUTOR_NAME].clear();
-      await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].clear();
-      cb();
-    },
-  );
 }
 
 export async function delRequestHistory(row, cb) {

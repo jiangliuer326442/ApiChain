@@ -193,8 +193,12 @@ export default function (state = {
               label: <a href={"#/prj_envvars/" + prj[prj_label] } rel="noopener noreferrer">环境变量</a >
             },
             {
-            key: prj[prj_label] + "_doc",
-            label: <a href={"#/project_requests/" + prj[prj_label] } rel="noopener noreferrer">文档</a >
+              key: prj[prj_label] + "_doc",
+              label: <a href={"#/project_requests/" + prj[prj_label] } rel="noopener noreferrer">文档</a >
+            },
+            {
+              key: prj[prj_label] + "_unittest",
+              label: <a href={"#/project_tests/" + prj[prj_label] } rel="noopener noreferrer">单测</a >
             }
           ]
         });

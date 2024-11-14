@@ -24,7 +24,7 @@ import {
 import RequestSendTips from '../../classes/RequestSendTips';
 import { getUnitTestRequests } from '../../actions/version_iterator_requests';
 import { 
-    getUnitTests,
+    getIterationUnitTests,
     addUnitTestStep,
     editUnitTestStep,
     getUnitTestStepAsserts,
@@ -169,7 +169,7 @@ class UnittestStepContainer extends Component {
 
     componentDidMount(): void {
         if (!this.props.unittest[this.state.iteratorId]) {
-            getUnitTests(this.state.iteratorId, null, this.props.dispatch);
+            getIterationUnitTests(this.state.iteratorId, null, this.props.dispatch);
         }
         if (!isStringEmpty(this.state.unitTestStepUuid)) {
             getUnitTestStepAsserts(this.state.iteratorId, this.state.unitTestUuid, this.state.unitTestStepUuid).then(unitTestAsserts => {

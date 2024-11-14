@@ -77,7 +77,7 @@ export default class {
 
     async getHostAsync() : Promise<string> {
         if (this.env_vars.length === 0) {
-            let env_vars = await getEnvValues(this.prj, this.env, this.iteration, "", this.dispatch, _ => {});
+            let env_vars = await getEnvValues(this.prj, this.env, this.iteration, "", "", this.dispatch, _ => {});
             this.env_vars = env_vars;
             return this.getApiHost();
         } else {

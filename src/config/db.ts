@@ -176,6 +176,8 @@ export const TABLE_UNITTEST_FOLD_FIELDS = {
 
 export const TABLE_UNITTEST_NAME = "unittest";
 export const TABLE_UNITTEST_FIELDS = {
+    FIELD_PROJECTS : "projects",
+    FIELD_COLLECT : "collect_flg",
     FIELD_ITERATOR_UUID : "iterator_uuid",
     FIELD_UUID : "uuid",
     FIELD_TITLE : "title",

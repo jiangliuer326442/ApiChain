@@ -54,9 +54,13 @@ export type ChannelsDb = 'pipeline_database';
 
 export const ChannelsDbStr = 'pipeline_database';
 
+export const ChannelsDbTrunkStr = 'pipeline_database_trunk';
+
 export const ChannelsDbExportStr = 'pipeline_database_export';
 
 export const ChannelsDbImportStr = 'pipeline_database_import';
+
+export const ChannelsDbTrunkSuccessStr = 'pipeline_database_trunk_success';
 
 export const ChannelsDbImportSuccessStr = 'pipeline_database_import_success';
 

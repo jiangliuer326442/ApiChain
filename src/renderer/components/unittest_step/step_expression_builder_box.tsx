@@ -32,7 +32,7 @@ import {
     getUnitTestRequests 
 } from '../../actions/version_iterator_requests';
 import { 
-    getUnitTests
+    getIterationUnitTests
 } from '../../actions/unittest';
 import { cloneDeep } from 'lodash';
 
@@ -90,7 +90,7 @@ class StepExpressionBuilderBox extends Component {
 
     async componentDidMount() {
         if (!this.props.unittest[this.props.iteratorId]) {
-            await getUnitTests(this.props.iteratorId, null, this.props.dispatch);
+            await getIterationUnitTests(this.props.iteratorId, null, this.props.dispatch);
             this.setState({loadeadFlg: true});
         } else {
             this.setState({loadeadFlg: true});

@@ -8,6 +8,7 @@ import {
 
 import { exportDb } from './store/db/export';
 import { importDb } from './store/db/import';
+import { trunkDb } from './store/db/trunk';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -155,6 +156,12 @@ export default class MenuBuilder {
           click: () => {
             this.mainWindow.webContents.reload();  
           },
+        },
+        {
+          label: '清空历史记录',
+          click: () => {
+            trunkDb(this.mainWindow);  
+          },
         }
       ],
     };
@@ -220,6 +227,12 @@ export default class MenuBuilder {
             label: '刷新当前页面',
             click: () => {
               this.mainWindow.webContents.reload();  
+            },
+          },
+          {
+            label: '清空历史记录',
+            click: () => {
+              trunkDb(this.mainWindow);  
             },
           }
         ],

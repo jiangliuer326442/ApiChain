@@ -31,7 +31,7 @@ import {
 import { getdayjs, isStringEmpty } from '../../util';
 import { getEnvs } from '../../actions/env';
 import {
-    getIterationUnitTests, 
+    getProjectUnitTests, 
     delUnitTest, 
     delUnitTestStep,
     executeUnitTest,
@@ -64,7 +64,7 @@ class UnittestListVersion extends Component {
 
     constructor(props) {
         super(props);
-        let iteratorId = props.match.params.id;
+        let project = props.match.params.id;
         this.state = {
             executeFlg: true,
             column: [
@@ -196,7 +196,7 @@ class UnittestListVersion extends Component {
                     }
                 },
             ],
-            iteratorId,
+            project,
             unittestUuid: "", 
             batchUuid: "",
             env: null
@@ -204,11 +204,11 @@ class UnittestListVersion extends Component {
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
-        let nextIteratorId = nextProps.match.params.id;
-        let prevIteratorId = prevState.iteratorId;
-        if (nextIteratorId !== prevIteratorId) {
+        let nextProject = nextProps.match.params.id;
+        let prevProject = prevState.iteratorId;
+        if (nextProject !== prevProject) {
             return {
-                iteratorId: nextIteratorId,
+                project: nextProject,
                 unittestUuid: "",
                 batchUuid: "",
             };
@@ -221,12 +221,12 @@ class UnittestListVersion extends Component {
         if(this.props.envs.length === 0) {
             getEnvs(this.props.dispatch);
         }
-        await getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+        await getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
     }
 
     async componentDidUpdate(prevProps) {  
         if (this.props.match.params.id !== prevProps.match.params.id) { 
-            await getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+            await getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
         }
     }
 
@@ -313,11 +313,11 @@ class UnittestListVersion extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    迭代单测列表
+                    项目单测列表
                 </Header>
                 <Content style={{ margin: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
-                        { title: '迭代' }, 
+                        { title: '项目' }, 
                         { title: '单测列表' }
                     ]} />
                     <Flex justify="space-between" align="center">

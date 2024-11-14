@@ -27,7 +27,9 @@ export function importDb(mainWindow: BrowserWindow) {
             mainWindow.webContents.send(ChannelsDbStr, ChannelsDbImportStr, fileContent);
 
             ipcMain.on(ChannelsDbStr, (event, action) => {
-                action === ChannelsDbImportSuccessStr && mainWindow.webContents.reload();
+                if (action === ChannelsDbImportSuccessStr) {
+                    mainWindow.webContents.reload();
+                }
             });
         }
     });

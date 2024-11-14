@@ -33,8 +33,8 @@ let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 export async function getVarsByKey(prj, pname) {
     const envVarItems = await db[TABLE_ENV_VAR_NAME]
-    .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_pname + ']')
-    .equals([prj, "", pname]).toArray();
+    .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+    .equals([prj, "", "", pname]).toArray();
     return envVarItems;
 }
 
@@ -110,8 +110,8 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
     }
     if (iterator) {
         let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + ']')
-        .equals([env, "", iterator])
+        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+        .equals([env, "", iterator, ""])
         .filter(row => {
             if (row[env_var_delFlg]) {
                 return false;
@@ -135,8 +135,8 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
     }
     if (prj) {
         let projectArrays = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + ']')
-        .equals([env, prj, ""])
+        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+        .equals([env, prj, "", ""])
         .filter(row => {
             if (row[env_var_delFlg]) {
                 return false;
@@ -161,8 +161,8 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
     }
 
     let globalArrays = await db[TABLE_ENV_VAR_NAME]
-    .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + ']')
-    .equals([env, "", ""])
+    .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+    .equals([env, "", "", ""])
     .filter(row => {
         if (row[env_var_delFlg]) {
             return false;

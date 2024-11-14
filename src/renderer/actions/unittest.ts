@@ -8,7 +8,8 @@ import {
     TABLE_UNITTEST_EXECUTOR_NAME, TABLE_UNITTEST_EXECUTOR_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME, TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
-    TABLE_REQUEST_HISTORY_FIELDS,
+    TABLE_REQUEST_HISTORY_FIELDS, 
+    TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
 } from '../../config/db';
 import {
     ChannelsReadFileStr,
@@ -48,11 +49,18 @@ import JsonParamTips from '../classes/JsonParamTips';
 let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let field_unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_delFlg = TABLE_UNITTEST_FIELDS.FIELD_DELFLG;
+let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
+let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
 let unittest_cuname = TABLE_UNITTEST_FIELDS.FIELD_CUNAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
+
+let env_var_micro_service = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
+let env_var_iteration = TABLE_ENV_VAR_FIELDS.FIELD_ITERATION;
+let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
+let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
 
 let field_unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 let unittest_step_iterator_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_ITERATOR_UUID;
@@ -306,7 +314,118 @@ export async function delUnitTestStep(unittestStepUuid : string, cb) {
     }
 }
 
-export async function getUnitTests(iteratorId : string, env : string|null, dispatch) {
+export async function getProjectUnitTests(project : string, env : string|null, dispatch) {
+    //单测列表
+    let unitTests = await window.db[TABLE_UNITTEST_NAME]
+    .where(unittest_projects)
+    .equals(project)
+    .filter(row => {
+        if (row[unittest_iterator_uuid]) {
+            return false;
+        }
+        if (!row[unittest_collectFlg]) {
+            return false;
+        }
+        if (row[unittest_delFlg]) {
+            return false;
+        }
+        return true;
+    })
+    .reverse()
+    .toArray();
+
+    for (let unitTest of unitTests) {
+        let unittest_uuid = unitTest[field_unittest_uuid];
+        let batch_uuid = "";
+        //拿整体执行报告
+        let unittestReport;
+        if (env !== null) {
+            unittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
+            .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest, unittest_report_env])
+            .equals([0, "", unittest_uuid, env])
+            .reverse()
+            .first();
+        } else {
+            unittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
+            .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest])
+            .equals([0, "", unittest_uuid])
+            .reverse()
+            .first();
+        }
+        if (unittestReport !== undefined) {
+            env = unittestReport[unittest_report_env];
+            batch_uuid = unittestReport[unittest_report_batch];
+            unitTest[unittest_report_batch] = batch_uuid; //批次 id
+            unitTest[unittest_report_step] = unittestReport[unittest_report_step]; //执行 浮标
+            unitTest[unittest_report_result] = unittestReport[unittest_report_result];
+            unitTest[unittest_report_env] = env;
+            unitTest[unittest_report_cost_time] = unittestReport[unittest_report_cost_time];
+        }
+
+        let unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+        .equals([0, "", unittest_uuid])
+        .toArray();
+
+        if (!isStringEmpty(unitTest[unittest_report_step])) {
+            if (unitTest[unittest_report_result] === UNITTEST_RESULT_UNKNOWN) {
+                let markFlg = -1;
+                for (let unitTestStep of unitTestSteps) {
+                    let stepUuid = unitTestStep[field_unittest_step_uuid];
+                    //还没打标，遇到数值一样的步骤，开始打标
+                    if (markFlg === -1 && stepUuid === unitTest[unittest_report_step]) {
+                        markFlg = 0;
+                        continue;
+                    }
+                    //打标
+                    if (markFlg === 0) {
+                        unitTest[unittest_report_step] = stepUuid;
+                        markFlg = 1;
+                        continue;
+                    }
+                    //已经打过标
+                    if (markFlg === 1) {
+                        break;
+                    }
+                }
+            } else {
+                unitTest[unittest_report_step] = "";
+            }
+        }
+
+        if (!isStringEmpty(batch_uuid)) {
+            for (let unitTestStep of unitTestSteps) {
+                //当前执行步骤
+                unitTestStep[unittest_report_step] = unitTest[unittest_report_step];
+                //当前执行批次
+                unitTestStep[unittest_report_batch] = batch_uuid;
+                //当前环境
+                unitTestStep[unittest_report_env] = env;
+                let stepUuid = unitTestStep[field_unittest_step_uuid];
+                let unittest_executor_report = await window.db[TABLE_UNITTEST_EXECUTOR_NAME]
+                .where([unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, unittest_executor_step])
+                .equals(["", unittest_uuid, batch_uuid, stepUuid])
+                .first();
+                if (unittest_executor_report !== undefined) {
+                    unitTestStep[unittest_executor_result] = unittest_executor_report[unittest_executor_result];
+                    unitTestStep[unittest_executor_cost_time] = unittest_executor_report[unittest_executor_cost_time];
+                }
+            }
+        }
+
+        unitTest['children'] = unitTestSteps;
+    }
+
+    console.debug(unitTests);
+
+    dispatch({
+        type: GET_ITERATOR_TESTS,
+        iteratorId: "",
+        unitTests
+    });
+}
+
+export async function getIterationUnitTests(iteratorId : string, env : string|null, dispatch) {
     //单测列表
     let unitTests = await window.db[TABLE_UNITTEST_NAME]
     .where([unittest_delFlg, unittest_iterator_uuid])
@@ -870,4 +989,82 @@ export async function getRecentExecutorReport(iteratorId : string) {
     .first();
 
     return unitTestReport;
+}
+
+export async function copyFromProjectToIterator(iteratorId : string, unittest_uuid : string, cb) {
+    let unitTest = await window.db[TABLE_UNITTEST_NAME]
+    .where(field_unittest_uuid).equals(unittest_uuid)
+    .first();
+
+    if (unitTest === undefined) {
+        return;
+    }
+
+    unitTest[unittest_collectFlg] = 0;
+    
+    await window.db[TABLE_UNITTEST_NAME].put(unitTest);
+
+    cb();
+}
+
+export async function copyFromIteratorToProject(iteratorId : string, unittest_uuid : string, cb) {
+    let unitTest = await window.db[TABLE_UNITTEST_NAME]
+    .where(field_unittest_uuid).equals(unittest_uuid)
+    .first();
+
+    if (unitTest === undefined) {
+        return;
+    }
+
+    let unitTestSteps : any[] = await window.db[TABLE_UNITTEST_STEPS_NAME]
+    .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+    .equals([0, iteratorId, unittest_uuid])
+    .toArray();
+
+    let prjs = new Set<String>();
+    for (let unitTestStep of unitTestSteps) {
+        prjs.add(unitTestStep[unittest_step_project]);
+    }
+
+    let envVarKeys : any[] = [];
+
+    let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
+    .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
+    .equals(["", iteratorId, ""])
+    .filter(row => {
+        if (row[env_var_delFlg]) {
+            return false;
+        }
+        return true;
+    })
+    .toArray();
+    if (iteratorArrays.length > 0) {
+        envVarKeys = envVarKeys.concat(iteratorArrays);
+    }
+
+    for (let prj of prjs) {
+        let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
+        .equals([prj, iteratorId, ""])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        if (iteratorPlusPrjArrays.length > 0) {
+            envVarKeys = envVarKeys.concat(iteratorPlusPrjArrays);
+        }
+    }
+
+    let newEnvVarKeys = envVarKeys.map(obj => ({...obj, iteration: "", unittest: unittest_uuid}));
+    await window.db[TABLE_ENV_VAR_NAME].bulkPut(newEnvVarKeys);
+
+    unitTest[unittest_projects] = [...prjs];
+    unitTest[unittest_collectFlg] = 1;
+
+    await window.db[TABLE_UNITTEST_NAME].put(unitTest);
+
+    cb();
 }
