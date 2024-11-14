@@ -244,7 +244,7 @@ export async function delEnvValue(prj, env, iteration, row, cb) {
     });
 }
 
-export async function addEnvValues(prj, env, iteration, pname, pval, device, cb) {
+export async function addEnvValues(prj, env, iteration, unittest, pname, pval, device, cb) {
     window.db.transaction('rw',
     window.db[TABLE_ENV_KEY_NAME],
     window.db[TABLE_ENV_VAR_NAME], async () => {
@@ -261,6 +261,7 @@ export async function addEnvValues(prj, env, iteration, pname, pval, device, cb)
         property_key[env_var_micro_service] = prj;
         property_key[env_var_env] = env;
         property_key[env_var_iteration] = iteration;
+        property_key[env_var_unittest] = unittest;
         property_key[env_var_pname] = pname;
         property_key[env_var_pvalue] = pval;
         property_key[env_var_cuid] = device.uuid;

@@ -559,10 +559,10 @@ class RequestSendContainer extends Component {
       } else {
         content = response.data;
       }
-      this.setState({ responseData : content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile, alertMessage: "" });
-      addRequestHistory(this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
+      let historyId = await addRequestHistory(this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
         this.state.requestHeadData, this.state.requestBodyData, this.state.requestPathVariableData, this.state.requestParamData, this.state.requestFileData,
-        content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile, key => this.setState({id: key}));
+        content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
+      this.setState({ responseData : content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile, alertMessage: "", id: historyId });
     }
   }
 

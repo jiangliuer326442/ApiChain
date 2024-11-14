@@ -169,7 +169,6 @@ class JsonSaveBodyTableContainer extends Component {
             }
         }
         obj[TABLE_FIELD_REMARK] = value;
-        console.debug(this.state.object);
         this.props.cb(this.state.object);
 
         let returnObject = cloneDeep(this.state.object);
@@ -216,7 +215,6 @@ class JsonSaveBodyTableContainer extends Component {
         shortJsonContent(shortResponseJsonObject, responseData);
         parseJsonToTable(this.state.object, shortResponseJsonObject);
         this.parseJsonToChildren();
-        console.debug(this.state.object);
         this.props.cb(this.state.object);
         this.cleanPop();
     }

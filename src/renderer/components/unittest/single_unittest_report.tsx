@@ -21,6 +21,7 @@ import {
     TABLE_REQUEST_HISTORY_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
+    TABLE_MICRO_SERVICE_FIELDS,
     TABLE_ENV_VAR_FIELDS,
 } from '../../../config/db';
 
@@ -41,7 +42,10 @@ let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let env_var_prj = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
+let unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
+
+let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
@@ -106,7 +110,13 @@ class SingleUnitTestReport extends Component {
 
     async componentDidUpdate(prevProps, prevState) {
         if (this.props.batchUuid !== prevProps.batchUuid) {
-            let prjs = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.props.iteratorId)[version_iterator_prjs]
+            let prjs;
+            if (isStringEmpty(this.props.iteratorId)) {
+                prjs = this.props.prjs.map(row => row[prj_label]);
+            } else {
+                prjs = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.props.iteratorId)[version_iterator_prjs]
+            }
+            
             let promises = []
             for(let prj of prjs) {
                 promises.push(getEnvValues(prj, this.props.env, this.props.iteratorId, "", ENV_VALUE_API_HOST, this.props.dispatch, result => {}));
@@ -116,12 +126,17 @@ class SingleUnitTestReport extends Component {
             for (let _value of values) {
                 hosts[_value[0][env_var_prj]] =  _value[0][env_var_pvalue];
             }
-            this.buildRecentExecutorResult(this.props.iteratorId, this.props.unittestUuid, this.props.batchUuid, hosts);
+            this.buildRecentExecutorResult( this.props.iteratorId, this.props.unittestUuid, this.props.batchUuid, hosts);
         }
     }
 
     getDescriptions = () : DescriptionsProps['items'] => {
-        let selectedUnitTest = this.props.unittest[this.props.iteratorId].find(row => row[unittest_uuid] === this.state.recentUnittestUuid);
+        let selectedUnitTest : any;
+        if (isStringEmpty(this.props.iteratorId)) {
+            selectedUnitTest = this.props.unittest[this.props.project].find(row => row[unittest_uuid] === this.state.recentUnittestUuid);
+        } else {
+            selectedUnitTest = this.props.unittest[this.props.iteratorId].find(row => row[unittest_uuid] === this.state.recentUnittestUuid);
+        }
         let selectedEnv = this.props.envs.find(row => row[env_label] === this.state.recentUnitTestReport[unittest_report_env]);
         return [
             {
@@ -160,7 +175,16 @@ class SingleUnitTestReport extends Component {
     buildRecentExecutorResult = async (iteratorId: string, unittestUuid : string, batchUuid : string, hosts : any) => {
         //单测报告
         let unitTestReport = await getSingleExecutorReport(iteratorId, unittestUuid, batchUuid);
-        let steps = cloneDeep(this.props.unittest[iteratorId].find(row => row[unittest_uuid] === unittestUuid)?.children);
+        let steps;
+        let fakeIteratorId;
+        if (isStringEmpty(iteratorId)) {
+            let selectUnitTest = this.props.unittest[this.props.project].find(row => row[unittest_uuid] === unittestUuid);
+            steps = cloneDeep(selectUnitTest.children);
+            fakeIteratorId = selectUnitTest[unittest_iterator];
+        } else {
+            steps = cloneDeep(this.props.unittest[iteratorId].find(row => row[unittest_uuid] === unittestUuid)?.children);
+            fakeIteratorId = iteratorId;
+        }
         if (steps === undefined) steps = [];
         let stepExecutorResult = [];
         for (let _step of steps) {
@@ -170,9 +194,8 @@ class SingleUnitTestReport extends Component {
             let stepSort = _step[unittest_step_sort];
             let prj = _step[unittest_step_prj];
             let method = _step[unittest_step_request_method];
-            let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unittestUuid, stepUuid);
-
-            let singleExecutorStep = await getSingleExecutorStep(iteratorId, unittestUuid, batchUuid, stepUuid);
+            let unitTestAsserts = await getUnitTestStepAsserts(fakeIteratorId, unittestUuid, stepUuid);
+            let singleExecutorStep = await getSingleExecutorStep(fakeIteratorId, unittestUuid, batchUuid, stepUuid);
             if (singleExecutorStep !== null) {
                 let historyId = singleExecutorStep[unittest_executor_history_id];
                 let url = isStringEmpty(hosts[prj]) ? singleExecutorStep[request_history_uri] : hosts[prj] + singleExecutorStep[request_history_uri];
@@ -304,6 +327,7 @@ class SingleUnitTestReport extends Component {
 function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
+        prjs: state.prj.list,
         envs: state.env.list,
         versionIterators: state['version_iterator'].list,
     }

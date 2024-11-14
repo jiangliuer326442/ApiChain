@@ -55,7 +55,7 @@ export async function delRequestHistory(row, cb) {
 export async function addRequestHistory(
     env : string, prj : string, uri : string, method : string,
     head, body, pathVariable, param, file,
-    response : string, jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean, cb) {
+    response : string, jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean) : Promise<number> {
 
     for (let _key in file) {
         delete file[_key].blob;
@@ -79,5 +79,5 @@ export async function addRequestHistory(
     request_history[request_history_ctime] = Date.now();
     request_history[request_history_delFlg] = 0;
     let id = await window.db[TABLE_REQUEST_HISTORY_NAME].put(request_history);
-    cb(id);
+    return id;
 }

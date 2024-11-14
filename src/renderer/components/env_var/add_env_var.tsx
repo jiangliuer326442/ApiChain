@@ -73,7 +73,7 @@ class AddEnvVarComponent extends Component {
             loadingFlg: true
         });
 
-        addEnvValues(this.props.prj, this.props.env, this.props.iteration, pname, pvalue, this.props.device, () => {
+        addEnvValues(this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "" , pname, pvalue, this.props.device, () => {
             this.clearInput();
             this.setState({
                 loadingFlg: false
@@ -82,7 +82,7 @@ class AddEnvVarComponent extends Component {
                 type: SHOW_ADD_PROPERTY_MODEL,
                 open: false
             });
-            getEnvValues(this.props.prj, this.props.env, this.props.iteration, "", "", this.props.dispatch, env_vars => {});
+            getEnvValues(this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "", "", this.props.dispatch, env_vars => {});
         });
     }
 

@@ -663,7 +663,6 @@ export async function executeProjectUnitTest(
     return batch_uuid;
 }
 
-
 export async function executeIteratorUnitTest(
     iteratorId : string, unitTestId : string, 
     steps : Array<any>, env : string, dispatch : any) : Promise<string>
@@ -907,7 +906,6 @@ async function stepsExecutor(
         let content = "";
         
         if(response !== null && isStringEmpty(errorMessage)) {
-            console.log(response);
             if (response.headers['content-type'] && response.headers['content-type'].toString().indexOf(CONTENT_TYPE_HTML) >= 0) {
                 isResponseHtml = true;
                 content = response.data;
@@ -996,23 +994,22 @@ async function stepsExecutor(
                 breakFlg = false;
             }
         }
-        addRequestHistory(env, project, requestUri, method, 
+        let requestHistoryId = await addRequestHistory(env, project, requestUri, method, 
             header, body, pathVariable, param, file, 
-            content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile, async requestHistoryId => {
-            let unit_test_executor : any = {};
-            unit_test_executor[unittest_executor_batch] = batch_uuid;
-            unit_test_executor[unittest_executor_iterator] = iteratorId;
-            unit_test_executor[unittest_executor_unittest] = unitTestId;
-            unit_test_executor[unittest_executor_step] = stepUuid;
-            unit_test_executor[unittest_executor_history_id] = requestHistoryId;
-            unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
-            unit_test_executor[unittest_executor_assert_right] = assertRightValue;
-            unit_test_executor[unittest_executor_result] = !breakFlg;
-            unit_test_executor[unittest_executor_cost_time] = executorEtime - executorBtime;
-            unit_test_executor[unittest_executor_delFlg] = 0;
-            unit_test_executor[unittest_executor_ctime] = Date.now();
-            await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
-        });
+            content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
+        let unit_test_executor : any = {};
+        unit_test_executor[unittest_executor_batch] = batch_uuid;
+        unit_test_executor[unittest_executor_iterator] = iteratorId;
+        unit_test_executor[unittest_executor_unittest] = unitTestId;
+        unit_test_executor[unittest_executor_step] = stepUuid;
+        unit_test_executor[unittest_executor_history_id] = requestHistoryId;
+        unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
+        unit_test_executor[unittest_executor_assert_right] = assertRightValue;
+        unit_test_executor[unittest_executor_result] = !breakFlg;
+        unit_test_executor[unittest_executor_cost_time] = executorEtime - executorBtime;
+        unit_test_executor[unittest_executor_delFlg] = 0;
+        unit_test_executor[unittest_executor_ctime] = Date.now();
+        await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
 
         //遇到错误结束
         if (breakFlg) {

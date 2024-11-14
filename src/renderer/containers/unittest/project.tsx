@@ -207,7 +207,7 @@ class UnittestListVersion extends Component {
 
     static getDerivedStateFromProps(nextProps, prevState) {
         let nextProject = nextProps.match.params.id;
-        let prevProject = prevState.iteratorId;
+        let prevProject = prevState.project;
         if (nextProject !== prevProject) {
             return {
                 project: nextProject,
@@ -323,7 +323,8 @@ class UnittestListVersion extends Component {
                         <AddUnittestComponent />
                     </Flex>
                     <SingleUnitTestReport 
-                        iteratorId={ this.state.iteratorId }
+                        iteratorId=""
+                        project={ this.state.project }
                         unittestUuid={ this.state.unittestUuid }
                         batchUuid={ this.state.batchUuid }
                         env={ this.state.env }

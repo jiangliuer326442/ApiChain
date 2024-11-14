@@ -149,7 +149,7 @@ class EnvVar extends Component {
             this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
           }
           if(env_vars.length === 0) {
-            addEnvValues(prj, env, "", ENV_VALUE_API_HOST, "", this.props.device, ()=>{
+            addEnvValues(prj, env, "", "", ENV_VALUE_API_HOST, "", this.props.device, ()=>{
               getEnvValues(prj, env, "", "", "", this.props.dispatch, env_vars => {});
             });
           }
