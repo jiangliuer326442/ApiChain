@@ -43,6 +43,7 @@ import ProjectListPage from "./prj";
 import EnvVarPrjectPage from "./env_var/project";
 import EnvVarGlobalPage from "./env_var/global";
 import EnvVarIteratorPage from "./env_var/iterator";
+import EnvVarUnittestPage from "./env_var/unittest";
 import VersionIteratorPage from "./version_iterator";
 import VersionIteratorAddPage from "./version_iterator/add"
 import NetSendPage from './request_send';
@@ -99,6 +100,7 @@ class MyRouter extends Component {
                                     <Route path={ ITERATOR_ADD_REQUEST_ROUTE } component={RequestToSaveContainerPage} />
                                     <Route path={ ENVVAR_GLOBAL_LIST_ROUTE } component={EnvVarGlobalPage} />
                                     <Route path={ ENVVAR_ITERATOR_LIST_ROUTE } component={EnvVarIteratorPage} />
+                                    <Route path={ ENVVAR_UNITTEST_LIST_ROUTE } component={EnvVarUnittestPage} />
                                     <Route path={ WELCOME_ROUTE } component={HomePage} />
                                 </Switch>
                             </Layout>

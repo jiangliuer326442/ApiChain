@@ -32,21 +32,17 @@ import { getdayjs, isStringEmpty } from '../../util';
 import { getEnvs } from '../../actions/env';
 import {
     getProjectUnitTests, 
-    delUnitTest, 
     delUnitTestStep,
     executeProjectUnitTest,
     continueProjectExecuteUnitTest,
-    copyFromIteratorToProject,
     copyFromProjectToIterator,
 } from '../../actions/unittest';
 import SingleUnitTestReport from '../../components/unittest/single_unittest_report';
-import AddUnittestComponent from '../../components/unittest/add_unittest';
 
 const { Header, Content, Footer } = Layout;
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
-let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_uname = TABLE_UNITTEST_FIELDS.FIELD_CUNAME;
@@ -236,16 +232,26 @@ class UnittestListVersion extends Component {
         if (record[unittest_folder] !== undefined) {
             return {'items': [{
                 key: "1",
-                label: (record[unittest_collectFlg] ? 
-                    <Button type='text' icon={<MergeOutlined />} onClick={()=>this.undoExportUnitTestClick(record)}>从项目移除</Button> 
-                : 
-                    <Button type='text' icon={<MergeOutlined />} onClick={()=>this.exportUnitTestClick(record)}>导出到项目</Button>),
-            },{
-                key: "2",
                 label: <Button type='text' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>编辑</Button>,
             },{
+                key: "2",
+                label: <Button type='link' href={ "#/unittest_envvars/" + record[unittest_uuid] } icon={<MergeOutlined />}>环境变量</Button>,
+            },{
                 key: "3",
-                label: <Button type='text' icon={<AppstoreOutlined />} onClick={()=>this.editUnitTestClick(record)}>环境变量</Button>,
+                danger: true,
+                label:  <Popconfirm
+                            title="删除测试用例"
+                            description="确定删除该测试用例吗？"
+                            onConfirm={e => {
+                                this.undoExportUnitTestClick(record, ()=>{
+                                    getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
+                                });
+                            }}
+                            okText="删除"
+                            cancelText="取消"
+                            >
+                            <Button danger type="link" icon={<DeleteOutlined />}>删除</Button>
+                        </Popconfirm>,
             }]};
         } else {
             return {'items': [] };
@@ -257,22 +263,10 @@ class UnittestListVersion extends Component {
         getProjectUnitTests(this.state.project, value, this.props.dispatch);
     }
 
-    undoExportUnitTestClick = (record) => {
+    undoExportUnitTestClick = (record, cb) => {
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        copyFromProjectToIterator(iteratorId, unittestId, ()=>{
-            message.success("已成功从项目删除该单测");
-            getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
-        });
-    }
-
-    exportUnitTestClick = (record) => {
-        let iteratorId = this.state.iteratorId;
-        let unittestId = record[unittest_uuid];
-        copyFromIteratorToProject(iteratorId, unittestId, ()=>{
-            message.success("导出单测到项目成功");
-            getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
-        });
+        copyFromProjectToIterator(iteratorId, unittestId, cb);
     }
 
     editUnitTestClick = (record) => {
@@ -282,15 +276,6 @@ class UnittestListVersion extends Component {
             unitTestUuid: record[unittest_uuid],
             title: record[unittest_title],
             folder: record[unittest_folder],
-            open: true
-        });
-    }
-
-    addUnitTestClick = () => {
-        this.props.dispatch({
-            type: SHOW_ADD_UNITTEST_MODEL,
-            iteratorId: this.state.iteratorId,
-            unitTestUuid: "",
             open: true
         });
     }
@@ -319,8 +304,6 @@ class UnittestListVersion extends Component {
                                 />
                             </Form.Item>
                         </Form>
-                        <Button style={{ margin: '16px 0' }} type="primary" onClick={this.addUnitTestClick}>添加单测</Button>
-                        <AddUnittestComponent />
                     </Flex>
                     <SingleUnitTestReport 
                         iteratorId=""

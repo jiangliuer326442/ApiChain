@@ -85,7 +85,7 @@ class EnvVar extends Component {
                   title="环境变量"
                   description="确定删除该环境变量吗？"
                   onConfirm={e => {
-                      delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", record, ()=>{
+                      delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", record, ()=>{
                         getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", "", this.props.dispatch, env_vars=>{});
                       });
                   }}
@@ -175,7 +175,7 @@ class EnvVar extends Component {
             项目环境变量配置
           </Header>
           <Content style={{ margin: '0 16px' }}>
-            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '设置' }, { title: '环境变量' }]} />
+            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '迭代' }, { title: '环境变量' }]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">
                   <Form.Item label="选择项目">

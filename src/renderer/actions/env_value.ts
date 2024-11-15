@@ -201,7 +201,7 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
     return env_vars;
 }
 
-export async function delEnvValue(prj, env, iteration, row, cb) {
+export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
     window.db.transaction('rw',
         window.db[TABLE_ENV_KEY_NAME],
         window.db[TABLE_ENV_VAR_NAME], 
@@ -209,20 +209,16 @@ export async function delEnvValue(prj, env, iteration, row, cb) {
             let pname = row[env_var_pname];
 
             const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_pname + ']')
-            .equals([env, prj, iteration, pname]).first();  
+            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+            .equals([env, prj, iteration, unittest, pname]).first();  
             if (envVarItem !== undefined) {
-                envVarItem[env_var_env] = env;
-                envVarItem[env_var_micro_service] = prj;
-                envVarItem[env_var_iteration] = iteration;
-                envVarItem[env_var_pname] = pname;
                 envVarItem[env_var_delFlg] = 1;
                 await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
             }
 
             const envVars = await window.db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_pname + ']')
-            .equals([prj, iteration, pname]).toArray();  
+            .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+            .equals([prj, iteration, "", pname]).toArray();  
             let delEnvKeyFlag = true;
             for (const envVarItem of envVars) {  
                 if (envVarItem[env_var_delFlg] === 0) {

@@ -314,6 +314,15 @@ export async function delUnitTestStep(unittestStepUuid : string, cb) {
     }
 }
 
+export async function getSingleUnittest(uuid : string) {
+    //单测列表
+    let unitTest = await window.db[TABLE_UNITTEST_NAME]
+    .where(field_unittest_uuid)
+    .equals(uuid)
+    .first();
+    return unitTest;
+}
+
 export async function getProjectUnitTests(project : string, env : string|null, dispatch) {
     //单测列表
     let unitTests = await window.db[TABLE_UNITTEST_NAME]
