@@ -37,6 +37,7 @@ import {
     continueProjectExecuteUnitTest,
     copyFromProjectToIterator,
 } from '../../actions/unittest';
+import AddUnittestComponent from '../../components/unittest/add_unittest';
 import SingleUnitTestReport from '../../components/unittest/single_unittest_report';
 
 const { Header, Content, Footer } = Layout;
@@ -143,7 +144,7 @@ class UnittestListVersion extends Component {
                                         this.setState({ unittestUuid, batchUuid})
                                     }}>执行用例</Button>
                                     {record.result !== undefined ? 
-                                    <Button type='link' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/' + iteratorId + '/' + unittestUuid }>执行记录</Button>
+                                    <Button type='link' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/__empty__/' + unittestUuid }>执行记录</Button>
                                     : null}
                                     <Dropdown menu={this.getMore(record)}>
                                         <Button type="text" icon={<MoreOutlined />} />
@@ -175,19 +176,6 @@ class UnittestListVersion extends Component {
                                         })
                                     }}>继续执行</Button>
                                     : null}
-                                    <Button icon={<EditOutlined />} type='link' href={ "#/version_iterator_tests_step_edit/" + this.state.iteratorId + "/" + valueUnittestStepUnittestUuid + "/" + valueUnittestStepUuid } />
-                                    <Popconfirm
-                                        title="删除测试用例步骤"
-                                        description="确定删除该步骤吗？"
-                                        onConfirm={e => {
-                                            delUnitTestStep(valueUnittestStepUuid, ()=>{
-                                                getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
-                                            });
-                                        }}
-                                        okText="删除"
-                                        cancelText="取消">
-                                        <Button danger type="link" icon={<DeleteOutlined />} />
-                                    </Popconfirm>
                                 </Space>
                             );
                         }
@@ -264,15 +252,14 @@ class UnittestListVersion extends Component {
     }
 
     undoExportUnitTestClick = (record, cb) => {
-        let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        copyFromProjectToIterator(iteratorId, unittestId, cb);
+        copyFromProjectToIterator(unittestId, cb);
     }
 
     editUnitTestClick = (record) => {
         this.props.dispatch({
             type: SHOW_EDIT_UNITTEST_MODEL,
-            iteratorId: this.state.iteratorId,
+            iteratorId: record[unittest_iterator],
             unitTestUuid: record[unittest_uuid],
             title: record[unittest_title],
             folder: record[unittest_folder],
@@ -304,10 +291,10 @@ class UnittestListVersion extends Component {
                                 />
                             </Form.Item>
                         </Form>
+                        <AddUnittestComponent />
                     </Flex>
                     <SingleUnitTestReport 
                         iteratorId=""
-                        project={ this.state.project }
                         unittestUuid={ this.state.unittestUuid }
                         batchUuid={ this.state.batchUuid }
                         env={ this.state.env }

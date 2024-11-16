@@ -530,7 +530,6 @@ class RequestSendContainer extends Component {
       }
     }
     if(response !== null) {
-      console.log(response);
       if (response.headers['content-type'] && response.headers['content-type'].toString().indexOf(CONTENT_TYPE_HTML) >= 0) {
         isResponseHtml = true;
         content = response.data;

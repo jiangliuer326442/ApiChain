@@ -1,4 +1,5 @@
 import {
+    isStringEmpty,
     mixedSort
 } from '../util'
 import {
@@ -82,33 +83,37 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
     // 优先级 迭代+项目 > 迭代 > 项目 > 全局
     let iteratorPlusPrjKeys = new Set<String>();
     let iteratorKeys = new Set<String>();
+    let unittestPlusPrjKeys = new Set<String>();
+    let unittestKeys = new Set<String>();
     let projectKeys = new Set<String>();
     let globalKeys = new Set<String>();
-    if (iterator && prj) {
-        let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
-        .equals([env, prj, iterator, ""])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
+
+    if (!isStringEmpty(iterator)) {
+        if (!isStringEmpty(prj)) {
+            let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
+            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+            .equals([env, prj, iterator, ""])
+            .filter(row => {
+                if (row[env_var_delFlg]) {
+                    return false;
+                }
+                return true;
+            })
+            .toArray();
+            if (pname) {
+                iteratorPlusPrjKeys = new Set([pname]);
+            } else {
+                iteratorPlusPrjKeys = new Set(iteratorPlusPrjArrays.map(item => ( item[env_var_pname])));
             }
-            return true;
-        })
-        .toArray();
-        if (pname) {
-            iteratorPlusPrjKeys = new Set([pname]);
-        } else {
-            iteratorPlusPrjKeys = new Set(iteratorPlusPrjArrays.map(item => ( item[env_var_pname])));
-        }
-        for (let iteratorPlusPrjRow of iteratorPlusPrjArrays) {
-            let _pname = iteratorPlusPrjRow[env_var_pname];
-            if (iteratorPlusPrjKeys.has(_pname)) {
-                iteratorPlusPrjRow['allow_del'] = true;
-                env_vars.push(iteratorPlusPrjRow);
+            for (let iteratorPlusPrjRow of iteratorPlusPrjArrays) {
+                let _pname = iteratorPlusPrjRow[env_var_pname];
+                if (iteratorPlusPrjKeys.has(_pname)) {
+                    iteratorPlusPrjRow['allow_del'] = true;
+                    env_vars.push(iteratorPlusPrjRow);
+                }
             }
         }
-    }
-    if (iterator) {
+
         let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
         .equals([env, "", iterator, ""])
@@ -132,7 +137,57 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
                 env_vars.push(iteratorRow);
             }
         }
+    } else if (!isStringEmpty(unittest)) {
+        if (!isStringEmpty(prj)) {
+            let unittestPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
+            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+            .equals([env, prj, "", unittest])
+            .filter(row => {
+                if (row[env_var_delFlg]) {
+                    return false;
+                }
+                return true;
+            })
+            .toArray();
+            if (pname) {
+                unittestPlusPrjKeys = new Set([pname]);
+            } else {
+                unittestPlusPrjKeys = new Set(unittestPlusPrjArrays.map(item => ( item[env_var_pname])));
+            }
+            for (let unittestPlusPrjRow of unittestPlusPrjArrays) {
+                let _pname = unittestPlusPrjRow[env_var_pname];
+                if (unittestPlusPrjKeys.has(_pname)) {
+                    unittestPlusPrjRow['allow_del'] = true;
+                    env_vars.push(unittestPlusPrjRow);
+                }
+            }
+        }
+
+        let unittestArrays = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+        .equals([env, "", "", unittest])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        if (pname) {
+            unittestKeys = new Set([pname]);
+        } else {
+            let _keys = unittestArrays.map(item => ( item[env_var_pname]));
+            unittestKeys = sub(_keys, unittestPlusPrjKeys);
+        }
+        for (let unittestRow of unittestArrays) {
+            let _pname = unittestRow[env_var_pname];
+            if (unittestKeys.has(_pname)) {
+                unittestRow['allow_del'] = !prj;
+                env_vars.push(unittestRow);
+            }
+        }
     }
+
     if (prj) {
         let projectArrays = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
@@ -148,13 +203,13 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
             projectKeys = new Set([pname]);
         } else {
             let _keys = projectArrays.map(item => ( item[env_var_pname]));
-            _keys = sub(_keys, iteratorPlusPrjKeys);
-            projectKeys = sub(_keys, iteratorKeys);
+            _keys = sub(sub(_keys, iteratorPlusPrjKeys), unittestPlusPrjKeys);
+            projectKeys = sub(sub(_keys, iteratorKeys), unittestKeys);
         }
         for (let projectRow of projectArrays) {
             let _pname = projectRow[env_var_pname];
             if (projectKeys.has(_pname)) {
-                projectRow['allow_del'] = (!iterator && (_pname !== ENV_VALUE_API_HOST));
+                projectRow['allow_del'] = (!iterator && !unittest && (_pname !== ENV_VALUE_API_HOST));
                 env_vars.push(projectRow);
             }
         }
@@ -174,14 +229,14 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
         globalKeys = new Set([pname]);
     } else {
         let _keys = globalArrays.map(item => ( item[env_var_pname]));
-        _keys = sub(_keys, iteratorPlusPrjKeys);
-        _keys = sub(_keys, iteratorKeys);
+        _keys = sub(sub(_keys, iteratorPlusPrjKeys), unittestPlusPrjKeys);
+        _keys = sub(sub(_keys, iteratorKeys), unittestKeys);
         globalKeys = sub(_keys, projectKeys);
     }
     for (let globalRow of globalArrays) {
         let _pname = globalRow[env_var_pname];
         if (globalKeys.has(_pname)) {
-            globalRow['allow_del'] = !(iterator || prj);
+            globalRow['allow_del'] = !(iterator || unittest || prj);
             env_vars.push(globalRow);
         }
     }
@@ -195,6 +250,7 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
         prj,
         env,
         iterator,
+        unittest,
         env_vars,
     });
 

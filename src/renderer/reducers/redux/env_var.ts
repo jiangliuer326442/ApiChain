@@ -11,6 +11,7 @@ import {
 import { 
     TABLE_ENV_VAR_FIELDS,
 } from '../../../config/db';
+import unittest from './unittest';
 
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pval = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -20,13 +21,14 @@ export default function (state = {
     env: "",
     prj: "",
     iterator: "",
+    unittest: "",
     pname: "",
     pvalue: "",
     list: []
-  }, action : object) {
+  }, action : any) {
     switch(action.type) {
         case GET_ENV_VALS:
-            let list = [];
+            let list : any[] = [];
             action.env_vars.map(envVar => {
                 envVar.key = envVar[env_var_pname] + envVar[env_var_pval];
                 list.push(envVar);
@@ -37,7 +39,8 @@ export default function (state = {
               prj: action.prj,
               env: action.env,
               iterator: action.iterator,
-              list
+              unittest: action.unittest,
+              list,
             });
         case SHOW_ADD_PROPERTY_MODEL:
             return Object.assign({}, state, {

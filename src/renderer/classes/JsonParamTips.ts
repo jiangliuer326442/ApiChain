@@ -235,8 +235,8 @@ export default class {
     }
 
     async getValue(envVarTips: RequestSendTips, 
-        paramData : object, pathVariableData : object, headData : object, bodyData : object, responseData : object,
-        unittest_executor_iterator : string, unittest_executor_unittest : string, unittest_executor_batch : string) {
+        paramData : object, pathVariableData : object, headData : object, bodyData : object, responseData : object, 
+        unittest_uuid : string, unittest_executor_batch : string) {
         //环境变量 固定值
         if (this.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV) {
             if (this.assertPrev === undefined) return "";
@@ -280,9 +280,7 @@ export default class {
                 return this.getDataSourceByPathArr(dataSource, pathArr);
             } else {
                 let stepId = this.selectedStep.substring(UNITTEST_STEP_POINTED.length);
-
-                let unitTestExecutorRow = await getSingleExecutorStep(unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, stepId);
-
+                let unitTestExecutorRow = await getSingleExecutorStep(this.currentIteration, unittest_uuid, unittest_executor_batch, stepId);
                 if (unitTestExecutorRow !== null) {
                     //数据来源
                     let dataSource : any;

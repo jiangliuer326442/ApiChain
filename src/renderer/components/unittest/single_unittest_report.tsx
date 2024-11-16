@@ -26,6 +26,7 @@ import {
 } from '../../../config/db';
 
 import {
+    getSingleUnittest,
     getSingleExecutorReport,
     getSingleExecutorStep,
     getUnitTestStepAsserts,
@@ -90,6 +91,7 @@ class SingleUnitTestReport extends Component {
             recentUnittestUuid: "",
             recentBatchUuid: "",
             recentUnitTestReport: {},
+            selectedUnitTest: {},
             recentStepResult: [],
             openFlg: false,
         };
@@ -124,25 +126,20 @@ class SingleUnitTestReport extends Component {
             let values = await Promise.all(promises);
             let hosts : any = {};
             for (let _value of values) {
+                if (_value.length === 0) continue;
                 hosts[_value[0][env_var_prj]] =  _value[0][env_var_pvalue];
             }
             this.buildRecentExecutorResult( this.props.iteratorId, this.props.unittestUuid, this.props.batchUuid, hosts);
         }
     }
 
-    getDescriptions = () : DescriptionsProps['items'] => {
-        let selectedUnitTest : any;
-        if (isStringEmpty(this.props.iteratorId)) {
-            selectedUnitTest = this.props.unittest[this.props.project].find(row => row[unittest_uuid] === this.state.recentUnittestUuid);
-        } else {
-            selectedUnitTest = this.props.unittest[this.props.iteratorId].find(row => row[unittest_uuid] === this.state.recentUnittestUuid);
-        }
+    getDescriptions = () : Promise<DescriptionsProps['items']> => {
         let selectedEnv = this.props.envs.find(row => row[env_label] === this.state.recentUnitTestReport[unittest_report_env]);
         return [
             {
                 key: '1',
                 label: '测试用例',
-                children: selectedUnitTest[unittest_title],
+                children: this.state.selectedUnitTest[unittest_title],
             },
             {
                 key: '2',
@@ -173,19 +170,13 @@ class SingleUnitTestReport extends Component {
     }
 
     buildRecentExecutorResult = async (iteratorId: string, unittestUuid : string, batchUuid : string, hosts : any) => {
+        let selectedUnitTest = await getSingleUnittest(unittestUuid, this.props.env, iteratorId);
         //单测报告
         let unitTestReport = await getSingleExecutorReport(iteratorId, unittestUuid, batchUuid);
-        let steps;
-        let fakeIteratorId;
-        if (isStringEmpty(iteratorId)) {
-            let selectUnitTest = this.props.unittest[this.props.project].find(row => row[unittest_uuid] === unittestUuid);
-            steps = cloneDeep(selectUnitTest.children);
-            fakeIteratorId = selectUnitTest[unittest_iterator];
-        } else {
-            steps = cloneDeep(this.props.unittest[iteratorId].find(row => row[unittest_uuid] === unittestUuid)?.children);
-            fakeIteratorId = iteratorId;
-        }
+        let steps = cloneDeep(selectedUnitTest.children);
+        let fakeIteratorId = selectedUnitTest[unittest_iterator];
         if (steps === undefined) steps = [];
+
         let stepExecutorResult = [];
         for (let _step of steps) {
             let stepUuid = _step[unittest_step_uuid];
@@ -195,7 +186,7 @@ class SingleUnitTestReport extends Component {
             let prj = _step[unittest_step_prj];
             let method = _step[unittest_step_request_method];
             let unitTestAsserts = await getUnitTestStepAsserts(fakeIteratorId, unittestUuid, stepUuid);
-            let singleExecutorStep = await getSingleExecutorStep(fakeIteratorId, unittestUuid, batchUuid, stepUuid);
+            let singleExecutorStep = await getSingleExecutorStep("", unittestUuid, batchUuid, stepUuid);
             if (singleExecutorStep !== null) {
                 let historyId = singleExecutorStep[unittest_executor_history_id];
                 let url = isStringEmpty(hosts[prj]) ? singleExecutorStep[request_history_uri] : hosts[prj] + singleExecutorStep[request_history_uri];
@@ -234,6 +225,7 @@ class SingleUnitTestReport extends Component {
         this.setState({
             recentUnittestUuid: unittestUuid,
             recentBatchUuid: batchUuid,
+            selectedUnitTest,
             recentStepResult: stepExecutorResult,
             openFlg: true, 
             recentUnitTestReport: unitTestReport,

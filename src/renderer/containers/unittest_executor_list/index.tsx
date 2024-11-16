@@ -29,6 +29,9 @@ class UnittestExecutorList extends Component {
         super(props);
         let env = props.match.params.env;
         let iteratorId = props.match.params.iteratorId;
+        if (iteratorId === "__empty__") {
+            iteratorId = "";
+        }
         let unitTestId = props.match.params.unitTestId;
         this.state = {
             column: [

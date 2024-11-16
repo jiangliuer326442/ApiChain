@@ -272,9 +272,8 @@ class UnittestListVersion extends Component {
     }
 
     undoExportUnitTestClick = (record) => {
-        let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        copyFromProjectToIterator(iteratorId, unittestId, ()=>{
+        copyFromProjectToIterator(unittestId, ()=>{
             message.success("已成功从项目删除该单测");
             getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
         });

@@ -88,8 +88,8 @@ class EnvVar extends Component {
                   title="环境变量"
                   description="确定删除该环境变量吗？"
                   onConfirm={e => {
-                      delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", record, ()=>{
-                        getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", "", this.props.dispatch, env_vars=>{});
+                      delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", this.state.unittestId, record, ()=>{
+                        getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", this.state.unittestId, "", this.props.dispatch, env_vars=>{});
                       });
                   }}
                   okText="删除"
@@ -112,9 +112,10 @@ class EnvVar extends Component {
   }
   
   async componentDidMount() {
-    let unitest = await getSingleUnittest(this.state.unittestId);
+    let env = this.state.env ? this.state.env : this.props.env;
+    let unitest = await getSingleUnittest(this.state.unittestId, env, "");
     this.setState({ unittest: unitest });
-    this.getEnvValueData(this.state.prj, this.state.unittestId, this.state.env ? this.state.env : this.props.env, "");
+    this.getEnvValueData(this.state.prj, this.state.unittestId, env, "");
     if(this.props.envs.length === 0) {
       getEnvs(this.props.dispatch);
     }

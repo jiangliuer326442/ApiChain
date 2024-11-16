@@ -140,6 +140,7 @@ function mapStateToProps (state) {
         device : state.device,
         prj: state.env_var.prj ? state.env_var.prj : "",
         iteration: state.env_var.iterator ? state.env_var.iterator : "",
+        unittest: state.env_var.unittest ? state.env_var.unittest : "",
         env: state.env_var.env,
         pname: state.env_var.pname,
         pvalue: state.env_var.pvalue,
