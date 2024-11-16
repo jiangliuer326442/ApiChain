@@ -186,7 +186,7 @@ class SingleUnitTestReport extends Component {
             let prj = _step[unittest_step_prj];
             let method = _step[unittest_step_request_method];
             let unitTestAsserts = await getUnitTestStepAsserts(fakeIteratorId, unittestUuid, stepUuid);
-            let singleExecutorStep = await getSingleExecutorStep("", unittestUuid, batchUuid, stepUuid);
+            let singleExecutorStep = await getSingleExecutorStep(iteratorId, unittestUuid, batchUuid, stepUuid);
             if (singleExecutorStep !== null) {
                 let historyId = singleExecutorStep[unittest_executor_history_id];
                 let url = isStringEmpty(hosts[prj]) ? singleExecutorStep[request_history_uri] : hosts[prj] + singleExecutorStep[request_history_uri];

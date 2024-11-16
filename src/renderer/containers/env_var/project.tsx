@@ -145,6 +145,7 @@ class EnvVar extends Component {
       });
       if(!isStringEmpty(env)) {
         getEnvValues(prj, env, "", "", paramName, this.props.dispatch, env_vars => {
+          console.debug("env_vars", env_vars);
           if (!paramName) {
             this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
           }
