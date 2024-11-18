@@ -321,7 +321,7 @@ export async function getSingleUnittest(unittest_uuid : string, env : string | n
     .equals(unittest_uuid)
     .first();
 
-    let iterator_uuid = unitTest[unittest_iterator_uuid];
+    let fakeIteratorId = unitTest[unittest_iterator_uuid];
     let batch_uuid = "";
     //拿整体执行报告
     let unittestReport;
@@ -350,7 +350,7 @@ export async function getSingleUnittest(unittest_uuid : string, env : string | n
 
     let unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
     .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-    .equals([0, iterator_uuid, unittest_uuid])
+    .equals([0, fakeIteratorId, unittest_uuid])
     .toArray();
 
     if (!isStringEmpty(unitTest[unittest_report_step])) {
@@ -390,7 +390,7 @@ export async function getSingleUnittest(unittest_uuid : string, env : string | n
             let stepUuid = unitTestStep[field_unittest_step_uuid];
             let unittest_executor_report = await window.db[TABLE_UNITTEST_EXECUTOR_NAME]
             .where([unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, unittest_executor_step])
-            .equals(["", unittest_uuid, batch_uuid, stepUuid])
+            .equals([iteratorId, unittest_uuid, batch_uuid, stepUuid])
             .first();
             if (unittest_executor_report !== undefined) {
                 unitTestStep[unittest_executor_result] = unittest_executor_report[unittest_executor_result];

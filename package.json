@@ -1,10 +1,9 @@
 {
   "name": "ApiChainDebug",
-  "version": "0.0.6",
+  "version": "1.0.5",
   "description": "是一款类似 PostMan 的接口请求软件",
   "keywords": [
     "postman",
-	"apifox",
     "项目接口管理",
     "迭代文档",
     "自动化测试"
