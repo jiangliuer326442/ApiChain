@@ -149,6 +149,6 @@ export const VipTagDoc = "vip.tag.doc";
 
 export const VipTagMockServer = "vip.tag.mock";
 
-export const PayJumpUrl = "http://pay.fanghailiang.cn:8081/pay/jump/";
+export const PayJumpUrl = "http://pay.fanghailiang.cn/pay/jump/";
 
-export const PayQueryUrl = "http://pay.fanghailiang.cn:8081/pay/query/";
+export const PayQueryUrl = "http://pay.fanghailiang.cn/pay/query/";
