@@ -24,6 +24,7 @@ import {
 } from '../../util/json';
 import { ENV_VALUE_API_HOST } from "../../../config/envKeys";
 import { 
+  TABLE_VERSION_ITERATION_FIELDS,
   TABLE_REQUEST_HISTORY_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
   TABLE_PROJECT_REQUEST_FIELDS,
@@ -78,6 +79,7 @@ let request_history_file = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_FILE;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_iterator = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ITERATOR;
 let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
 let request_history_picFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_PICFLG;
@@ -175,6 +177,7 @@ class RequestSendContainer extends Component {
       this.setState({
         id: key,
         showFlg: true,
+        iteratorId: record[request_history_iterator],
         prj: record[request_history_micro_service],
         env: record[request_history_env],
         requestUri: record[request_history_uri],
@@ -560,7 +563,8 @@ class RequestSendContainer extends Component {
       }
       let historyId = await addRequestHistory(this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
         this.state.requestHeadData, this.state.requestBodyData, this.state.requestPathVariableData, this.state.requestParamData, this.state.requestFileData,
-        content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
+        content, this.state.iteratorId, 
+        isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
       this.setState({ responseData : content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile, alertMessage: "", id: historyId });
     }
   }

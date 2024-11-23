@@ -84,6 +84,7 @@ export const TABLE_REQUEST_HISTORY_FIELDS = {
     FIELD_REQUEST_PARAM : "param",
     FIELD_REQUEST_PATH_VARIABLE : "path_variable",
     FIELD_RESPONSE_CONTENT : "content",
+    FIELD_ITERATOR : "iteratorId",
     FIELD_JSONFLG : "json_flg",
     FIELD_HTMLFLG : "html_flg",
     FIELD_PICFLG : "pic_flg",

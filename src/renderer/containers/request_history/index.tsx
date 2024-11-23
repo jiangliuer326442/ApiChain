@@ -4,10 +4,7 @@ import {
     Breadcrumb, Layout, Flex, Form, Tooltip,
     Input, Button, DatePicker, Table, Space
 } from "antd";
-import { 
-    EyeOutlined,  
-    DeleteOutlined 
-} from '@ant-design/icons';
+import { EyeOutlined } from '@ant-design/icons';
 import type { FormProps } from 'antd';
 import JsonView from 'react-json-view';
 
@@ -19,10 +16,7 @@ import {
 import { 
     TABLE_REQUEST_HISTORY_FIELDS,
 } from '../../../config/db';
-import { 
-    delRequestHistory,
-    getRequestHistorys 
-} from "../../actions/request_history";
+import { getRequestHistorys } from "../../actions/request_history";
 import SelectPrjEnvComponent from "../../components/env_var/select_prj_env";
 
 const { Header, Content, Footer } = Layout;
@@ -90,19 +84,6 @@ class RequestHistoryContainer extends Component {
                 datas.push(item);
             });
             this.setState({list: datas, uri: values.uri});
-        });
-    }
-
-    handleDel = (record) => {
-        delRequestHistory(record, ()=>{
-            getRequestHistorys(this.state.env, this.state.prj, this.state.btime, this.state.etime, this.state.uri, list => {
-                let datas = [];
-                list.map(item => {
-                    item.key = item[id];
-                    datas.push(item);
-                });
-                this.setState({list: datas});
-            });
         });
     }
 
@@ -176,7 +157,6 @@ class RequestHistoryContainer extends Component {
                   return (
                     <Space>
                         <Button type="link" href={ "#/internet_request_send_by_history/" + record[id] } icon={<EyeOutlined />} />
-                        <Button danger type="link" icon={<DeleteOutlined />} onClick={()=>this.handleDel(record)} />
                     </Space>
                   )
                 },

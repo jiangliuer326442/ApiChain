@@ -1006,7 +1006,7 @@ async function stepsExecutor(
         }
         let requestHistoryId = await addRequestHistory(env, project, requestUri, method, 
             header, body, pathVariable, param, file, 
-            content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
+            content, "", isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
 
         let costTime = executorEtime - executorBtime;
 

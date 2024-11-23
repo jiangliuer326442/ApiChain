@@ -5,7 +5,6 @@ import {
 
 import { isStringEmpty } from '../util';
 
-let request_history_id = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ID;
 let request_history_env = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ENV_LABEL;
 let request_history_micro_service = TABLE_REQUEST_HISTORY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
@@ -16,6 +15,7 @@ let request_history_file = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_FILE;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_iterator = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ITERATOR;
 let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
 let request_history_picFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_PICFLG;
@@ -40,22 +40,11 @@ export async function getRequestHistory(id : number) : Promise<any> {
     return record;
 }
 
-export async function delRequestHistory(row, cb) {
-    let id = row[request_history_id];
-    let record = await window.db[TABLE_REQUEST_HISTORY_NAME].get(id);
-    if (record !== undefined) {
-        record[request_history_id] = id;
-        record[request_history_delFlg] = 1;
-        console.debug(record);
-        await window.db[TABLE_REQUEST_HISTORY_NAME].put(record);
-        cb();
-    }
-}
-
 export async function addRequestHistory(
     env : string, prj : string, uri : string, method : string,
     head, body, pathVariable, param, file,
-    response : string, jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean) : Promise<number> {
+    response : string, iteratorId : string,
+    jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean) : Promise<number> {
 
     for (let _key in file) {
         delete file[_key].blob;
@@ -72,6 +61,7 @@ export async function addRequestHistory(
     request_history[request_history_param] = param;
     request_history[request_history_path_variable] = pathVariable;
     request_history[request_history_response] = response;
+    request_history[request_history_iterator] = iteratorId;
     request_history[request_history_jsonFlg] = jsonFlg;
     request_history[request_history_htmlFlg] = htmlFlg;
     request_history[request_history_picFlg] = picFlg;

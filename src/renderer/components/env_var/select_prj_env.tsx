@@ -14,10 +14,12 @@ import { getEnvs } from '../../actions/env';
 import { getVersionIterator } from '../../actions/version_iterator';
 import { isStringEmpty } from '../../util';
 
+let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
+let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
+let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
+
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
-
-let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 
 class PrjEnvSelect extends Component {
 
@@ -60,6 +62,11 @@ class PrjEnvSelect extends Component {
     render() : ReactNode {
         return (
             <Form layout="inline">
+                {!isStringEmpty(this.state.iteratorId) ? 
+                <Form.Item label="当前迭代">
+                    { this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_title] }
+                </Form.Item>
+                : null}
                 <Form.Item label="选择项目">
                     {this.props.prjs.length > 0 ? 
                     <Select
@@ -99,6 +106,7 @@ function mapStateToProps (state) {
     return {
         envs: state.env.list,
         prjs: state.prj.list,
+        versionIterators: state['version_iterator'].list,
     }
 }
 
