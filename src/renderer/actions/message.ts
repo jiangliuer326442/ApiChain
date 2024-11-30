@@ -23,7 +23,7 @@ import {
     ChannelsMockServerStr,
     ChannelsMockServerQueryStr,
     ChannelsMockServerQueryResultStr,
-} from '../../config/global_config';
+} from '../../config/channel';
 import { SET_DEVICE_INFO } from '../../config/redux';
 
 import { getVarsByKey } from '../actions/env_value';

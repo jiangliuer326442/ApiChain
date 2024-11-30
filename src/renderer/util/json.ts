@@ -212,7 +212,6 @@ export function iteratorGenHash(originObject : Object) : string {
     let shortObject = {};
     shortJsonContent(shortObject, originObject);
     let genHash = innerIteratorGenHash("", shortObject);
-    console.debug(genHash);
     genHash = md5(genHash);
     return genHash;
 }

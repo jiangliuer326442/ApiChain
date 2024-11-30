@@ -132,6 +132,14 @@ const createWindow = async () => {
     }
   });
 
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    event.preventDefault()
+    console.log(`试图跳转到: ${url}`)
+    // 你可以在这里添加你的逻辑来处理重定向
+    // 如果你想要重定向到一个新的页面，你可以使用 loadURL 方法
+    // win.loadURL('http://new-url.com')
+  })
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });

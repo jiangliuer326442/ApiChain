@@ -8,10 +8,12 @@ import { encode } from 'base-64';
 import { TABLE_PROJECT_REQUEST_FIELDS, TABLE_ENV_VAR_FIELDS } from '../../../config/db';
 import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
 import { CONTENT_TYPE_FORMDATA, CONTENT_TYPE_URLENCODE } from '../../../config/contentType';
+import { REQUEST_METHOD_POST, REQUEST_METHOD_GET, CONTENT_TYPE } from '../../../config/global_config';
 import {
-    ChannelsPostmanStr, ChannelsPostmanInStr, ChannelsPostmanOutStr,
-    REQUEST_METHOD_POST, REQUEST_METHOD_GET, CONTENT_TYPE
-} from '../../../config/global_config';
+    ChannelsPostmanStr, 
+    ChannelsPostmanInStr, 
+    ChannelsPostmanOutStr,
+} from '../../../config/channel';
 import { isStringEmpty } from '../../util';
 import { getHostRight } from '../../util/uri';
 import { 

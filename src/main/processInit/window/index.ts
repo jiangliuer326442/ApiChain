@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 
-import { ChannelsOpenWindowStr } from '../../../config/global_config';
+import { ChannelsOpenWindowStr } from '../../../config/channel';
 import { resolveHtmlPath, getAssetPath } from '../../util/util';
 
 export default function (mainWindow : BrowserWindow){

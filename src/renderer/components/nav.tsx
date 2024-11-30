@@ -4,7 +4,8 @@ import { Layout, Menu, Flex } from "antd";
 import Dexie from 'dexie';
 
 import { DB_NAME } from '../../config/db';
-import { ChannelsUserInfoStr, ChannelsUserInfoPingStr } from '../../config/global_config';
+import { SET_NAV_COLLAPSED } from '../../config/redux';
+import { ChannelsUserInfoStr, ChannelsUserInfoPingStr } from '../../config/channel';
 import registerMessageHook from '../actions/message';
 import { getVersionIterators } from "../actions/version_iterator";
 import { getPrjs } from "../actions/project";
@@ -37,7 +38,7 @@ class Nav extends Component {
         require('../reducers/db/20241114001');
 
         this.state = {
-          collapsed: false
+
         };
     }
 
@@ -58,16 +59,20 @@ class Nav extends Component {
     }
 
     setCollapsed = (collapsed) => {
-        this.setState({collapsed});
+      this.props.dispatch({
+        type: SET_NAV_COLLAPSED,
+        collapsed,
+      });
     }
 
     render() : ReactNode {
         return (
-          <Sider collapsible collapsed={this.state.collapsed} onCollapse={(value) => this.setCollapsed(value)}>
+          <Sider collapsible collapsed={this.props.collapsed} onCollapse={(value) => this.setCollapsed(value)}>
             <Flex gap="middle" vertical style={{
               height: "32px",
               margin: "16px",
             }}>
+              {!this.props.collapsed ? 
               <a href={ "#/" } rel="noopener noreferrer" style={{lineHeight: 0,
                 color: "#5DE2E7",
                 marginLeft: 5,
@@ -77,6 +82,7 @@ class Nav extends Component {
               }}>
                 {this.props.appName}
               </a>
+              : null}
               <p style={{
                 color: "#fff",
                 marginTop: -30,
@@ -98,6 +104,7 @@ function mapStateToProps (state) {
     navs: state.nav.navs,
     appName: state.device.appName,
     appVersion: state.device.appVersion,
+    collapsed: state.nav.collapsed,
   }
 }
 

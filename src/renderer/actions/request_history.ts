@@ -14,7 +14,9 @@ let request_history_body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
 let request_history_file = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_FILE;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_response_content = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_response_head = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
+let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE;
 let request_history_iterator = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ITERATOR;
 let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
@@ -43,12 +45,23 @@ export async function getRequestHistory(id : number) : Promise<any> {
 export async function addRequestHistory(
     env : string, prj : string, uri : string, method : string,
     head, body, pathVariable, param, file,
-    response : string, iteratorId : string,
+    responseContent : string, responseHead : any, responseCookie : any, 
+    iteratorId : string,
     jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean) : Promise<number> {
 
     for (let _key in file) {
         delete file[_key].blob;
     }
+    if (responseHead !== undefined) {
+        if ("content-type" in responseHead) {
+            delete responseHead["content-type"];
+        }
+        responseHead = responseHead;
+    } else {
+        responseHead = {};
+    }
+
+    responseCookie = responseCookie;
 
     let request_history : any = {};
     request_history[request_history_env] = env;
@@ -60,7 +73,9 @@ export async function addRequestHistory(
     request_history[request_history_file] = file;
     request_history[request_history_param] = param;
     request_history[request_history_path_variable] = pathVariable;
-    request_history[request_history_response] = response;
+    request_history[request_history_response_content] = responseContent;
+    request_history[request_history_response_head] = responseHead;
+    request_history[request_history_response_cookie] = responseCookie;
     request_history[request_history_iterator] = iteratorId;
     request_history[request_history_jsonFlg] = jsonFlg;
     request_history[request_history_htmlFlg] = htmlFlg;

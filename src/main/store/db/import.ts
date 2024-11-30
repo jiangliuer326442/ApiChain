@@ -10,7 +10,7 @@ import {
     ChannelsDbStr, 
     ChannelsDbImportStr, 
     ChannelsDbImportSuccessStr 
-} from '../../../config/global_config'
+} from '../../../config/channel'
 
 export function importDb(mainWindow: BrowserWindow) {
     dialog.showOpenDialog({

@@ -21,7 +21,9 @@ let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUES
 let iteration_request_body_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY_HASH;
 let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let iteration_request_param_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM_HASH;
-let iteration_request_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_request_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_request_response_head = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let iteration_request_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 let iteration_request_response_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HASH;
 let iteration_request_response_demo = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_DEMO;
 let iteration_request_jsonFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_JSONFLG;
@@ -48,7 +50,9 @@ let project_request_param = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let project_request_param_hash = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PARAM_HASH;
 let project_request_path_variable = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let project_request_path_variable_hash = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE_HASH;
-let project_request_response = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let project_request_response_content = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let project_request_response_head = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let project_request_response_cookie = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 let project_request_response_hash = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_HASH;
 let project_request_response_demo = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_DEMO;
 let project_request_jsonFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_JSONFLG;
@@ -61,7 +65,8 @@ let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
 let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
 export async function addProjectRequest(project : string, method : string, uri : string, title : string, desc : string, fold : string,
-    header : object, headerHash : string, body : object, bodyHash : string, param : object, paramHash : string, pathVariable : object, pathVariableHash : string, response : object, responseHash : string, responseDemo : string,
+    header : object, headerHash : string, body : object, bodyHash : string, param : object, paramHash : string, pathVariable : object, pathVariableHash : string, 
+    responseContent : object, responseHead : object, responseCookie : object, responseHash : string, responseDemo : string,
     jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean, device : object) {
     let existedProjectRequest = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where('[' + project_request_project + '+' + project_request_method + '+' + project_request_uri + ']')
@@ -84,7 +89,9 @@ export async function addProjectRequest(project : string, method : string, uri :
         projectRequest[project_request_param_hash] = paramHash;
         projectRequest[project_request_path_variable] = pathVariable;
         projectRequest[project_request_path_variable_hash] = pathVariableHash;
-        projectRequest[project_request_response] = response;
+        projectRequest[project_request_response_content] = responseContent;
+        projectRequest[project_request_response_head] = responseHead;
+        projectRequest[project_request_response_cookie] = responseCookie;
         projectRequest[project_request_response_hash] = responseHash;
         projectRequest[project_request_response_demo] = responseDemo;
         projectRequest[project_request_jsonFlg] = jsonFlg;
@@ -108,7 +115,9 @@ export async function addProjectRequest(project : string, method : string, uri :
         existedProjectRequest[project_request_param_hash] = paramHash;
         existedProjectRequest[project_request_path_variable] = pathVariable;
         existedProjectRequest[project_request_path_variable_hash] = pathVariableHash;
-        existedProjectRequest[project_request_response] = response;
+        existedProjectRequest[project_request_response_content] = responseContent;
+        existedProjectRequest[project_request_response_head] = responseHead;
+        existedProjectRequest[project_request_response_cookie] = responseCookie;
         existedProjectRequest[project_request_response_hash] = responseHash;
         existedProjectRequest[project_request_response_demo] = responseDemo;
         existedProjectRequest[project_request_jsonFlg] = jsonFlg;
@@ -150,7 +159,9 @@ export async function addProjectRequestFromVersionIterator(version_iteration_req
         projectRequest[project_request_body_hash] = version_iteration_request[iteration_request_body_hash];
         projectRequest[project_request_param] = version_iteration_request[iteration_request_param];
         projectRequest[project_request_param_hash] = version_iteration_request[iteration_request_param_hash];
-        projectRequest[project_request_response] = version_iteration_request[iteration_request_response];
+        projectRequest[project_request_response_content] = version_iteration_request[iteration_request_response_content];
+        projectRequest[project_request_response_head] = version_iteration_request[iteration_request_response_head];
+        projectRequest[project_request_response_cookie] = version_iteration_request[iteration_request_response_cookie];
         projectRequest[project_request_response_hash] = version_iteration_request[iteration_request_response_hash];
         projectRequest[project_request_response_demo] = version_iteration_request[iteration_request_response_demo];
         projectRequest[project_request_jsonFlg] = version_iteration_request[iteration_request_jsonFlg];
@@ -181,7 +192,9 @@ export async function addProjectRequestFromVersionIterator(version_iteration_req
         existedProjectRequest[project_request_body_hash] = version_iteration_request[iteration_request_body_hash];
         existedProjectRequest[project_request_param] = version_iteration_request[iteration_request_param];
         existedProjectRequest[project_request_param_hash] = version_iteration_request[iteration_request_param_hash];
-        existedProjectRequest[project_request_response] = version_iteration_request[iteration_request_response];
+        existedProjectRequest[project_request_response_content] = version_iteration_request[iteration_request_response_content];
+        existedProjectRequest[project_request_response_head] = version_iteration_request[iteration_request_response_head];
+        existedProjectRequest[project_request_response_cookie] = version_iteration_request[iteration_request_response_cookie];
         existedProjectRequest[project_request_response_hash] = version_iteration_request[iteration_request_response_hash];
     
         console.debug("addProjectRequestFromVersionIterator", existedProjectRequest);
@@ -301,7 +314,8 @@ export async function delProjectRequest(record, cb) {
 
 export async function editProjectRequest(
     project : string, method : string, uri : string, 
-    title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, response: object
+    title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, 
+    responseContent: object, responseHead: object, responseCookie: object
 ) {
     let project_request = await getProjectRequest(project, method, uri);
     project_request[project_request_title] = title;
@@ -311,7 +325,9 @@ export async function editProjectRequest(
     project_request[project_request_body] = body;
     project_request[project_request_param] = param;
     project_request[project_request_path_variable] = pathVariable;
-    project_request[project_request_response] = response;
+    project_request[project_request_response_content] = responseContent;
+    project_request[project_request_response_head] = responseHead;
+    project_request[project_request_response_cookie] = responseCookie;
 
     console.debug("editProjectRequest", project_request);
 

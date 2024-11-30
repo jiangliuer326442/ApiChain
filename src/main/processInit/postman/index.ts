@@ -1,7 +1,7 @@
 import { ipcMain, app, dialog } from 'electron';
 import fs from 'fs-extra';
 
-import { ChannelsPostmanStr, ChannelsPostmanOutStr, ChannelsPostmanInStr } from '../../../config/global_config';
+import { ChannelsPostmanStr, ChannelsPostmanOutStr, ChannelsPostmanInStr } from '../../../config/channel';
 
 export default function (){
 

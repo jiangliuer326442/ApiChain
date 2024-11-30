@@ -12,11 +12,13 @@ import {
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
 } from '../../config/db';
 import {
-    ChannelsReadFileStr,
     CONTENT_TYPE,
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST
 } from '../../config/global_config';
+import {
+    ChannelsReadFileStr,
+} from '../../config/channel';
 import {
     CONTENT_TYPE_HTML,
     CONTENT_TYPE_JSON,

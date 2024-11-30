@@ -51,7 +51,9 @@ let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUES
 let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let iteration_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
-let iteration_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_response_head = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let iteration_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
 let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
@@ -66,7 +68,9 @@ let project_request_header = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let project_request_body = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let project_request_param = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let project_request_path_variable = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let project_request_response = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let project_request_response_content = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let project_request_response_head = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let project_request_response_cookie = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 let project_request_response_demo = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_DEMO;
 let project_request_jsonFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_JSONFLG;
 let project_request_htmlFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_HTMLFLG;
@@ -93,6 +97,8 @@ class RequestSaveContainer extends Component {
             requestMethod: props.match.params.method,
             responseDemo: "",
             formResponseData: {},
+            formResponseHeadData: {},
+            formResponseCookieData: {},
             isResponseJson: false,
             isResponseHtml: false,
             isResponsePic: false,
@@ -137,7 +143,9 @@ class RequestSaveContainer extends Component {
                 formRequestBodyData: record[project_request_body],
                 formRequestParamData: record[project_request_param],
                 formRequestPathVariableData: record[project_request_path_variable],
-                formResponseData: record[project_request_response],
+                formResponseData: record[project_request_response_content],
+                formResponseHeadData: record[project_request_response_head],
+                formResponseCookieData: record[project_request_response_cookie],
                 responseDemo: record[project_request_response_demo],
                 cname: record[project_request_cuname],
                 ctime: record[project_request_ctime],
@@ -158,7 +166,9 @@ class RequestSaveContainer extends Component {
                 formRequestBodyData: record[iteration_request_body],
                 formRequestParamData: record[iteration_request_param],
                 formRequestPathVariableData: record[iteration_request_path_variable],
-                formResponseData: record[iteration_response],
+                formResponseData: record[iteration_response_content],
+                formResponseHeadData: record[iteration_response_head],
+                formResponseCookieData: record[iteration_response_cookie],
                 responseDemo: record[iteration_response_demo],
                 cname: record[iteration_request_iteration_uname],
                 ctime: record[iteration_request_iteration_ctime],
@@ -202,7 +212,7 @@ class RequestSaveContainer extends Component {
             await editProjectRequest(this.state.prj, this.state.requestMethod, this.state.requestUri,
                 this.state.title, this.state.description, this.state.selectedFolder, 
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
-                this.state.formResponseData
+                this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData
             );
         } else {
             await editVersionIteratorRequest(
@@ -210,7 +220,7 @@ class RequestSaveContainer extends Component {
                 this.state.versionIterator, this.state.prj, this.state.requestMethod, this.state.requestUri,
                 this.state.title, this.state.description, this.state.selectedFolder, 
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
-                this.state.formResponseData
+                this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData
             );
             this.setState({initRequestMethod: this.state.requestMethod, initRequestUri: this.state.requestUri});
         }
@@ -383,9 +393,17 @@ class RequestSaveContainer extends Component {
                         </Flex>
                         <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
+                        <Divider orientation="left">响应Head</Divider>
+                        <Flex>
+                            <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseHeadData} cb={obj=>this.setState({formResponseHeadData: obj})} />
+                        </Flex>
+                        <Divider orientation="left">响应Cookie</Divider>
+                        <Flex>
+                            <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseCookieData} cb={obj=>this.setState({formResponseCookieData: obj})} />
+                        </Flex>
                         {this.state.isResponseJson ? 
                         <>
-                            <Divider orientation="left">响应</Divider>
+                            <Divider orientation="left">响应Content</Divider>
                             <Flex>
                                 <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseData} cb={obj=>this.setState({formResponseData: obj})} />
                             </Flex>
@@ -393,7 +411,6 @@ class RequestSaveContainer extends Component {
                         : null}
                         <Divider orientation="left">响应示例</Divider>
                         <Flex style={ {
-                            maxHeight: 600,
                             minHeight: 136,
                             overflowY: this.state.isResponsePic ? "auto":"scroll",
                             alignItems: "center",
@@ -417,7 +434,11 @@ class RequestSaveContainer extends Component {
                             <img style={{maxHeight: 100}} src={this.state.responseDemo} />
                         : null}
                         {this.state.isResponseHtml ? 
-                            <div style={{height: 200}} dangerouslySetInnerHTML={{ __html: this.state.responseDemo }} />
+                            <TextArea
+                                value={this.state.responseDemo}
+                                readOnly={ true }
+                                autoSize={{ minRows: 5 }}
+                            />
                         : null}
                         {this.state.isResponseFile ? 
                             <Flex style={ {

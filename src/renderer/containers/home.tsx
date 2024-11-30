@@ -2,13 +2,13 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Checkbox, Typography, Layout, Card, notification, Space, Button} from "antd";
 
-import { 
+import { IS_AUTO_UPGRADE } from '../../config/global_config';
+import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
   ChannelsAutoUpgradeNewVersionStr,
   ChannelsAutoUpgradeDownloadStr,
-  IS_AUTO_UPGRADE,
-} from '../../config/global_config';
+} from '../../config/channel';
 import { getdayjs } from '../util';
 
 const { Header, Content, Footer } = Layout;

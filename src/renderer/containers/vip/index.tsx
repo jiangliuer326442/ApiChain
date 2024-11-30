@@ -14,6 +14,8 @@ import {
     GLobalPort,
     VipTagDoc,
     VipTagMockServer,
+} from '../../../config/global_config';
+import {
     ChannelsMarkdownAccessSetStr,
     ChannelsMockServerAccessSetStr,
     ChannelsMarkdownStr, 
@@ -26,7 +28,7 @@ import {
     ChannelsVipDoCkCodeStr,
     ChannelsMockServerAccessGetStr,
     ChannelsMockServerAccessSetResultStr,
-} from '../../../config/global_config';
+} from '../../../config/channel';
 import { 
     TABLE_MICRO_SERVICE_FIELDS, 
     TABLE_VERSION_ITERATION_FIELDS 

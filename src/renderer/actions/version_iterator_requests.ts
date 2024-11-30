@@ -22,7 +22,9 @@ let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUE
 let iteration_request_param_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM_HASH;
 let iteration_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let iteration_request_path_variable_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE_HASH;
-let iteration_request_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_request_response_head = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let iteration_request_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
+let iteration_request_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
 let iteration_request_response_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HASH;
 let iteration_request_response_demo = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_DEMO;
 let iteration_request_jsonFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_JSONFLG;
@@ -124,7 +126,8 @@ export async function getVersionIteratorRequestsByProject(iteration_uuid : strin
 export async function editVersionIteratorRequest(
     initMethod : string, initUri : string,
     iteration_uuid : string, project : string, method : string, uri : string, 
-    title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, response: object
+    title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, 
+    responseContent: object, responseHead: object, responseCookie: object
 ) {
     window.db.transaction('rw',
         window.db[TABLE_VERSION_ITERATION_REQUEST_NAME],
@@ -139,7 +142,9 @@ export async function editVersionIteratorRequest(
                 version_iteration_request[iteration_request_body] = body;
                 version_iteration_request[iteration_request_param] = param;
                 version_iteration_request[iteration_request_path_variable] = pathVariable;
-                version_iteration_request[iteration_request_response] = response;
+                version_iteration_request[iteration_request_response_content] = responseContent;
+                version_iteration_request[iteration_request_response_head] = responseHead;
+                version_iteration_request[iteration_request_response_cookie] = responseCookie;
             
                 console.debug("addVersionIteratorRequest", version_iteration_request);
             
@@ -159,7 +164,9 @@ export async function editVersionIteratorRequest(
                 version_iteration_request[iteration_request_body] = body;
                 version_iteration_request[iteration_request_param] = param;
                 version_iteration_request[iteration_request_path_variable] = pathVariable;
-                version_iteration_request[iteration_request_response] = response;
+                version_iteration_request[iteration_request_response_content] = responseContent;
+                version_iteration_request[iteration_request_response_head] = responseHead;
+                version_iteration_request[iteration_request_response_cookie] = responseCookie;
                 version_iteration_request[iteration_request_delFlg] = 0;
             
                 console.debug("addVersionIteratorRequest", version_iteration_request);
@@ -173,7 +180,8 @@ export async function editVersionIteratorRequest(
 export async function addVersionIteratorRequest(
     iteration_uuid : string, project : string, method : string, uri : string, 
     title: string, desc: string, fold: string, 
-    header: object, headerHash: string, body: object, bodyHash: string, param: object, paramHash: string, pathVariable: object, pathVariableHash: string, response: object, responseHash: string, response_demo: object,
+    header: object, headerHash: string, body: object, bodyHash: string, param: object, paramHash: string, pathVariable: object, pathVariableHash: string, 
+    responseContent: object, responseHead: object, responseCookie: object, responseHash: string, response_demo: object,
     json_flg: boolean, html_flg: boolean, pic_flg: boolean, file_flg: boolean,
     device : any) {
     let version_iteration_request : any = {};
@@ -192,7 +200,9 @@ export async function addVersionIteratorRequest(
     version_iteration_request[iteration_request_param_hash] = paramHash;
     version_iteration_request[iteration_request_path_variable] = pathVariable;
     version_iteration_request[iteration_request_path_variable_hash] = pathVariableHash;
-    version_iteration_request[iteration_request_response] = response;
+    version_iteration_request[iteration_request_response_content] = responseContent;
+    version_iteration_request[iteration_request_response_head] = responseHead;
+    version_iteration_request[iteration_request_response_cookie] = responseCookie;
     version_iteration_request[iteration_request_response_hash] = responseHash;
     version_iteration_request[iteration_request_response_demo] = response_demo;
     version_iteration_request[iteration_request_jsonFlg] = json_flg;

@@ -2,7 +2,11 @@ import log from 'electron-log';
 import { ipcMain, IpcMainEvent } from 'electron';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs-extra';
-import { ChannelsUserInfoStr, ChannelsUserInfoPingStr, ChannelsUserInfoSetUserinfoStr } from '../../../config/global_config';
+import { 
+  ChannelsUserInfoStr, 
+  ChannelsUserInfoPingStr, 
+  ChannelsUserInfoSetUserinfoStr 
+} from '../../../config/channel';
 import { registerUser, getUUID, getUName, getRTime } from '../../store/config/user';
 import { isVip, getExpireTime } from '../../store/config/vip';
 import { uuidPath, writeFile } from '../uuid';

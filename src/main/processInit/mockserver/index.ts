@@ -8,7 +8,7 @@ import {
     ChannelsMockServerAccessGetStr,
     ChannelsMockServerAccessSetResultStr,
     ChannelsMockServerQueryResultStr,
-} from '../../../config/global_config';
+} from '../../../config/channel';
 
 import { 
     TABLE_VERSION_ITERATION_FIELDS, 

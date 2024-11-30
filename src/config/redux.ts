@@ -1,3 +1,5 @@
+export const SET_NAV_COLLAPSED = "nav_set_collapsed";
+
 export const SET_DEVICE_INFO = "set_device_info";
 
 export const SHOW_ADD_ENV_MODEL = "show_add_env_model";

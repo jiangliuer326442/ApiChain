@@ -8,6 +8,7 @@ import UpdaterInitFunc from './updater';
 import ProductInitFunc from './product';
 import VipInitFunc from './vip';
 import MockServerInitFunc from './mockserver';
+import NetworkSendInitFunc from './network';
 
 export default function (mainWindow : BrowserWindow){
     FileReadInitFunc(mainWindow);
@@ -19,4 +20,5 @@ export default function (mainWindow : BrowserWindow){
     ProductInitFunc();
     VipInitFunc();
     MockServerInitFunc(mainWindow);
+    NetworkSendInitFunc();
 }

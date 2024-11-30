@@ -10,15 +10,15 @@ import {
 import {
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
-    TABLE_ENV_VAR_FIELDS,
 } from '../../../config/db';
+import { SET_NAV_COLLAPSED } from '../../../config/redux';
 import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
 import { 
     ChannelsMarkdownStr, 
     ChannelsMarkdownShowStr, 
     ChannelsMarkdownSaveMarkdownStr, 
     ChannelsMarkdownSaveHtmlStr,
-} from '../../../config/global_config';
+} from '../../../config/channel';
 import MarkdownView from '../../components/markdown/show';
 import { getEnvs } from '../../actions/env';
 import { getVarsByKey } from '../../actions/env_value';
@@ -26,8 +26,6 @@ import { getVersionIterator } from '../../actions/version_iterator';
 import { getVersionIteratorRequestsByProject } from '../../actions/version_iterator_requests';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-
-let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 
@@ -106,6 +104,10 @@ class IteratorDoc extends Component {
             window.electron.ipcRenderer.sendMessage(ChannelsMarkdownStr, ChannelsMarkdownShowStr, versionIteration, requests, prjs, envs, envVars);
 
             window.electron.ipcRenderer.on(ChannelsMarkdownStr, (action, iteratorId, markdownTitle, markdownContent) => {
+                this.props.dispatch({
+                    type: SET_NAV_COLLAPSED,
+                    collapsed: true,
+                });
                 if (action !== ChannelsMarkdownShowStr) return;
                 if(iteratorId === this.state.iteratorId) {
                     this.setState( { md : markdownContent } );

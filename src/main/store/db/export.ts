@@ -9,7 +9,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import log from 'electron-log';
 
-import { ChannelsDbStr, ChannelsDbExportStr, ChannelsDbWriteStr } from '../../../config/global_config';
+import { ChannelsDbStr, ChannelsDbExportStr, ChannelsDbWriteStr } from '../../../config/channel';
 import { getNowdayjs } from '../../../renderer/util';
 
 export function exportDb(mainWindow: BrowserWindow) {

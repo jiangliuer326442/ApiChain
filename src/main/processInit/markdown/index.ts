@@ -16,8 +16,8 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
 } from '../../../config/db';
-import { 
-    GLobalPort,
+import { GLobalPort } from '../../../config/global_config';
+import {
     ChannelsMarkdownStr, 
     ChannelsMarkdownShowStr,
     ChannelsMarkdownQueryStr,
@@ -27,7 +27,7 @@ import {
     ChannelsMarkdownAccessGetStr,
     ChannelsMarkdownSaveHtmlStr,
     ChannelsMarkdownAccessSetResultStr,
-} from '../../../config/global_config';
+} from '../../../config/channel';
 
 import { isStringEmpty, getType } from '../../../renderer/util';
 import { 
@@ -60,7 +60,9 @@ let iteration_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQU
 let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let iteration_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let iteration_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_response_head = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let iteration_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 let iteration_response_demo = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_DEMO;
 let iteration_request_jsonFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_JSONFLG;
 let iteration_request_htmlFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_HTMLFLG;
@@ -306,6 +308,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
 
         for (let _env of envs) {
             let selectedEnvVar = envVars[_prj].filter(_envVar => _envVar[envvar_env_label] === _env[env_label]);
+            if (selectedEnvVar.length == 0) continue;
             markdownContent += _env[env_remark] + "：" + selectedEnvVar[0][envvar_param_var] + "\n\n" ;
         }
         markdownContent += "mock服务器" + "：" + "http://" + ip + ":" + GLobalPort + "/mockserver/" + iterationUUID + "/" + _prj + "/" + "\n\n" ;
@@ -393,12 +396,36 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                     })
                     markdownContent += "\n";
                 }
-    
+
+                let responseHeadList = [];
+                iteratorObjectToArr(responseHeadList, "", _request[iteration_response_head]);
+                if (responseHeadList.length > 0) {
+                    markdownContent += "**响应Head：**\n";
+                    markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
+                    markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
+                    responseHeadList.map(_responseHeadItem => {
+                        markdownContent += "| " + _responseHeadItem[TABLE_FIELD_NAME] + " | " + _responseHeadItem[TABLE_FIELD_TYPE] + " | " + _responseHeadItem[TABLE_FIELD_REMARK] + " | " + _responseHeadItem[TABLE_FIELD_VALUE] + " |\n";
+                    })
+                    markdownContent += "\n";
+                }
+
+                let responseCookieList = [];
+                iteratorObjectToArr(responseCookieList, "", _request[iteration_response_cookie]);
+                if (responseCookieList.length > 0) {
+                    markdownContent += "**响应Cookie：**\n";
+                    markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
+                    markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
+                    responseCookieList.map(_responseCookieItem => {
+                        markdownContent += "| " + _responseCookieItem[TABLE_FIELD_NAME] + " | " + _responseCookieItem[TABLE_FIELD_TYPE] + " | " + _responseCookieItem[TABLE_FIELD_REMARK] + " | " + _responseCookieItem[TABLE_FIELD_VALUE] + " |\n";
+                    })
+                    markdownContent += "\n";
+                }
+
                 let responseList = [];
-                iteratorObjectToArr(responseList, "", _request[iteration_response]);
+                iteratorObjectToArr(responseList, "", _request[iteration_response_content]);
     
-                if (_request[iteration_request_jsonFlg]) {
-                    markdownContent += "**响应：**\n";
+                if (_request[iteration_request_jsonFlg] && responseList.length > 0) {
+                    markdownContent += "**响应Content：**\n";
                     markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
                     markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     responseList.map(_responseItem => {
@@ -407,29 +434,30 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                     markdownContent += "\n";
                 }
     
-                markdownContent += "响应示例：\n\n";
+                if (_request[iteration_request_jsonFlg] || _request[iteration_request_htmlFlg] || _request[iteration_request_picFlg] || _request[iteration_request_fileFlg]) {
+                    markdownContent += "响应示例：\n\n";
+                    if (_request[iteration_request_jsonFlg]) {
+                        markdownContent += "```json\n";
+                        markdownContent += prettyJson(JSON.parse(_request[iteration_response_demo])) + "\n";
+                        markdownContent += "```\n";
+                    }
     
-                if (_request[iteration_request_jsonFlg]) {
-                    markdownContent += "```json\n";
-                    markdownContent += prettyJson(JSON.parse(_request[iteration_response_demo])) + "\n";
-                    markdownContent += "```\n";
-                }
-
-                if (_request[iteration_request_htmlFlg]) {
-                    markdownContent += "```html\n";
-                    markdownContent += _request[iteration_response_demo] + "\n";
-                    markdownContent += "```\n";
-                }
-
-                if (_request[iteration_request_picFlg]) {
-                    markdownContent += "![" + _request[iteration_request_title] + "](" + _request[iteration_response_demo] + ")";
-                    markdownContent += "\n";
-                }
-
-                if (_request[iteration_request_fileFlg]) {
-                    markdownContent += "\n";
-                    markdownContent += _request[iteration_response_demo];
-                    markdownContent += "\n";
+                    if (_request[iteration_request_htmlFlg]) {
+                        markdownContent += "```html\n";
+                        markdownContent += _request[iteration_response_demo] + "\n";
+                        markdownContent += "```\n";
+                    }
+    
+                    if (_request[iteration_request_picFlg]) {
+                        markdownContent += "![" + _request[iteration_request_title] + "](" + _request[iteration_response_demo] + ")";
+                        markdownContent += "\n";
+                    }
+    
+                    if (_request[iteration_request_fileFlg]) {
+                        markdownContent += "\n";
+                        markdownContent += _request[iteration_response_demo];
+                        markdownContent += "\n";
+                    }
                 }
             });
         });

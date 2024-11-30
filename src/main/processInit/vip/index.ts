@@ -1,9 +1,12 @@
 import { ipcMain } from 'electron';
 
+import { PayJumpUrl, PayQueryUrl } from '../../../config/global_config';
 import { 
     ChannelsVipStr, 
     ChannelsVipGenUrlStr, 
-    PayJumpUrl, PayQueryUrl, ChannelsVipCkCodeStr, ChannelsVipDoCkCodeStr } from '../../../config/global_config';
+    ChannelsVipCkCodeStr, 
+    ChannelsVipDoCkCodeStr 
+} from '../../../config/channel';
 import { genEncryptString, getOutTradeNo, isVip, setExpireTime, getExpireTime, getLatestProduct, genDecryptString } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
 

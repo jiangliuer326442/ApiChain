@@ -32,6 +32,7 @@ import {
 
 import { 
   GET_VERSION_ITERATORS,
+  SET_NAV_COLLAPSED,
   GET_PRJS
 } from '../../../config/redux';
 
@@ -121,9 +122,15 @@ export default function (state = {
         ]
       },
     ],
-    selected: [ NETWORK, INTERNET_REQUEST ]
+    selected: [ NETWORK, INTERNET_REQUEST ],
+    collapsed: false,
 }, action : object) {
   switch(action.type) {
+    case SET_NAV_COLLAPSED:
+      let newCollapsed = action.collapsed;
+      return Object.assign({}, state, {
+        collapsed: newCollapsed
+      });
     case GET_VERSION_ITERATORS:
       let verIteratorNavs = cloneDeep(state.navs);
 

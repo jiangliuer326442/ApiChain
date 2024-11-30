@@ -1,15 +1,13 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { 
-    Breadcrumb, Layout, Flex, Divider, Alert,
+    Breadcrumb, Layout, Flex, Divider,
     Select, Button, Input, Tabs, Tooltip,
+    Typography,
 } from "antd";
 import { decode } from 'base-64';
 import JsonView from 'react-json-view';
-import axios from 'axios';
 import { cloneDeep } from 'lodash';
-
-const { Header, Content, Footer } = Layout;
 
 import { 
   getType,
@@ -24,7 +22,6 @@ import {
 } from '../../util/json';
 import { ENV_VALUE_API_HOST } from "../../../config/envKeys";
 import { 
-  TABLE_VERSION_ITERATION_FIELDS,
   TABLE_REQUEST_HISTORY_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
   TABLE_PROJECT_REQUEST_FIELDS,
@@ -50,8 +47,12 @@ import {
   CONTENT_TYPE,
   INPUTTYPE_TEXT,
   INPUTTYPE_FILE,
-  ChannelsReadFileStr,
 } from '../../../config/global_config';
+import { 
+  ChannelsAxioBreidgeStr, 
+  ChannelsAxioBreidgeSendStr, 
+  ChannelsAxioBreidgeReplyStr
+} from '../../../config/channel'
 import RequestSendTips from '../../classes/RequestSendTips';
 import {
   getVersionIteratorRequest
@@ -100,6 +101,10 @@ let project_request_body = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let project_request_param = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let project_request_path_variable = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
+const { Header, Content, Footer } = Layout;
+const { Text } = Typography;
+const { TextArea } = Input;
+
 class RequestSendContainer extends Component {
 
   private requestSendTip : RequestSendTips;
@@ -130,6 +135,9 @@ class RequestSendContainer extends Component {
       iteratorId: "",
       alertMessage: "",
       envKeys: [],
+      statusCode: 0,
+      costTime: 0,
+      sendingFlg: false,
     }
 
     this.requestSendTip = new RequestSendTips();
@@ -139,6 +147,9 @@ class RequestSendContainer extends Component {
     return {
       alertMessage: "",
       responseData: "",
+      sendingFlg: false,
+      statusCode: 0,
+      costTime: 0,
       isResponseJson: false,
       isResponseHtml: false,
       isResponsePic: false,
@@ -146,11 +157,19 @@ class RequestSendContainer extends Component {
     };
   }
 
+  componentWillUnmount(): void {
+    this.state.messageSendListener();
+  }
+
   async componentDidMount() {
-    window.electron.ipcRenderer.on(ChannelsReadFileStr, (key, path, blob) => {
-      if (this.state.requestFileData.hasOwnProperty(key)) {
-        let file = this.state.requestFileData[key];
-        file.blob = blob.buffer;
+    this.state.messageSendListener = window.electron.ipcRenderer.on(ChannelsAxioBreidgeStr, (action, originUrl, targetUrl, statusCode, costTime, errorMessage, cookieObj, headers, data) => {
+      if (action === ChannelsAxioBreidgeReplyStr) {
+        if (isStringEmpty(errorMessage) && statusCode == 200) {
+          this.handleResponse(originUrl, cookieObj, headers, costTime, data);
+          this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
+        } else {
+          this.setState({alertMessage: errorMessage, sendingFlg: false, statusCode});
+        }
       }
     });
 
@@ -308,11 +327,6 @@ class RequestSendContainer extends Component {
               };
             } else if (item.key in originFile) {
               let _file = originFile[item.key];
-              if (!('blob' in _file)) {
-                _file.blob = "";
-                let path = _file.path;
-                window.electron.ipcRenderer.sendMessage(ChannelsReadFileStr, item.key, path);
-              }
               file[item.key] = _file;
             }
           }
@@ -449,6 +463,10 @@ class RequestSendContainer extends Component {
   }
 
   sendRequest = async () => {
+    let state : any = this.getClearState();
+    state.sendingFlg = true;
+    this.setState(state);
+
     let url = this.state.requestHost + this.state.requestUri;
 
     for (let _key in this.state.requestPathVariableData) {
@@ -476,11 +494,6 @@ class RequestSendContainer extends Component {
     if (!isStringEmpty(paramToString(paramData))) {
       url += "?" + paramToString(paramData);
     }
-    let isResponseJson = false;
-    let isResponseHtml = false;
-    let isResponsePic = false;
-    let isResponseFile = false;
-    let content = "";
     let response = null;
     let headData = cloneDeep(this.state.requestHeadData);
     for (let _key in headData) {
@@ -497,76 +510,66 @@ class RequestSendContainer extends Component {
       let postData = this.requestSendTip.iteratorGetVarByKey(this.state.requestBodyData);
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
-        let formData = new FormData();
-        for (let _key in postData) {
-          formData.append(_key, postData[_key]);
-        }
-        for (let _key in this.state.requestFileData) {
-          let _file = this.state.requestFileData[_key];
-          const blobFile = new Blob([_file.blob], { type: _file.type });  
-          formData.append(_key, blobFile, _file.name);
-        }
-
-        try {
-          response = await axios.post(url, formData, {
-            headers: headData,
-          });
-        } catch (error) {
-          this.setState({alertMessage: error.message});
-        }
+        window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeSendStr, 'post', url, headData, postData, this.state.requestFileData);
       } else {
-        try {
-          response = await axios.post(url, postData, {
-            headers: headData,
-          });
-        } catch (error) {
-          this.setState({alertMessage: error.message});
-        }
+        window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeSendStr, 'post', url, headData, postData, null);
       }
     } else if (this.state.requestMethod === REQUEST_METHOD_GET) {
-      try {
-        response = await axios.get(url, {
-          headers: headData,
-        });
-      } catch (error) {
-        console.error(error);
-      }
+      window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeSendStr, 'get', url, headData, null, null);
     }
-    if(response !== null) {
-      if (response.headers['content-type'] && response.headers['content-type'].toString().indexOf(CONTENT_TYPE_HTML) >= 0) {
-        isResponseHtml = true;
-        content = response.data;
-      } else if (
-        response.headers['content-type'] && (
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_JPG) >= 0 || 
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_PNG) >= 0 || 
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_GIF) >= 0 || 
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_WEBP) >= 0 
-        )) {
-        isResponsePic = true;
-        content = url;
-      } else if (
-        response.headers['content-type'] && (
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_GZIP1) >= 0 || 
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_GZIP2) >= 0 || 
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_ZIP) >= 0 || 
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_TAR) >= 0 ||
-          response.headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_STREAM) >= 0
-        )) {
-        isResponseFile = true;
-        content = "[!返回了一个文件]";
-      } else if ((response.headers['content-type'] && response.headers['content-type'].toString().indexOf(CONTENT_TYPE_JSON) >= 0) || isJsonString(JSON.stringify(response.data))) {
-        isResponseJson = true;
-        content = JSON.stringify(response.data);
-      } else {
-        content = response.data;
-      }
-      let historyId = await addRequestHistory(this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
-        this.state.requestHeadData, this.state.requestBodyData, this.state.requestPathVariableData, this.state.requestParamData, this.state.requestFileData,
-        content, this.state.iteratorId, 
-        isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
-      this.setState({ responseData : content, isResponseJson, isResponseHtml, isResponsePic, isResponseFile, alertMessage: "", id: historyId });
+  }
+
+  handleResponse = async (url, cookieObj, headers, costTime, data) => {
+    let isResponseJson = false;
+    let isResponseHtml = false;
+    let isResponsePic = false;
+    let isResponseFile = false;
+    let content = "";
+    if (headers === undefined) {
+      content = "";
+    } else if (headers['content-type'] && headers['content-type'].toString().indexOf(CONTENT_TYPE_HTML) >= 0) {
+      isResponseHtml = true;
+      content = data;
+    } else if (
+      headers['content-type'] && (
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_JPG) >= 0 || 
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_PNG) >= 0 || 
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_GIF) >= 0 || 
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_IMAGE_WEBP) >= 0 
+      )) {
+      isResponsePic = true;
+      content = url;
+    } else if (
+      headers['content-type'] && (
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_GZIP1) >= 0 || 
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_GZIP2) >= 0 || 
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_ZIP) >= 0 || 
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_TAR) >= 0 ||
+        headers['content-type'].toString().indexOf(CONTENT_TYPE_ATTACH_STREAM) >= 0
+      )) {
+      isResponseFile = true;
+      content = "[!返回了一个文件]";
+    } else if ((headers['content-type'] && headers['content-type'].toString().indexOf(CONTENT_TYPE_JSON) >= 0) || isJsonString(JSON.stringify(data))) {
+      isResponseJson = true;
+      content = JSON.stringify(data);
+    } else {
+      content = data;
     }
+    let historyId = await addRequestHistory(this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
+      this.state.requestHeadData, this.state.requestBodyData, this.state.requestPathVariableData, this.state.requestParamData, this.state.requestFileData,
+      content, headers, cookieObj,
+      this.state.iteratorId, 
+      isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
+    this.setState({ 
+      costTime,
+      responseData : content, 
+      isResponseJson, 
+      isResponseHtml, 
+      isResponsePic, 
+      isResponseFile, 
+      alertMessage: "", 
+      id: historyId 
+    });
   }
 
   calculateFormBodyData = (requestBodyData, requestFileData) => {
@@ -677,9 +680,6 @@ class RequestSendContainer extends Component {
             <Content style={{ margin: '0 16px' }}>
               <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '请求' }, { title: '发送' }]} />
               <Flex vertical gap="middle">
-                <Flex>
-                  <Alert message={ this.state.alertMessage } type="error" style={{width: "100%", display: isStringEmpty(this.state.alertMessage) ? "none" : "block"}} />
-                </Flex>
                 <Flex justify="space-between" align="center">
                   {this.state.showFlg ? 
                   <SelectPrjEnvComponent iteratorId={this.state.iteratorId} prj={ this.state.prj ? this.state.prj : this.props.prj } env={ this.state.env ? this.state.env : this.props.env } cb={this.getEnvValueData} />
@@ -717,14 +717,21 @@ class RequestSendContainer extends Component {
                       size='large' 
                       type="primary" 
                       style={{borderRadius: 0}} 
-                      disabled={!this.state.requestEnable}
+                      disabled={!this.state.requestEnable || this.state.sendingFlg}
                       onClick={ this.sendRequest }
                     >发送请求</Button>
                 </Flex>
                 { this.state.showFlg ? <Tabs activeKey={ this.state.defaultTabKey } items={ this.getNavs() } onChange={key => this.setState({defaultTabKey: key})} /> : null }
-                <Divider orientation="left">响应</Divider>
+                <Divider orientation="left">响应 
+                {this.state.statusCode > 0 ? 
+                (this.state.statusCode == 200 ? 
+                  <Text style={{ color: 'green' }}>（耗时 { this.state.costTime } 毫秒）</Text>
+                  :
+                  <Text style={{ color: 'red' }}> {this.state.statusCode + " " + this.state.alertMessage} </Text>
+                )
+                : null}
+                </Divider>
                 <Flex style={ {
-                  maxHeight: 600,
                   minHeight: 136,
                   overflowY: this.state.isResponsePic ? "auto":"scroll",
                 } }>
@@ -746,7 +753,11 @@ class RequestSendContainer extends Component {
                     <img style={{height: 200}} src={this.state.responseData} />
                   : null}
                   {this.state.isResponseHtml ? 
-                    <div style={{height: 366, width: "100%", overflow:"scroll"}} dangerouslySetInnerHTML={{ __html: this.state.responseData }} />
+                      <TextArea
+                          value={this.state.responseData}
+                          readOnly={ true }
+                          autoSize={{ minRows: 5 }}
+                      />
                   : null}
                   {this.state.isResponseFile ? 
                     this.state.responseData

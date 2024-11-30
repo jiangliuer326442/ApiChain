@@ -39,9 +39,9 @@ import {
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST,
-    ChannelsOpenWindowStr,
     CONTENT_TYPE,
 } from '../../../config/global_config';
+import { ChannelsOpenWindowStr } from '../../../config/channel';
 import { VERSION_ITERATOR_ADD_ROUTE } from '../../../config/routers';
 import { getEnvs } from '../../actions/env';
 import { getPrjs } from '../../actions/project';
@@ -61,6 +61,8 @@ import JsonSaveParamTableContainer from "../../components/request_save/json_save
 import JsonSavePathVariTableContainer from "../../components/request_save/json_save_table_path_variable";
 import JsonSaveBodyTableContainer from "../../components/request_save/json_save_table_body";
 import JsonSaveHeaderTableContainer from "../../components/request_save/json_save_table_header";
+import JsonSaveResponseHeaderTableContainer from "../../components/request_save/json_save_table_response_header";
+import JsonSaveResponseCookieTableContainer from "../../components/request_save/json_save_table_response_cookie";
 import JsonSaveResponseTableComponent from "../../components/request_save/json_save_table_response";
 
 const { TextArea } = Input;
@@ -75,7 +77,9 @@ let request_history_body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
 let request_history_file = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_FILE;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_response_content = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_response_head = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
+let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE;
 let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
 let request_history_picFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_PICFLG;
@@ -92,7 +96,9 @@ let version_iterator_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIE
 let version_iterator_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let version_iterator_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let version_iterator_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let version_iterator_request_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let version_iterator_request_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let version_iterator_request_response_head = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let version_iterator_request_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 
 let project_request_title = TABLE_PROJECT_REQUEST_FIELDS.FIELD_TITLE;
 let project_request_desc = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DESC;
@@ -103,7 +109,9 @@ let project_request_header = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let project_request_body = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let project_request_param = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let project_request_path_variable = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let project_request_response = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let project_request_response_content = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let project_request_response_head = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let project_request_response_cookie = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_name = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
@@ -143,6 +151,8 @@ class RequestSaveContainer extends Component {
             requestMethod: "",
             responseDemo: "",
             formResponseData: {},
+            formResponseHeadData: {},
+            formResponseCookieData: {},
             responseHash: "",
             isResponseJson: false,
             isResponseHtml: false,
@@ -234,15 +244,27 @@ class RequestSaveContainer extends Component {
                     let responseHash = "";
                     let responseDemo = "";
                     if (record[version_iterator_request_jsonflg]) {
-                        let responseData = JSON.parse(record[request_history_response]);
+                        let responseData = JSON.parse(record[request_history_response_content]);
                         shortJsonContent(shortResponseJsonObject, responseData);
                         responseHash = iteratorGenHash(shortResponseJsonObject);
-                        parseJsonToFilledTable(formResponseData, shortResponseJsonObject, versionIterationRequest[version_iterator_request_response]);
+                        parseJsonToFilledTable(formResponseData, shortResponseJsonObject, versionIterationRequest[version_iterator_request_response_content]);
                     
                         responseDemo = JSON.stringify(shortResponseJsonObject);
                     } else {
-                        responseDemo = record[request_history_response];
+                        responseDemo = record[request_history_response_content];
                     }
+
+                    let shortResponseHeadJsonObject = {};
+                    let formResponseHeadData = {};
+                    let responseHead = record[request_history_response_head];
+                    shortJsonContent(shortResponseHeadJsonObject, responseHead);
+                    parseJsonToFilledTable(formResponseHeadData, shortResponseHeadJsonObject, versionIterationRequest[version_iterator_request_response_head]);
+
+                    let shortResponseCookieJsonObject = {};
+                    let formResponseCookieData = {};
+                    let responseCookie = record[request_history_response_cookie];
+                    shortJsonContent(shortResponseCookieJsonObject, responseCookie);
+                    parseJsonToFilledTable(formResponseCookieData, shortResponseCookieJsonObject, versionIterationRequest[version_iterator_request_response_cookie]);
                     
                     this.setState({
                         showFlg: true,
@@ -266,6 +288,8 @@ class RequestSaveContainer extends Component {
                         requestParamHash,
                         requestPathVariableHash,
                         formResponseData,
+                        formResponseHeadData,
+                        formResponseCookieData,
                         responseHash,
                         responseDemo,
                     });
@@ -309,15 +333,28 @@ class RequestSaveContainer extends Component {
                     let formResponseData = {};
                     let responseDemo = "";
                     if (record[project_request_jsonflg]) {
-                        responseData = JSON.parse(record[request_history_response]);
+                        responseData = JSON.parse(record[request_history_response_content]);
                         shortJsonContent(shortResponseJsonObject, responseData);
                         responseHash = iteratorGenHash(shortResponseJsonObject);
-                        parseJsonToFilledTable(formResponseData, shortResponseJsonObject, projectRequest[project_request_response]);
+                        parseJsonToFilledTable(formResponseData, shortResponseJsonObject, projectRequest[project_request_response_content]);
 
                         responseDemo = JSON.stringify(shortResponseJsonObject);
                     } else {
-                        responseDemo = record[request_history_response];
+                        responseDemo = record[request_history_response_content];
                     }
+
+                    let shortResponseHeadJsonObject = {};
+                    let formResponseHeadData = {};
+                    let responseHead = record[request_history_response_head];
+                    shortJsonContent(shortResponseHeadJsonObject, responseHead);
+                    parseJsonToFilledTable(formResponseHeadData, shortResponseHeadJsonObject, projectRequest[project_request_response_head]);
+
+                    let shortResponseCookieJsonObject = {};
+                    let formResponseCookieData = {};
+                    let responseCookie = record[request_history_response_cookie];
+                    shortJsonContent(shortResponseCookieJsonObject, responseCookie);
+                    parseJsonToFilledTable(formResponseCookieData, shortResponseCookieJsonObject, projectRequest[project_request_response_cookie]);
+
                     this.setState({
                         showFlg: true,
                         prj,
@@ -340,6 +377,8 @@ class RequestSaveContainer extends Component {
                         formRequestPathVariableData,
                         requestPathVariableHash,
                         formResponseData,
+                        formResponseHeadData,
+                        formResponseCookieData,
                         responseHash,
                         responseDemo,
                     });
@@ -394,14 +433,28 @@ class RequestSaveContainer extends Component {
         let formResponseData = {};
         let responseDemo = "";
         if (historyRecord[request_history_jsonFlg]) {
-            responseData = JSON.parse(historyRecord[request_history_response]);
+            responseData = JSON.parse(historyRecord[request_history_response_content]);
             shortJsonContent(shortResponseJsonObject, responseData);
             responseHash = iteratorGenHash(shortResponseJsonObject);
             parseJsonToTable(formResponseData, shortResponseJsonObject);
             responseDemo = JSON.stringify(shortResponseJsonObject);
         } else {
-            responseDemo = historyRecord[request_history_response];
+            responseDemo = historyRecord[request_history_response_content];
         }
+
+        let shortResponseHeadJsonObject = {};
+        let formResponseHeadData = {};
+        let responseHead = historyRecord[request_history_response_head];
+        shortJsonContent(shortResponseHeadJsonObject, responseHead);
+        parseJsonToTable(formResponseHeadData, shortResponseHeadJsonObject);
+
+        let shortResponseCookieJsonObject = {};
+        let formResponseCookieData = {};
+        let responseCookie = historyRecord[request_history_response_cookie];
+        shortJsonContent(shortResponseCookieJsonObject, responseCookie);
+        parseJsonToTable(formResponseCookieData, shortResponseCookieJsonObject);
+
+
         this.setState({
             showFlg: true,
             prj,
@@ -421,6 +474,8 @@ class RequestSaveContainer extends Component {
             formRequestPathVariableData,
             requestPathVariableHash,
             formResponseData,
+            formResponseHeadData,
+            formResponseCookieData,
             responseHash,
             responseDemo,
         });
@@ -508,7 +563,7 @@ class RequestSaveContainer extends Component {
                 this.state.formRequestBodyData, this.state.requestBodyHash, 
                 this.state.formRequestParamData, this.state.requestParamHash, 
                 this.state.formRequestPathVariableData, this.state.requestPathVariableHash, 
-                this.state.formResponseData, this.state.responseHash, this.state.responseDemo,
+                this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData, this.state.responseHash, this.state.responseDemo,
                 this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile,
                 this.props.device
             );
@@ -524,7 +579,7 @@ class RequestSaveContainer extends Component {
                     this.state.formRequestBodyData, this.state.requestBodyHash, 
                     this.state.formRequestParamData, this.state.requestParamHash, 
                     this.state.formRequestPathVariableData, this.state.requestPathVariableHash, 
-                    this.state.formResponseData, this.state.responseHash, this.state.responseDemo,
+                    this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData, this.state.responseHash, this.state.responseDemo,
                     this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile, 
                     this.props.device
                 );
@@ -538,7 +593,7 @@ class RequestSaveContainer extends Component {
                     this.state.formRequestBodyData, this.state.requestBodyHash, 
                     this.state.formRequestParamData, this.state.requestParamHash, 
                     this.state.formRequestPathVariableData, this.state.requestPathVariableHash, 
-                    this.state.formResponseData, this.state.responseHash, this.state.responseDemo,
+                    this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData, this.state.responseHash, this.state.responseDemo,
                     this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile,
                     this.props.device
                 );
@@ -787,7 +842,21 @@ class RequestSaveContainer extends Component {
                         </Flex>
                         <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
-                        <Divider orientation="left">响应</Divider>
+                        <Divider orientation="left">响应Header</Divider>
+                        <Flex>
+                            <JsonSaveResponseHeaderTableContainer 
+                                readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
+                                object={this.state.formResponseHeadData} 
+                                cb={ obj => this.setState({formResponseHeadData: obj})} />
+                        </Flex>
+                        <Divider orientation="left">响应Cookie</Divider>
+                        <Flex>
+                            <JsonSaveResponseCookieTableContainer 
+                                readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
+                                object={this.state.formResponseCookieData} 
+                                cb={ obj => this.setState({formResponseCookieData: obj})} />
+                        </Flex>
+                        <Divider orientation="left">响应Content</Divider>
                         <Flex>
                             {this.state.isResponseJson ? 
                             <JsonSaveResponseTableComponent 
@@ -798,7 +867,6 @@ class RequestSaveContainer extends Component {
                             : null}
                             {this.state.isResponsePic ? 
                             <Flex style={ {
-                                maxHeight: 600,
                                 minHeight: 136,
                                 width: "100%",
                                 overflowY: this.state.isResponsePic ? "auto":"scroll",
@@ -809,7 +877,11 @@ class RequestSaveContainer extends Component {
                             </Flex>
                             : null}
                             {this.state.isResponseHtml ? 
-                            <div style={{height: 400, width: "100%", overflow: "scroll"}} dangerouslySetInnerHTML={{ __html: this.state.responseDemo }} />
+                            <TextArea
+                                value={this.state.responseDemo}
+                                readOnly={ true }
+                                autoSize={{ minRows: 5 }}
+                            />
                             : null}
                             {this.state.isResponseFile ? 
                                 <Flex style={ {

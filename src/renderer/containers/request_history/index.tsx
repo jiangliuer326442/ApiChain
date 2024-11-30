@@ -21,6 +21,7 @@ import SelectPrjEnvComponent from "../../components/env_var/select_prj_env";
 
 const { Header, Content, Footer } = Layout;
 const { RangePicker } = DatePicker;
+const { TextArea } = Input;
 
 type FieldType = {
     uri?: string;
@@ -134,7 +135,11 @@ class RequestHistoryContainer extends Component {
                         displayDataTypes={false}
                         collapseStringsAfterLength={40}  />
                     } else if (record[htmlFlg]) {
-                        return <div style={{height: 200, width: 240, overflow: "scroll"}} dangerouslySetInnerHTML={{ __html: content }} />
+                        return <TextArea
+                            value={content}
+                            readOnly={ true }
+                            autoSize={{ minRows: 5 }}
+                        />
                     } else if (record[picFlg]) {
                         return <img style={{maxHeight: 100}} src={content} />
                     } else if (record[fileFlg]) {

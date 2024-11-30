@@ -7,7 +7,7 @@ import {
     ChannelsDbStr, 
     ChannelsDbTrunkStr, 
     ChannelsDbTrunkSuccessStr 
-} from '../../../config/global_config'
+} from '../../../config/channel'
 
 export function trunkDb(mainWindow: BrowserWindow) {
     mainWindow.webContents.send(ChannelsDbStr, ChannelsDbTrunkStr);

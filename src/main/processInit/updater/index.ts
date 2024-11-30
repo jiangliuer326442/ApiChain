@@ -8,7 +8,7 @@ import {
     ChannelsAutoUpgradeDownloadStr,
     ChannelsAutoUpgradeLatestStr,
     ChannelsAutoUpgradeNewVersionStr, 
-} from '../../../config/global_config';
+} from '../../../config/channel';
 
 export default function (){
     autoUpdater.logger = log;

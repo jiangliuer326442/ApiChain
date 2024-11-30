@@ -6,7 +6,11 @@ import fs from 'fs-extra';
 import { ipcMain, IpcMainEvent } from 'electron';
 import { getPackageJson, getIpV4, resolveHtmlPath } from '../../util/util';
 
-import { ChannelsUserInfoStr, ChannelsUserInfoPingStr, ChannelsUserInfoSetAppinfoStr } from '../../../config/global_config';
+import { 
+    ChannelsUserInfoStr, 
+    ChannelsUserInfoPingStr, 
+    ChannelsUserInfoSetAppinfoStr 
+} from '../../../config/channel';
 
 export default function() {
 
