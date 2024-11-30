@@ -1,32 +1,25 @@
 ## ApiChain 简介
 
-![2411302111.gif](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/2411302111.gif)
-
+伴随着业务产出一份份迭代文档
 ![伴随着业务产出一份份迭代文档.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/伴随着业务产出一份份迭代文档.png)
 
+编写单测流程
 ![编写单测流程.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/编写单测流程.png)
 
+发送网络请求
 ![发送网络请求.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/发送网络请求.png)
 
-**ApiChain** 是一款类似 PostMan 的接口网络请求与文档生成软件，与 PostMan 不同的是，它基于 项目和迭代两个视角管理我们的接口文档，前端和测试更关注版本迭代中发生变更的接口编写代码和测试用例，新来的研发或者版本迭代接近尾声进行回归测试期间，又需要关注特定项目的接口和该项目的全部测试用例进行回归测试。ApiChain 支持针对每个版本迭代编写接口文档，内网分享文档链接，执行接口调用，编写自动化测试用例，在项目上线版本迭代结束时，将这个迭代内发生的接口变更以及针对迭代涉及的接口编写的自动化测试用例合并到项目中去。
-
-所有数据均保存在您的本地电脑，除自动检测更新外（这个可配置关闭），无其他网络请求，保证安全和高性能并能够让研发在纯内网环境中无障碍使用，也是我日常工作常用工具之一。
+**ApiChain** 是一款类似 PostMan 的接口网络请求与文档生成软件，它基于**项目**和**迭代**两个视角管理我们的接口文档，ApiChain 支持针对每个版本迭代编写接口文档，内网分享文档链接，执行接口调用，编写自动化测试用例，在项目上线版本迭代结束时，将这个迭代内发生的接口变更以及针对迭代涉及的接口编写的自动化测试用例合并到项目中去。所有数据均保存在您的本地电脑，除自动检测更新外（这个可配置关闭），无其他网络请求，安全和高性能并能够在纯内网环境中无障碍使用。
 
 * 按照项目、文件夹管理我们的接口
 
-  在迭代内点击发送请求，可以使用我们给这个迭代设置的环境变量，这些环境变量可以对这个迭代内涉及的全部项目或者某个项目有效。
+  [在迭代内点击发送请求，可以使用我们给这个迭代设置的环境变量，这些环境变量可以对这个迭代内涉及的全部项目或者某个项目有效。](https://gitee.com/onlinetool/mypostman/wikis/%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F)
 
 ![image-20240706090322612](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_17-15-21.png)
 
 - 发送网络请求
 
-  发送网络请求时，可以使用我们给特定环境设置的环境变量，这些环境变量分为全局有效、特定项目有效、特定版本迭代有效、迭代内特定项目有效。
-
-  **路径变量**：请求url支持路径带有参数的格式，如：hmDownload/{{artifactId}}/{{token}}/app.hap。
-
-  **头部**：支持 application/json、form-data 和 urlencoded 方式，支持提交json格式的参数、上传文件
-
-  **返回**：支持对返回图片或者压缩包、常规文本和其他资源的接口进行测试
+  [发送网络请求时，可以使用我们给特定环境设置的环境变量，这些环境变量分为全局有效、特定项目有效、特定版本迭代有效、迭代内特定项目有效。](https://gitee.com/onlinetool/mypostman/wikis/%E5%8F%91%E9%80%81%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82)
 
 ![image-20240706090456589](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_17-33-57.png)
 
@@ -42,7 +35,7 @@
 
   以迭代为单位，生成接口文档，可以标注一些这个迭代的注意事项，可导出分享，也可直接通过浏览器共享页面。
   
-  mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。
+  [mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。](https://gitee.com/onlinetool/mypostman/wikis/mock%E6%9C%8D%E5%8A%A1%E5%99%A8)
 
 ![image-20240706090943885](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_17-23-36.png)
 
@@ -50,7 +43,7 @@
 
 * 迭代单测页
 
-  把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。
+  [把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。](https://gitee.com/onlinetool/mypostman/wikis/%E7%BC%96%E5%86%99%E8%BF%AD%E4%BB%A3%E5%8D%95%E6%B5%8B%E7%94%A8%E4%BE%8B)
   
   若某个测试用例执行失败，可以点击请求地址跳转到发送请求的页面，可以重复发送单测的请求，用来复现并调试bug。
 
@@ -66,7 +59,7 @@
 
 - 项目接口管理 & 单测列表页
 
-  迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。
+  [迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。](https://gitee.com/onlinetool/mypostman/wikis/%E4%BB%8E%E8%BF%AD%E4%BB%A3%E5%88%B0%E9%A1%B9%E7%9B%AE)
 
 ![image-20240706091305807](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-19_10-03-05.png)
 
@@ -81,6 +74,10 @@
 如果不想从源码一步步编译，可以从以下链接下载可执行文件：
 
 windows 平台：[ApiChain_Setup_1.0.6.exe](https://gitee.com/onlinetool/mypostman/releases/download/v1.0.6/ApiChain_Setup_1.0.6.exe)
+
+linux 平台：[ApiChain-1.0.6.AppImage](http://cdn.fanghailiang.cn/ApiChain-1.0.6.AppImage)
+
+mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 
 **mac 可能遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开 **
 
