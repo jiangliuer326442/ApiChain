@@ -1,5 +1,13 @@
 ## ApiChain 简介
 
+![2411302111.gif](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/2411302111.gif)
+
+![伴随着业务产出一份份迭代文档.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/伴随着业务产出一份份迭代文档.png)
+
+![编写单测流程.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/编写单测流程.png)
+
+![发送网络请求.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/发送网络请求.png)
+
 **ApiChain** 是一款类似 PostMan 的接口网络请求与文档生成软件，与 PostMan 不同的是，它基于 项目和迭代两个视角管理我们的接口文档，前端和测试更关注版本迭代中发生变更的接口编写代码和测试用例，新来的研发或者版本迭代接近尾声进行回归测试期间，又需要关注特定项目的接口和该项目的全部测试用例进行回归测试。ApiChain 支持针对每个版本迭代编写接口文档，内网分享文档链接，执行接口调用，编写自动化测试用例，在项目上线版本迭代结束时，将这个迭代内发生的接口变更以及针对迭代涉及的接口编写的自动化测试用例合并到项目中去。
 
 所有数据均保存在您的本地电脑，除自动检测更新外（这个可配置关闭），无其他网络请求，保证安全和高性能并能够让研发在纯内网环境中无障碍使用，也是我日常工作常用工具之一。
