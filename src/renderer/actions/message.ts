@@ -23,6 +23,9 @@ import {
     ChannelsMockServerStr,
     ChannelsMockServerQueryStr,
     ChannelsMockServerQueryResultStr,
+    ChannelsAxioBreidgeStr, 
+    ChannelsAxioBreidgeSendStr, 
+    ChannelsAxioBreidgeReplyStr,
 } from '../../config/channel';
 import { SET_DEVICE_INFO } from '../../config/redux';
 
@@ -31,9 +34,34 @@ import { getPrjs } from '../actions/project';
 import { getEnvs } from '../actions/env';
 import { getVersionIterator } from '../actions/version_iterator';
 import { getVersionIteratorRequestsByProject } from '../actions/version_iterator_requests';
+import { isStringEmpty } from '../util';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
+
+export function sendAjaxMessage(method : string, url : string, headData, postData, fileData) {
+    return new Promise((resolve, reject) => {
+
+        let messageSendListener = window.electron.ipcRenderer.on(ChannelsAxioBreidgeStr, (action, originUrl, targetUrl, statusCode, costTime, errorMessage, cookieObj, headers, data) => {
+            if (action === ChannelsAxioBreidgeReplyStr) {
+                messageSendListener();
+                if (isStringEmpty(errorMessage) && statusCode == 200) {
+                    resolve({originUrl, cookieObj, headers, costTime, data});
+                } else {
+                    if (statusCode === undefined) {
+                        statusCode = 500;
+                    }
+                    if (errorMessage === undefined) {
+                        errorMessage = "Internel Error";
+                    }
+                    reject({errorMessage, statusCode});
+                }
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeSendStr, method, url, headData, postData, fileData);
+    });
+}
 
 /**
  * 处理消息通用类

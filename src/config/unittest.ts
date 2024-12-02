@@ -31,6 +31,12 @@ export const UNITTEST_STEP_PATH_VARIABLE = "__path_variable__";
 //步骤返回值
 export const UNITTEST_STEP_RESPONSE = "__response__";
 
+//返回的header
+export const UNITTEST_STEP_RESPONSE_HEADER = "__response_header__";
+
+//返回的cookie
+export const UNITTEST_STEP_RESPONSE_COOKIE = "__response_cookie__";
+
 //函数数组
 //取第一个元素
 export const UNITTEST_FUNCTION_ARRAY_FIRST = "*first()"

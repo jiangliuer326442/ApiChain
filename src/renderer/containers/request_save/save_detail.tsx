@@ -12,6 +12,7 @@ import {
     TABLE_FIELD_NAME,
     TABLE_FIELD_TYPE,
     TABLE_FIELD_VALUE,
+    TABLE_FIELD_NECESSARY,
     TABLE_FIELD_TYPE_REF,
     genHash,
 } from '../../util/json';
@@ -393,14 +394,22 @@ class RequestSaveContainer extends Component {
                         </Flex>
                         <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
-                        <Divider orientation="left">响应Head</Divider>
-                        <Flex>
-                            <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseHeadData} cb={obj=>this.setState({formResponseHeadData: obj})} />
-                        </Flex>
-                        <Divider orientation="left">响应Cookie</Divider>
-                        <Flex>
-                            <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseCookieData} cb={obj=>this.setState({formResponseCookieData: obj})} />
-                        </Flex>
+                        {this.state.formResponseHeadData != null && Object.keys(this.state.formResponseHeadData).length > 0 ? 
+                        <>
+                            <Divider orientation="left">响应Head</Divider>
+                            <Flex>
+                                <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseHeadData} cb={obj=>this.setState({formResponseHeadData: obj})} />
+                            </Flex>
+                        </>
+                        : null }
+                        {this.state.formResponseCookieData != null && Object.keys(this.state.formResponseCookieData).length > 0 ? 
+                        <>
+                            <Divider orientation="left">响应Cookie</Divider>
+                            <Flex>
+                                <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseCookieData} cb={obj=>this.setState({formResponseCookieData: obj})} />
+                            </Flex>
+                        </>
+                        : null }
                         {this.state.isResponseJson ? 
                         <>
                             <Divider orientation="left">响应Content</Divider>
@@ -413,8 +422,7 @@ class RequestSaveContainer extends Component {
                         <Flex style={ {
                             minHeight: 136,
                             overflowY: this.state.isResponsePic ? "auto":"scroll",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            marginLeft: 55,
                         } }>
                         { this.state.isResponseJson ? 
                             <JsonView 

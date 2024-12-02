@@ -9,6 +9,8 @@ import {
     UNITTEST_FUNCTION_ANY_EVAL,
     UNITTEST_STEP_CURRENT,
     UNITTEST_STEP_RESPONSE,
+    UNITTEST_STEP_RESPONSE_HEADER,
+    UNITTEST_STEP_RESPONSE_COOKIE,
     UNITTEST_STEP_PROJECT_CURRENT,
     UNITTEST_STEP_POINTED,
     UNITTEST_DATASOURCE_TYPE_ENV,
@@ -26,10 +28,10 @@ import {
 
 import { getSingleExecutorStep } from '../actions/unittest';
 
-let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
-let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_response_content = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_response_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
+let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE;
 let request_history_body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
-let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
@@ -235,7 +237,7 @@ export default class {
     }
 
     async getValue(envVarTips: RequestSendTips, 
-        paramData : object, pathVariableData : object, headData : object, bodyData : object, responseData : object, 
+        paramData : object, pathVariableData : object, headData : object, bodyData : object, responseHeaderData : object, responseCookieData : object, responseData : object, 
         unittest_uuid : string, unittest_executor_batch : string) {
         //环境变量 固定值
         if (this.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV) {
@@ -272,6 +274,10 @@ export default class {
                 } else if (this.selectedDataSource === UNITTEST_STEP_BODY) {
                     //当前步骤body
                     dataSource = bodyData;
+                } else if (this.selectedDataSource === UNITTEST_STEP_RESPONSE_HEADER) {
+                    dataSource = responseHeaderData;
+                } else if (this.selectedDataSource === UNITTEST_STEP_RESPONSE_COOKIE) {
+                    dataSource = responseCookieData;
                 } else {
                     //当前步骤返回值
                     dataSource = responseData;
@@ -296,9 +302,13 @@ export default class {
                     } else if (this.selectedDataSource === UNITTEST_STEP_BODY) {
                         //指定步骤body
                         dataSource = unitTestExecutorRow[request_history_body];
+                    } else if (this.selectedDataSource === UNITTEST_STEP_RESPONSE_HEADER) {
+                        dataSource = unitTestExecutorRow[request_history_response_header];
+                    } else if (this.selectedDataSource === UNITTEST_STEP_RESPONSE_COOKIE) {
+                        dataSource = unitTestExecutorRow[request_history_response_cookie];
                     } else {
                         //指定步骤response
-                        dataSource = JSON.parse(unitTestExecutorRow[request_history_response]);
+                        dataSource = JSON.parse(unitTestExecutorRow[request_history_response_content]);
                     }
                     let pathArr = this.splitStr(this.assertPrev);
                     return this.getDataSourceByPathArr(dataSource, pathArr);

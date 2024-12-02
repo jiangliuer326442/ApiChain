@@ -36,7 +36,7 @@ export default class extends Component {
                         <MarkNav
                             className="toc-list"
                             source={ this.state.content }
-                            ordered={ false }
+                            ordered={ true }
                             updateHashAuto={ false }
                             onNavItemClick={(event, element, hash) => {
                                 let iteratorId = sessionStorage.getItem("iterator_doc_iteratorId");
@@ -50,24 +50,24 @@ export default class extends Component {
                 <Flex>
                     <div className="ReackMarkerContent">
                         <Markdown 
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw]}
-                        components={{
-                            code({ node, inline, className, children, ...props }: any) {
-                              const match = /language-(\w+)/.exec(className || '');
-                    
-                              return !inline && match ? (
-                                <SyntaxHighlighter style={dracula} PreTag="div" language={match[1]} {...props}>
-                                  {String(children).replace(/\n$/, '')}
-                                </SyntaxHighlighter>
-                              ) : (
-                                <code className={className} {...props}>
-                                  {children}
-                                </code>
-                              );
-                            },
-                        }}
-                        children={ this.state.content }
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeRaw]}
+                            components={{
+                                code({ node, inline, className, children, ...props }: any) {
+                                const match = /language-(\w+)/.exec(className || '');
+                        
+                                return !inline && match ? (
+                                    <SyntaxHighlighter style={dracula} PreTag="div" language={match[1]} {...props}>
+                                    {String(children).replace(/\n$/, '')}
+                                    </SyntaxHighlighter>
+                                ) : (
+                                    <code className={className} {...props}>
+                                    {children}
+                                    </code>
+                                );
+                                },
+                            }}
+                            children={ this.state.content }
                         />
                     </div>
                 </Flex>

@@ -13,6 +13,7 @@ export const TABLE_FIELD_NAME = "$$name$$";
 export const TABLE_FIELD_REMARK = "$$remark$$";
 export const TABLE_FIELD_TYPE = "$$type$$";
 export const TABLE_FIELD_NECESSARY = "$$necessary$$";
+export const TABLE_FIELD_LEVEL = "$$level$$";
 export const TABLE_FIELD_VALUE = "$$value$$";
 
 export const TABLE_FIELD_TYPE_REF = "Ref";
@@ -145,7 +146,7 @@ export async function parseJsonToChildren(parentKeys, parentKey, result, content
         if(isInnerKey(key)) {
             continue;
         }
-        let necessary = 1;
+        let necessary = 0;
         if(getType(content[key][TABLE_FIELD_NECESSARY]) !== "Undefined") {
             necessary = content[key][TABLE_FIELD_NECESSARY];
         }

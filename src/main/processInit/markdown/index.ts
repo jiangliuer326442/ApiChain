@@ -31,7 +31,12 @@ import {
 
 import { isStringEmpty, getType } from '../../../renderer/util';
 import { 
-    TABLE_FIELD_NAME, TABLE_FIELD_REMARK, TABLE_FIELD_TYPE, TABLE_FIELD_VALUE, TABLE_FIELD_NECESSARY,
+    TABLE_FIELD_NAME, 
+    TABLE_FIELD_REMARK, 
+    TABLE_FIELD_TYPE, 
+    TABLE_FIELD_VALUE, 
+    TABLE_FIELD_NECESSARY, 
+    TABLE_FIELD_LEVEL,
     prettyJson, isInnerKey
 } from '../../../renderer/util/json';
 
@@ -81,12 +86,12 @@ let res;
  * @param parentKey 父级key
  * @param jsonObject 迭代的对象
  */
-function iteratorObjectToArr(returnList, parentKey, jsonObject) {
+function iteratorObjectToArr(returnList, jsonObject, level) {
     for (let _key in jsonObject) {
         if (isInnerKey(_key)) continue;
 
         let _object = jsonObject[_key];
-        let fieldName = isStringEmpty(parentKey) ? _key : (parentKey + "." + _key);
+        let fieldName = _key;
         let remark = _object[TABLE_FIELD_REMARK];
         let type = _object[TABLE_FIELD_TYPE];
         let necessary = _object[TABLE_FIELD_NECESSARY];
@@ -96,11 +101,12 @@ function iteratorObjectToArr(returnList, parentKey, jsonObject) {
         _item[TABLE_FIELD_REMARK] = remark;
         _item[TABLE_FIELD_TYPE] = type;
         _item[TABLE_FIELD_NECESSARY] = necessary;
+        _item[TABLE_FIELD_LEVEL] = level;
         _item[TABLE_FIELD_VALUE] = value;
         returnList.push(_item);
 
         if (getType(_object) === "Object") {
-            iteratorObjectToArr(returnList, fieldName, _object);
+            iteratorObjectToArr(returnList, _object, level + 1);
             //回退 fieldName
             if (fieldName.indexOf('.') > 0) {
                 let fieldArr = fieldName.split('.');
@@ -340,11 +346,17 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 let pathVariable = _request[iteration_request_path_variable];
                 if (pathVariable != null && Object.keys(pathVariable).length > 0) {
                     markdownContent += "**uri 参数：**\n";
-                    markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
-                    markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     Object.keys(pathVariable).map(_pathVariableKey => {
-                        let _paramObj = pathVariable[_pathVariableKey];
-                        markdownContent += "| " + _pathVariableKey + " | " + _paramObj[TABLE_FIELD_TYPE] + " | " + _paramObj[TABLE_FIELD_REMARK] + " | " + _paramObj[TABLE_FIELD_VALUE] + " |\n";
+                        let _pathVariableObj = pathVariable[_pathVariableKey];
+                        let _value = _pathVariableObj[TABLE_FIELD_VALUE];
+                        if(_value != null && _value.length > 50) {
+                            _value = _value.substring(0, 50) + "...";
+                        }
+                        let _level = _pathVariableObj[TABLE_FIELD_LEVEL];
+                        for (let i=0; i< _level - 1; i ++) {
+                            markdownContent += "  ";
+                        }
+                        markdownContent += "- " + _pathVariableKey + "（" + _pathVariableObj[TABLE_FIELD_TYPE] + " - " + _pathVariableObj[TABLE_FIELD_REMARK] + " - " + (_pathVariableObj[TABLE_FIELD_NECESSARY] == 1 ? "必填": "非必填") + " - " + _value + "）\n";
                     });
                     markdownContent += "\n";
                 }
@@ -352,11 +364,17 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 let param = _request[iteration_request_param];
                 if (Object.keys(param).length > 0) {
                     markdownContent += "**param：**\n";
-                    markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
-                    markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     Object.keys(param).map(_paramKey => {
                         let _paramObj = param[_paramKey];
-                        markdownContent += "| " + _paramKey + " | " + _paramObj[TABLE_FIELD_TYPE] + " | " + _paramObj[TABLE_FIELD_REMARK] + " | " + _paramObj[TABLE_FIELD_VALUE] + " |\n";
+                        let _value = _paramObj[TABLE_FIELD_VALUE];
+                        if(_value != null && _value.length > 50) {
+                            _value = _value.substring(0, 50) + "...";
+                        }
+                        let _level = _paramObj[TABLE_FIELD_LEVEL];
+                        for (let i=0; i< _level - 1; i ++) {
+                            markdownContent += "  ";
+                        }
+                        markdownContent += "- " + _paramKey + "（" + _paramObj[TABLE_FIELD_TYPE] + " - " + _paramObj[TABLE_FIELD_REMARK] + " - " + (_paramObj[TABLE_FIELD_NECESSARY] == 1 ? "必填": "非必填") + " - " + _value + "）\n";
                     });
                     markdownContent += "\n";
                 }
@@ -364,73 +382,96 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 let header = _request[iteration_request_header];
                 if (Object.keys(header).length > 0) {
                     markdownContent += "**Header：**\n";
-                    markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
-                    markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     Object.keys(header).map(_headerKey => {
                         let _headerObj = header[_headerKey];
-                        markdownContent += "| " + _headerKey + " | " + _headerObj[TABLE_FIELD_TYPE] + " | " + _headerObj[TABLE_FIELD_REMARK] + " | " + _headerObj[TABLE_FIELD_VALUE] + " |\n";
+                        let _value = _headerObj[TABLE_FIELD_VALUE];
+                        if(_value != null && _value.length > 50) {
+                            _value = _value.substring(0, 50) + "...";
+                        }
+                        let _level = _headerObj[TABLE_FIELD_LEVEL];
+                        for (let i=0; i< _level - 1; i ++) {
+                            markdownContent += "  ";
+                        }
+                        markdownContent += "- " + _headerKey + "（" + _headerObj[TABLE_FIELD_TYPE] + " - " + _headerObj[TABLE_FIELD_REMARK] + " - " + (_headerObj[TABLE_FIELD_NECESSARY] == 1 ? "必填": "非必填") + " - " + _value + "）\n";
                     });
                     markdownContent += "\n";
                 }
 
                 let bodyList = [];
-                iteratorObjectToArr(bodyList, "", _request[iteration_request_body]);
+                iteratorObjectToArr(bodyList, _request[iteration_request_body], 1);
 
                 if (bodyList.length > 0) {
                     markdownContent += "**Body：**\n";
-                    markdownContent += "| 参数名       | 参数类型 | 必填 | 备注 | 示例 |\n";
-                    markdownContent += "| ------------ | -------- | ---- | ---- | ----------------------- |\n";
                     bodyList.map(_bodyItem => {
-    
                         let _value = "";
                         if (_bodyItem[TABLE_FIELD_TYPE] === "File") {
                             _value = _bodyItem[TABLE_FIELD_VALUE].name;
-                            if(_value != null && _value.length > 50) {
-                                _value = _value.substring(0, 50) + "...";
+                            if(_value != null && _value.length > 35) {
+                                _value = _value.substring(0, 35) + "...";
                             }
                         } else {
                             _value = _bodyItem[TABLE_FIELD_VALUE];
                         }
-    
-                        markdownContent += "| " + _bodyItem[TABLE_FIELD_NAME] + " | " + _bodyItem[TABLE_FIELD_TYPE] + " | " + (_bodyItem[TABLE_FIELD_NECESSARY] == 0 ? "" : "✅") + " | " + _bodyItem[TABLE_FIELD_REMARK] + " | " + _value + " |\n";
+                        let _level = _bodyItem[TABLE_FIELD_LEVEL];
+                        for (let i = 0; i< _level - 1; i ++) {
+                            markdownContent += "  ";
+                        }
+                        markdownContent += "- " + _bodyItem[TABLE_FIELD_NAME] + "（" + _bodyItem[TABLE_FIELD_TYPE] + " - " + _bodyItem[TABLE_FIELD_REMARK] + " - " + (_bodyItem[TABLE_FIELD_NECESSARY] == 1 ? "必填": "非必填") + " - " + _value + "）\n";
                     })
                     markdownContent += "\n";
                 }
 
                 let responseHeadList = [];
-                iteratorObjectToArr(responseHeadList, "", _request[iteration_response_head]);
+                iteratorObjectToArr(responseHeadList, _request[iteration_response_head], 1);
                 if (responseHeadList.length > 0) {
                     markdownContent += "**响应Head：**\n";
                     markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
                     markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     responseHeadList.map(_responseHeadItem => {
-                        markdownContent += "| " + _responseHeadItem[TABLE_FIELD_NAME] + " | " + _responseHeadItem[TABLE_FIELD_TYPE] + " | " + _responseHeadItem[TABLE_FIELD_REMARK] + " | " + _responseHeadItem[TABLE_FIELD_VALUE] + " |\n";
+                        let _value = _responseHeadItem[TABLE_FIELD_VALUE];
+                        if(_value != null && _value.length > 35) {
+                            _value = _value.substring(0, 35) + "...";
+                        }
+                        markdownContent += "| " + _responseHeadItem[TABLE_FIELD_NAME] + " | " + _responseHeadItem[TABLE_FIELD_TYPE] + " | " + _responseHeadItem[TABLE_FIELD_REMARK] + " | " + _value + " |\n";
                     })
                     markdownContent += "\n";
                 }
 
                 let responseCookieList = [];
-                iteratorObjectToArr(responseCookieList, "", _request[iteration_response_cookie]);
+                iteratorObjectToArr(responseCookieList, _request[iteration_response_cookie], 1);
                 if (responseCookieList.length > 0) {
                     markdownContent += "**响应Cookie：**\n";
-                    markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
-                    markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     responseCookieList.map(_responseCookieItem => {
-                        markdownContent += "| " + _responseCookieItem[TABLE_FIELD_NAME] + " | " + _responseCookieItem[TABLE_FIELD_TYPE] + " | " + _responseCookieItem[TABLE_FIELD_REMARK] + " | " + _responseCookieItem[TABLE_FIELD_VALUE] + " |\n";
+                        let _value = _responseCookieItem[TABLE_FIELD_VALUE];
+                        if(_value != null && _value.length > 50) {
+                            _value = _value.substring(0, 50) + "...";
+                        }
+                        let _level = _responseCookieItem[TABLE_FIELD_LEVEL];
+                        for (let i=0; i< _level - 1; i ++) {
+                            markdownContent += "  ";
+                        }
+                        markdownContent += "- " + _responseCookieItem[TABLE_FIELD_NAME] + "（" + _responseCookieItem[TABLE_FIELD_TYPE] + " - " + _responseCookieItem[TABLE_FIELD_REMARK] + " - " + _value + "）\n";
                     })
                     markdownContent += "\n";
                 }
 
                 let responseList = [];
-                iteratorObjectToArr(responseList, "", _request[iteration_response_content]);
+                iteratorObjectToArr(responseList, _request[iteration_response_content], 1);
     
                 if (_request[iteration_request_jsonFlg] && responseList.length > 0) {
                     markdownContent += "**响应Content：**\n";
-                    markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
-                    markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     responseList.map(_responseItem => {
-                        markdownContent += "| " + _responseItem[TABLE_FIELD_NAME] + " | " + _responseItem[TABLE_FIELD_TYPE] + " | " + _responseItem[TABLE_FIELD_REMARK] + " | " + _responseItem[TABLE_FIELD_VALUE] + " |\n";
+                        let _value = _responseItem[TABLE_FIELD_VALUE];
+                        if(_value != null && _value.length > 50) {
+                            _value = _value.substring(0, 50) + "...";
+                        }
+                        let _level = _responseItem[TABLE_FIELD_LEVEL];
+                        for (let i=0; i< _level - 1; i ++) {
+                            markdownContent += "  ";
+                        }
+                        markdownContent += "- " + _responseItem[TABLE_FIELD_NAME] + "（" + _responseItem[TABLE_FIELD_TYPE] + " - " + _responseItem[TABLE_FIELD_REMARK] + " - " + _value + "）\n";
                     })
+
                     markdownContent += "\n";
                 }
     
@@ -444,7 +485,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
     
                     if (_request[iteration_request_htmlFlg]) {
                         markdownContent += "```html\n";
-                        markdownContent += _request[iteration_response_demo] + "\n";
+                        markdownContent += _request[iteration_response_demo].substring(0, 100) + "\n";
                         markdownContent += "```\n";
                     }
     

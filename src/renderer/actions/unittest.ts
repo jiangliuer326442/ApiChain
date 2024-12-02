@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
 import { cloneDeep } from 'lodash';
 
 import { 
@@ -17,9 +16,6 @@ import {
     REQUEST_METHOD_POST
 } from '../../config/global_config';
 import {
-    ChannelsReadFileStr,
-} from '../../config/channel';
-import {
     CONTENT_TYPE_HTML,
     CONTENT_TYPE_JSON,
     CONTENT_TYPE_IMAGE_JPG,
@@ -31,7 +27,6 @@ import {
     CONTENT_TYPE_ATTACH_ZIP,
     CONTENT_TYPE_ATTACH_TAR,
     CONTENT_TYPE_ATTACH_STREAM,
-    CONTENT_TYPE_URLENCODE,
     CONTENT_TYPE_FORMDATA,
 } from '../../config/contentType';
 import {
@@ -41,6 +36,7 @@ import {
 } from '../../config/unittest';
 import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '../../config/redux';
 
+import { sendAjaxMessage } from './message';
 import { addRequestHistory, getRequestHistory } from './request_history';
 
 import { getType, isStringEmpty, isJsonString, paramToString } from '../util';
@@ -754,7 +750,6 @@ async function stepsExecutor(
         }
         recentStepUuid = stepUuid;
 
-        let promises : any = {};
         let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unitTestId, stepUuid);
         let envVarTips = getEnvVarTipsFunc(project);
         let requestHost = await envVarTips.getHostAsync();
@@ -769,7 +764,7 @@ async function stepsExecutor(
                 }
                 let jsonParamTips = getJsonParamTipsFunc(project, header[_key]);
                 try {
-                    header[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, unitTestId, batch_uuid);
+                    header[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                 } catch (error) {
                     errorMessage = error.message;
                     success = UNITTEST_RESULT_FAILURE;
@@ -782,7 +777,7 @@ async function stepsExecutor(
             for (let _key in pathVariable) {
                 let jsonParamTips = getJsonParamTipsFunc(project, pathVariable[_key]);
                 try {
-                    let value = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, unitTestId, batch_uuid);
+                    let value = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                     pathVariable[_key] = value;
                     url = url.replaceAll("{{" + _key + "}}", value);
                 } catch (error) {
@@ -798,23 +793,13 @@ async function stepsExecutor(
                 if (contentType === CONTENT_TYPE_FORMDATA) {
                     //文件类型取 blob 格式的数据
                     if (getType(body[_key]) === "Object") {
-                        let path = body[_key].path;
-                        promises[_key] = {};
                         file[_key] = cloneDeep(body[_key]);
-                        promises[_key].promise = new Promise((resolve, reject) => {
-                            promises[_key].listener = window.electron.ipcRenderer.on(ChannelsReadFileStr, (key, path, blob) => {
-                                if (key === _key) {
-                                    let _file = body[_key];
-                                    _file.blob = blob.buffer;
-                                    resolve({key: _key, file: _file});
-                                }
-                            });
-                            window.electron.ipcRenderer.sendMessage(ChannelsReadFileStr, _key, path);
-                        });
+                        //移除 body
+                        delete body[_key];
                     } else {
                         let jsonParamTips = getJsonParamTipsFunc(project, body[_key]);
                         try {
-                            body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, unitTestId, batch_uuid);
+                            body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                         } catch (error) {
                             errorMessage = error.message;
                             success = UNITTEST_RESULT_FAILURE;
@@ -824,7 +809,7 @@ async function stepsExecutor(
                 } else {
                     let jsonParamTips = getJsonParamTipsFunc(project, body[_key]);
                     try {
-                        body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, unitTestId, batch_uuid);
+                        body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                     } catch (error) {
                         errorMessage = error.message;
                         success = UNITTEST_RESULT_FAILURE;
@@ -839,7 +824,7 @@ async function stepsExecutor(
             for (let _key in param) {
                 let jsonParamTips = getJsonParamTipsFunc(project, param[_key]);
                 try {
-                    param[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, unitTestId, batch_uuid);
+                    param[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                 } catch (error) {
                     errorMessage = error.message;
                     success = UNITTEST_RESULT_FAILURE;
@@ -858,53 +843,23 @@ async function stepsExecutor(
 
         if (method === REQUEST_METHOD_POST) {
             if (contentType === CONTENT_TYPE_FORMDATA) {
-                let formData = new FormData();
-                //有文件上传，需要等待文件上传完成再操作
-                if (Object.keys(promises).length > 0) {
-                    let promiseArr = [];
-                    for (let _key in promises) {
-                        promiseArr.push(promises[_key].promise);
-                    }
-                    //资源上传全部处理完成
-                    let values = await Promise.all(promiseArr);
-
-                    for (let _value of values) {
-                        let _key = _value.key;
-                        //移除监听器
-                        promises[_key].listener();
-                        //移除 body
-                        delete body[_key];
-                        let _file = _value.file;
-                        const blobFile = new Blob([_file.blob], { type: _file.type });  
-                        formData.append(_key, blobFile, _file.name);
-                    }
-                }
-                for (let _key in body) {
-                    formData.append(_key, body[_key]);
-                }
                 try {
-                    response = await axios.post(url, formData, {
-                        headers: header
-                    });
-                } catch (error) {
-                    errorMessage = error.message;
+                    response = await sendAjaxMessage("post", url, header, body, file);
+                } catch (err) {
+                    errorMessage = err.errorMessage;
                 }
             } else {
                 try {
-                    response = await axios.post(url, body, {
-                      headers: header
-                    });
-                } catch (error) {
-                    errorMessage = error.message;
+                    response = await sendAjaxMessage("post", url, header, body, null);
+                } catch (err) {
+                    errorMessage = err.errorMessage;
                 }
             }
         } else if (method === REQUEST_METHOD_GET) {
             try {
-                response = await axios.get(url, {
-                    headers: header
-                });
-            } catch (error) {
-                errorMessage = error.message;
+                response = await sendAjaxMessage("get", url, header, null, null);
+            } catch (err) {
+                errorMessage = err.errorMessage;
             }
         }
         let executorEtime = Date.now();
@@ -961,7 +916,7 @@ async function stepsExecutor(
     
                     let leftJsonParamTips = getJsonParamTipsFunc(project, assertLeft);
                     try {
-                        assertLeftValue[keyNumber] = await leftJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.data, unitTestId, batch_uuid);
+                        assertLeftValue[keyNumber] = await leftJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
                     } catch (error) {
                         errorMessage = error.message;
                         breakFlg = true;
@@ -970,7 +925,7 @@ async function stepsExecutor(
     
                     let rightJsonParamTips = getJsonParamTipsFunc(project, assertRight);
                     try {
-                        assertRightValue[keyNumber] = await rightJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.data, unitTestId, batch_uuid);
+                        assertRightValue[keyNumber] = await rightJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
                     } catch (error) {
                         errorMessage = error.message;
                         breakFlg = true;
@@ -1008,7 +963,8 @@ async function stepsExecutor(
         }
         let requestHistoryId = await addRequestHistory(env, project, requestUri, method, 
             header, body, pathVariable, param, file, 
-            content, "", isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
+            content, response.headers, response.cookieObj, 
+            "", isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
 
         let costTime = executorEtime - executorBtime;
 

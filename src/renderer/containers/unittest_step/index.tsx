@@ -38,9 +38,6 @@ import { isStringEmpty } from '../../util';
 
 const { Header, Content, Footer } = Layout;
 
-let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
-let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
-
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 
@@ -55,7 +52,9 @@ let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUES
 let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let iteration_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let iteration_request_json_flg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_JSONFLG;
-let iteration_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_response_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let iteration_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
+let iteration_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
 
 let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 let unittest_step_prj = TABLE_UNITTEST_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -149,7 +148,9 @@ class UnittestStepContainer extends Component {
             uri,
             title,
             tips: [],
-            response: {},
+            responseContent: {},
+            responseHeader: {},
+            responseCookie: {},
             continueEnable,
             sort,
             jsonFlg,
@@ -262,7 +263,9 @@ class UnittestStepContainer extends Component {
                 formRequestPathVariableData[_key][TABLE_FIELD_VALUE] = requestPathVariable[_key];
             }
         }
-        let response = request[iteration_response];
+        let responseContent = request[iteration_response_content];
+        let responseHeader = request[iteration_response_header];
+        let responseCookie = request[iteration_response_cookie];
         let title = this.state.title;
         if (isStringEmpty(title)) {
             title = request[iteration_request_title];
@@ -279,7 +282,11 @@ class UnittestStepContainer extends Component {
                 requestParam, 
                 requestPathVariable,
                 assertLength,
-                title, response, jsonFlg,
+                title, 
+                responseContent, 
+                responseHeader, 
+                responseCookie,
+                jsonFlg,
                 paramTips: envKeys
             });
         });
@@ -363,7 +370,9 @@ class UnittestStepContainer extends Component {
                       stepBodyData={this.state.formRequestBodyData}
                       stepParamData={this.state.formRequestParamData}
                       stepPathVariableData={this.state.formRequestPathVariableData}
-                      stepResponseData={this.state.response}
+                      stepResponseContentData={this.state.responseContent}
+                      stepResponseHeaderData={this.state.responseHeader}
+                      stepResponseCookieData={this.state.responseCookie}
                       iteratorId={this.state.iteratorId}
                       unitTestUuid={this.state.unitTestUuid}
                       unitTestStepUuid={this.state.unitTestStepUuid}
@@ -382,7 +391,9 @@ class UnittestStepContainer extends Component {
                     stepBodyData={this.state.formRequestBodyData}
                     stepParamData={this.state.formRequestParamData}
                     stepPathVariableData={this.state.formRequestPathVariableData}
-                    stepResponseData={this.state.response}
+                    stepResponseContentData={this.state.responseContent}
+                    stepResponseHeaderData={this.state.responseHeader}
+                    stepResponseCookieData={this.state.responseCookie}
                     iteratorId={this.state.iteratorId}
                     unitTestUuid={this.state.unitTestUuid}
                     unitTestStepUuid={this.state.unitTestStepUuid}
@@ -401,7 +412,9 @@ class UnittestStepContainer extends Component {
                     stepBodyData={this.state.formRequestBodyData}
                     stepParamData={this.state.formRequestParamData}
                     stepPathVariableData={this.state.formRequestPathVariableData}
-                    stepResponseData={this.state.response}
+                    stepResponseContentData={this.state.responseContent}
+                    stepResponseHeaderData={this.state.responseHeader}
+                    stepResponseCookieData={this.state.responseCookie}
                     iteratorId={this.state.iteratorId}
                     unitTestUuid={this.state.unitTestUuid}
                     unitTestStepUuid={this.state.unitTestStepUuid}
@@ -420,7 +433,9 @@ class UnittestStepContainer extends Component {
                     stepBodyData={this.state.formRequestBodyData}
                     stepParamData={this.state.formRequestParamData}
                     stepPathVariableData={this.state.formRequestPathVariableData}
-                    stepResponseData={this.state.response}
+                    stepResponseContentData={this.state.responseContent}
+                    stepResponseHeaderData={this.state.responseHeader}
+                    stepResponseCookieData={this.state.responseCookie}
                     iteratorId={this.state.iteratorId}
                     unitTestUuid={this.state.unitTestUuid}
                     unitTestStepUuid={this.state.unitTestStepUuid}
@@ -586,7 +601,9 @@ class UnittestStepContainer extends Component {
                                             stepBodyData={this.state.formRequestBodyData}
                                             stepParamData={this.state.formRequestParamData}
                                             stepPathVariableData={this.state.formRequestPathVariableData}
-                                            stepResponseData={this.state.response}
+                                            stepResponseContentData={this.state.responseContent}
+                                            stepResponseHeaderData={this.state.responseHeader}
+                                            stepResponseCookieData={this.state.responseCookie}
                                             value={this.state.assertPrev[i]}
                                             cb={text => {
                                                 let assertPrev = cloneDeep(this.state.assertPrev);
@@ -618,7 +635,9 @@ class UnittestStepContainer extends Component {
                                             stepBodyData={this.state.formRequestBodyData}
                                             stepParamData={this.state.formRequestParamData}
                                             stepPathVariableData={this.state.formRequestPathVariableData}
-                                            stepResponseData={this.state.response}
+                                            stepResponseContentData={this.state.responseContent}
+                                            stepResponseHeaderData={this.state.responseHeader}
+                                            stepResponseCookieData={this.state.responseCookie}
                                             value={this.state.assertAfter[i]}
                                             cb={text => {
                                                 let assertAfter = cloneDeep(this.state.assertAfter);

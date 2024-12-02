@@ -27,20 +27,22 @@ export default function() {
                 
             } else {
                 response = response[1];
-                if ('headers' in response) {
-                
-                } else {
-                    response = response[1];
-    
+                if (response != null) {
+                    if ('headers' in response) {
+                    
+                    } else {
+                        response = response[1];
+        
+                    }
                 }
             }
         }
 
-        if (Object.keys(response.headers).length > 0) {
+        if (response != null && Object.keys(response.headers).length > 0) {
             for(let _key in response.headers) {
                 if (_key === "date" || _key === "connection" || _key === "transfer-encoding" 
                 || _key === "cache-control" || _key === "last-modified" || _key === "server" 
-                || _key === "vary") {
+                || _key === "vary" || _key === "set-cookie") {
                     delete response.headers[_key];
                 }
             }

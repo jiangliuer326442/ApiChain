@@ -3,8 +3,9 @@ import { connect } from 'react-redux';
 import { 
     Breadcrumb, Layout, Flex, Divider,
     Select, Button, Input, Tabs, Tooltip,
-    Typography,
+    Typography, Descriptions,
 } from "antd";
+import type { DescriptionsProps } from 'antd';
 import { decode } from 'base-64';
 import JsonView from 'react-json-view';
 import { cloneDeep } from 'lodash';
@@ -48,11 +49,6 @@ import {
   INPUTTYPE_TEXT,
   INPUTTYPE_FILE,
 } from '../../../config/global_config';
-import { 
-  ChannelsAxioBreidgeStr, 
-  ChannelsAxioBreidgeSendStr, 
-  ChannelsAxioBreidgeReplyStr
-} from '../../../config/channel'
 import RequestSendTips from '../../classes/RequestSendTips';
 import {
   getVersionIteratorRequest
@@ -64,6 +60,9 @@ import {
   getRequestHistory,
   addRequestHistory 
 } from '../../actions/request_history';
+import {
+  sendAjaxMessage
+} from '../../actions/message';
 import SelectPrjEnvComponent from "../../components/env_var/select_prj_env";
 import RequestSendBody from "../../components/request_send/body_form";
 import RequestSendHead from "../../components/request_send/head_form";
@@ -80,6 +79,7 @@ let request_history_file = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_FILE;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE
 let request_history_iterator = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ITERATOR;
 let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
@@ -123,6 +123,7 @@ class RequestSendContainer extends Component {
       contentType: CONTENT_TYPE_URLENCODE,
       defaultTabKey: "body",
       responseData: "",
+      responseCookie: {},
       isResponseJson: false,
       isResponseHtml: false,
       isResponsePic: false,
@@ -147,6 +148,7 @@ class RequestSendContainer extends Component {
     return {
       alertMessage: "",
       responseData: "",
+      responseCookie: {},
       sendingFlg: false,
       statusCode: 0,
       costTime: 0,
@@ -157,22 +159,7 @@ class RequestSendContainer extends Component {
     };
   }
 
-  componentWillUnmount(): void {
-    this.state.messageSendListener();
-  }
-
   async componentDidMount() {
-    this.state.messageSendListener = window.electron.ipcRenderer.on(ChannelsAxioBreidgeStr, (action, originUrl, targetUrl, statusCode, costTime, errorMessage, cookieObj, headers, data) => {
-      if (action === ChannelsAxioBreidgeReplyStr) {
-        if (isStringEmpty(errorMessage) && statusCode == 200) {
-          this.handleResponse(originUrl, cookieObj, headers, costTime, data);
-          this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
-        } else {
-          this.setState({alertMessage: errorMessage, sendingFlg: false, statusCode});
-        }
-      }
-    });
-
     let pathKey = this.props.match.path.split('/')[1];
 
     if(Object.keys(this.props.match.params).length === 0) {
@@ -201,6 +188,7 @@ class RequestSendContainer extends Component {
         env: record[request_history_env],
         requestUri: record[request_history_uri],
         requestMethod: method,
+        responseCookie: record[request_history_response_cookie],
         responseData: record[request_history_response],
         isResponseJson: record[request_history_jsonFlg],
         isResponseHtml: record[request_history_htmlFlg],
@@ -494,7 +482,6 @@ class RequestSendContainer extends Component {
     if (!isStringEmpty(paramToString(paramData))) {
       url += "?" + paramToString(paramData);
     }
-    let response = null;
     let headData = cloneDeep(this.state.requestHeadData);
     for (let _key in headData) {
       let value = headData[_key];
@@ -510,12 +497,33 @@ class RequestSendContainer extends Component {
       let postData = this.requestSendTip.iteratorGetVarByKey(this.state.requestBodyData);
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
-        window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeSendStr, 'post', url, headData, postData, this.state.requestFileData);
+        sendAjaxMessage('post', url, headData, postData, this.state.requestFileData).then(response => {
+          this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
+          this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
+        }).catch(err => this.setState({
+          alertMessage: err.errorMessage, 
+          sendingFlg: false, 
+          statusCode: err.statusCode,
+        }));
       } else {
-        window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeSendStr, 'post', url, headData, postData, null);
+        sendAjaxMessage('post', url, headData, postData, null).then(response => {
+          this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
+          this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
+        }).catch(err => this.setState({
+          alertMessage: err.errorMessage, 
+          sendingFlg: false, 
+          statusCode: err.statusCode,
+        }));
       }
     } else if (this.state.requestMethod === REQUEST_METHOD_GET) {
-      window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeSendStr, 'get', url, headData, null, null);
+      sendAjaxMessage('get', url, headData, null, null).then(response => {
+        this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
+        this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
+      }).catch(err => this.setState({
+        alertMessage: err.errorMessage, 
+        sendingFlg: false, 
+        statusCode: err.statusCode,
+      }));
     }
   }
 
@@ -562,6 +570,7 @@ class RequestSendContainer extends Component {
       isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
     this.setState({ 
       costTime,
+      responseCookie: cookieObj,
       responseData : content, 
       isResponseJson, 
       isResponseHtml, 
@@ -634,6 +643,19 @@ class RequestSendContainer extends Component {
     }
     this.setRequestPathVariableData(list);
     return list;
+  }
+
+  getCookies = () : Promise<DescriptionsProps['items']> => {
+    let cookieArr = [];
+    for (let i = 0; i < Object.keys(this.state.responseCookie).length; i++) {
+      let _key = Object.keys(this.state.responseCookie)[i];
+      cookieArr.push({
+        key: i + "",
+        label: <Text copyable={{text: _key}}>{ _key }</Text>,
+        children: <Text copyable={{text: this.state.responseCookie[_key]}}>{ this.state.responseCookie[_key] }</Text>,
+      });
+    }
+    return cookieArr;
   }
 
   getNavs() {
@@ -719,7 +741,7 @@ class RequestSendContainer extends Component {
                       style={{borderRadius: 0}} 
                       disabled={!this.state.requestEnable || this.state.sendingFlg}
                       onClick={ this.sendRequest }
-                    >发送请求</Button>
+                    >{this.state.sendingFlg ? "请求中" : "发送请求"}</Button>
                 </Flex>
                 { this.state.showFlg ? <Tabs activeKey={ this.state.defaultTabKey } items={ this.getNavs() } onChange={key => this.setState({defaultTabKey: key})} /> : null }
                 <Divider orientation="left">响应 
@@ -731,6 +753,9 @@ class RequestSendContainer extends Component {
                 )
                 : null}
                 </Divider>
+                {Object.keys(this.state.responseCookie).length > 0 ?
+                <Descriptions column={1} title="cookie" items={this.getCookies()} />
+                : null}
                 <Flex style={ {
                   minHeight: 136,
                   overflowY: this.state.isResponsePic ? "auto":"scroll",

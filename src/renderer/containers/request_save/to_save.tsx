@@ -842,20 +842,28 @@ class RequestSaveContainer extends Component {
                         </Flex>
                         <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
-                        <Divider orientation="left">响应Header</Divider>
-                        <Flex>
-                            <JsonSaveResponseHeaderTableContainer 
-                                readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
-                                object={this.state.formResponseHeadData} 
-                                cb={ obj => this.setState({formResponseHeadData: obj})} />
-                        </Flex>
-                        <Divider orientation="left">响应Cookie</Divider>
-                        <Flex>
-                            <JsonSaveResponseCookieTableContainer 
-                                readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
-                                object={this.state.formResponseCookieData} 
-                                cb={ obj => this.setState({formResponseCookieData: obj})} />
-                        </Flex>
+                        {this.state.formResponseHeadData != null && Object.keys(this.state.formResponseHeadData).length > 0 ? 
+                        <>
+                            <Divider orientation="left">响应Header</Divider>
+                            <Flex>
+                                <JsonSaveResponseHeaderTableContainer 
+                                    readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
+                                    object={this.state.formResponseHeadData} 
+                                    cb={ obj => this.setState({formResponseHeadData: obj})} />
+                            </Flex>
+                        </>
+                        : null }
+                        {this.state.formResponseCookieData != null && Object.keys(this.state.formResponseCookieData).length > 0 ? 
+                        <>
+                            <Divider orientation="left">响应Cookie</Divider>
+                            <Flex>
+                                <JsonSaveResponseCookieTableContainer 
+                                    readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
+                                    object={this.state.formResponseCookieData} 
+                                    cb={ obj => this.setState({formResponseCookieData: obj})} />
+                            </Flex>
+                        </>
+                        : null }
                         <Divider orientation="left">响应Content</Divider>
                         <Flex>
                             {this.state.isResponseJson ? 

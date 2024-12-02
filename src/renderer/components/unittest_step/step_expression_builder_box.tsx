@@ -17,6 +17,8 @@ import {
     UNITTEST_STEP_PARAM,
     UNITTEST_STEP_PATH_VARIABLE,
     UNITTEST_STEP_RESPONSE,
+    UNITTEST_STEP_RESPONSE_HEADER,
+    UNITTEST_STEP_RESPONSE_COOKIE,
     UNITTEST_DATASOURCE_TYPE_REF,
     UNITTEST_DATASOURCE_TYPE_ENV,
     UNITTEST_STEP_POINTED,
@@ -48,7 +50,9 @@ let iteration_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQU
 let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let iteration_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY;
-let iteration_request_response = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_request_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+let iteration_request_response_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
+let iteration_request_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 
 let project_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let project_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
@@ -154,7 +158,13 @@ class StepExpressionBuilderBox extends Component {
                     dataSource = this.props.stepPathVariableData;
                 }
                 if (selectedDataSource === UNITTEST_STEP_RESPONSE) {
-                    dataSource = this.props.stepResponseData;
+                    dataSource = this.props.stepResponseContentData;
+                }
+                if (selectedDataSource === UNITTEST_STEP_RESPONSE_HEADER) {
+                    dataSource = this.props.stepResponseHeaderData;
+                }
+                if (selectedDataSource === UNITTEST_STEP_RESPONSE_COOKIE) {
+                    dataSource = this.props.stepResponseCookieData;
                 }
                 this.handleDataSourceCallback(dataSource);
             } else {
@@ -178,7 +188,13 @@ class StepExpressionBuilderBox extends Component {
                         dataSource = request[iteration_request_path_variable];
                     }
                     if (selectedDataSource === UNITTEST_STEP_RESPONSE) {
-                        dataSource = request[iteration_request_response];
+                        dataSource = request[iteration_request_response_content];
+                    }
+                    if (selectedDataSource === UNITTEST_STEP_RESPONSE_HEADER) {
+                        dataSource = request[iteration_request_response_header];
+                    }
+                    if (selectedDataSource === UNITTEST_STEP_RESPONSE_COOKIE) {
+                        dataSource = request[iteration_request_response_cookie];
                     }
                     this.handleDataSourceCallback(dataSource);
                 });
@@ -204,7 +220,7 @@ class StepExpressionBuilderBox extends Component {
     }
 
     handleDataSourceCallback = (dataSource) => {
-        if (Object.keys(dataSource).length > 0) {
+        if (dataSource !== undefined && Object.keys(dataSource).length > 0) {
             this.setState({dataSource})
             this.paramTips.setDataSourceJson(dataSource);
         }
@@ -298,7 +314,9 @@ class StepExpressionBuilderBox extends Component {
                                     <Select.Option value={ UNITTEST_STEP_PATH_VARIABLE }>uri param</Select.Option>
                                     <Select.Option value={ UNITTEST_STEP_BODY }>body</Select.Option>
                                     <Select.Option value={ UNITTEST_STEP_PARAM }>param</Select.Option>
-                                    <Select.Option value={ UNITTEST_STEP_RESPONSE }>response</Select.Option>
+                                    <Select.Option value={ UNITTEST_STEP_RESPONSE }>responseContnet</Select.Option>
+                                    <Select.Option value={ UNITTEST_STEP_RESPONSE_HEADER }>responseHeader</Select.Option>
+                                    <Select.Option value={ UNITTEST_STEP_RESPONSE_COOKIE }>responseCookie</Select.Option>
                                 </Select>
                             </Form.Item>
                         </>
