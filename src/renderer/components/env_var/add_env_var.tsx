@@ -1,12 +1,11 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { AutoComplete, Form, Input, Modal, message } from "antd";
+import { Form, Input, Modal, message } from "antd";
 
 import { isStringEmpty } from '../../util';
 import { SHOW_ADD_PROPERTY_MODEL } from '../../../config/redux';
 import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
 import { addEnvValues, getEnvValues } from '../../actions/env_value';
-import { cloneDeep } from 'lodash';
 
 class AddEnvVarComponent extends Component {
 
@@ -31,22 +30,6 @@ class AddEnvVarComponent extends Component {
                 pvalue: nextProps.pvalue,
             });
         }
-    }
-
-    handleSearchEnvKey = text => {
-        if (isStringEmpty(text)) {
-            this.setState({ tips: [] });
-            return;
-        }
-
-        let tips = cloneDeep(this.props.tips);
-        let searchTips : Array<any> = [];
-        for (let tip of tips) {
-            if (tip.value.toLowerCase().indexOf(text.toLowerCase()) >= 0) {
-                searchTips.push(tip);
-            }
-        }
-        this.setState({tips: searchTips});
     }
 
     handleOk = () => {
@@ -114,15 +97,8 @@ class AddEnvVarComponent extends Component {
             >
                <Form layout="vertical">
                     <Form.Item>
-                        <AutoComplete
-                            allowClear
-                            onSearch={ this.handleSearchEnvKey }
-                            options={(this.state.tips.length > 0 || !isStringEmpty(this.state.pname)) ? this.state.tips : this.props.tips}
-                            disabled={ this.state.actionType === "edit" }
-                            placeholder="参数名称"
-                            value={this.state.pname}
-                            onChange={value => this.setState({pname: value})}
-                        />
+                        <Input allowClear placeholder="参数名称" disabled={ this.state.actionType === "edit" } 
+                            value={this.state.pname} onChange={ event=>this.setState({pname : event.target.value}) } />
                     </Form.Item>
                     <Form.Item>
                         <Input allowClear placeholder="参数值" value={this.state.pvalue} onChange={ event=>this.setState({pvalue : event.target.value}) } />

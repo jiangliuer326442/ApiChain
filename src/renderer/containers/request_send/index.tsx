@@ -753,7 +753,7 @@ class RequestSendContainer extends Component {
                 )
                 : null}
                 </Divider>
-                {Object.keys(this.state.responseCookie).length > 0 ?
+                {this.state.responseCookie != null && Object.keys(this.state.responseCookie).length > 0 ?
                 <Descriptions column={1} title="cookie" items={this.getCookies()} />
                 : null}
                 <Flex style={ {

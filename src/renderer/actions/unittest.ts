@@ -115,7 +115,9 @@ let unittest_report_cost_time = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST
 let unittest_report_failure_reason = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_REASON;
 
 let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
-let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_response_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
+let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE;
+let request_history_response_content = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
 let request_history_body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
 let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
@@ -398,7 +400,6 @@ export async function getSingleUnittest(unittest_uuid : string, env : string | n
     }
 
     unitTest['children'] = unitTestSteps;
-
     return unitTest;
 }
 
@@ -497,20 +498,17 @@ export async function continueIteratorExecuteUnitTest(
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         }, 
-        async (stepUuid, requestHistoryId, assertLeftValue, assertRightValue, breakFlg, costTime) => {
+        async (stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg) => {
             let unit_test_executor : any = {};
             unit_test_executor[unittest_executor_batch] = batchId;
             unit_test_executor[unittest_executor_iterator] = iteratorId;
             unit_test_executor[unittest_executor_unittest] = unitTestId;
-    
-    
             unit_test_executor[unittest_executor_step] = stepUuid;
             unit_test_executor[unittest_executor_history_id] = requestHistoryId;
             unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
             unit_test_executor[unittest_executor_assert_right] = assertRightValue;
             unit_test_executor[unittest_executor_result] = !breakFlg;
-            unit_test_executor[unittest_executor_cost_time] = costTime;
-            
+            unit_test_executor[unittest_executor_cost_time] = singleCostTime;
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
@@ -563,19 +561,17 @@ export async function continueProjectExecuteUnitTest(
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         }, 
-        async (stepUuid, requestHistoryId, assertLeftValue, assertRightValue, breakFlg, costTime) => {
+        async (stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg) => {
             let unit_test_executor : any = {};
             unit_test_executor[unittest_executor_batch] = batchId;
             unit_test_executor[unittest_executor_iterator] = "";
             unit_test_executor[unittest_executor_unittest] = unitTestId;
-    
-    
             unit_test_executor[unittest_executor_step] = stepUuid;
             unit_test_executor[unittest_executor_history_id] = requestHistoryId;
             unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
             unit_test_executor[unittest_executor_assert_right] = assertRightValue;
             unit_test_executor[unittest_executor_result] = !breakFlg;
-            unit_test_executor[unittest_executor_cost_time] = costTime;
+            unit_test_executor[unittest_executor_cost_time] = singleCostTime;
             
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
@@ -614,20 +610,17 @@ export async function executeProjectUnitTest(
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         },
-        async (stepUuid, requestHistoryId, assertLeftValue, assertRightValue, breakFlg, costTime) => {
+        async (stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg) => {
             let unit_test_executor : any = {};
             unit_test_executor[unittest_executor_batch] = batch_uuid;
             unit_test_executor[unittest_executor_iterator] = "";
             unit_test_executor[unittest_executor_unittest] = unitTestId;
-    
-    
             unit_test_executor[unittest_executor_step] = stepUuid;
             unit_test_executor[unittest_executor_history_id] = requestHistoryId;
             unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
             unit_test_executor[unittest_executor_assert_right] = assertRightValue;
             unit_test_executor[unittest_executor_result] = !breakFlg;
-            unit_test_executor[unittest_executor_cost_time] = costTime;
-            
+            unit_test_executor[unittest_executor_cost_time] = singleCostTime;
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
@@ -671,20 +664,17 @@ export async function executeIteratorUnitTest(
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         },
-        async (stepUuid, requestHistoryId, assertLeftValue, assertRightValue, breakFlg, costTime) => {
+        async (stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg) => {
             let unit_test_executor : any = {};
             unit_test_executor[unittest_executor_batch] = batch_uuid;
             unit_test_executor[unittest_executor_iterator] = iteratorId;
             unit_test_executor[unittest_executor_unittest] = unitTestId;
-    
-    
             unit_test_executor[unittest_executor_step] = stepUuid;
             unit_test_executor[unittest_executor_history_id] = requestHistoryId;
             unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
             unit_test_executor[unittest_executor_assert_right] = assertRightValue;
             unit_test_executor[unittest_executor_result] = !breakFlg;
-            unit_test_executor[unittest_executor_cost_time] = costTime;
-            
+            unit_test_executor[unittest_executor_cost_time] = singleCostTime;
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
@@ -839,8 +829,6 @@ async function stepsExecutor(
 
         let response = null;
 
-        let executorBtime = Date.now();
-
         if (method === REQUEST_METHOD_POST) {
             if (contentType === CONTENT_TYPE_FORMDATA) {
                 try {
@@ -862,7 +850,6 @@ async function stepsExecutor(
                 errorMessage = err.errorMessage;
             }
         }
-        let executorEtime = Date.now();
         let assertLeftValue : any[] = [];
         let assertRightValue : any[] = [];
 
@@ -872,7 +859,9 @@ async function stepsExecutor(
         let isResponseFile = false;
         let content = "";
         
+        let singleCostTime = 0;
         if(response !== null && isStringEmpty(errorMessage)) {
+            singleCostTime = response.costTime;
             if (response.headers['content-type'] && response.headers['content-type'].toString().indexOf(CONTENT_TYPE_HTML) >= 0) {
                 isResponseHtml = true;
                 content = response.data;
@@ -963,12 +952,10 @@ async function stepsExecutor(
         }
         let requestHistoryId = await addRequestHistory(env, project, requestUri, method, 
             header, body, pathVariable, param, file, 
-            content, response.headers, response.cookieObj, 
+            content, response?.headers, response?.cookieObj, 
             "", isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
 
-        let costTime = executorEtime - executorBtime;
-
-        await saveStepResultFunc(stepUuid, requestHistoryId, assertLeftValue, assertRightValue, breakFlg, costTime);
+        await saveStepResultFunc(stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg);
 
         //遇到错误结束
         if (breakFlg) {
@@ -1025,7 +1012,9 @@ export async function getSingleExecutorStep(iteratorId : string, unittestId : st
     }
 
     unitTestStep[request_history_uri] = historyRecord[request_history_uri];
-    unitTestStep[request_history_response] = historyRecord[request_history_response];
+    unitTestStep[request_history_response_header] = historyRecord[request_history_response_header];
+    unitTestStep[request_history_response_cookie] = historyRecord[request_history_response_cookie];
+    unitTestStep[request_history_response_content] = historyRecord[request_history_response_content];
     unitTestStep[request_history_body] = historyRecord[request_history_body];
     unitTestStep[request_history_jsonFlg] = historyRecord[request_history_jsonFlg];
     unitTestStep[request_history_param] = historyRecord[request_history_param];

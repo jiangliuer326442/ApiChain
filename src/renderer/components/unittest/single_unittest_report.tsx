@@ -52,9 +52,11 @@ let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
 
 let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
-let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
+let request_history_json_flg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
+let request_history_response_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
+let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE;
+let request_history_response_content = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
 let request_history_body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
-let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
@@ -63,7 +65,6 @@ let unittest_step_title = TABLE_UNITTEST_STEPS_FIELDS.FIELD_TITLE;
 let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
 let unittest_step_request_method = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_METHOD;
 let unittest_step_prj = TABLE_UNITTEST_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
-let unittest_step_uri = TABLE_UNITTEST_STEPS_FIELDS.FIELD_URI;
 
 let unittest_step_assert_title = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TITLE;
 let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
@@ -191,7 +192,12 @@ class SingleUnitTestReport extends Component {
                 let historyId = singleExecutorStep[unittest_executor_history_id];
                 let url = isStringEmpty(hosts[prj]) ? singleExecutorStep[request_history_uri] : hosts[prj] + singleExecutorStep[request_history_uri];
                 let data = {};
-                let response = singleExecutorStep[request_history_response];
+                let responseContent = {};
+                if (singleExecutorStep[request_history_json_flg]) {
+                    responseContent = JSON.parse(singleExecutorStep[request_history_response_content]);
+                }
+                let responseHeader = singleExecutorStep[request_history_response_header];
+                let responseCookie = singleExecutorStep[request_history_response_cookie];
                 let assertResult = singleExecutorStep[unittest_executor_result];
                 let costTime = singleExecutorStep[unittest_executor_cost_time];
                 if (method === REQUEST_METHOD_POST) {
@@ -211,8 +217,11 @@ class SingleUnitTestReport extends Component {
                 stepExecutorItem.url = url;
                 stepExecutorItem.historyId = historyId;
                 stepExecutorItem.input = data;
-                stepExecutorItem.isJson = singleExecutorStep[request_history_jsonFlg];
-                stepExecutorItem.output = response;
+                stepExecutorItem.output = {
+                    header: responseHeader,
+                    cookie: responseCookie,
+                    content: responseContent
+                };
                 stepExecutorItem.assertArr = unitTestAsserts;
                 stepExecutorItem.assertLeftArr = assertLeftArr;
                 stepExecutorItem.assertRightArr = assertRightArr;
@@ -263,8 +272,8 @@ class SingleUnitTestReport extends Component {
                         {
                             key: '3',
                             label: '流出',
-                            children: (item.isJson ? <JsonView 
-                                src={JSON.parse(item.output)}   
+                            children: <JsonView 
+                                src={item.output}   
                                 name="response"
                                 theme={ "bright" }
                                 collapsed={true}  
@@ -273,7 +282,7 @@ class SingleUnitTestReport extends Component {
                                 enableClipboard={true}
                                 displayObjectSize={false}
                                 displayDataTypes={false}
-                                collapseStringsAfterLength={40}  /> : null),
+                                collapseStringsAfterLength={40}  />,
                         },
                         {
                             key: '4',

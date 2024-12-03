@@ -22,7 +22,6 @@ import {
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
-    UNITTEST_RESULT_UNKNOWN
 } from '../../../config/unittest';
 import {
     SHOW_ADD_UNITTEST_MODEL,
@@ -106,7 +105,7 @@ class UnittestListVersion extends Component {
                     dataIndex: unittest_report_cost_time,
                     render: (cost_time, record) => {
                         let result = record[unittest_report_result];
-                        if (result === "success") {
+                        if (result === "success" || result === true) {
                             return cost_time + "毫秒";
                         } else if (result) {
                             return "--";
