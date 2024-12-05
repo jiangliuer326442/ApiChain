@@ -1,4 +1,4 @@
-![dm8zd-ygwvu.gif](https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/doc/images/dm8zd-ygwvu.gif)
+https://github.com/user-attachments/assets/ccb21dc1-ed3c-4ed6-8e35-2d7f52e4b70b
 
 ApiChain是一款基于版本迭代和项目视角的接口测试和文档生成软件，相比于postman这样的外来品，ApiChain 更“懂”你。APIChain拥有如下特色：
 
