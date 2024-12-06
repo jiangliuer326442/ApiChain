@@ -18,9 +18,9 @@ ApiChain是一款基于版本迭代和项目视角的接口测试和文档生成
 
 基于Electron跨平台开发，可根据你的平台下载源码自行编译，也可直接使用我们这里编译好的
 
-windows 平台：[ApiChain_Setup_1.0.7.exe](https://gitee.com/onlinetool/mypostman/releases/download/v1.0.7/ApiChain_Setup_1.0.7.zip)
+windows 平台：[ApiChain_windows_1.0.7.zip](https://github.com/jiangliuer326442/ApiChain/releases/download/v1.0%2C7/ApiChain_windows_1.0.7.zip)
 
-linux 平台：[ApiChain-1.0.7.AppImage](http://cdn.fanghailiang.cn/ApiChain-1.0.7.zip)
+linux 平台：[ApiChain_linux_1.0.7.zip](https://github.com/jiangliuer326442/ApiChain/releases/download/v1.0%2C7/ApiChain_linux_1.0.7.zip)
 
 mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 
