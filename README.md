@@ -1,15 +1,37 @@
-## ApiChain 简介
+github & 演示链接：[点击这里](https://github.com/jiangliuer326442/ApiChain)
 
-伴随着业务产出一份份迭代文档
-![伴随着业务产出一份份迭代文档.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/伴随着业务产出一份份迭代文档.png)
 
-编写单测流程
-![编写单测流程.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/编写单测流程.png)
+ApiChain是一款基于版本迭代和项目视角的接口测试和文档生成软件，相比于postman这样的外来品，ApiChain 更“懂”你。APIChain拥有如下特色：
 
-发送网络请求
-![发送网络请求.png](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/发送网络请求.png)
+1. 按迭代产出接口文档，按项目汇总迭代相关接口，迭代文档可生成本机内网ip的链接地址实时共享，也可导出成html、markdown等格式；
+2. 环境变量支持全局、项目、迭代三个层面；
+3. 支持更多类型的随机入参；
+4. 支持URL路径类型的入参的测试和文档生成；
+5. 可将请求返回的header、cookie信息纳入接口文档；
+6. 可将一系列接口的调用入参和返回串联起来调用接口，做成可重复运行的单测用例，甚至包括使用前面步骤返回的cookie、header里的信息；
+7. 迭代单测用例可合并到项目，用于项目的回归测试；
+8. 纯内网，无需连接互联网；
+9. 可将迭代关联的一系列需求文档、ui设计文档的链接以及数据库变动、配置中心变动等信息汇总在这个迭代接口文档里；
 
-**ApiChain** 是一款类似 PostMan 的接口网络请求与文档生成软件，它基于**项目**和**迭代**两个视角管理我们的接口文档，ApiChain 支持针对每个版本迭代编写接口文档，内网分享文档链接，执行接口调用，编写自动化测试用例，在项目上线版本迭代结束时，将这个迭代内发生的接口变更以及针对迭代涉及的接口编写的自动化测试用例合并到项目中去。所有数据均保存在您的本地电脑，除自动检测更新外（这个可配置关闭），无其他网络请求，安全和高性能并能够在纯内网环境中无障碍使用。
+🔥🔥🔥如果你也认可Ta更“懂”你，不妨 [点击这里给个star](https://gitee.com/onlinetool/mypostman) 支持一下呗 (*￣︶￣)💋💋💋
+<a href='https://gitee.com/onlinetool/mypostman/stargazers'><img src='https://gitee.com/onlinetool/mypostman/badge/star.svg?theme=dark' alt='star'></img></a>
+PS：收到100个star后我就有动力去开发以下功能：
+1. java、php语言项目的代码扫描生成迭代文档的第三方包
+2. 让单机版的ApiChain支持团队需要的相关功能，也就是迭代、项目、单测、环境变量的在团队内共享，成为团队的数字化资产（当然，肯定是支持私有化部署的）
+
+## 软件下载
+
+基于Electron跨平台开发，可根据你的平台下载源码自行编译，也可直接使用我们这里编译好的
+
+windows 平台：[ApiChain_windows_1.0.7.exe](https://gitee.com/onlinetool/mypostman/releases/download/v1.0.7/ApiChain_windows_1.0.7.zip)
+
+linux 平台：[ApiChain_linux_1.0.7.AppImage](https://github.com/jiangliuer326442/ApiChain/releases/download/v1.0%2C7/ApiChain_linux_1.0.7.zip)
+
+mac 平台：[MyPostMan-0.0.5.dmg](https://gitee.com/onlinetool/mypostman/releases/download/v0.0.5/MyPostMan-0.0.5.dmg)
+
+mac最新版本请下载源码自行编译，编译方法参照 从源码编译 部分，**如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开**
+
+## 简介
 
 * 按照项目、文件夹管理我们的接口
 
@@ -34,7 +56,7 @@
 * 接口文档页
 
   以迭代为单位，生成接口文档，可以标注一些这个迭代的注意事项，可导出分享，也可直接通过浏览器共享页面。
-  
+
   [mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。](https://gitee.com/onlinetool/mypostman/wikis/mock%E6%9C%8D%E5%8A%A1%E5%99%A8)
 
 ![image-20240706090943885](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_17-23-36.png)
@@ -44,7 +66,7 @@
 * 迭代单测页
 
   [把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。](https://gitee.com/onlinetool/mypostman/wikis/%E7%BC%96%E5%86%99%E8%BF%AD%E4%BB%A3%E5%8D%95%E6%B5%8B%E7%94%A8%E4%BE%8B)
-  
+
   若某个测试用例执行失败，可以点击请求地址跳转到发送请求的页面，可以重复发送单测的请求，用来复现并调试bug。
 
 ![image-20240706091153839](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_18-04-42.png)
@@ -67,22 +89,6 @@
 
 ![image-20240706091305808](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-19_10-09-17.png)
 
-
-
-## 软件下载
-
-如果不想从源码一步步编译，可以从以下链接下载可执行文件：
-
-windows 平台：[ApiChain_Setup_1.0.6.exe](https://gitee.com/onlinetool/mypostman/releases/download/v1.0.6/ApiChain_Setup_1.0.6.exe)
-
-linux 平台：[ApiChain-1.0.6.AppImage](http://cdn.fanghailiang.cn/ApiChain-1.0.6.AppImage)
-
-mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
-
-**mac 可能遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开 **
-
->  第一次使用软件，可以参照我们下面的新手指引一步步做，完成一个天气预报项目的接口文档编写，迭代自动化测试等。
-
 ## 相关术语
 
 - 开发环境
@@ -103,10 +109,10 @@ mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 
   环境变量分为：
 
-  - 全局环境变量：在特定环境中的所有项目都可见，比如用于测试的特定UID。
-  - 项目环境变量：只在特定项目可见的数据，比如接口的api地址（api_host）
-  - 迭代环境变量：针对当前开发特定功能的版本迭代才可使用的数据，比如临时申请的验证特定功能的高权限账号，迭代测试完成就要销毁，不便污染全局数据集。
-  - 单测环境变量：为了跑通特定环境的单测而使用的数据源，长期对这个单测流程有效。
+    - 全局环境变量：在特定环境中的所有项目都可见，比如用于测试的特定UID。
+    - 项目环境变量：只在特定项目可见的数据，比如接口的api地址（api_host）
+    - 迭代环境变量：针对当前开发特定功能的版本迭代才可使用的数据，比如临时申请的验证特定功能的高权限账号，迭代测试完成就要销毁，不便污染全局数据集。
+    - 单测环境变量：为了跑通特定环境的单测而使用的数据源，长期对这个单测流程有效。
 
 - 单测
   就是不依赖于用户界面，通过连续的，链式的网络请求 来实现特定功能，并可验证该功能确实实现的一套接口组合以及对接口返回信息的是否成功的判断。
@@ -119,9 +125,7 @@ mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 
 在以下教程中，我们使用聚合数据的（[天气预报](https://www.juhe.cn/docs/api/id/73)）相关接口演示如何使用  **ApiChain** 进行接口调用、文档生成、自动化测试。
 
-首先你需要申请一下 key，如果嫌麻烦，可以使用我的 `2c173c8a08cb275c6925c775c038903b` ，但有限额，你大概率调不通～[沮丧]
-
-<img src="https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240617213801962-9322339.png" width="25%" />
+首先你需要申请一下 key，如果嫌麻烦，可以使用我的 `2c173c8a08cb275c6925c775c038903b` ，但可能有限额。
 
 ### 环境、微服务、环境变量
 
@@ -308,31 +312,37 @@ mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 
 ![image-20240707105917096](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105917096.png)
 
-好了，我们的入门教程就到这里，其他功能，比如备份、还原数据库，从 PostMan 导入接口到项目等功能，自行探索。啰嗦一句，最好定时备份一下数据库！
-
-## 教程
+好了，我们的入门教程就到这里，其他功能，比如备份、还原数据库，从 PostMan 导入接口到项目等功能可查看项目的wiki文档。
 
 ## 从源码编译
 
 版本依赖：
-    - nodejs：v20.12.2
-    - electron：26.2.4
+
+- nodejs：v20.12.2
+- electron：26.2.4
 
 1. 安装 & 配置 yarn
+
 ```cmd
 npm install -g yarn
 yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
 yarn config set ELECTRON_BUILDER_BINARIES_MIRROR https://registry.npmmirror.com/-/binary/electron-builder-binaries/
 yarn config set registry https://registry.npmmirror.com/
 ```
+
 2. 下载依赖包
+
 ```cmd
 yarn
 ```
+
 3. 生成可执行文件
+
 ```cmd
 yarn package
 ```
+
+##
 
 ## 与作者交互
 
@@ -343,5 +353,3 @@ yarn package
 软件目前所有功能均不收费，无需连接外部网络即可使用。如果觉得帮到了你，可以不吝打赏一个鸡腿哦，打赏二维码如下：
 
 <img src="https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240619222828912.png" width="50%" />
-
-最后最最重要的是，如果你恰好有个坑位，不妨介绍给我，坐标 - 上海。
