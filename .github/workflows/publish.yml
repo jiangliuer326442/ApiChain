@@ -31,3 +31,9 @@ jobs:
       - name: Publish releases
         run: |
           yarn electron-builder -- --publish always --win --mac
+          
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: electron-app
+          path: release/build/
