@@ -1,8 +1,9 @@
 name: Publish
 
 on:
-  workflow_dispatch:
-    inputs:
+  push:
+    branches:
+      - main
 
 jobs:
   publish:
@@ -10,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
 
     steps:
       - name: Checkout git repo
@@ -37,4 +38,4 @@ jobs:
       - name: Publish releases
         env:
         run: |
-          yarn electron-builder -- --publish always --win
+          yarn electron-builder -- --publish always --win --mac --linux
