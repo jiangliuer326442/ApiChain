@@ -30,10 +30,9 @@ jobs:
 
       - name: Publish releases
         run: |
-          yarn electron-builder -- --publish always --win --mac
+          yarn electron-builder -- --publish always --mac
           
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: electron-app
           path: release/build/ApiChain-1.0.8.dmg
