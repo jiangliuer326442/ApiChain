@@ -36,6 +36,5 @@ jobs:
           yarn build
 
       - name: Publish releases
-        env:
         run: |
           yarn electron-builder -- --publish always --win --mac --linux
