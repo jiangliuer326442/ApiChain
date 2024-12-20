@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-latest]
 
     steps:
       - name: Checkout git repo
@@ -21,13 +21,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: npm
-
-      - name: Set Yarn config
-        run: |
-          yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
-          yarn config set ELECTRON_BUILDER_BINARIES_MIRROR https://registry.npmmirror.com/-/binary/electron-builder-binaries/
-          yarn config set registry https://registry.npmmirror.com/
 
       - name: Install and build
         run: |
@@ -37,4 +30,4 @@ jobs:
 
       - name: Publish releases
         run: |
-          yarn electron-builder -- --publish always --win --mac --linux
+          yarn electron-builder -- --publish always --win --mac
