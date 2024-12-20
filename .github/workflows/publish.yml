@@ -24,10 +24,10 @@ jobs:
           cache: npm
 
       - name: Set Yarn config
-            run: |
-              yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
-              yarn config set ELECTRON_BUILDER_BINARIES_MIRROR https://registry.npmmirror.com/-/binary/electron-builder-binaries/
-              yarn config set registry https://registry.npmmirror.com/
+          run: |
+            yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
+            yarn config set ELECTRON_BUILDER_BINARIES_MIRROR https://registry.npmmirror.com/-/binary/electron-builder-binaries/
+            yarn config set registry https://registry.npmmirror.com/
 
       - name: Install and build
         run: |
