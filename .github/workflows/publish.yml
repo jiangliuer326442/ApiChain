@@ -1,0 +1,41 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # os: [macos-latest]
+        os: [windows-latest]
+
+    steps:
+      - name: Checkout git repo
+        uses: actions/checkout@v3
+
+      - name: Install Node and NPM
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install and build
+        run: |
+          yarn install
+          yarn postinstall
+          yarn build
+
+      - name: Publish releases
+        run: |
+          # yarn electron-builder -- --publish always --mac
+          yarn electron-builder -- --publish always --windows
+          
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ApiChain.zip
+          path: release/build/
