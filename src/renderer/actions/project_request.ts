@@ -1,13 +1,16 @@
 import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_NAME, TABLE_PROJECT_REQUEST_FIELDS,
+    UNAME,
 } from '../../config/db';
 import {
     addVersionIteratorFolder
 } from './version_iterator_folders';
+import {
+    getUsers
+} from './user';
 
 import { isStringEmpty } from '../util';
-import path from 'path';
 
 let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
@@ -31,7 +34,6 @@ let iteration_request_htmlFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_HTM
 let iteration_request_picFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_PICFLG;
 let iteration_request_fileFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FILEFLG;
 let iteration_request_cuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CUID;
-let iteration_request_cuname = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CUNAME;
 let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
 let iteration_request_ctime = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CTIME;
 
@@ -60,7 +62,6 @@ let project_request_htmlFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_HTMLFLG;
 let project_request_picFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PICFLG;
 let project_request_fileFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_FILEFLG;
 let project_request_cuid = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CUID;
-let project_request_cuname = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CUNAME;
 let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
 let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
@@ -101,7 +102,6 @@ export async function addProjectRequest(project : string, method : string, uri :
         projectRequest[project_request_delFlg] = 0;
         projectRequest[project_request_ctime] = Date.now();
         projectRequest[project_request_cuid] = device.uuid;
-        projectRequest[project_request_cuname] = device.uname;    
         await window.db[TABLE_PROJECT_REQUEST_NAME].put(projectRequest);
     } else {
         //存在判断是否需要更新
@@ -142,7 +142,6 @@ export async function addProjectRequestFromVersionIterator(version_iteration_req
         let foldName = version_iteration_request[iteration_request_fold];
         let device : any = {};
         device.uuid = version_iteration_request[iteration_request_cuid];
-        device.uname = version_iteration_request[iteration_request_cuname];
         //新增项目文件夹
         await addVersionIteratorFolder("", project, foldName, device, ()=>{});
 
@@ -171,7 +170,6 @@ export async function addProjectRequestFromVersionIterator(version_iteration_req
         projectRequest[project_request_delFlg] = version_iteration_request[iteration_request_delFlg];
         projectRequest[project_request_ctime] = version_iteration_request[iteration_request_ctime];
         projectRequest[project_request_cuid] = version_iteration_request[iteration_request_cuid];
-        projectRequest[project_request_cuname] = version_iteration_request[iteration_request_cuname];
     
         console.debug("addProjectRequestFromVersionIterator", projectRequest);
     
@@ -204,6 +202,8 @@ export async function addProjectRequestFromVersionIterator(version_iteration_req
 }
 
 export async function getProjectRequest(project : string, method : string, uri : string) {
+    let users = await getUsers();
+
     let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where([ project_request_project, project_request_method, project_request_uri ])
     .equals([ project, method, uri ])
@@ -211,6 +211,8 @@ export async function getProjectRequest(project : string, method : string, uri :
     if (project_request === undefined || project_request[project_request_delFlg] !== 0) {
         return null;
     }
+
+    project_request[UNAME] = users.get(project_request[project_request_cuid]);
     return project_request;
 }
 
@@ -230,8 +232,6 @@ export async function batchSetProjectRequestFold(project : string, methodUriArr 
             continue;
         }
         project_request[project_request_fold] = fold;
-    
-        console.debug("batchSetProjectRequestFold", project_request);
     
         await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
     }

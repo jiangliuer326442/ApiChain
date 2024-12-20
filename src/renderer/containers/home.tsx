@@ -9,11 +9,22 @@ import {
   ChannelsAutoUpgradeNewVersionStr,
   ChannelsAutoUpgradeDownloadStr,
 } from '../../config/channel';
-import { getdayjs } from '../util';
+import {
+  TABLE_USER_FIELDS
+} from '../../config/db';
+import { getdayjs, isStringEmpty } from '../util';
+import registerMessageHook from '../actions/message';
+import { 
+  getUser,
+  setUserName as ac_setUserName,
+} from '../actions/user';
 
 const { Header, Content, Footer } = Layout;
 
-const { Title, Paragraph, Link } = Typography;
+const { Title, Paragraph, Text, Link } = Typography;
+
+const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
+const db_field_rtime = TABLE_USER_FIELDS.FIELD_REGTIME;
 
 class Home extends Component {
 
@@ -21,34 +32,56 @@ class Home extends Component {
     super(props);
     let checkAutoUpgrade = localStorage.getItem(IS_AUTO_UPGRADE);
     this.state = {
+      user: {
+        "uname": "",
+        "register_time": 0,
+      },
       checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
     }
   }
 
-  componentDidMount() {
-    if('electron' in window) {
-      window.electron.ipcRenderer.on(ChannelsAutoUpgradeStr, (action, newVersion) => {
-        if (action !== ChannelsAutoUpgradeNewVersionStr) {
-          return;
-        }
-        let items = newVersion.releaseNotes.split("\\n");
-        notification.open({
-          message: '版本 ' + newVersion.version + ' 已发布，是否更新？',
-          description:(<Card title={ "发现新版本" } style={{ width: 300 }}>
-            {items.map((item, index) => (
-              <p key={index}>{item}</p >
-            ))}
-          </Card>),
-          btn: this.renderBtn(),
-          key: 'newVersion',
-          duration: 0,
-        });
-      });
-
-      if (this.state.checkAutoUpgrade == 1) {
-        this.checkForUpgrade();
-      }
+  async componentDidMount() {
+    if (!isStringEmpty(this.props.uid)) {
+      let user = await getUser(this.props.uid);
+      this.setState({ user });
     }
+    if('electron' in window) {
+      this.updateOnLoad();
+      registerMessageHook(this.props.dispatch, async (uid)=>{
+        let user = await getUser(uid);
+        this.setState({ user });
+      });
+    }
+  }
+
+  updateOnLoad = () => {
+    window.electron.ipcRenderer.on(ChannelsAutoUpgradeStr, (action, newVersion) => {
+      if (action !== ChannelsAutoUpgradeNewVersionStr) {
+        return;
+      }
+      let items = newVersion.releaseNotes.split("\\n");
+      notification.open({
+        message: '版本 ' + newVersion.version + ' 已发布，是否更新？',
+        description:(<Card title={ "发现新版本" } style={{ width: 300 }}>
+          {items.map((item, index) => (
+            <p key={index}>{item}</p >
+          ))}
+        </Card>),
+        btn: this.renderBtn(),
+        key: 'newVersion',
+        duration: 0,
+      });
+    });
+
+    if (this.state.checkAutoUpgrade == 1) {
+      this.checkForUpgrade();
+    }
+  }
+
+  setUserName = async (newUserName) => {
+    await ac_setUserName(this.props.uid, newUserName);
+    let user = await getUser(this.props.uid);
+    this.setState({ user });
   }
 
   checkForUpgrade = () => {
@@ -78,9 +111,15 @@ class Home extends Component {
       <Layout>
           <Header style={{ padding: 0 }}>
             {this.props.vipFlg ? 
-            "尊敬的会员 " + this.props.uname + " 你好， " + this.props.appName + " 已陪你走过 " + Math.ceil((Date.now() - this.props.rtime)/(86400 * 1000)) + " 天（会员到期日 " + getdayjs(this.props.expireTime).format("YYYY-MM-DD") + " ）"
+            <>
+              {"尊敬的会员 "}
+              <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
+              {" 你好， " + this.props.appName + " 已陪你走过 " + Math.ceil((Date.now() - this.state.user[db_field_rtime])/(86400 * 1000)) + " 天（会员到期日 " + getdayjs(this.props.expireTime).format("YYYY-MM-DD") + " ）"}</> 
             :
-            this.props.uname + " 你好，" + this.props.appName + " 已陪你走过 " + Math.ceil((Date.now() - this.props.rtime)/(86400 * 1000)) + " 天"
+            <>
+              <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
+              {" 你好，" + this.props.appName + " 已陪你走过 " + Math.ceil((Date.now() - this.state.user[db_field_rtime])/(86400 * 1000)) + " 天"}
+            </>
             } 
           </Header>
           <Content style={{ margin: '0 16px' }}>
@@ -133,9 +172,8 @@ class Home extends Component {
 
 function mapStateToProps (state) {
   return {
-    uname: state.device.uname,
+    uid: state.device.uuid,
     appName: state.device.appName,
-    rtime: state.device.rtime,
     vipFlg: state.device.vipFlg,
     expireTime: state.device.expireTime,
   }

@@ -11,7 +11,7 @@ import {
     PROJECT_LIST_ROUTE, 
     VERSION_ITERATOR_LIST_ROUTE 
 } from "../../../config/routers";
-import { TABLE_VERSION_ITERATION_FIELDS } from '../../../config/db';
+import { TABLE_VERSION_ITERATION_FIELDS, UNAME } from '../../../config/db';
 import { getPrjs } from '../../actions/project';
 import { 
     getVersionIterator,
@@ -28,7 +28,6 @@ let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let version_iterator_content = TABLE_VERSION_ITERATION_FIELDS.FIELD_CONTENT;
 let version_iterator_openflg = TABLE_VERSION_ITERATION_FIELDS.FIELD_OPENFLG;
 let version_iterator_close_time = TABLE_VERSION_ITERATION_FIELDS.FIELD_CLOSE_TIME;
-let version_iterator_uname = TABLE_VERSION_ITERATION_FIELDS.FIELD_CUNAME;
 let version_iterator_ctime = TABLE_VERSION_ITERATION_FIELDS.FIELD_CTIME;
 
 type FieldType = {
@@ -148,7 +147,7 @@ class VersionIteratorAdd extends Component {
                             <Descriptions.Item label="关闭时间">{ getdayjs(this.state.version_iteration[version_iterator_close_time]).format("YYYY-MM-DD") }</Descriptions.Item>
                             : null }
                             
-                            <Descriptions.Item label="创建人">{ this.state.version_iteration[version_iterator_uname] }</Descriptions.Item>
+                            <Descriptions.Item label="创建人">{ this.state.version_iteration[UNAME] }</Descriptions.Item>
                             <Descriptions.Item label="创建时间">{ getdayjs(this.state.version_iteration[version_iterator_ctime]).format("YYYY-MM-DD") }</Descriptions.Item>
                         </Descriptions>
                         : null}

@@ -3,6 +3,7 @@ import IDBExportImport from 'indexeddb-export-import';
 import { 
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
+    TABLE_USER_NAME, TABLE_USER_FIELDS,
     TABLE_REQUEST_HISTORY_NAME,
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME,
     TABLE_UNITTEST_EXECUTOR_NAME,
@@ -32,6 +33,7 @@ import { SET_DEVICE_INFO } from '../../config/redux';
 import { getVarsByKey } from '../actions/env_value';
 import { getPrjs } from '../actions/project';
 import { getEnvs } from '../actions/env';
+import { addUser, getUser } from '../actions/user';
 import { getVersionIterator } from '../actions/version_iterator';
 import { getVersionIteratorRequestsByProject } from '../actions/version_iterator_requests';
 import { isStringEmpty } from '../util';
@@ -39,6 +41,19 @@ import { isStringEmpty } from '../util';
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 
+let user_country = TABLE_USER_FIELDS.FIELD_COUNTRY;
+let user_lang = TABLE_USER_FIELDS.FIELD_LANG;
+let user_ip = TABLE_USER_FIELDS.FIELD_IP;
+
+/**
+ * 发送网络请求
+ * @param method 请求方法
+ * @param url 请求地址
+ * @param headData 头部数据
+ * @param postData 主体数据
+ * @param fileData 文件数据
+ * @returns 
+ */
 export function sendAjaxMessage(method : string, url : string, headData, postData, fileData) {
     return new Promise((resolve, reject) => {
 
@@ -140,7 +155,7 @@ export default function(dispatch, cb) : void {
             window.electron.ipcRenderer.sendMessage(ChannelsMarkdownStr, ChannelsMarkdownQueryResultStr, versionIteration, requests, prjs, envs, envVars);
         });
 
-        //刷迭代接口
+        //mock 接口处理
         window.electron.ipcRenderer.on(ChannelsMockServerStr, async (action, iteratorId, projectId, method, uri) => {
             if (action !== ChannelsMockServerQueryStr) return;
             let versionIteration = await getVersionIterator(iteratorId);
@@ -149,25 +164,36 @@ export default function(dispatch, cb) : void {
         });
 
         //设置用户信息
-        window.electron.ipcRenderer.on(ChannelsUserInfoStr, (action, uuid, uname, rtime, vipFlg, expireTime) => {
+        window.electron.ipcRenderer.on(ChannelsUserInfoStr, async (action, uuid, lang, uname, ip, rtime, vipFlg, expireTime, buyTimes) => {
             if (action !== ChannelsUserInfoSetUserinfoStr) return;
+            
+            let user = await getUser(uuid);
+            if (user === null) {
+                await addUser(uuid, uname, ip, rtime, lang.split("-")[1], lang.split("-")[0]);
+            } else {
+                user[user_country] = lang.split("-")[1];
+                user[user_lang] = lang.split("-")[0];
+                user[user_ip] = ip;
+                console.debug(user);
+                await window.db[TABLE_USER_NAME].put(user);
+            }
             dispatch({
                 type: SET_DEVICE_INFO,
                 uuid,
-                uname,
-                rtime,
                 vipFlg, 
-                expireTime
+                expireTime,
+                buyTimes
             });
+            cb(uuid);
         });
 
         //设置app信息
-        window.electron.ipcRenderer.on(ChannelsUserInfoStr, (action, html, ip, appName, appVersion) => {
+        window.electron.ipcRenderer.on(ChannelsUserInfoStr, async (action, uuid, html, appName, appVersion) => {
             if (action !== ChannelsUserInfoSetAppinfoStr) return;
             dispatch({
                 type: SET_DEVICE_INFO,
+                uuid,
                 html,
-                ip,
                 appName,
                 appVersion
             });

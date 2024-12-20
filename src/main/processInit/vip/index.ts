@@ -7,7 +7,17 @@ import {
     ChannelsVipCkCodeStr, 
     ChannelsVipDoCkCodeStr 
 } from '../../../config/channel';
-import { genEncryptString, getOutTradeNo, isVip, setExpireTime, getExpireTime, getLatestProduct, genDecryptString } from '../../store/config/vip';
+import { 
+    genEncryptString, 
+    getOutTradeNo, 
+    isVip, 
+    setExpireTime, 
+    getExpireTime, 
+    getLatestProduct, 
+    genDecryptString,
+    incBuyTimes, 
+} from '../../store/config/vip';
+import { getUUID } from '../../store/config/user';
 import { isStringEmpty } from '../../../renderer/util';
 
 export default function (){
@@ -16,7 +26,7 @@ export default function (){
 
         if (action !== ChannelsVipGenUrlStr) return;
 
-        if (productName !== "product1" && productName !== "product2" && productName !== "product3") {
+        if (productName !== "product4" && productName !== "product5" && productName !== "product6" && productName !== "product7" && productName !== "product8") {
             return ;
         }
         if (payMethod !== "alipay" && payMethod !== "wxpay") {
@@ -24,12 +34,16 @@ export default function (){
         }
 
         let money = "1000";
-        if (productName === "product1") {
-            money = "30";
-        } else if (productName === "product2") {
-            money = "150";
-        } else if (productName === "product3") {
-            money = "450";
+        if (productName === "product4") {
+            money = "10";
+        } else if (productName === "product5") {
+            money = "100";
+        } else if (productName === "product6") {
+            money = "200";
+        } else if (productName === "product7") {
+            money = "1";
+        } else if (productName === "product8") {
+            money = "5";
         }
 
         let encryptString = genEncryptString(productName, payMethod);
@@ -71,9 +85,11 @@ export default function (){
 
         //设置会员过期时间
         setExpireTime(expireTime);
+        //累计购买次数
+        let buyTimes = incBuyTimes();
 
         //核销成功
-        event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, expireTime);
+        event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUUID(), expireTime, buyTimes);
 
     });
 }

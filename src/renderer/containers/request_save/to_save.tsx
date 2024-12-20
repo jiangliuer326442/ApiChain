@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Input, Divider, Select } from "antd";
 import { cloneDeep } from 'lodash';
 import { encode } from 'base-64';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
     isStringEmpty
@@ -41,7 +42,6 @@ import {
     REQUEST_METHOD_POST,
     CONTENT_TYPE,
 } from '../../../config/global_config';
-import { ChannelsOpenWindowStr } from '../../../config/channel';
 import { VERSION_ITERATOR_ADD_ROUTE } from '../../../config/routers';
 import { getEnvs } from '../../actions/env';
 import { getPrjs } from '../../actions/project';
@@ -389,9 +389,10 @@ class RequestSaveContainer extends Component {
         }
     }
 
-    initByIteratorPrjEnv = (iteratorId: string, prj: string, env: string) => {
+    initByIteratorPrjEnv = async (iteratorId: string, prj: string, env: string) => {
         if (!isStringEmpty(iteratorId)) {
-            getVersionIteratorFolders(iteratorId, prj, folders => this.setState({folders}));
+            let folders = await getVersionIteratorFolders(iteratorId, prj);
+            this.setState({folders})
         }
 
         this.getEnvValueData(prj, env);
@@ -481,30 +482,28 @@ class RequestSaveContainer extends Component {
         });
     }
 
-    handleRequestProject = prj => {
-        this.setState( {prj} );
-        getVersionIteratorFolders(this.state.iteratorId, prj, folders => this.setState({folders}));
+    handleRequestProject = async (prj) => {
+        let folders = await getVersionIteratorFolders(this.state.iteratorId, prj);
+        this.setState({folders, prj})
     }
 
     handleCreateIterator = () => {
-        let windowId = createWindow('#' + VERSION_ITERATOR_ADD_ROUTE);
-        let listener = window.electron.ipcRenderer.on(ChannelsOpenWindowStr, (receivedWindowId) => {
-            if(windowId === receivedWindowId) {
-                listener(); //收到消息，移除监听器
-                this.refreshVersionIteratorData(this.state.prj);
-            }
-        });
+        let windowId = uuidv4();
+        createWindow('#' + VERSION_ITERATOR_ADD_ROUTE, windowId)
+        .then(()=>{
+            this.refreshVersionIteratorData(this.state.prj);
+        })
     }
 
-    handleSetVersionIterator = (value) => {
-        this.setState({ iteratorId : value});
-        getVersionIteratorFolders(value, this.state.prj, folders => this.setState({folders}));
+    handleSetVersionIterator = async (value) => {
+        let folders = await getVersionIteratorFolders(value, this.state.prj);
+        this.setState({folders, iteratorId : value})
     }
 
     handleCreateFolder = () => {
-        addVersionIteratorFolder(this.state.iteratorId, this.state.prj, this.state.folderName, this.props.device, ()=>{
-            this.setState({folderName: ""});
-            getVersionIteratorFolders(this.state.iteratorId, this.state.prj, folders => this.setState({folders}));
+        addVersionIteratorFolder(this.state.iteratorId, this.state.prj, this.state.folderName, this.props.device, async ()=>{
+            let folders = await getVersionIteratorFolders(this.state.iteratorId, this.state.prj);
+            this.setState({folders, folderName: ""})
         });
     }
 
@@ -706,20 +705,19 @@ class RequestSaveContainer extends Component {
         }
     }
 
-    refreshVersionIteratorData = prj => {
-        getOpenVersionIteratorsByPrj(prj, versionIterators => {
-            let versionIteratorsSelector = [];
-            for(let _index in versionIterators) {
-                let versionIteratorsItem = {};
+    refreshVersionIteratorData = async (prj : string) => {
+        let versionIterators = await getOpenVersionIteratorsByPrj(prj);
+        let versionIteratorsSelector = [];
+        for(let _index in versionIterators) {
+            let versionIteratorsItem = {};
 
-                let uuid = versionIterators[_index][version_iterator_uuid];
-                let title = versionIterators[_index][version_iterator_name];
-                versionIteratorsItem.label = title;
-                versionIteratorsItem.value = uuid;
-                versionIteratorsSelector.push(versionIteratorsItem);
-            }
-            this.setState({versionIteratorsSelector});
-          });
+            let uuid = versionIterators[_index][version_iterator_uuid];
+            let title = versionIterators[_index][version_iterator_name];
+            versionIteratorsItem.label = title;
+            versionIteratorsItem.value = uuid;
+            versionIteratorsSelector.push(versionIteratorsItem);
+        }
+        this.setState({versionIteratorsSelector});
     }
 
     render() : ReactNode {

@@ -30,7 +30,7 @@ export default function (state = {
         case GET_ENV_VALS:
             let list : any[] = [];
             action.env_vars.map(envVar => {
-                envVar.key = envVar[env_var_pname] + envVar[env_var_pval];
+                envVar.key = envVar[env_var_pname];
                 list.push(envVar);
             });
             localStorage.setItem(PRJ, action.prj);

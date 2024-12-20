@@ -1,5 +1,6 @@
 import { getdayjs } from '../../util';
 
+import { UNAME } from '../../../config/db';
 import { 
   SHOW_ADD_ENV_MODEL,
   SHOW_EDIT_ENV_MODEL,
@@ -20,8 +21,8 @@ export default function (state = {
           },
           {
             title: '创建人',
-            dataIndex: 'create_uname',
-            key: 'create_uname',
+            dataIndex: UNAME,
+            key: UNAME,
           },
           {
               title: '创建时间',

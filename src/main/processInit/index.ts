@@ -1,5 +1,4 @@
 import { BrowserWindow } from 'electron';
-import FileReadInitFunc from './fileread';
 import userInitFunc from './user';
 import windowInitFunc from './window';
 import MarkdownInitFunc from './markdown';
@@ -9,10 +8,11 @@ import ProductInitFunc from './product';
 import VipInitFunc from './vip';
 import MockServerInitFunc from './mockserver';
 import NetworkSendInitFunc from './network';
+import dbInitFunc from './database';
 
 export default function (mainWindow : BrowserWindow){
-    FileReadInitFunc(mainWindow);
     userInitFunc();
+    dbInitFunc(mainWindow);
     windowInitFunc(mainWindow);
     MarkdownInitFunc(mainWindow);
     PostManInitFunc();

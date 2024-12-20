@@ -1,12 +1,24 @@
 export const DB_NAME = "apichain";
 export const FIELD_ID = "id";
+export const UNAME = "uname";
+
+export const TABLE_USER_NAME = "user";
+export const TABLE_USER_FIELDS = {
+    FIELD_UID : "uid",
+    FIELD_IP : "ip",
+    FIELD_UNAME : "uname",
+    FIELD_COUNTRY : "country",
+    FIELD_LANG : "lang",
+    FIELD_REGTIME : "register_time",
+    FIELD_CTIME : "create_time",
+    FIELD_DELFLG : "del_flg",
+}
 
 export const TABLE_ENV_NAME = "env";
 export const TABLE_ENV_FIELDS = {
     FIELD_LABEL : "label",
     FIELD_REMARK : "remark",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -16,7 +28,6 @@ export const TABLE_MICRO_SERVICE_FIELDS = {
     FIELD_LABEL : "label",
     FIELD_REMARK : "remark",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -30,7 +41,6 @@ export const TABLE_ENV_VAR_FIELDS = {
     FIELD_PARAM_NAME : "param_name",
     FIELD_PARAM_VAR : "param_var",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -40,7 +50,6 @@ export const TABLE_ENV_KEY_FIELDS = {
     FIELD_MICRO_SERVICE_LABEL : "microservices",
     FIELD_PARAM_NAME : "param_name",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -55,7 +64,6 @@ export const TABLE_VERSION_ITERATION_FIELDS = {
     FIELD_OPENFLG : "open_flg",
     FIELD_CLOSE_TIME : "close_time",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -66,7 +74,6 @@ export const TABLE_VERSION_ITERATION_FOLD_FIELDS = {
     FIELD_PROJECT : "project",
     FIELD_FOLD_NAME : "name",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -134,7 +141,6 @@ export const TABLE_VERSION_ITERATION_REQUEST_FIELDS = {
     FIELD_PICFLG : "pic_flg",
     FIELD_FILEFLG : "file_flg",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -166,7 +172,6 @@ export const TABLE_PROJECT_REQUEST_FIELDS = {
     FIELD_PICFLG : "pic_flg",
     FIELD_FILEFLG : "file_flg",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -176,7 +181,6 @@ export const TABLE_UNITTEST_FOLD_FIELDS = {
     FIELD_ITERATOR_UUID : "iterator_uuid",
     FIELD_FOLD_NAME : "name",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -190,7 +194,6 @@ export const TABLE_UNITTEST_FIELDS = {
     FIELD_TITLE : "title",
     FIELD_FOLD_NAME : "fold",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -211,7 +214,6 @@ export const TABLE_UNITTEST_STEPS_FIELDS = {
     FIELD_REQUEST_BODY : "body",
     FIELD_CONTINUE : "continue",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }
@@ -227,7 +229,6 @@ export const TABLE_UNITTEST_STEP_ASSERT_FIELDS = {
     FIELD_ASSERT_OPERATOR : "assert_operator",
     FIELD_ASSERT_RIGHT : "assert_right",
     FIELD_CUID : "create_uid",
-    FIELD_CUNAME : "create_uname",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }

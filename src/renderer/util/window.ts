@@ -1,9 +1,14 @@
-import { v4 as uuidv4 } from 'uuid';
-
 import { ChannelsOpenWindowStr } from '../../config/channel';
 
-export function createWindow(windowUrl : string) {
-    let windowId = uuidv4();
-    window.electron.ipcRenderer.sendMessage(ChannelsOpenWindowStr, windowId, windowUrl);
-    return windowId;
+export function createWindow(windowUrl : string, windowId : string) {
+    return new Promise((resolve, reject) => {
+        let windowListener = window.electron.ipcRenderer.on(ChannelsOpenWindowStr, (receivedWindowId) => {
+            if(windowId === receivedWindowId) {
+                windowListener(); //收到消息，移除监听器
+                resolve({});
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsOpenWindowStr, windowId, windowUrl);
+    });
 }

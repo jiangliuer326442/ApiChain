@@ -8,17 +8,18 @@ import {
 import { 
     TABLE_ENV_KEY_NAME, TABLE_ENV_KEY_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
+    TABLE_USER_NAME, UNAME
 } from '../../config/db';
 import {
     ENV_VALUE_API_HOST
 } from '../../config/envKeys';
 import { GET_ENV_VALS } from '../../config/redux';
+import { getUsers } from './user';
 
 let env_key_delFlg = TABLE_ENV_KEY_FIELDS.FIELD_DELFLG;
 let env_key_prj = TABLE_ENV_KEY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let env_key_pname = TABLE_ENV_KEY_FIELDS.FIELD_PARAM_NAME;
 let env_key_cuid = TABLE_ENV_KEY_FIELDS.FIELD_CUID;
-let env_key_cuname = TABLE_ENV_KEY_FIELDS.FIELD_CUNAME;
 let env_key_ctime = TABLE_ENV_KEY_FIELDS.FIELD_CTIME;
 
 let env_var_env = TABLE_ENV_VAR_FIELDS.FIELD_ENV_LABEL;
@@ -29,7 +30,6 @@ let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
 let env_var_cuid = TABLE_ENV_VAR_FIELDS.FIELD_CUID;
-let env_var_cuname = TABLE_ENV_VAR_FIELDS.FIELD_CUNAME;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 export async function getVarsByKey(prj, pname) {
@@ -75,6 +75,27 @@ export async function getKeys(prj, iteration) {
     let globalKeyArr = new Set<String>(globalArrays.map(item => ( item[env_var_pname])));
 
     return union(prjKeyArr, iterationKeyArr, globalKeyArr);
+}
+
+export async function batchCopyEnvVales(prj : string, env : string, iterator : string, unittest : string, pnameArr : Array<string>, newEnv : string) {
+    for (let pname of pnameArr) {
+        let envVarItem = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+        .equals([env, prj, iterator, unittest, pname])
+        .first();
+        if (
+            envVarItem === undefined || 
+            envVarItem[env_var_delFlg] !== 0 ||
+            envVarItem[env_var_env] === newEnv
+        ) {
+            continue;
+        }
+        envVarItem[env_var_env] = newEnv;
+
+        console.debug("envVarItem", envVarItem);
+    
+        await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
+    }
 }
 
 export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch, cb) : Promise<Array<any>> {
@@ -241,6 +262,11 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
         }
     }
 
+    let users = await getUsers();
+    env_vars.forEach(item => {
+        item[UNAME] = users.get(item[env_var_cuid]);
+    });
+
     mixedSort(env_vars, env_var_pname);
 
     cb(env_vars);
@@ -299,12 +325,12 @@ export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
 export async function addEnvValues(prj, env, iteration, unittest, pname, pval, device, cb) {
     window.db.transaction('rw',
     window.db[TABLE_ENV_KEY_NAME],
+    window.db[TABLE_USER_NAME],
     window.db[TABLE_ENV_VAR_NAME], async () => {
         let env_key : any = {};
         env_key[env_key_prj] = prj;
         env_key[env_key_pname] = pname;
         env_key[env_key_cuid] = device.uuid;
-        env_key[env_key_cuname] = device.uname;
         env_key[env_key_ctime] = Date.now();
         env_key[env_key_delFlg] = 0;
         await window.db[TABLE_ENV_KEY_NAME].put(env_key);
@@ -317,7 +343,6 @@ export async function addEnvValues(prj, env, iteration, unittest, pname, pval, d
         property_key[env_var_pname] = pname;
         property_key[env_var_pvalue] = pval;
         property_key[env_var_cuid] = device.uuid;
-        property_key[env_var_cuname] = device.uname;
         property_key[env_var_ctime] = Date.now();
         property_key[env_var_delFlg] = 0;
         await window.db[TABLE_ENV_VAR_NAME].put(property_key);

@@ -18,6 +18,7 @@ import {
     TABLE_UNITTEST_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
+    UNAME,
 } from '../../../config/db';
 import {
     UNITTEST_RESULT_SUCCESS,
@@ -38,6 +39,7 @@ import {
     copyFromIteratorToProject,
     copyFromProjectToIterator,
 } from '../../actions/unittest';
+import PayModel from '../../components/topup';
 import SingleUnitTestReport from '../../components/unittest/single_unittest_report';
 import AddUnittestComponent from '../../components/unittest/add_unittest';
 
@@ -47,7 +49,6 @@ let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
-let unittest_uname = TABLE_UNITTEST_FIELDS.FIELD_CUNAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
 let unittest_step_unittest_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
@@ -114,7 +115,7 @@ class UnittestListVersion extends Component {
                 },
                 {
                   title: '创建人',
-                  dataIndex: unittest_uname,
+                  dataIndex: UNAME,
                 },
                 {
                   title: '创建时间',
@@ -131,6 +132,12 @@ class UnittestListVersion extends Component {
                             return (
                                 <Space>
                                     <Button disabled={!this.state.executeFlg} type="link" onClick={async ()=>{
+                                        if (!this.props.vipFlg) {
+                                            this.setState({
+                                                showPay: true,
+                                            });
+                                            return;
+                                        }
                                         if (isStringEmpty(this.state.env)) {
                                             message.error("需要选择服务器环境");
                                             return;
@@ -198,7 +205,8 @@ class UnittestListVersion extends Component {
             iteratorId,
             unittestUuid: "", 
             batchUuid: "",
-            env: null
+            env: null,
+            showPay: false,
         };
     }
 
@@ -318,6 +326,7 @@ class UnittestListVersion extends Component {
                         { title: '迭代' }, 
                         { title: '单测列表' }
                     ]} />
+                    <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
                     <Flex justify="space-between" align="center">
                         <Form layout="inline">
                             <Form.Item label="选择环境">
@@ -357,6 +366,7 @@ class UnittestListVersion extends Component {
 
 function mapStateToProps (state) {
     return {
+        vipFlg: state.device.vipFlg,
         unittest: state.unittest.list,
         envs: state.env.list,
     }

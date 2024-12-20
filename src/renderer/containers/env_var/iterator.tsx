@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { 
   Breadcrumb, Layout, Form, Select,
   Flex, Space, Button, Popconfirm, Table,
-  Typography, AutoComplete, Input
+  Typography, AutoComplete, Input, message
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
 
@@ -12,13 +12,17 @@ import { isStringEmpty, getdayjs } from '../../util';
 import { 
   TABLE_ENV_VAR_FIELDS, 
   TABLE_VERSION_ITERATION_FIELDS,
-  TABLE_MICRO_SERVICE_FIELDS
+  TABLE_MICRO_SERVICE_FIELDS, UNAME,
 } from '../../../config/db';
 import { ENV_LIST_ROUTE } from '../../../config/routers';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '../../../config/redux';
 
 import { getEnvs } from '../../actions/env';
-import { getEnvValues, delEnvValue } from '../../actions/env_value';
+import { 
+  getEnvValues, 
+  delEnvValue,
+  batchCopyEnvVales,
+} from '../../actions/env_value';
 import { getVersionIterator } from '../../actions/version_iterator';
 
 import RequestSendTips from '../../classes/RequestSendTips';
@@ -29,7 +33,6 @@ const { Text } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
-let env_var_uname = TABLE_ENV_VAR_FIELDS.FIELD_CUNAME;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
@@ -62,7 +65,7 @@ class EnvVar extends Component {
         },
         {
           title: '创建人',
-          dataIndex: env_var_uname,
+          dataIndex: UNAME,
           width: 100,
           ellipsis: true,
         },
@@ -105,6 +108,7 @@ class EnvVar extends Component {
       pkeys: [],
       env: "",
       prj: "",
+      copiedKeys: [],
     }
   }
   
@@ -167,12 +171,16 @@ class EnvVar extends Component {
         });
       }
     }
+    
+    setCopiedKeys = copiedKeys => {
+      this.setState({copiedKeys});
+    }
   
     render() : ReactNode {
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
-            项目环境变量配置
+            迭代环境变量配置
           </Header>
           <Content style={{ margin: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '迭代' }, { title: '环境变量' }]} />
@@ -214,11 +222,34 @@ class EnvVar extends Component {
                           <Input />
                       </AutoComplete>
                   </Form.Item>
+                  <Form.Item label="拷贝到环境">
+                    <Select
+                        onChange={ async value => {
+                          if (this.state.copiedKeys.length === 0) return;
+                          await batchCopyEnvVales(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", this.state.copiedKeys, value);
+                          this.state.copiedKeys = [];
+                          message.success("环境变量拷贝成功");
+                          this.setEnvironmentChange(value);
+                        }}
+                        style={{ width: 120 }}
+                        options={this.props.envs
+                          .filter(item => item.label != (this.state.env ? this.state.env : this.props.env))
+                          .map(item => {
+                            return {value: item.label, label: item.remark}
+                          })
+                        }
+                        allowClear
+                    />
+                  </Form.Item>
               </Form>
               <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>添加环境变量</Button>
               <AddEnvVarComponent tips={this.state.tips} />
             </Flex>
-            <Table dataSource={this.props.listDatas} columns={this.state.listColumn} />
+            <Table 
+              rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
+              dataSource={this.props.listDatas} 
+              columns={this.state.listColumn} 
+              />
           </Content>
           <Footer style={{ textAlign: 'center' }}>
           ApiChain ©{new Date().getFullYear()} Created by 方海亮

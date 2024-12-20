@@ -1,6 +1,7 @@
 import log from 'electron-log';
 
 import getCache from './index';
+import { isStringEmpty } from '../../../renderer/util';
 
 const TABLE_NAME = "user";
 let cache_uuid = "";

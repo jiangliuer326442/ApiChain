@@ -1,70 +1,90 @@
-export type ChannelsReadFile = 'pipeline_read_filepath';
-
-export const ChannelsReadFileStr = 'pipeline_read_filepath';
-
 export type ChannelsUserInfo = 'pipeline_init_userinfo';
-
 export const ChannelsUserInfoStr = 'pipeline_init_userinfo';
-
 export const ChannelsUserInfoPingStr = 'ping';
-
 export const ChannelsUserInfoSetUserinfoStr = 'set_userinfo';
-
 export const ChannelsUserInfoSetAppinfoStr = 'set_appinfo';
 
+export type ChannelsOpenWindow = 'pipeline_open_window';
 export const ChannelsOpenWindowStr = 'pipeline_open_window';
 
-export type ChannelsOpenWindow = 'pipeline_open_window';
+
 
 export type ChannelsMarkdown = 'pipeline_markdown';
-
 export const ChannelsMarkdownStr = 'pipeline_markdown';
 
+/**
+ * 内部访问请求迭代文案数据
+ */
 export const ChannelsMarkdownShowStr = 'pipeline_markdown_show';
 
+/**
+ * 外部访问请求迭代文案数据
+ */
 export const ChannelsMarkdownQueryStr = 'pipeline_markdown_query';
-
 export const ChannelsMarkdownQueryResultStr = 'pipeline_markdown_query_result';
 
+/**
+ * 设置、查询markdown是否开启
+ */
 export const ChannelsMarkdownAccessSetStr = 'pipeline_markdown_set_accessable';
-
 export const ChannelsMarkdownAccessGetStr = 'pipeline_markdown_get_accessable';
-
 export const ChannelsMarkdownAccessSetResultStr = 'pipeline_markdown_result_accessable';
 
+/**
+ * 导出 markdown 文件
+ */
 export const ChannelsMarkdownSaveMarkdownStr = 'pipeline_markdown_save_markdown';
 
+/**
+ * 导出 HTML 文件
+ */
 export const ChannelsMarkdownSaveHtmlStr = 'pipeline_markdown_save_html';
 
-export type ChannelssMockServer = 'pipeline_mockserver';
 
+
+export type ChannelssMockServer = 'pipeline_mockserver';
 export const ChannelsMockServerStr = 'pipeline_mockserver';
 
+/**
+ * 前端mock服务器网络请求
+ */
 export const ChannelsMockServerQueryStr = 'pipeline_mockserver_query';
-
 export const ChannelsMockServerQueryResultStr = 'pipeline_mockserver_query_result';
 
+/**
+ * 设置、查询mock服务器是否开启
+ */
 export const ChannelsMockServerAccessSetStr = 'pipeline_mockserver_set_accessable';
-
 export const ChannelsMockServerAccessGetStr = 'pipeline_mockserver_get_accessable';
-
 export const ChannelsMockServerAccessSetResultStr = 'pipeline_mockserver_result_accessable';
 
-export type ChannelsDb = 'pipeline_database';
 
+
+export type ChannelsDb = 'pipeline_database';
 export const ChannelsDbStr = 'pipeline_database';
 
+/**
+ * 清理数据库冗余
+ */
 export const ChannelsDbTrunkStr = 'pipeline_database_trunk';
-
-export const ChannelsDbExportStr = 'pipeline_database_export';
-
-export const ChannelsDbImportStr = 'pipeline_database_import';
-
 export const ChannelsDbTrunkSuccessStr = 'pipeline_database_trunk_success';
 
+/**
+ * 备份、还原 数据库
+ */
+export const ChannelsDbExportStr = 'pipeline_database_export';
+export const ChannelsDbWriteStr = 'pipeline_database_write';
+export const ChannelsDbImportStr = 'pipeline_database_import';
 export const ChannelsDbImportSuccessStr = 'pipeline_database_import_success';
 
-export const ChannelsDbWriteStr = 'pipeline_database_write';
+/**
+ * 备份还原项目
+ */
+export const ChannelsDbProjectExportStr = 'pipeline_database_projects_export';
+export const ChannelsDbProjectExportResultStr = 'pipeline_database_projects_export_result';
+export const ChannelsDbProjectImportStr = 'pipeline_database_projects_import';
+export const ChannelsDbProjectImportResultStr = 'pipeline_database_projects_import_result';
+
 
 export type ChannelsPostman = 'pipeline_postman';
 

@@ -11,11 +11,17 @@ import log from 'electron-log';
 
 import { ChannelsDbStr, ChannelsDbExportStr, ChannelsDbWriteStr } from '../../../config/channel';
 import { getNowdayjs } from '../../../renderer/util';
+import { getPackageJson } from '../../util/util';
 
-export function exportDb(mainWindow: BrowserWindow) {
+export async function exportDb(mainWindow: BrowserWindow) {
+    let packageJsonFilePath = getPackageJson();
+    let content = await fs.readFile(packageJsonFilePath);
+    let packageJson = JSON.parse(content.toString());
+    let appName = packageJson.name;
+
     dialog.showSaveDialog({
         title: "导出数据库",
-        defaultPath: app.getPath("documents") + "/postman_db_" + (getNowdayjs().format("YYMMDDHHmm")) + ".json",
+        defaultPath: app.getPath("documents") + "/" + appName + "_db_" + (getNowdayjs().format("YYMMDDHHmm")) + ".json",
         filters: [
             { name: "json 文件", extensions: ["json"] }
         ]

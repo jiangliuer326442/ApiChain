@@ -1,5 +1,6 @@
 import { 
     FIELD_ID,
+    TABLE_USER_NAME, TABLE_USER_FIELDS,
     TABLE_ENV_NAME, TABLE_ENV_FIELDS, 
     TABLE_MICRO_SERVICE_NAME, TABLE_MICRO_SERVICE_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
@@ -17,6 +18,10 @@ import {
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME, TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
 } from '../../../config/db';
+
+let user_uid = TABLE_USER_FIELDS.FIELD_UID;
+let user_ctime = TABLE_USER_FIELDS.FIELD_CTIME;
+let user_delFlg = TABLE_USER_FIELDS.FIELD_DELFLG;
 
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_ctime = TABLE_ENV_FIELDS.FIELD_CTIME;
@@ -112,6 +117,7 @@ let unittest_report_delFlg = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_DELFLG;
 let unittest_report_ctime = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_CTIME;
 
 let tables : any = {};
+tables[TABLE_USER_NAME] = "&" + user_uid + ", [" + user_delFlg + "+" + user_ctime + "]";
 tables[TABLE_ENV_NAME] = "&" + env_label + ", [" + env_delFlg + "+" + env_ctime + "]";
 tables[TABLE_MICRO_SERVICE_NAME] = "&" + micro_service_label + ", [" + micro_service_delFlg + "+" + micro_service_ctime + "]";
 tables[TABLE_ENV_KEY_NAME] = "&[" + env_key_micro_service + "+" + env_key_pname + "], [" + env_key_delFlg + "+" + env_key_micro_service + "+" + env_key_ctime + "]";
@@ -142,9 +148,7 @@ tables[TABLE_UNITTEST_EXECUTOR_NAME] = "&[" + unittest_executor_iterator + "+" +
 tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_batch + "], " 
 + "[" + unittest_report_delFlg + "+" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_env + "+" + unittest_report_ctime + "]";
 
-window.db.version(194).stores(tables).upgrade (trans => {
-    trans.table(TABLE_UNITTEST_NAME).toCollection().modify (unittest => {
-        unittest[unittest_collectFlg] = 0;
-        unittest[unittest_projects] = [];
-    });
+console.debug(tables);
+window.db.version(195).stores(tables).upgrade (trans => {
+
 });

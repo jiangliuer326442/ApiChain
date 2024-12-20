@@ -302,6 +302,8 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
     
     //迭代内容
     markdownContent += versionIteration[version_iterator_content] + "\n\n";
+
+    markdownContent += "***\n\n";
     
     Object.keys(formattedRequests).map(_prj => {
 
@@ -340,7 +342,10 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 markdownContent +=  "uri：" + _request[iteration_request_method] + " " + _request[iteration_request_uri] + "\n\n";
 
                 if (!isStringEmpty(_request[iteration_request_desc])) {
-                    markdownContent += _request[iteration_request_desc] + "\n\n";
+                    for (let rowText of _request[iteration_request_desc].split("\n")) {
+                        markdownContent += "> " + rowText + "\n\n";
+                    }
+                    markdownContent += + "\n\n";
                 }
 
                 let pathVariable = _request[iteration_request_path_variable];
@@ -502,6 +507,8 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 }
             });
         });
+
+        markdownContent += "***\n\n";
     });
 
     return markdownContent;

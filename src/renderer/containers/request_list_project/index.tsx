@@ -127,9 +127,9 @@ class RequestListProject extends Component {
         }
     }
 
-    componentDidUpdate(prevProps) {
+    async componentDidUpdate(prevProps) {
         if (prevProps.match.params.id !== this.props.match.params.id) {
-            getVersionIteratorFolders("", this.props.match.params.id, folders => this.setState({folders}));
+            this.state.folders = await getVersionIteratorFolders("", this.props.match.params.id);
             this.onFinish({})
         }
     }
@@ -144,20 +144,22 @@ class RequestListProject extends Component {
         return null;
     }
 
-    componentDidMount() {
-        let that = this;
-        getVersionIteratorFolders("", this.state.projectLabel, folders => this.setState({ folders }));
-        that.onFinish({});
+    async componentDidMount() {
+        this.state.folders = await getVersionIteratorFolders("", this.state.projectLabel);
+        this.onFinish({});
+    }
 
-        window.electron.ipcRenderer.on(ChannelsPostmanStr, async (action, projectName, postmanContent) => {
-            if (action === ChannelsPostmanOutStr && this.state.projectLabel === projectName) {
-                await this.parsePostman(JSON.parse(postmanContent as string));
-                message.success("导入 postman 成功");
-                that.onFinish({
-                    title: that.state.title, 
-                    uri: that.state.uri
-                });
-            }
+    uploadPostMan = () => {
+        return new Promise((resolve, reject) => {
+
+            let postmanSendListener = window.electron.ipcRenderer.on(ChannelsPostmanStr, async (action, projectName, postmanContent) => {
+                if (action === ChannelsPostmanOutStr && this.state.projectLabel === projectName) {
+                    postmanSendListener();
+                    resolve({postmanContent});
+                }
+            });
+
+            window.electron.ipcRenderer.sendMessage(ChannelsPostmanStr, ChannelsPostmanInStr, this.state.projectLabel);
         });
     }
 
@@ -174,16 +176,9 @@ class RequestListProject extends Component {
             for(let line of postmanObj.item){
                 let title = line.name;
                 let uri = getHostRight(line.request.url);
-                // if (line.request.url === "{{base_url}}/ResourceUpgrade/mgr/downloadSelf.json") {
-                //     console.debug(uri);
-                // }
                 if (uri.indexOf(replaceHost) === 0) {
                     uri = uri.substring(replaceHost.length);
                 }
-                // if (line.request.url === "{{base_url}}/ResourceUpgrade/mgr/downloadSelf.json") {
-                //     console.debug(getHostRight(line.request.url).indexOf(replaceHost));
-                //     console.debug(uri);
-                // }
                 let method = line.request.method;
                 if (method === REQUEST_METHOD_POST) {
                     method = REQUEST_METHOD_POST;
@@ -240,16 +235,17 @@ class RequestListProject extends Component {
         let shortResponseJsonObject = {};
         let formResponseData = {};
         let responseHash = "";
-        // console.debug(title, uri, response_demo_str);
+
         if (!isStringEmpty(response_demo_str)) {
             shortJsonContent(shortResponseJsonObject, JSON.parse(response_demo_str));
             responseHash = iteratorGenHash(shortResponseJsonObject);
             parseJsonToTable(formResponseData, shortResponseJsonObject);
         }
 
-        await addProjectRequest(this.state.projectLabel, method, uri, title, "", 
-        header, headerHash, body, bodyHash, param, paramHash, formResponseData, responseHash, JSON.stringify(shortResponseJsonObject),
-        true, false, this.props.device);
+        await addProjectRequest(this.state.projectLabel, method, uri, title, "", "", 
+        header, headerHash, body, bodyHash, param, paramHash, {}, "",
+        formResponseData, {}, {}, responseHash, JSON.stringify(shortResponseJsonObject),
+        true, false, false, false, this.props.device);
     }
 
     onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
@@ -313,14 +309,13 @@ class RequestListProject extends Component {
                 </Flex>);
                 foldJsx.extra = (!isStringEmpty(fold) ? (
                     <DeleteOutlined onClick={event => {
-                        delVersionIteratorFolder("", this.state.projectLabel, fold, ()=>{
+                        delVersionIteratorFolder("", this.state.projectLabel, fold, async ()=>{
                             message.success("删除文件夹成功");
-                            getVersionIteratorFolders("", this.state.projectLabel, folders => {
-                                this.onFinish({
-                                    title: this.state.title, 
-                                    uri: this.state.uri,
-                                    folders
-                                });
+                            let folders = await getVersionIteratorFolders("", this.state.projectLabel);
+                            this.onFinish({
+                                title: this.state.title, 
+                                uri: this.state.uri,
+                                folders
                             });
                         });
                         event.stopPropagation();
@@ -365,13 +360,12 @@ class RequestListProject extends Component {
     }
 
     handleCreateFolder = (folderName : string) => {
-        addVersionIteratorFolder("", this.state.projectLabel, folderName, this.props.device, ()=>{
-            getVersionIteratorFolders("", this.state.projectLabel, folders => {
-                this.onFinish({
-                    folders,
-                    title: this.state.title, 
-                    uri: this.state.uri
-                });
+        addVersionIteratorFolder("", this.state.projectLabel, folderName, this.props.device, async ()=>{
+            let folders = await getVersionIteratorFolders("", this.state.projectLabel);
+            this.onFinish({
+                folders,
+                title: this.state.title, 
+                uri: this.state.uri
             });
         });
     }
@@ -426,7 +420,16 @@ class RequestListProject extends Component {
                                 </Form.Item>
 
                                 <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-                                    <Button type="link" danger onClick={()=>{window.electron.ipcRenderer.sendMessage(ChannelsPostmanStr, ChannelsPostmanInStr, this.state.projectLabel)}}>
+                                    <Button type="link" danger onClick={async ()=>{
+                                        let response = await this.uploadPostMan();
+                                        let postmanContent = response.postmanContent;
+                                        await this.parsePostman(JSON.parse(postmanContent as string));
+                                        message.success("导入 postman 成功");
+                                        this.onFinish({
+                                            title: this.state.title, 
+                                            uri: this.state.uri
+                                        });
+                                    }}>
                                         从 PostMan 导入
                                     </Button>
                                 </Form.Item>
