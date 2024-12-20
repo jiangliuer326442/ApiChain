@@ -12,7 +12,8 @@ jobs:
     strategy:
       matrix:
         # os: [macos-latest]
-        os: [windows-latest]
+        # os: [windows-latest]
+        os: [linux-latest]
 
     steps:
       - name: Checkout git repo
@@ -32,10 +33,11 @@ jobs:
       - name: Publish releases
         run: |
           # yarn electron-builder -- --publish always --mac
-          yarn electron-builder -- --publish always --windows
+          # yarn electron-builder -- --publish always --windows
+          yarn electron-builder -- --publish always --linux
           
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ApiChain.zip
+          name: ApiChain
           path: release/build/
