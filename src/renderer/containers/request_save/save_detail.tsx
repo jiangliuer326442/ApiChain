@@ -12,7 +12,6 @@ import {
     TABLE_FIELD_NAME,
     TABLE_FIELD_TYPE,
     TABLE_FIELD_VALUE,
-    TABLE_FIELD_NECESSARY,
     TABLE_FIELD_TYPE_REF,
     genHash,
 } from '../../util/json';
@@ -22,6 +21,7 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_PROJECT_REQUEST_FIELDS,
+    UNAME
 } from '../../../config/db';
 import {
     REQUEST_METHOD_GET,
@@ -58,7 +58,6 @@ let iteration_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RES
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
 let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
-let iteration_request_iteration_uname = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CUNAME;
 let iteration_request_iteration_ctime = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CTIME;
 let iteration_response_demo = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_DEMO;
 
@@ -77,7 +76,6 @@ let project_request_jsonFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_JSONFLG;
 let project_request_htmlFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_HTMLFLG;
 let project_request_picFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PICFLG;
 let project_request_fileFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_FILEFLG;
-let project_request_cuname = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CUNAME;
 let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
@@ -124,7 +122,8 @@ class RequestSaveContainer extends Component {
             getPrjs(this.props.dispatch);
         }
 
-        getVersionIteratorFolders(this.state.versionIterator, this.state.prj, folders => this.setState({folders}));
+        let folders = await getVersionIteratorFolders(this.state.versionIterator, this.state.prj);
+        this.setState({folders})
 
         if (isStringEmpty(this.state.versionIterator)) {
             let record = await getProjectRequest(this.state.prj, this.state.initRequestMethod, this.state.initRequestUri);
@@ -148,7 +147,7 @@ class RequestSaveContainer extends Component {
                 formResponseHeadData: record[project_request_response_head],
                 formResponseCookieData: record[project_request_response_cookie],
                 responseDemo: record[project_request_response_demo],
-                cname: record[project_request_cuname],
+                cname: record[UNAME],
                 ctime: record[project_request_ctime],
             });
         } else {
@@ -171,23 +170,25 @@ class RequestSaveContainer extends Component {
                 formResponseHeadData: record[iteration_response_head],
                 formResponseCookieData: record[iteration_response_cookie],
                 responseDemo: record[iteration_response_demo],
-                cname: record[iteration_request_iteration_uname],
+                cname: record[UNAME],
                 ctime: record[iteration_request_iteration_ctime],
             });
         }
     }
 
-    handleSetVersionIterator = (value) => {
+    handleSetVersionIterator = async (value) => {
         this.state.versionIterator = value;
         if (this.props.folders[this.state.versionIterator] === undefined) {
-            getVersionIteratorFolders(value, this.state.prj, folders => this.setState({folders}));
+            let folders = await getVersionIteratorFolders(value, this.state.prj, folders => this.setState({folders}));
+            this.setState({folders})
         }
     }
 
     handleCreateFolder = () => {
-        addVersionIteratorFolder(this.state.versionIterator, this.state.prj, this.state.folderName, this.props.device, ()=>{
+        addVersionIteratorFolder(this.state.versionIterator, this.state.prj, this.state.folderName, this.props.device, async () => {
             this.setState({folderName: ""});
-            getVersionIteratorFolders(this.state.versionIterator, this.state.prj, folders => this.setState({folders}));
+            let folders = await getVersionIteratorFolders(this.state.versionIterator, this.state.prj);
+            this.setState({folders})
         });
     }
 
@@ -320,7 +321,7 @@ class RequestSaveContainer extends Component {
                                     children: this.props.prjs.find(row => row[prj_label] === this.state.prj) ? this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark] : "",
                                 },
                                 {
-                                    key: iteration_request_iteration_uname,
+                                    key: UNAME,
                                     label: '创建人',
                                     children: this.state.cname,
                                 },

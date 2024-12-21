@@ -4,9 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getUUID } from './user';
 import { getSalt } from '../../processInit/uuid';
-import { base64Encode, base64Decode } from '../../util/util';
 
 import getCache from './index';
+import { isStringEmpty } from '../../../renderer/util';
 
 const TABLE_NAME = "vip.status";
 
@@ -15,6 +15,9 @@ const VIP_LATEST_TRADE = TABLE_NAME + ".tradeNo";
 
 //最新的 商品
 const VIP_LATEST_PRODUCT = TABLE_NAME + ".product";
+
+//购买次数
+const VIP_BUY_TIMES = TABLE_NAME + ".buy.times";
 
 //会员过期时间
 const VIP_END_TIME = TABLE_NAME + ".endTime";
@@ -43,6 +46,26 @@ export function getLatestProduct() : string {
 export function isVip() {
     let expireTime = getExpireTime();
     return (expireTime >= Date.now());
+}
+
+export function getBuyTimes() {
+    let cache = getCache("");
+    let boughtTimes = cache.get(VIP_BUY_TIMES);
+    if (typeof boughtTimes === 'number') {
+        return boughtTimes;
+    }
+    if (isStringEmpty(boughtTimes)) {
+        return 0;
+    }
+    return Number(boughtTimes);
+}
+
+export function incBuyTimes() {
+    let oldBuyTimes = getBuyTimes();
+    let newBuyTimes = oldBuyTimes + 1;
+    let cache = getCache("");
+    cache.set(VIP_BUY_TIMES, newBuyTimes);
+    return newBuyTimes;
 }
 
 export function getExpireTime() {

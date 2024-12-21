@@ -2,9 +2,7 @@ export const IS_AUTO_UPGRADE = "storage.checkAutoUpgrade";
 
 export const UUID = "device.uuid";
 
-export const UNAME = "device.uname";
-
-export const REG_TIME = "device.rtime";
+export const BUY_TIMES = "device.buytimes";
 
 export const VIP_FLG = "device.vip.flg";
 

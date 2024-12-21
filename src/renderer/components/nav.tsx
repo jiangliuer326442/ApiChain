@@ -6,7 +6,6 @@ import Dexie from 'dexie';
 import { DB_NAME } from '../../config/db';
 import { SET_NAV_COLLAPSED } from '../../config/redux';
 import { ChannelsUserInfoStr, ChannelsUserInfoPingStr } from '../../config/channel';
-import registerMessageHook from '../actions/message';
 import { getVersionIterators } from "../actions/version_iterator";
 import { getPrjs } from "../actions/project";
 
@@ -16,8 +15,6 @@ class Nav extends Component {
 
     constructor(props) {
         super(props);
-
-        registerMessageHook(this.props.dispatch, ()=>{});
 
         if(window.db === undefined) {
             // 创建一个 Dexie 数据库实例  
@@ -36,6 +33,7 @@ class Nav extends Component {
         require('../reducers/db/20241111001');
         require('../reducers/db/20241112001');
         require('../reducers/db/20241114001');
+        require('../reducers/db/20241216001');
 
         this.state = {
 

@@ -3,7 +3,6 @@ import { TABLE_UNITTEST_FOLD_NAME, TABLE_UNITTEST_FOLD_FIELDS } from '../../conf
 let version_iteration_test_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR_UUID;
 let version_iteration_test_folder_name = TABLE_UNITTEST_FOLD_FIELDS.FIELD_FOLD_NAME;
 let version_iteration_test_folder_cuid = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CUID;
-let version_iteration_test_folder_cuname = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CUNAME;
 let version_iteration_test_folder_delFlg = TABLE_UNITTEST_FOLD_FIELDS.FIELD_DELFLG;
 let version_iteration_test_folder_ctime = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CTIME;
 
@@ -12,7 +11,6 @@ export async function addUnitTestFolder(versionIteratorId : string, folderName :
     version_iteration_test_folder[version_iteration_test_folder_iterator] = versionIteratorId;
     version_iteration_test_folder[version_iteration_test_folder_name] = folderName;
     version_iteration_test_folder[version_iteration_test_folder_cuid] = device.uuid;
-    version_iteration_test_folder[version_iteration_test_folder_cuname] = device.uname;
     version_iteration_test_folder[version_iteration_test_folder_ctime] = Date.now();
     version_iteration_test_folder[version_iteration_test_folder_delFlg] = 0;
     console.debug(version_iteration_test_folder);

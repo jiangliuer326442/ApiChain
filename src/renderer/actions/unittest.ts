@@ -9,6 +9,7 @@ import {
     TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
     TABLE_REQUEST_HISTORY_FIELDS, 
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
+    UNAME,
 } from '../../config/db';
 import {
     CONTENT_TYPE,
@@ -37,6 +38,7 @@ import {
 import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '../../config/redux';
 
 import { sendAjaxMessage } from './message';
+import { getUsers } from './user';
 import { addRequestHistory, getRequestHistory } from './request_history';
 
 import { getType, isStringEmpty, isJsonString, paramToString } from '../util';
@@ -52,7 +54,6 @@ let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
-let unittest_cuname = TABLE_UNITTEST_FIELDS.FIELD_CUNAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
 let env_var_micro_service = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -74,7 +75,6 @@ let unittest_step_body = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_BODY;
 let unittest_step_continue = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CONTINUE;
 let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
 let unittest_step_cuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CUID;
-let unittest_step_cuname = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CUNAME;
 let unittest_step_ctime = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CTIME;
 let unittest_step_delFlg = TABLE_UNITTEST_STEPS_FIELDS.FIELD_DELFLG;
 
@@ -87,7 +87,6 @@ let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_L
 let unittest_step_assert_operator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
 let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
 let unittest_step_assert_cuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CUID;
-let unittest_step_assert_cuname = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CUNAME;
 let unittest_step_assert_delFlg = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_DELFLG;
 let unittest_step_assert_ctime = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CTIME;
 
@@ -131,7 +130,6 @@ export async function addUnitTest(versionIteratorId : string, title : string, fo
     unit_test[unittest_title] = title;
     unit_test[unittest_fold] = folder;
     unit_test[unittest_cuid] = device.uuid;
-    unit_test[unittest_cuname] = device.uname;
     unit_test[unittest_ctime] = Date.now();
     unit_test[unittest_delFlg] = 0;
     await window.db[TABLE_UNITTEST_NAME].put(unit_test);
@@ -168,7 +166,6 @@ export async function addUnitTestStep(
                 unit_test_step[unittest_step_continue] = continueEnable;
                 unit_test_step[unittest_step_sort] = sort;
                 unit_test_step[unittest_step_cuid] = device.uuid;
-                unit_test_step[unittest_step_cuname] = device.uname;
                 unit_test_step[unittest_step_ctime] = Date.now();
                 unit_test_step[unittest_step_delFlg] = 0;
                 await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
@@ -190,7 +187,6 @@ export async function addUnitTestStep(
                     unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
                     unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
                     unit_test_step_assert_item[unittest_step_assert_cuid] = device.uuid;
-                    unit_test_step_assert_item[unittest_step_assert_cuname] = device.uname;
                     unit_test_step_assert_item[unittest_step_assert_delFlg] = 0;
                     unit_test_step_assert_item[unittest_step_assert_ctime] = Date.now();
 
@@ -277,7 +273,6 @@ export async function editUnitTestStep(
             unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
             unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
             unit_test_step_assert_item[unittest_step_assert_cuid] = device.uuid;
-            unit_test_step_assert_item[unittest_step_assert_cuname] = device.uname;
             unit_test_step_assert_item[unittest_step_assert_delFlg] = 0;
             unit_test_step_assert_item[unittest_step_assert_ctime] = Date.now();
             unit_test_step_assert.push(unit_test_step_assert_item);
@@ -435,6 +430,8 @@ export async function getProjectUnitTests(project : string, env : string|null, d
 }
 
 export async function getIterationUnitTests(iteratorId : string, env : string|null, dispatch : any) {
+    let users = await getUsers();
+
     //单测列表
     let unitTests = await window.db[TABLE_UNITTEST_NAME]
     .where([unittest_delFlg, unittest_iterator_uuid])
@@ -446,6 +443,7 @@ export async function getIterationUnitTests(iteratorId : string, env : string|nu
         let unitTest = unitTests[i];
         let unittest_uuid = unitTest[field_unittest_uuid];
         let newUnitTest = await getSingleUnittest(unittest_uuid, env, iteratorId);
+        newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
         unitTests[i] = newUnitTest;
     }
 

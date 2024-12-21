@@ -8,22 +8,29 @@ import {
   ChannelsUserInfoSetUserinfoStr 
 } from '../../../config/channel';
 import { registerUser, getUUID, getUName, getRTime } from '../../store/config/user';
-import { isVip, getExpireTime } from '../../store/config/vip';
+import { isVip, getExpireTime, getBuyTimes } from '../../store/config/vip';
+import { osLocaleSync } from '../../third_party/os-locale';
 import { uuidPath, writeFile } from '../uuid';
-import { genUUID } from '../../util/util';
+import { genUUID, getIpV4 } from '../../util/util';
 
 let readayEvent : IpcMainEvent | null = null;
 let intervalId : NodeJS.Timeout;
 
-function notifyUserInfo() {
+async function notifyUserInfo() {
   if(readayEvent !== null) {
     let uuid = getUUID();
     let uname = getUName();
     let rtime = getRTime();
+    let ip = getIpV4();
     let vipFlg = isVip();
     let expireTime = getExpireTime();
+    let buyTimes = getBuyTimes();
 
-    readayEvent.reply(ChannelsUserInfoStr, ChannelsUserInfoSetUserinfoStr, uuid, uname, rtime, vipFlg, expireTime);
+    let lang = osLocaleSync();
+
+    readayEvent.reply(ChannelsUserInfoStr, ChannelsUserInfoSetUserinfoStr, 
+      uuid, lang, uname, ip, rtime, vipFlg, expireTime, buyTimes
+    );
     clearInterval(intervalId);
   }
 }
@@ -34,7 +41,6 @@ export default function() {
       readayEvent = event;
     }
   });
-
   if(fs.existsSync(uuidPath)){
     intervalId = setInterval(notifyUserInfo, 1000);
   } else {

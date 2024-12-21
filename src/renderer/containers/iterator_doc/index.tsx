@@ -100,20 +100,31 @@ class IteratorDoc extends Component {
 
         this.setState({prjs, envs, envVars, versionIteration, requests});
 
-        if(requests.length > 0 && Object.keys(versionIteration).length > 0) {
-            window.electron.ipcRenderer.sendMessage(ChannelsMarkdownStr, ChannelsMarkdownShowStr, versionIteration, requests, prjs, envs, envVars);
+        if (requests.length == 0 || Object.keys(versionIteration).length == 0) {
+            return;
+        }
 
-            window.electron.ipcRenderer.on(ChannelsMarkdownStr, (action, iteratorId, markdownTitle, markdownContent) => {
-                this.props.dispatch({
-                    type: SET_NAV_COLLAPSED,
-                    collapsed: true,
-                });
-                if (action !== ChannelsMarkdownShowStr) return;
-                if(iteratorId === this.state.iteratorId) {
-                    this.setState( { md : markdownContent } );
+        let response = await this.handleMarkdownMessage(versionIteration, requests, prjs, envs, envVars);
+        
+        this.props.dispatch({
+            type: SET_NAV_COLLAPSED,
+            collapsed: true,
+        });
+        this.setState( { md : response.markdownContent } );
+    }
+
+    handleMarkdownMessage = (versionIteration, requests, prjs, envs, envVars) => {
+        return new Promise((resolve, reject) => {
+            let listener = window.electron.ipcRenderer.on(ChannelsMarkdownStr, (action, iteratorId, markdownTitle, markdownContent) => {
+                if (action === ChannelsMarkdownShowStr) {
+                    if(iteratorId === this.state.iteratorId) {
+                        listener();
+                        resolve( {markdownContent} );
+                    }
                 }
             });
-        }
+            window.electron.ipcRenderer.sendMessage(ChannelsMarkdownStr, ChannelsMarkdownShowStr, versionIteration, requests, prjs, envs, envVars);
+        });
     }
 
     render() : ReactNode {

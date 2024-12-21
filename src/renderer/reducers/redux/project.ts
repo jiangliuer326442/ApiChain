@@ -1,5 +1,7 @@
 import { getdayjs, mixedSort } from '../../util';
 
+import { UNAME } from '../../../config/db';
+
 import { 
   SHOW_ADD_PRJ_MODEL,
   SHOW_EDIT_PRJ_MODEL,
@@ -11,7 +13,6 @@ import {
 } from '../../../config/db';
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
-let prj_uname = TABLE_MICRO_SERVICE_FIELDS.FIELD_CUNAME;
 let prj_ctime = TABLE_MICRO_SERVICE_FIELDS.FIELD_CTIME;
 
 export default function (state = {
@@ -26,7 +27,7 @@ export default function (state = {
         },
         {
             title: '创建人',
-            dataIndex: prj_uname,
+            dataIndex: UNAME,
         },
         {
               title: '创建时间',

@@ -10,7 +10,6 @@ let version_iteration_folder_name = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_FO
 let version_iteration_folder_delFlg = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_DELFLG;
 let version_iteration_folder_ctime = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_CTIME;
 let version_iteration_folder_cuid = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_CUID;
-let version_iteration_folder_cuname = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_CUNAME;
 
 let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
@@ -62,7 +61,7 @@ export async function delVersionIteratorFolder(version_iterator : string, projec
     });
 }
 
-export async function getVersionIteratorFolders(version_iterator : string, project : string, cb) {
+export async function getVersionIteratorFolders(version_iterator : string, project : string) {
 
     let result = [];
 
@@ -84,7 +83,7 @@ export async function getVersionIteratorFolders(version_iterator : string, proje
     item.value = "";
     result.push(item);
 
-    cb(result);
+    return result;
 }
 
 export async function addVersionIteratorFolder(version_iterator : string, project : string, name : string, device, cb) {
@@ -93,10 +92,8 @@ export async function addVersionIteratorFolder(version_iterator : string, projec
     version_iteration_folder[version_iteration_folder_project] = project;
     version_iteration_folder[version_iteration_folder_name] = name;
     version_iteration_folder[version_iteration_folder_cuid] = device.uuid;
-    version_iteration_folder[version_iteration_folder_cuname] = device.uname;
     version_iteration_folder[version_iteration_folder_ctime] = Date.now();
     version_iteration_folder[version_iteration_folder_delFlg] = 0;
-    console.debug(version_iteration_folder);
     await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(version_iteration_folder);
     cb();
 }

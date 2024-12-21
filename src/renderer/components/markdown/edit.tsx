@@ -14,7 +14,7 @@ export default class extends Component {
 
         this.state = {
             mdeState: {
-                markdown: isStringEmpty(content) ? '在这里可以使用markdown语法记录下这个迭代的注意事项、表结构变更、配置中心配置、定时任务等\n\n## 注意事项\n\n## 数据库变更\n\n## 配置中心\n\n## 定时任务\n\n' : content,
+                markdown: isStringEmpty(content) ? '在这里可以使用markdown语法记录下这个迭代的注意事项、表结构变更、配置中心配置、定时任务等\n\n## 注意事项\n\n## 接口变更记录\n\n## 数据库变更\n\n## 配置中心变更\n\n## 定时任务变更\n\n' : content,
             }
         }
 

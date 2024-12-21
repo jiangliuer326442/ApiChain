@@ -9,12 +9,13 @@ import { encode } from 'base-64';
 import { 
     TABLE_VERSION_ITERATION_REQUEST_FIELDS, 
     TABLE_VERSION_ITERATION_FIELDS, 
-    TABLE_MICRO_SERVICE_FIELDS 
+    TABLE_MICRO_SERVICE_FIELDS,
+    UNAME,
 } from '../../../config/db';
 import { getdayjs, isStringEmpty } from '../../util';
 import MarkdownView from '../../components/markdown/show';
 import { getPrjs } from '../../actions/project';
-import { getVersionIterator } from '../../actions/version_iterator';
+import { getVersionIterator, getOpenVersionIteratorsByPrj } from '../../actions/version_iterator';
 import { 
     getVersionIteratorFolders, 
     delVersionIteratorFolder 
@@ -22,8 +23,11 @@ import {
 import { 
     getVersionIteratorRequestsByProject, 
     delVersionIteratorRequest, 
-    setVersionIterationRequestSort 
+    setVersionIterationRequestSort,
+    batchMoveIteratorRequest,
+    batchSetProjectRequestFold,
 } from '../../actions/version_iterator_requests';
+import { cloneDeep } from 'lodash';
 
 const { Header, Content, Footer } = Layout;
 
@@ -41,9 +45,9 @@ const getHoverColors = (colors: string[]) =>
 const getActiveColors = (colors: string[]) =>
     colors.map((color) => new TinyColor(color).darken(5).toString());
 
+let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 let iteration_request_sort = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_SORT;
-let version_iterator_uname = TABLE_VERSION_ITERATION_FIELDS.FIELD_CUNAME;
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let version_iterator_content = TABLE_VERSION_ITERATION_FIELDS.FIELD_CONTENT;
 let version_iterator_openflg = TABLE_VERSION_ITERATION_FIELDS.FIELD_OPENFLG;
@@ -131,6 +135,7 @@ class RequestListVersion extends Component {
             folders: [],
             prj: "",
             folder: null,
+            movedRequests: [],
         }
     }
 
@@ -159,21 +164,39 @@ class RequestListVersion extends Component {
         });
     }
 
+    setMovedRequests = newMovedRequestKeys => {
+        this.state.movedRequests = newMovedRequestKeys;
+        this.onFinish({
+            prj: this.state.prj,
+            folder: this.state.folder,
+        });
+    }
+
     onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        let prj = values.prj;
-        let title = values.title;
-        let uri = values.uri;
-        let folder = values.folder;
+        let prj = values?.prj;
+        let title = values?.title;
+        let uri = values?.uri;
+        let folder = values?.folder;
         let version_iteration_requests = await getVersionIteratorRequestsByProject(this.state.iteratorId, prj, folder, title, uri);
-        let requestsDividered = {};
-        let requestsJsxDividered = {};
+        let requestsDividered : any = {};
+        let requestsJsxDividered : any = {};
         
         for(let version_iteration_request of version_iteration_requests ) {
-            version_iteration_request.key = version_iteration_request[iteration_request_method] + version_iteration_request[iteration_request_uri];
+            version_iteration_request.key = version_iteration_request[iteration_request_method] + "$$" + version_iteration_request[iteration_request_uri];
             let prj = version_iteration_request[iteration_request_prj];
             if (!(prj in requestsDividered)) {
                 requestsDividered[prj] = {};
                 requestsJsxDividered[prj] = [];
+                let versionIterators = (await getOpenVersionIteratorsByPrj(prj))
+                .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
+                .map(item => {
+                    return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
+                });
+                requestsJsxDividered[prj]['__iterators'] = versionIterators;
+                requestsJsxDividered[prj]['__requests'] = [];
+                let folders = await getVersionIteratorFolders(this.state.iteratorId, prj);
+                let oldFolders = this.state.folders;
+                oldFolders[prj] = folders;
             }
             let fold = version_iteration_request[iteration_request_fold];
             if (!(fold in requestsDividered[prj])) {
@@ -183,21 +206,24 @@ class RequestListVersion extends Component {
                 foldJsx.key = fold;
                 foldJsx.label = "/" + fold;
                 foldJsx.children = (<Table 
+                    rowSelection={{selectedRowKeys: this.state.movedRequests, onChange: this.setMovedRequests}}
                     dataSource={requestsDividered[prj][fold]} 
                     columns={this.state.listColumn} 
                 />);
                 foldJsx.extra = ((!isStringEmpty(fold) && this.state.versionIteration[version_iterator_openflg] === 1) ? (
                 <DeleteOutlined onClick={event => {
-                    delVersionIteratorFolder(this.state.iteratorId, prj, fold, ()=>{
+                    delVersionIteratorFolder(this.state.iteratorId, prj, fold, async ()=>{
                         message.success("删除文件夹成功");
-                        getVersionIteratorFolders(this.state.iteratorId, prj, this.props.dispatch, () => {
-                            this.onFinish({});
-                        });
+                        let folders = await getVersionIteratorFolders(this.state.iteratorId, prj);
+                        let oldFolders = this.state.folders;
+                        oldFolders[prj] = folders;
+                        this.setState({folders: cloneDeep(this.state.folders)});
+                        this.onFinish({});
                     });
                     event.stopPropagation();
                 }} />) : null);
 
-                requestsJsxDividered[prj].push(foldJsx);
+                requestsJsxDividered[prj]['__requests'].push(foldJsx);
             }
             requestsDividered[prj][fold].push(version_iteration_request);
         }
@@ -210,11 +236,12 @@ class RequestListVersion extends Component {
         this.setState({
             requestsJsxDividered,
             prj,
-            folder,
+            folder
         });
     }
 
     render() : ReactNode {
+
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
@@ -240,9 +267,9 @@ class RequestListVersion extends Component {
                                     children: this.state.versionIteration[version_iterator_openflg] === 1 ? "进行中" : "已结束",
                                 },
                                 {
-                                    key: version_iterator_uname,
+                                    key: UNAME,
                                     label: '创建人',
-                                    children: this.state.versionIteration[version_iterator_uname],
+                                    children: this.state.versionIteration[UNAME],
                                 },
                                 {
                                     key: version_iterator_ctime,
@@ -272,10 +299,8 @@ class RequestListVersion extends Component {
                                         options={this.state.versionIteration[version_iterator_prjs].map(item => {
                                             return {value: item, label: this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : ""}
                                         })}
-                                        onChange={ value => {
-                                            getVersionIteratorFolders(this.state.iteratorId, value, folders => {
-                                                this.setState({ folders });
-                                            });
+                                        onChange={ async value => {
+                                            this.setState({ prj: value });
                                         } }
                                     />
                                 </Form.Item>                           
@@ -283,7 +308,7 @@ class RequestListVersion extends Component {
                                 <Form.Item<FieldType> label="选择文件夹" name="folder" rules={[{ required:  false }]}>
                                     <Select
                                         style={{ width: 180 }}
-                                        options={ this.state.folders }
+                                        options={ this.state.folders[this.state.prj] }
                                     />
                                 </Form.Item>
 
@@ -336,7 +361,55 @@ class RequestListVersion extends Component {
                                     <Divider orientation="left">
                                         <p>{ "项目：" + (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "") }</p >
                                     </Divider>
-                                    <Collapse items={this.state.requestsJsxDividered[prj]} />
+                                    <Form layout="inline">
+                                        <Form.Item label="移动到迭代">
+                                            <Select
+                                                style={{minWidth: 130}}
+                                                onChange={ value => {
+                                                    batchMoveIteratorRequest(this.state.iteratorId, prj, this.state.movedRequests, value, () => {
+                                                        this.state.movedRequests = [];
+                                                        message.success("移动迭代成功");
+                                                        this.onFinish({
+                                                            prj: this.state.prj,
+                                                            folder: this.state.folder,
+                                                        });
+                                                    });
+                                                }}
+                                                options={ this.state.requestsJsxDividered[prj]['__iterators'] }
+                                            />
+                                        </Form.Item>
+                                        <Form.Item label="移动到文件夹">
+                                            <Select
+                                                style={{minWidth: 130}}
+                                                onChange={ async value => {
+                                                    await batchSetProjectRequestFold(this.state.iteratorId, prj, this.state.movedRequests, value);
+                                                    this.state.movedRequests = [];
+                                                    this.onFinish({
+                                                        title: this.state.title, 
+                                                        uri: this.state.uri
+                                                    });
+                                                } }
+                                                dropdownRender={(menu) => (
+                                                    <>
+                                                        {menu}
+                                                        <Divider style={{ margin: '8px 0' }} />
+                                                        <Input
+                                                            placeholder="回车新建文件夹"
+                                                            onKeyDown={e => {
+                                                                if (e.key === 'Enter') {
+                                                                    this.handleCreateFolder(e.target.value);
+                                                                    e.target.value = ""
+                                                                }
+                                                                e.stopPropagation()
+                                                            }}
+                                                        />
+                                                    </>
+                                                )}
+                                                options={ this.state.folders[prj] }
+                                            />
+                                        </Form.Item>
+                                    </Form>
+                                    <Collapse items={this.state.requestsJsxDividered[prj]['__requests']} />
                                 </Flex>
                             : null)
                         ))}

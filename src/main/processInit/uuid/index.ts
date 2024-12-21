@@ -12,7 +12,8 @@ export const uuidPath = path.join(userData, "uuid");
 
 export function writeFile(uuid : string, salt : string) : void {
     let content = base64Encode(uuid + ":" + salt);
-    fs.writeFile(uuidPath, content);
+    log.info("writeFile:" + uuidPath + "|" + content);
+    fs.writeFileSync(uuidPath, content);
 }
 
 export function getSalt() : string {

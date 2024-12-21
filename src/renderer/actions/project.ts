@@ -1,18 +1,24 @@
-import { TABLE_MICRO_SERVICE_NAME, TABLE_MICRO_SERVICE_FIELDS } from '../../config/db';
+import { TABLE_MICRO_SERVICE_NAME, TABLE_MICRO_SERVICE_FIELDS, UNAME } from '../../config/db';
 import { GET_PRJS } from '../../config/redux';
+import { getUsers } from './user';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 let prj_cuid = TABLE_MICRO_SERVICE_FIELDS.FIELD_CUID;
-let prj_cuname = TABLE_MICRO_SERVICE_FIELDS.FIELD_CUNAME;
 let prj_ctime = TABLE_MICRO_SERVICE_FIELDS.FIELD_CTIME;
 let prj_delFlg = TABLE_MICRO_SERVICE_FIELDS.FIELD_DELFLG;
 
 export async function getPrjs(dispatch) {
+    let users = await getUsers();
+
     let prjs = await window.db[TABLE_MICRO_SERVICE_NAME]
     .where(prj_delFlg).equals(0)
     .reverse()
     .toArray();
+
+    prjs.forEach(item => {
+        item[UNAME] = users.get(item[prj_cuid]);
+    });
 
     if (dispatch !== null) {
         dispatch({
@@ -39,11 +45,10 @@ export async function delPrj(row, cb) {
 }
 
 export async function addPrj(prjName : string, remark : string, device : object, cb) {
-    let prj = {};
+    let prj : any = {};
     prj[prj_label] = prjName;
     prj[prj_remark] = remark;
     prj[prj_cuid] = device.uuid;
-    prj[prj_cuname] = device.uname;
     prj[prj_ctime] = Date.now();
     prj[prj_delFlg] = 0;
     await window.db[TABLE_MICRO_SERVICE_NAME].put(prj);

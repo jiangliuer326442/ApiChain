@@ -18,21 +18,19 @@ import {
     TABLE_UNITTEST_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
+    UNAME
 } from '../../../config/db';
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
-    UNITTEST_RESULT_UNKNOWN
 } from '../../../config/unittest';
 import {
-    SHOW_ADD_UNITTEST_MODEL,
     SHOW_EDIT_UNITTEST_MODEL
 } from '../../../config/redux';
 import { getdayjs, isStringEmpty } from '../../util';
 import { getEnvs } from '../../actions/env';
 import {
     getProjectUnitTests, 
-    delUnitTestStep,
     executeProjectUnitTest,
     continueProjectExecuteUnitTest,
     copyFromProjectToIterator,
@@ -46,7 +44,6 @@ let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
-let unittest_uname = TABLE_UNITTEST_FIELDS.FIELD_CUNAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
 let unittest_step_unittest_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
@@ -113,7 +110,7 @@ class UnittestListVersion extends Component {
                 },
                 {
                   title: '创建人',
-                  dataIndex: unittest_uname,
+                  dataIndex: UNAME,
                 },
                 {
                   title: '创建时间',
