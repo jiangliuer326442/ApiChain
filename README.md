@@ -1,5 +1,6 @@
 https://github.com/user-attachments/assets/ccb21dc1-ed3c-4ed6-8e35-2d7f52e4b70b
 
+
 ApiChain是一款基于版本迭代和项目视角的接口测试和文档生成软件，相比于postman这样的外来品，ApiChain 更“懂”你。APIChain拥有如下特色：
 
 1. 按迭代产出接口文档，按项目汇总迭代相关接口，迭代文档可生成本机内网ip的链接地址实时共享，也可导出成html、markdown等格式；
@@ -12,31 +13,40 @@ ApiChain是一款基于版本迭代和项目视角的接口测试和文档生成
 8. 纯内网，无需连接互联网；
 9. 可将迭代关联的一系列需求文档、ui设计文档的链接以及数据库变动、配置中心变动等信息汇总在这个迭代接口文档里；
 
-🔥🔥🔥如果你也认可Ta更“懂”你，不妨 [点击这里给个star](https://github.com/jiangliuer326442/ApiChain) 支持一下呗 (*￣︶￣)💋💋💋
+🔥🔥🔥如果你也认可Ta更“懂”你，不妨 [点击这里给个star](https://gitee.com/onlinetool/mypostman) 支持一下呗 (*￣︶￣)💋💋💋
+<a href='https://gitee.com/onlinetool/mypostman/stargazers'><img src='https://gitee.com/onlinetool/mypostman/badge/star.svg?theme=dark' alt='star'></img></a>
+PS：收到100个star(或者赞助)后我就有动力去开发以下功能：
+1. java、php语言项目的代码扫描生成迭代文档的第三方包
+2. 让单机版的ApiChain支持团队需要的相关功能，也就是迭代、项目、单测、环境变量的在团队内共享，成为团队的数字化资产（当然，肯定是私有化部署的）
+3. 收费功能变成1元
 
 ## 软件下载
 
-基于Electron跨平台开发，可根据你的平台下载源码自行编译，也可直接使用我们这里编译好的
+windows 平台：[ApiChain_v1.0.8_windows.zip](https://gitee.com/onlinetool/mypostman/releases/download/v1.0.8/ApiChain_Setup_1.0.8_windows.zip)
 
-windows 平台：[ApiChain_windows_1.0.7.zip](https://github.com/jiangliuer326442/ApiChain/releases/download/v1.0%2C7/ApiChain_windows_1.0.7.zip)
+linux 平台：[ApiChain_v1.0.8_linux.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.0.8/ApiChain_v1.0.8_linux.zip)
 
-linux 平台：[ApiChain_linux_1.0.7.zip](https://github.com/jiangliuer326442/ApiChain/releases/download/v1.0%2C7/ApiChain_linux_1.0.7.zip)
+mac 平台：[ApiChain_v1.0.8_macos.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.0.8/ApiChain_v1.0.8_macos.zip)
 
-mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
+mac最新版本请下载源码自行编译，编译方法参照 从源码编译 部分，**如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开**
 
-**mac 如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开 **
+v1.0.8:
+  1. 支持将本次迭代部分接口因功能不上线移动到另一个迭代中
+  2. 支持选择部分环境变量拷贝到另一个开发环境
+  3. 支持将部分项目导出到另一个用户电脑，实现项目接口的共享
+  4. 将原有收费功能价格调整为1元
 
 ## 简介
 
 * 按照项目、文件夹管理我们的接口
 
-  [在迭代内点击发送请求，可以使用我们给这个迭代设置的环境变量，这些环境变量可以对这个迭代内涉及的全部项目或者某个项目有效。](https://gitee.com/onlinetool/mypostman/wikis/%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F)
+  在迭代内点击发送请求，可以使用我们给这个迭代设置的环境变量，这些环境变量可以对这个迭代内涉及的全部项目或者某个项目有效。
 
 ![image-20240706090322612](https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/doc/images/Snipaste_2024-11-18_17-15-21.png)
 
 - 发送网络请求
 
-  [发送网络请求时，可以使用我们给特定环境设置的环境变量，这些环境变量分为全局有效、特定项目有效、特定版本迭代有效、迭代内特定项目有效。](https://gitee.com/onlinetool/mypostman/wikis/%E5%8F%91%E9%80%81%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82)
+  发送网络请求时，可以使用我们给特定环境设置的环境变量，这些环境变量分为全局有效、特定项目有效、特定版本迭代有效、迭代内特定项目有效。
 
 ![image-20240706090456589](https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/doc/images/Snipaste_2024-11-18_17-33-57.png)
 
@@ -52,7 +62,7 @@ mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 
   以迭代为单位，生成接口文档，可以标注一些这个迭代的注意事项，可导出分享，也可直接通过浏览器共享页面。
 
-  [mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。](https://gitee.com/onlinetool/mypostman/wikis/mock%E6%9C%8D%E5%8A%A1%E5%99%A8)
+  mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。
 
 ![image-20240706090943885](https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/doc/images/Snipaste_2024-11-18_17-23-36.png)
 
@@ -60,7 +70,7 @@ mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 
 * 迭代单测页
 
-  [把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。](https://gitee.com/onlinetool/mypostman/wikis/%E7%BC%96%E5%86%99%E8%BF%AD%E4%BB%A3%E5%8D%95%E6%B5%8B%E7%94%A8%E4%BE%8B)
+  把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。
 
   若某个测试用例执行失败，可以点击请求地址跳转到发送请求的页面，可以重复发送单测的请求，用来复现并调试bug。
 
@@ -76,7 +86,7 @@ mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 
 - 项目接口管理 & 单测列表页
 
-  [迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。](https://gitee.com/onlinetool/mypostman/wikis/%E4%BB%8E%E8%BF%AD%E4%BB%A3%E5%88%B0%E9%A1%B9%E7%9B%AE)
+  迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。
 
 ![image-20240706091305807](https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/doc/images/Snipaste_2024-11-19_10-03-05.png)
 
@@ -308,6 +318,28 @@ mac平台请下载源码自行编译，编译方法参照 从源码编译 部分
 ![image-20240707105917096](https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/doc/images/image-20240707105917096.png)
 
 好了，我们的入门教程就到这里，其他功能，比如备份、还原数据库，从 PostMan 导入接口到项目等功能可查看项目的wiki文档。
+
+## 版本发布记录
+
+v1.0.7:
+  1. 单测链支持引用前面步骤cookie作为入参
+  2. 网络请求和单测统计接口耗时
+  3. 支持将迭代的单测导出到项目用于项目回归测试
+
+v1.0.6:
+  1. 修复历史记录无法使用迭代环境变量的问题
+
+v1.0.5:
+  1. 完善发送网络请求和迭代单元测试相关功能，支持从迭代到项目的可复用单元测试
+
+v0.0.5:
+  1. 增加VIP充值和mock服务器功能
+
+v0.0.4
+  1. 迭代支持接口先行方式添加 api
+  2. header 支持 application/json，multipart/form-data 两种方式的 api
+  3. 迭代自动化测试支持手动和自动两种触发方式
+  4. 其他 bug 修复和界面调整
 
 ## 从源码编译
 
