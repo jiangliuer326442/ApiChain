@@ -9,7 +9,6 @@ export const TABLE_USER_FIELDS = {
     FIELD_UNAME : "uname",
     FIELD_COUNTRY : "country",
     FIELD_LANG : "lang",
-    FIELD_REGTIME : "register_time",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
 }

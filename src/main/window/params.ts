@@ -1,48 +1,37 @@
 import fse from 'fs-extra';
-import { v4 as uuidv4 } from 'uuid';
+import { dialog } from 'electron';
+import chalk from 'chalk';
 import log from 'electron-log';
 
-import { registerUser, storeRegisterData, getUUID, getUName, getRTime } from '../store/config/user';
+import { uuidExists, getUuid, getUname, getSalt } from '../store/config/user';
 import { isVip, getExpireTime, getBuyTimes } from '../store/config/vip';
 import { osLocale } from '../third_party/os-locale';
 import { 
-    genUUID, 
     getIpV4,
     getPackageJson, 
     resolveHtmlPath,
     base64Encode,
 } from '../util/util';
-import { uuidPath, writeFile } from '../processInit/uuid';
 
 export async function getInitParams() : Promise<string[]> {
     let _btime = Date.now();
-    let path = getPackageJson();
-    let content = await fse.readFile(path);
-    let packageJson = JSON.parse(content.toString());
+    let packageJsonPath = getPackageJson();
+    let content = (await fse.readFile(packageJsonPath)).toString();
+    let packageJson = JSON.parse(content);
     let lang = await osLocale();
-
-    let result;
-    let fileExistFlg = await fse.pathExists(uuidPath);
-    //已经注册过
-    if (fileExistFlg) {
-        result = doGetInitParams(packageJson, lang);
-    } else {
-        let uuid = await genUUID();
-        let salt = uuidv4() as string;
-        registerUser(uuid);
-        writeFile(uuid, salt, () => {
-            storeRegisterData(salt);
-        });
-        result = doGetInitParams(packageJson, lang);
+    if (!uuidExists()) {
+        dialog.showErrorBox("ssh key错误", "未找到ssh key 文件，清先在.ssh文件夹中生成rsa ssh key文件");
+        process.exit(1);
     }
+
+    let result = doGetInitParams(packageJson, lang);
     log.info("getInitParams finished, cost time: " + (Date.now() - _btime))
     return result;
 }
 
-async function doGetInitParams(packageJson : any, lang : string) : string[] {
-    let uuid = getUUID();
-    let uname = getUName();
-    let rtime = getRTime();
+function doGetInitParams(packageJson : any, lang : string) : string[] {
+    let uuid = getUuid();
+    let uname = getUname();
     let ip = getIpV4();
     let vipFlg = isVip();
     let expireTime = getExpireTime();
@@ -56,7 +45,6 @@ async function doGetInitParams(packageJson : any, lang : string) : string[] {
     return [
         "$$" + base64Encode("uuid=" + uuid),
         "$$" + base64Encode("uname=" + uname),
-        "$$" + base64Encode("rtime=" + rtime),
         "$$" + base64Encode("ip=" + ip),
         "$$" + base64Encode("vipFlg=" + vipFlg),
         "$$" + base64Encode("expireTime=" + expireTime),

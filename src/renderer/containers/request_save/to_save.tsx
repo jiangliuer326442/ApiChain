@@ -583,7 +583,7 @@ class RequestSaveContainer extends Component {
                     this.props.device
                 );
                 message.success("保存成功");
-                this.props.history.push("#/version_iterator_request/" + this.state.prj + "/" + this.state.requestMethod + "/" + encode(this.state.requestUri));
+                this.props.history.push("/project_requests/" + this.state.prj);
             } else {
                 //编辑迭代接口
                 await addVersionIteratorRequest(this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri,
@@ -597,7 +597,7 @@ class RequestSaveContainer extends Component {
                     this.props.device
                 );
                 message.success("保存成功");
-                this.props.history.push("#/version_iterator_request/" + this.state.iteratorId + "/" + this.state.prj + "/" + this.state.requestMethod + "/" + encode(this.state.requestUri));
+                this.props.history.push("/version_iterator_requests/" + this.state.iteratorId);
             }
         }
     }

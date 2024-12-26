@@ -23,7 +23,6 @@ const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text, Link } = Typography;
 
 const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
-const db_field_rtime = TABLE_USER_FIELDS.FIELD_REGTIME;
 let user_country = TABLE_USER_FIELDS.FIELD_COUNTRY;
 let user_lang = TABLE_USER_FIELDS.FIELD_LANG;
 let user_ip = TABLE_USER_FIELDS.FIELD_IP;
@@ -58,13 +57,12 @@ class Home extends Component {
       let uuid = argsObject.uuid;
       let uname = argsObject.uname;
       let ip = argsObject.ip;
-      let rtime = parseInt(argsObject.rtime);
 
       let userCountry = argsObject.userCountry;
       let userLang = argsObject.userLang;
       let user = await getUser(uuid);
       if (user === null) {
-          await addUser(uuid, uname, ip, rtime, userCountry, userLang);
+          await addUser(uuid, uname, ip, userCountry, userLang);
       } else {
           user[user_country] = userCountry;
           user[user_lang] = userLang;
@@ -160,11 +158,11 @@ class Home extends Component {
             <>
               {"尊敬的会员 "}
               <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
-              {" 你好， " + this.props.appName + " 已陪你走过 " + Math.ceil((Date.now() - this.state.user[db_field_rtime])/(86400 * 1000)) + " 天（会员到期日 " + getdayjs(this.props.expireTime).format("YYYY-MM-DD") + " ）"}</> 
+              {" 你好， " + this.props.appName + " 陪你度过崭新的一天"}</> 
             :
             <>
               <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
-              {" 你好，" + this.props.appName + " 已陪你走过 " + Math.ceil((Date.now() - this.state.user[db_field_rtime])/(86400 * 1000)) + " 天"}
+              {" 你好，" + this.props.appName + " 陪你度过崭新的一天"}
             </>
             } 
           </Header>

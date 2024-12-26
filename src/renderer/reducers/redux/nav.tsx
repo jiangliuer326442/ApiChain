@@ -99,7 +99,7 @@ export default function (state = {
             key: ENVVAR_GLOBAL_LIST_ROUTE,
             label: (
               <a href={ "#" + ENVVAR_GLOBAL_LIST_ROUTE } rel="noopener noreferrer">
-                环境变量
+                全局环境变量
               </a >
             )
           },

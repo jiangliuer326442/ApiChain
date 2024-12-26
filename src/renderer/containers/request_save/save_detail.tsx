@@ -227,6 +227,7 @@ class RequestSaveContainer extends Component {
             this.setState({initRequestMethod: this.state.requestMethod, initRequestUri: this.state.requestUri});
         }
         message.success("修改成功");
+        this.props.history.push("/version_iterator_requests/" + this.state.versionIterator);
     }
 
     parseJsonToStruct = (whiteKeys : Array<any>, parentKeys : Array<string>, parentKey : string, parseJsonToTableResultCopy : object, content : object) => {

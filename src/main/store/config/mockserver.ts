@@ -1,8 +1,6 @@
-import log from 'electron-log';
-
 import getCache from './index';
 
-const TABLE_NAME = "vip.mockserver.access";
+export const TABLE_NAME = "vip.mockserver.access";
 
 export function setAccess(id:string, access:boolean) {
     let cache = getCache("");
