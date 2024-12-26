@@ -1,6 +1,6 @@
 {
   "name": "ApiChain",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "基于版本迭代和项目视角的接口测试和文档生成",
   "license": "MIT",
   "author": {
