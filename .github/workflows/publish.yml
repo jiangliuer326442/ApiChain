@@ -1,7 +1,9 @@
 name: Publish
 
 on:
-  workflow_dispatch:
+  push:
+    branches:    
+      - main
 
 jobs:
   publish:
@@ -10,8 +12,8 @@ jobs:
     strategy:
       matrix:
         # os: [macos-latest]
-        os: [windows-latest]
-        # os: [ubuntu-latest]
+        # os: [windows-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout git repo
@@ -44,6 +46,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # name: ApiChain_macos
-          name: ApiChain_windows
-          # name: ApiChain_linux
+          # name: ApiChain_windows
+          name: ApiChain_linux
           path: release/build/
