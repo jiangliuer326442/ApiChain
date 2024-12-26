@@ -4837,7 +4837,7 @@ core-js@^3.32.2:
 
 core-js@^3.6.4:
   version "3.39.0"
-  resolved "http://central.jaf.cmbchina.cn:80/artifactory/api/npm/group-npm-cc/core-js/-/core-js-3.39.0.tgz#57f7647f4d2d030c32a72ea23a0555b2eaa30f83"
+  resolved "https://registry.npmmirror.com/core-js/-/core-js-3.39.0.tgz#57f7647f4d2d030c32a72ea23a0555b2eaa30f83"
   integrity sha1-V/dkf00tAwwypy6iOgVVsuqjD4M=
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
@@ -4896,7 +4896,7 @@ cross-env@^7.0.3:
 
 cross-fetch@^3.0.4:
   version "3.2.0"
-  resolved "http://central.jaf.cmbchina.cn:80/artifactory/api/npm/group-npm-cc/cross-fetch/-/cross-fetch-3.2.0.tgz#34e9192f53bc757d6614304d9e5e6fb4edb782e3"
+  resolved "https://registry.npmmirror.com/cross-fetch/-/cross-fetch-3.2.0.tgz#34e9192f53bc757d6614304d9e5e6fb4edb782e3"
   integrity sha1-NOkZL1O8dX1mFDBNnl5vtO23guM=
   dependencies:
     node-fetch "^2.7.0"
@@ -5642,7 +5642,7 @@ dotenv@^9.0.2:
 
 draft-js@^0.11.7:
   version "0.11.7"
-  resolved "http://central.jaf.cmbchina.cn:80/artifactory/api/npm/group-npm-cc/draft-js/-/draft-js-0.11.7.tgz#be293aaa255c46d8a6647f3860aa4c178484a206"
+  resolved "https://registry.npmmirror.com/draft-js/-/draft-js-0.11.7.tgz#be293aaa255c46d8a6647f3860aa4c178484a206"
   integrity sha1-vik6qiVcRtimZH84YKpMF4SEogY=
   dependencies:
     fbjs "^2.0.0"
@@ -6750,7 +6750,7 @@ fbjs-css-vars@^1.0.0:
 
 fbjs@^2.0.0:
   version "2.0.0"
-  resolved "http://central.jaf.cmbchina.cn:80/artifactory/api/npm/group-npm-cc/fbjs/-/fbjs-2.0.0.tgz#01fb812138d7e31831ed3e374afe27b9169ef442"
+  resolved "https://registry.npmmirror.com/fbjs/-/fbjs-2.0.0.tgz#01fb812138d7e31831ed3e374afe27b9169ef442"
   integrity sha1-AfuBITjX4xgx7T43Sv4nuRae9EI=
   dependencies:
     core-js "^3.6.4"
@@ -8021,7 +8021,7 @@ immutable@^4.0.0:
 
 immutable@~3.7.4:
   version "3.7.6"
-  resolved "http://central.jaf.cmbchina.cn:80/artifactory/api/npm/group-npm-cc/immutable/-/immutable-3.7.6.tgz#13b4d3cb12befa15482a26fe1b2ebae640071e4b"
+  resolved "https://registry.npmmirror.com/immutable/-/immutable-3.7.6.tgz#13b4d3cb12befa15482a26fe1b2ebae640071e4b"
   integrity sha1-E7TTyxK++hVIKib+Gy665kAHHks=
 
 import-fresh@^3.2.1, import-fresh@^3.3.0:
@@ -15098,7 +15098,7 @@ typescript@^5.2.2:
 
 ua-parser-js@^0.7.18:
   version "0.7.40"
-  resolved "http://central.jaf.cmbchina.cn:80/artifactory/api/npm/group-npm-cc/ua-parser-js/-/ua-parser-js-0.7.40.tgz#c87d83b7bb25822ecfa6397a0da5903934ea1562"
+  resolved "https://registry.npmmirror.com/ua-parser-js/-/ua-parser-js-0.7.40.tgz#c87d83b7bb25822ecfa6397a0da5903934ea1562"
   integrity sha1-yH2Dt7slgi7Ppjl6DaWQOTTqFWI=
 
 ua-parser-js@^1.0.35:

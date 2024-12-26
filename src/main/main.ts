@@ -4,7 +4,6 @@ import log from 'electron-log';
 import { createWindow as createMainWindow, getWindow as getMainWindow } from './window/main';
 import { getInitParams } from './window/params';
 import { startServer } from './window/server';
-// import GlobalInitFunc from "./processInit/index";
 
 startServer();
 
