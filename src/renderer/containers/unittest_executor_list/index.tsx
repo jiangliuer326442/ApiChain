@@ -113,7 +113,7 @@ class UnittestExecutorList extends Component {
                 <Header style={{ padding: 0 }}>
                     单测执行记录
                 </Header>
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '单测' }, { title: '历史' }]} />
                     <SingleUnitTestReport 
                         iteratorId={ this.state.iteratorId }

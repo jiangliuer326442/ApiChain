@@ -7,7 +7,7 @@ import {
 import fs from 'fs-extra';
 
 import { 
-    ChannelsDbStr, 
+    ChannelsDbLongStr, 
     ChannelsDbImportStr, 
     ChannelsDbImportSuccessStr 
 } from '../../../config/channel'
@@ -24,13 +24,13 @@ export function importDb(mainWindow: BrowserWindow) {
             let filePath = filePathObj.filePaths[0];
             let fileContent = fs.readFileSync(filePath).toString();
 
-            mainWindow.webContents.send(ChannelsDbStr, ChannelsDbImportStr, fileContent);
+            mainWindow.webContents.send(ChannelsDbLongStr, ChannelsDbImportStr, fileContent);
 
-            ipcMain.on(ChannelsDbStr, (event, action) => {
-                if (action === ChannelsDbImportSuccessStr) {
-                    mainWindow.webContents.reload();
-                }
-            });
+            // ipcMain.once(ChannelsDbLongStr, (event, action) => {
+            //     if (action === ChannelsDbImportSuccessStr) {
+            //         mainWindow.webContents.reload();
+            //     }
+            // });
         }
     });
 }

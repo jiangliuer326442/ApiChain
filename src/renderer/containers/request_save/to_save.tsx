@@ -583,7 +583,7 @@ class RequestSaveContainer extends Component {
                     this.props.device
                 );
                 message.success("保存成功");
-                this.props.history.push("#/version_iterator_request/" + this.state.prj + "/" + this.state.requestMethod + "/" + encode(this.state.requestUri));
+                this.props.history.push("/project_requests/" + this.state.prj);
             } else {
                 //编辑迭代接口
                 await addVersionIteratorRequest(this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri,
@@ -597,7 +597,7 @@ class RequestSaveContainer extends Component {
                     this.props.device
                 );
                 message.success("保存成功");
-                this.props.history.push("#/version_iterator_request/" + this.state.iteratorId + "/" + this.state.prj + "/" + this.state.requestMethod + "/" + encode(this.state.requestUri));
+                this.props.history.push("/version_iterator_requests/" + this.state.iteratorId);
             }
         }
     }
@@ -727,7 +727,7 @@ class RequestSaveContainer extends Component {
                     保存到迭代
                 </Header>
                 {this.state.showFlg ? 
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '请求' }, 
                         { title: '保存' }

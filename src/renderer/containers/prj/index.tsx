@@ -338,7 +338,7 @@ class Project extends Component {
 
     render() : ReactNode {
       return (
-        <Layout>
+        <>
           <Header style={{ padding: 0 }}>
             项目配置
           </Header>
@@ -366,7 +366,7 @@ class Project extends Component {
           <Footer style={{ textAlign: 'center' }}>
           ApiChain ©{new Date().getFullYear()} Created by 方海亮
           </Footer>
-        </Layout>
+        </>
       );
     }
 }

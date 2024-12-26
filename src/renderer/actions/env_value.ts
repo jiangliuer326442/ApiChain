@@ -287,6 +287,7 @@ export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
     window.db.transaction('rw',
         window.db[TABLE_ENV_KEY_NAME],
         window.db[TABLE_ENV_VAR_NAME], 
+        window.db[TABLE_USER_NAME],
         async () => {
             let pname = row[env_var_pname];
 

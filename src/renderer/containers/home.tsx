@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { Checkbox, Typography, Layout, Card, notification, Space, Button} from "antd";
 
 import { IS_AUTO_UPGRADE } from '../../config/global_config';
+import { SET_DEVICE_INFO } from '../../config/redux';
 import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
@@ -10,21 +11,21 @@ import {
   ChannelsAutoUpgradeDownloadStr,
 } from '../../config/channel';
 import {
+  TABLE_USER_NAME,
   TABLE_USER_FIELDS
 } from '../../config/db';
 import { getdayjs, isStringEmpty } from '../util';
+import { addUser, getUser, setUserName as ac_setUserName, } from '../actions/user';
 import registerMessageHook from '../actions/message';
-import { 
-  getUser,
-  setUserName as ac_setUserName,
-} from '../actions/user';
 
 const { Header, Content, Footer } = Layout;
 
 const { Title, Paragraph, Text, Link } = Typography;
 
 const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
-const db_field_rtime = TABLE_USER_FIELDS.FIELD_REGTIME;
+let user_country = TABLE_USER_FIELDS.FIELD_COUNTRY;
+let user_lang = TABLE_USER_FIELDS.FIELD_LANG;
+let user_ip = TABLE_USER_FIELDS.FIELD_IP;
 
 class Home extends Component {
 
@@ -42,16 +43,58 @@ class Home extends Component {
 
   async componentDidMount() {
     if (!isStringEmpty(this.props.uid)) {
-      let user = await getUser(this.props.uid);
-      this.setState({ user });
+      this.initUser(this.props.uid);
     }
     if('electron' in window) {
+      let args = window.electron.getAdditionalArguments()
+      .map(arg => atob(arg))
+      .map(arg => arg.split("="));
+      let argsObject = {};
+      for (let arg of args) {
+          argsObject[arg[0]] = arg[1];
+      }
+
+      let uuid = argsObject.uuid;
+      let uname = argsObject.uname;
+      let ip = argsObject.ip;
+
+      let userCountry = argsObject.userCountry;
+      let userLang = argsObject.userLang;
+      let user = await getUser(uuid);
+      if (user === null) {
+          await addUser(uuid, uname, ip, userCountry, userLang);
+      } else {
+          user[user_country] = userCountry;
+          user[user_lang] = userLang;
+          user[user_ip] = ip;
+          console.debug(user);
+          await window.db[TABLE_USER_NAME].put(user);
+      }
+
+      this.props.dispatch({
+        type : SET_DEVICE_INFO,
+        uuid : uuid,
+        vipFlg : argsObject.vipFlg === "true" ? true : false, 
+        expireTime : parseInt(argsObject.expireTime),
+        buyTimes : parseInt(argsObject.buyTimes),
+        html : argsObject.html,
+        appName : argsObject.appName,
+        appVersion : argsObject.appVersion,
+      });
+
+      this.initUser(uuid);
+
       this.updateOnLoad();
       registerMessageHook(this.props.dispatch, async (uid)=>{
         let user = await getUser(uid);
         this.setState({ user });
       });
     }
+  }
+
+  initUser = async (uid : string) => {
+    let user = await getUser(uid);
+    this.setState({ user });
   }
 
   updateOnLoad = () => {
@@ -73,6 +116,7 @@ class Home extends Component {
       });
     });
 
+    //前端通知服务端进行版本更新检查
     if (this.state.checkAutoUpgrade == 1) {
       this.checkForUpgrade();
     }
@@ -114,15 +158,15 @@ class Home extends Component {
             <>
               {"尊敬的会员 "}
               <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
-              {" 你好， " + this.props.appName + " 已陪你走过 " + Math.ceil((Date.now() - this.state.user[db_field_rtime])/(86400 * 1000)) + " 天（会员到期日 " + getdayjs(this.props.expireTime).format("YYYY-MM-DD") + " ）"}</> 
+              {" 你好， " + this.props.appName + " 陪你度过崭新的一天"}</> 
             :
             <>
               <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
-              {" 你好，" + this.props.appName + " 已陪你走过 " + Math.ceil((Date.now() - this.state.user[db_field_rtime])/(86400 * 1000)) + " 天"}
+              {" 你好，" + this.props.appName + " 陪你度过崭新的一天"}
             </>
             } 
           </Header>
-          <Content style={{ margin: '0 16px' }}>
+          <Content style={{ padding: '0 16px' }}>
             <div
               style={{
                 padding: 24,
@@ -141,7 +185,7 @@ class Home extends Component {
                     尽管非常希望将这款软件做成无需网络完全单机的，但是检查更新依然需要连接外部网络。新版本能够修复现有软件的一些bug以及能够让您使用到一些新增的功能。
                   </Paragraph>
                   <Paragraph>
-                    您自行决定是否使用自动检查更新，如果关闭自动检查更新，强烈建议您定期点击一下手动检查按钮，看一下是否有新的软件版本可用。也可以经常光顾我们的<Link href="https://gitee.com/onlinetool/mypostman">项目主页</Link>，看看新增了什么你感兴趣的功能。
+                    您自行决定是否使用自动检查更新，如果关闭自动检查更新，强烈建议您定期点击一下手动检查按钮，看一下是否有新的软件版本可用。也可以经常光顾我们的<Link href="https://github.com/jiangliuer326442/ApiChain">项目主页</Link>，看看新增了什么你感兴趣的功能。
                   </Paragraph>
                   <Checkbox
                     checked={this.state.checkAutoUpgrade == 1}

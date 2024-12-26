@@ -101,7 +101,7 @@ class VersionIterator extends Component {
             <Header style={{ padding: 0 }}>
               版本迭代
             </Header>
-            <Content style={{ margin: '0 16px' }}>
+            <Content style={{ padding: '0 16px' }}>
                 <Flex justify="space-between" align="center">
                     <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '设置' }, { title: '迭代管理' }]} />
                     <Button  style={{ margin: '16px 0' }} type="primary" href={"#" + VERSION_ITERATOR_ADD_ROUTE}>新增迭代</Button>

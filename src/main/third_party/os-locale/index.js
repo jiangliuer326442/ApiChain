@@ -93,11 +93,7 @@ export async function osLocale(options = defaultOptions) {
 	let locale;
 
 	try {
-		const envLocale = getEnvLocale();
-
-		if (envLocale || options.spawn === false) {
-			locale = getLocale(envLocale);
-		} else if (process.platform === 'win32') {
+		if (process.platform === 'win32') {
 			locale = await getWinLocale();
 		} else if (process.platform === 'darwin') {
 			locale = await getAppleLocale();

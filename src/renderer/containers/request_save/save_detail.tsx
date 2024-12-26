@@ -227,6 +227,7 @@ class RequestSaveContainer extends Component {
             this.setState({initRequestMethod: this.state.requestMethod, initRequestUri: this.state.requestUri});
         }
         message.success("修改成功");
+        this.props.history.push("/version_iterator_requests/" + this.state.versionIterator);
     }
 
     parseJsonToStruct = (whiteKeys : Array<any>, parentKeys : Array<string>, parentKey : string, parseJsonToTableResultCopy : object, content : object) => {
@@ -299,7 +300,7 @@ class RequestSaveContainer extends Component {
                     { isStringEmpty(this.state.versionIterator) ? "项目接口详情" : "迭代接口详情" }
                 </Header>
                 {this.state.showFlg ? 
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: (isStringEmpty(this.state.versionIterator) ? "项目" : "迭代" ) }, 
                         { title: 'api' }, 

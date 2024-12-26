@@ -133,7 +133,7 @@ class IteratorDoc extends Component {
                 <Header style={{ padding: 0 }}>
                     迭代文档
                 </Header>
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '迭代' }, 
                         { title: '文档' }

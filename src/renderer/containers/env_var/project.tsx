@@ -15,6 +15,7 @@ import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '../../../conf
 import { getEnvs } from '../../actions/env';
 import { 
   getEnvValues, 
+  addEnvValues,
   delEnvValue,
   batchCopyEnvVales,
 } from '../../actions/env_value';
@@ -153,7 +154,14 @@ class EnvVar extends Component {
           if (!paramName) {
             this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
           }
-          if(env_vars.length === 0) {
+          let hasApiHost = false;
+          for (let env_var of env_vars) {
+            if(env_var[pname] === ENV_VALUE_API_HOST) {
+              hasApiHost = true;
+              break;
+            }
+          }
+          if(!hasApiHost) {
             addEnvValues(prj, env, "", "", ENV_VALUE_API_HOST, "", this.props.device, ()=>{
               getEnvValues(prj, env, "", "", "", this.props.dispatch, env_vars => {});
             });
@@ -172,7 +180,7 @@ class EnvVar extends Component {
           <Header style={{ padding: 0 }}>
             项目环境变量配置
           </Header>
-          <Content style={{ margin: '0 16px' }}>
+          <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '项目' }, { title: '环境变量' }]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">

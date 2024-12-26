@@ -1,48 +1,72 @@
-import log from 'electron-log';
+import { app } from 'electron';
+import path from 'path';
+import fse from 'fs-extra';
 
-import getCache from './index';
-import { isStringEmpty } from '../../../renderer/util';
+import { md5 } from '../../util/util';
 
-const TABLE_NAME = "user";
-let cache_uuid = "";
+let cache_uid = "";
+let cache_salt = "";
 let cache_uname = "";
-let cache_rtime = 0;
 
-export function registerUser(uuid:string, salt:string) {
-    cache_uuid = uuid;
-    cache_uname = require('os').userInfo().username;
-    cache_rtime = Date.now();
-    let cache = getCache(salt);
-    cache.set(TABLE_NAME + ".uuid", cache_uuid);
-    cache.set(TABLE_NAME + '.username', cache_uname);
-    cache.set(TABLE_NAME + '.registerTime', cache_rtime);
-    log.debug(cache.get(TABLE_NAME));
+let publicKeyPath = path.join(app.getPath("home"), '.ssh', 'id_rsa.pub');
+let privateKeyPath = path.join(app.getPath("home"), '.ssh', 'id_rsa');
+
+let publicKeyContent = "";
+let privateKeyContent = "";
+
+export function getUuid() : string {
+    if (cache_uid === "") {
+        let publicKey = readPublicKey();
+        publicKey = publicKey.split(" ")[1];
+        publicKey = md5(publicKey).substring(0, 8);
+        cache_uid = publicKey;
+    }
+
+    return cache_uid;
 }
 
-export function getUUID() : string {
-    if(cache_uuid !== "") {
-        return cache_uuid;
+export function getUname() : string {
+    if (cache_uname === "") {
+        let publicKey = readPublicKey();
+        publicKey = publicKey.split(" ")[2].replace(/\r?\n/g, '');
+        cache_uname = publicKey;
     }
-    let cache = getCache("");
-    let uuid = cache.get(TABLE_NAME + ".uuid") as string;
-    cache_uuid = uuid;
-    return cache_uuid;
-}
 
-export function getUName() : string {
-    if(cache_uname !== "") {
-        return cache_uname;
-    }
-    let cache = getCache("");
-    cache_uname = cache.get(TABLE_NAME + ".username") as string;
     return cache_uname;
 }
 
-export function getRTime() : number {
-    if(cache_rtime !== 0) {
-        return cache_rtime;
+export function getSalt() : string {
+    if (cache_salt === "") {
+        let privateKey = readPrivateKey();
+        privateKey = privateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "");
+        privateKey = privateKey.replace("-----END RSA PRIVATE KEY-----", "");
+        privateKey = privateKey.replace(/\s/g, '');
+        privateKey = privateKey.replace(/\r?\n/g, '');
+        privateKey = md5(privateKey).substring(0, 16);
+        cache_salt = privateKey;
     }
-    let cache = getCache("");
-    cache_rtime = cache.get(TABLE_NAME + ".registerTime") as number;
-    return cache_rtime;
+
+    return cache_salt;
+}
+
+export function uuidExists() : boolean {
+    return fse.pathExistsSync(publicKeyPath);
+}
+
+function readPublicKey() {
+    if (publicKeyContent === "") {
+        let uuid = (fse.readFileSync(publicKeyPath)).toString();
+        publicKeyContent = uuid;
+    }
+
+    return publicKeyContent;
+}
+
+function readPrivateKey() {
+    if (privateKeyContent === "") {
+        let salt = (fse.readFileSync(privateKeyPath)).toString();
+        privateKeyContent = salt;
+    }
+
+    return privateKeyContent;
 }

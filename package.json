@@ -1,32 +1,32 @@
 {
   "name": "ApiChainDebug",
-  "version": "1.0.8",
-  "description": "是一款类似 PostMan 的接口请求软件",
+  "version": "1.0.9",
+  "description": "接口文档与单元测试工具",
   "keywords": [
     "postman",
     "项目接口管理",
     "迭代文档",
     "自动化测试"
   ],
-  "homepage": "https://gitee.com/onlinetool/mypostman",
+  "homepage": "https://github.com/jiangliuer326442/ApiChain",
   "bugs": {
-    "url": "https://gitee.com/onlinetool/mypostman/issues"
+    "url": "https://github.com/jiangliuer326442/ApiChain/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitee.com/onlinetool/mypostman.git"
+    "url": "git+https://github.com/jiangliuer326442/ApiChain.git"
   },
   "license": "MIT",
   "author": {
     "name": "方海亮",
     "email": "fanghailiang2016@gmail.com",
-    "url": "https://gitee.com/onlinetool/mypostman"
+    "url": "https://github.com/jiangliuer326442/ApiChain"
   },
   "contributors": [
     {
       "name": "方海亮",
       "email": "fanghailiang2016@gmail.com",
-      "url": "https://gitee.com/onlinetool/mypostman"
+      "url": "https://github.com/jiangliuer326442/ApiChain"
     }
   ],
   "main": "./src/main/main.ts",
@@ -39,7 +39,7 @@
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never && npm run build:dll",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
-    "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
+    "start": "npm run start:renderer",
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
@@ -61,48 +61,14 @@
       }
     ]
   },
-  "jest": {
-    "moduleDirectories": [
-      "node_modules",
-      "release/app/node_modules",
-      "src"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "jsx",
-      "ts",
-      "tsx",
-      "json"
-    ],
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/.erb/mocks/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
-    },
-    "setupFiles": [
-      "./.erb/scripts/check-build-exists.ts"
-    ],
-    "testEnvironment": "jsdom",
-    "testEnvironmentOptions": {
-      "url": "http://localhost/"
-    },
-    "testPathIgnorePatterns": [
-      "release/app/dist",
-      ".erb/dll"
-    ],
-    "transform": {
-      "\\.(ts|tsx|js|jsx)$": "ts-jest"
-    }
-  },
   "dependencies": {
     "@ant-design/icons": "^5.3.6",
-    "add": "^2.0.6",
     "antd": "^5.16.5",
     "axios": "^1.6.8",
     "base-64": "^1.0.0",
     "dayjs": "^1.11.11",
     "dexie": "^4.0.4",
     "draft-js": "^0.11.7",
-    "electron-debug": "^3.2.0",
     "electron-log": "^4.4.8",
     "electron-store": "^8.2.0",
     "electron-updater": "^6.1.4",
@@ -129,7 +95,6 @@
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.0",
     "showdown": "^2.1.0",
-    "systeminformation": "^5.22.7",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

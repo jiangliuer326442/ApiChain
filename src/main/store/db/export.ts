@@ -9,7 +9,11 @@ import path from 'path';
 import fs from 'fs-extra';
 import log from 'electron-log';
 
-import { ChannelsDbStr, ChannelsDbExportStr, ChannelsDbWriteStr } from '../../../config/channel';
+import { 
+    ChannelsDbLongStr,
+    ChannelsDbExportStr, 
+    ChannelsDbWriteStr 
+} from '../../../config/channel';
 import { getNowdayjs } from '../../../renderer/util';
 import { getPackageJson } from '../../util/util';
 
@@ -27,9 +31,9 @@ export async function exportDb(mainWindow: BrowserWindow) {
         ]
     }).then(filePathObj => {
       if (!filePathObj.canceled) {
-        mainWindow.webContents.send(ChannelsDbStr, ChannelsDbExportStr, filePathObj.filePath);
+        mainWindow.webContents.send(ChannelsDbLongStr, ChannelsDbExportStr, filePathObj.filePath);
 
-        ipcMain.on(ChannelsDbStr, (event, action,  filePath, jsonString) => {
+        ipcMain.once(ChannelsDbLongStr, (event, action,  filePath, jsonString) => {
             if(action === ChannelsDbWriteStr) {
                 fs.writeFile(filePath, jsonString, err => {
                     if (err != null) {

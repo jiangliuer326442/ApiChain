@@ -1,14 +1,11 @@
-import log from 'electron-log';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getUUID } from './user';
-import { getSalt } from '../../processInit/uuid';
-
 import getCache from './index';
+import { getUuid, getSalt } from './user';
 import { isStringEmpty } from '../../../renderer/util';
 
-const TABLE_NAME = "vip.status";
+export const TABLE_NAME = "vip.status";
 
 //最新的 VIP 订单号
 const VIP_LATEST_TRADE = TABLE_NAME + ".tradeNo";
@@ -92,7 +89,8 @@ export function genDecryptString(base64Str : string) : string {
     let orderNo = lineArr[4];
     let uid = lineArr[5];
 
-    let myUid = getUUID();
+    let myUid = getUuid();
+
     if (uid !== myUid) {
         return "";
     }
@@ -114,7 +112,7 @@ export function genDecryptString(base64Str : string) : string {
 
 export function genEncryptString(productName : string, payMethod : string) : string {
     let outTradeNo = uuidv4() as string;
-    let param = getUUID();
+    let param = getUuid();
 
     let cache = getCache("");
     cache.set(VIP_LATEST_TRADE, outTradeNo);
@@ -153,7 +151,7 @@ function encrypt(content : string) : string {
 
 function genKeyIv() {
     if (key === null && iv === null) {
-        let uid = getUUID();
+        let uid = getUuid();
         let salt = getSalt();
     
         key = crypto.scryptSync(uid, salt, 32);

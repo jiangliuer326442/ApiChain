@@ -23,10 +23,11 @@ export default function (){
         if (action !== ChannelsAutoUpgradeCheckStr) return;
         autoUpdater.checkForUpdates();
         autoUpdater.on('update-available', (info) => {
-            log.debug("updateCheckResult", info);
             if (info !== null) {
-                log.debug("updateCheckResult", info);
-                event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeNewVersionStr, info);
+                autoUpdater.downloadUpdate().then(paths => {
+                    log.info("downloadUpdate paths", paths, info);
+                    event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeNewVersionStr, info);
+                });
             }
         });
         autoUpdater.on('update-not-available', () => {  
@@ -36,9 +37,6 @@ export default function (){
 
     ipcMain.on(ChannelsAutoUpgradeStr, (event, action) => {
         if (action !== ChannelsAutoUpgradeDownloadStr) return;
-        autoUpdater.downloadUpdate().then(paths => {
-            log.info("downloadUpdate paths", paths);
-            autoUpdater.quitAndInstall();
-        });
+        autoUpdater.quitAndInstall();
     });
 }

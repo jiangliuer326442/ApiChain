@@ -1,20 +1,16 @@
 import {
     BrowserWindow,
-    ipcMain,
+    app,
 } from 'electron';
+import path from 'path';
+import fse from 'fs-extra';
 
 import { 
-    ChannelsDbStr, 
+    ChannelsDbLongStr, 
     ChannelsDbTrunkStr, 
-    ChannelsDbTrunkSuccessStr 
 } from '../../../config/channel'
 
 export function trunkDb(mainWindow: BrowserWindow) {
-    mainWindow.webContents.send(ChannelsDbStr, ChannelsDbTrunkStr);
-
-    ipcMain.on(ChannelsDbStr, (event, action) => {
-        if (action === ChannelsDbTrunkSuccessStr) {
-            mainWindow.webContents.reload();
-        }
-    });
+    fse.removeSync(path.join(app.getPath('logs'), 'main.log'));
+    mainWindow.webContents.send(ChannelsDbLongStr, ChannelsDbTrunkStr);
 }

@@ -175,7 +175,7 @@ class RequestHistoryContainer extends Component {
                 <Header style={{ padding: 0 }}>
                     网络请求记录
                 </Header>
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '请求' }, { title: '历史' }]}></Breadcrumb>
                     <Flex vertical gap="middle">
                         <Flex justify="space-between" align="center">

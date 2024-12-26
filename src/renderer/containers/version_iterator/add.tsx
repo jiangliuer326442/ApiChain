@@ -84,7 +84,7 @@ class VersionIteratorAdd extends Component {
         return (
         <Layout>
             <Header style={{ padding: 0 }}>版本迭代</Header>
-            <Content style={{ margin: '0 16px' }}>
+            <Content style={{ padding: '0 16px' }}>
                 <Flex justify="space-between" align="center">
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '设置' }, 

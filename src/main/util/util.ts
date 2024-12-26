@@ -3,15 +3,15 @@ import { URL } from 'url';
 import path from 'path';
 import { app } from 'electron';
 import os from 'os';
-import log from 'electron-log';
+import crypto from 'crypto';
 
 import { GLobalPort } from '../../config/global_config';
 
 export function getIpV4() {
-  const interfaces = os.networkInterfaces();
+  const interfacees = os.networkInterfaces();
 
-  for (const name of Object.keys(interfaces)) {
-      for (const netInterface of interfaces[name]) {
+  for (const name of Object.keys(interfacees)) {
+      for (const netInterface of interfacees[name]) {
           const { address, family, internal } = netInterface;
           if (family === 'IPv4' && !internal) {
               return address;
@@ -43,29 +43,10 @@ export function getPackageJson() : string {
   return retPath;
 }
 
-export async function genUUID() {
-  let si = require('systeminformation');
-  let staticData = await si.getStaticData();
-  let serial = {
-    systemSerial: staticData.system.serial, //系统串号
-    baseboardSerial: staticData.baseboard.serial, //主板串号
-    chassisSerial: staticData.chassis.serial, //基座串号
-  }
-  let arr = await si.networkInterfaces();
-  let networkInterfaceDefault = await si.networkInterfaceDefault();
-  let [item] = arr.filter(v => v.iface == networkInterfaceDefault);
-  serial.mac = item.mac;
-  let serialNumStr = JSON.stringify(serial);
-  let crypto = require('crypto');
-  let serialHash = crypto.createHash('sha256').update(serialNumStr).digest('hex');
-  return serialHash;
-}
-
-const RESOURCES_PATH = app.isPackaged
+export function getAssetPath(...paths: string[]): string {
+  const RESOURCES_PATH = app.isPackaged
 ? path.join(process.resourcesPath, 'assets')
 : path.join(__dirname, '../../../assets');
-
-export function getAssetPath(...paths: string[]): string {
   return path.join(RESOURCES_PATH, ...paths);
 }
 
@@ -77,4 +58,8 @@ export function base64Encode(data : string) : string {
 export function base64Decode(base64Str : string) : string {
   const decodedStr = Buffer.from(base64Str, 'base64').toString();
   return decodedStr;
+}
+
+export function md5(str : string) {
+  return crypto.createHash('md5').update(str).digest('hex');
 }

@@ -3,6 +3,7 @@ import { ipcMain, BrowserWindow } from 'electron'
 
 import {
     ChannelsMockServerStr,
+    ChannelsMockServerLongStr,
     ChannelsMockServerQueryStr,
     ChannelsMockServerAccessSetStr,
     ChannelsMockServerAccessGetStr,
@@ -36,7 +37,7 @@ let res;
 
 export function getRequestByIterator(paramIteratorId : string, paramProjectId : string, paramMethod : string, paramUri : string, paramRes) {
 
-    window.webContents.send(ChannelsMockServerStr, ChannelsMockServerQueryStr, paramIteratorId, paramProjectId, paramMethod, paramUri);
+    window.webContents.send(ChannelsMockServerLongStr, ChannelsMockServerQueryStr, paramIteratorId, paramProjectId, paramMethod, paramUri);
 
     iteratorId = paramIteratorId;
     res = paramRes;
@@ -61,7 +62,7 @@ export default function (mainWindow : BrowserWindow) {
     });
 
     //查询文档内容
-    ipcMain.on(ChannelsMockServerStr, (event, action, versionIteration, version_iteration_requests) => {
+    ipcMain.on(ChannelsMockServerLongStr, (event, action, versionIteration, version_iteration_requests) => {
         if (action !== ChannelsMockServerQueryResultStr) return;
         //迭代已经关闭，没有权限
         if (versionIteration === undefined || versionIteration[version_iterator_del] === 1 || versionIteration[version_iterator_open] === 0) {

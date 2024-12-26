@@ -7,6 +7,7 @@ import {
     ChannelsVipCkCodeStr, 
     ChannelsVipDoCkCodeStr 
 } from '../../../config/channel';
+import { getUuid } from '../../store/config/user';
 import { 
     genEncryptString, 
     getOutTradeNo, 
@@ -17,7 +18,6 @@ import {
     genDecryptString,
     incBuyTimes, 
 } from '../../store/config/vip';
-import { getUUID } from '../../store/config/user';
 import { isStringEmpty } from '../../../renderer/util';
 
 export default function (){
@@ -89,7 +89,7 @@ export default function (){
         let buyTimes = incBuyTimes();
 
         //核销成功
-        event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUUID(), expireTime, buyTimes);
+        event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), expireTime, buyTimes);
 
     });
 }

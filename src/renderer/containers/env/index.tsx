@@ -83,7 +83,7 @@ class Env extends Component {
         <Header style={{ padding: 0 }}>
           开发环境配置
         </Header>
-        <Content style={{ margin: '0 16px' }}>
+        <Content style={{ padding: '0 16px' }}>
             <Flex justify="space-between" align="center">
                 <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '设置' }, { title: '开发环境' }]} />
                 <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addEnvClick}>新增环境</Button>

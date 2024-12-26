@@ -5,7 +5,6 @@ import Dexie from 'dexie';
 
 import { DB_NAME } from '../../config/db';
 import { SET_NAV_COLLAPSED } from '../../config/redux';
-import { ChannelsUserInfoStr, ChannelsUserInfoPingStr } from '../../config/channel';
 import { getVersionIterators } from "../actions/version_iterator";
 import { getPrjs } from "../actions/project";
 
@@ -17,12 +16,13 @@ class Nav extends Component {
         super(props);
 
         if(window.db === undefined) {
-            // 创建一个 Dexie 数据库实例  
             window.db = new Dexie(DB_NAME);
         }
 
         window.db.on('ready', () => {
-          this.cb();
+          if (!this.state.initNavFlg) {
+            this.cb();
+          }
         });
 
         require('../reducers/db/20240501001');
@@ -36,24 +36,21 @@ class Nav extends Component {
         require('../reducers/db/20241216001');
 
         this.state = {
-
+          initNavFlg: false,
         };
     }
 
     async componentDidMount() {
       await window.db.open();
-      
-      if (this.props.uuid === "") {
-        if('electron' in window) {
-          window.electron.ipcRenderer.sendMessage(ChannelsUserInfoStr, ChannelsUserInfoPingStr);
-        }
+      if (!this.state.initNavFlg) {
+        this.cb();
       }
-      
     }
 
     cb = () => {
       getPrjs(this.props.dispatch);
       getVersionIterators(this.props.dispatch);
+      this.state.initNavFlg = true;
     }
 
     setCollapsed = (collapsed) => {
@@ -68,7 +65,7 @@ class Nav extends Component {
           <Sider collapsible collapsed={this.props.collapsed} onCollapse={(value) => this.setCollapsed(value)}>
             <Flex gap="middle" vertical style={{
               height: "32px",
-              margin: "16px",
+              padding: "16px",
             }}>
               {!this.props.collapsed ? 
               <a href={ "#/" } rel="noopener noreferrer" style={{lineHeight: 0,
