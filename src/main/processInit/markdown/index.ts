@@ -18,6 +18,7 @@ import {
 } from '../../../config/db';
 import { GLobalPort } from '../../../config/global_config';
 import {
+    ChannelsMarkdownLongStr,
     ChannelsMarkdownStr, 
     ChannelsMarkdownShowStr,
     ChannelsMarkdownQueryStr,
@@ -124,7 +125,7 @@ function iteratorObjectToArr(returnList, jsonObject, level) {
 
 export function getMarkdownContentByIteratorId(paramIteratorId : string, paramRes) {
 
-    window.webContents.send(ChannelsMarkdownStr, ChannelsMarkdownQueryStr, paramIteratorId);
+    window.webContents.send(ChannelsMarkdownLongStr, ChannelsMarkdownQueryStr, paramIteratorId);
 
     iteratorId = paramIteratorId;
     res = paramRes;
@@ -149,7 +150,7 @@ export default function (mainWindow : BrowserWindow){
     });
 
     //查询文档内容
-    ipcMain.on(ChannelsMarkdownStr, (event, action, versionIteration, version_iteration_requests, prjs, envs, envVars) => {
+    ipcMain.on(ChannelsMarkdownLongStr, (event, action, versionIteration, version_iteration_requests, prjs, envs, envVars) => {
         if (action !== ChannelsMarkdownQueryResultStr) return;
         //迭代已经关闭，没有权限
         if (versionIteration === undefined || versionIteration[version_iterator_del] === 1 || versionIteration[version_iterator_open] === 0) {

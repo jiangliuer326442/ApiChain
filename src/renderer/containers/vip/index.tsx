@@ -176,7 +176,7 @@ class Vip extends Component {
                 <Header style={{ padding: 0 }}>
                     会员功能 
                 </Header>
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
                     <List itemLayout="horizontal" dataSource={this.state.list} renderItem={(item) => (
                         <List.Item

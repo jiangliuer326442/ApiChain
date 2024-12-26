@@ -299,7 +299,7 @@ class RequestSaveContainer extends Component {
                     { isStringEmpty(this.state.versionIterator) ? "项目接口详情" : "迭代接口详情" }
                 </Header>
                 {this.state.showFlg ? 
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: (isStringEmpty(this.state.versionIterator) ? "项目" : "迭代" ) }, 
                         { title: 'api' }, 

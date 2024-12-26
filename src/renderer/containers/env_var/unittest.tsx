@@ -187,7 +187,7 @@ class EnvVar extends Component {
           <Header style={{ padding: 0 }}>
             单测环境变量配置
           </Header>
-          <Content style={{ margin: '0 16px' }}>
+          <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '单测' }, { title: '环境变量' }]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">

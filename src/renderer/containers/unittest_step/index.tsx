@@ -508,7 +508,7 @@ class UnittestStepContainer extends Component {
                 <Header style={{ padding: 0 }}>
                     迭代单测执行步骤
                 </Header>
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: <a href={ '#/version_iterator_tests/' + this.state.iteratorId }>{ this.state.unitTest[unittest_title] }</a > }, 
                         { title: isStringEmpty(this.state.unitTestStepUuid) ? '添加步骤' : '编辑步骤' }

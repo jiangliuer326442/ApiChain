@@ -10,10 +10,15 @@ let dataBase64Decode = "";
 const userData = app.getPath("userData");
 export const uuidPath = path.join(userData, "uuid");
 
-export function writeFile(uuid : string, salt : string) : void {
+export function writeFile(uuid : string, salt : string, cb) : void {
     let content = base64Encode(uuid + ":" + salt);
-    log.info("writeFile:" + uuidPath + "|" + content);
-    fs.writeFileSync(uuidPath, content);
+    fs.writeFile(uuidPath, content, err => {
+        if (err != null) {
+            log.error("write uuid error", err);
+        } else {
+            cb();
+        }
+    });
 }
 
 export function getSalt() : string {

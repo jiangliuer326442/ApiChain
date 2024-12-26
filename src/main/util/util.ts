@@ -3,7 +3,8 @@ import { URL } from 'url';
 import path from 'path';
 import { app } from 'electron';
 import os from 'os';
-import log from 'electron-log';
+import crypto from 'crypto';
+import si from 'systeminformation';
 
 import { GLobalPort } from '../../config/global_config';
 
@@ -43,8 +44,7 @@ export function getPackageJson() : string {
   return retPath;
 }
 
-export async function genUUID() {
-  let si = require('systeminformation');
+export async function genUUID() : Promise<string> {
   let staticData = await si.getStaticData();
   let serial = {
     systemSerial: staticData.system.serial, //系统串号
@@ -56,7 +56,6 @@ export async function genUUID() {
   let [item] = arr.filter(v => v.iface == networkInterfaceDefault);
   serial.mac = item.mac;
   let serialNumStr = JSON.stringify(serial);
-  let crypto = require('crypto');
   let serialHash = crypto.createHash('sha256').update(serialNumStr).digest('hex');
   return serialHash;
 }

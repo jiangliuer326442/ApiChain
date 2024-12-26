@@ -3,21 +3,34 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { 
   ChannelsUserInfo, 
   ChannelsOpenWindow, 
-  ChannelsMarkdown, 
+  ChannelsMarkdown,
+  ChannelsMarkdownLong,
   ChannelsDb, 
   ChannelsPostman, 
   ChannelsAutoUpgrade,
   ChannelsVip, 
   ChannelssMockServer,
+  ChannelssMockServerLong,
   ChannelsAxioBreidge,
+  ChannelsDbLong,
 } from '../config/channel';
 
 const electronHandler = {
   ipcRenderer: {
-    sendMessage(channel: ChannelsUserInfo | ChannelsOpenWindow | ChannelsMarkdown | ChannelsDb | ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | ChannelssMockServer | ChannelsAxioBreidge, ...args: unknown[]) {
+    sendMessage(channel: ChannelsUserInfo | ChannelsOpenWindow | 
+      ChannelsMarkdown | ChannelsMarkdownLong |
+      ChannelsDb | ChannelsDbLong |
+      ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | 
+      ChannelssMockServer | ChannelssMockServerLong |
+      ChannelsAxioBreidge, ...args: unknown[]) {
       ipcRenderer.send(channel, ...args);
     },
-    on(channel: ChannelsUserInfo | ChannelsOpenWindow | ChannelsMarkdown | ChannelsDb | ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | ChannelssMockServer | ChannelsAxioBreidge, func: (...args: unknown[]) => void) {
+    on(channel: ChannelsUserInfo | ChannelsOpenWindow | 
+      ChannelsMarkdown |  ChannelsMarkdownLong |
+      ChannelsDb |  ChannelsDbLong |
+      ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | 
+      ChannelssMockServer |  ChannelssMockServerLong |
+      ChannelsAxioBreidge, func: (...args: unknown[]) => void) {
       const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
         func(...args);
       ipcRenderer.on(channel, subscription);
@@ -26,10 +39,18 @@ const electronHandler = {
         ipcRenderer.removeListener(channel, subscription);
       };
     },
-    once(channel: ChannelsUserInfo | ChannelsOpenWindow | ChannelsMarkdown | ChannelsDb | ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | ChannelssMockServer | ChannelsAxioBreidge, func: (...args: unknown[]) => void) {
+    once(channel: ChannelsUserInfo | ChannelsOpenWindow | 
+      ChannelsMarkdown |  ChannelsMarkdownLong |
+      ChannelsDb |  ChannelsDbLong |
+      ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | 
+      ChannelssMockServer |  ChannelssMockServerLong |
+      ChannelsAxioBreidge, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
   },
+  getAdditionalArguments: () => {
+    return process.argv.filter(arg => arg.startsWith('$$')).map((arg => arg.substring(2)));
+  }
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

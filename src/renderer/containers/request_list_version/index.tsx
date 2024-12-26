@@ -248,7 +248,7 @@ class RequestListVersion extends Component {
                     迭代接口列表
                 </Header>
                 {this.state.formReadyFlg ?
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '迭代' }, 
                         { title: '接口列表' }

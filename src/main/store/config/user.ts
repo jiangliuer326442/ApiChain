@@ -1,17 +1,20 @@
 import log from 'electron-log';
+import os from 'os';
 
 import getCache from './index';
-import { isStringEmpty } from '../../../renderer/util';
 
 const TABLE_NAME = "user";
 let cache_uuid = "";
 let cache_uname = "";
 let cache_rtime = 0;
 
-export function registerUser(uuid:string, salt:string) {
+export function registerUser(uuid:string) {
     cache_uuid = uuid;
-    cache_uname = require('os').userInfo().username;
+    cache_uname = os.userInfo().username;
     cache_rtime = Date.now();
+}
+
+export function storeRegisterData(salt:string) {
     let cache = getCache(salt);
     cache.set(TABLE_NAME + ".uuid", cache_uuid);
     cache.set(TABLE_NAME + '.username', cache_uname);

@@ -727,7 +727,7 @@ class RequestSaveContainer extends Component {
                     保存到迭代
                 </Header>
                 {this.state.showFlg ? 
-                <Content style={{ margin: '0 16px' }}>
+                <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '请求' }, 
                         { title: '保存' }

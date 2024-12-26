@@ -699,7 +699,7 @@ class RequestSendContainer extends Component {
             <Header style={{ padding: 0 }}>
                 发送网络请求
             </Header>
-            <Content style={{ margin: '0 16px' }}>
+            <Content style={{ padding: '0 16px' }}>
               <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '请求' }, { title: '发送' }]} />
               <Flex vertical gap="middle">
                 <Flex justify="space-between" align="center">
