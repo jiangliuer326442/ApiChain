@@ -39,8 +39,8 @@ jobs:
       - name: Publish releases
         run: |
           # yarn electron-builder -- --publish always --mac
-          # yarn electron-builder -- --publish always --windows
-          yarn electron-builder -- --publish always --linux
+          yarn electron-builder -- --publish always --windows
+          # yarn electron-builder -- --publish always --linux
           
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
