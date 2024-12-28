@@ -25,6 +25,7 @@ const { Text } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
+let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 class EnvVar extends Component {
@@ -37,6 +38,11 @@ class EnvVar extends Component {
             title: '参数名称',
             dataIndex: pname,
             width: 100,
+            render: (value) => {
+              return (
+                <Text copyable={{text: value}}>{ value }</Text>
+              );
+            }
           },
           {
             title: '参数值',
@@ -46,6 +52,11 @@ class EnvVar extends Component {
                 <Text copyable={{text: value}}>{ value }</Text>
               );
             }
+          },
+          {
+            title: '备注',
+            dataIndex: premark,
+            width: 150,
           },
           {
             title: '创建人',
@@ -122,6 +133,7 @@ class EnvVar extends Component {
           open: true,
           pname: record[pname],
           pvalue: record[pvar],
+          premark: record[premark],
       });
     }
 

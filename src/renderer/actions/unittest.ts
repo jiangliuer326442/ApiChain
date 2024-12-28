@@ -2,6 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { cloneDeep } from 'lodash';
 
 import { 
+    TABLE_USER_NAME,
+    TABLE_UNITTEST_FOLD_NAME, TABLE_UNITTEST_FOLD_FIELDS,
     TABLE_UNITTEST_NAME, TABLE_UNITTEST_FIELDS,
     TABLE_UNITTEST_STEPS_NAME,TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_EXECUTOR_NAME, TABLE_UNITTEST_EXECUTOR_FIELDS,
@@ -41,10 +43,13 @@ import { sendAjaxMessage } from './message';
 import { getUsers } from './user';
 import { addRequestHistory, getRequestHistory } from './request_history';
 
-import { getType, isStringEmpty, isJsonString, paramToString } from '../util';
+import { getType, isStringEmpty, isJsonString, paramToString, waitSeconds } from '../util';
 
 import RequestSendTips from '../classes/RequestSendTips';
 import JsonParamTips from '../classes/JsonParamTips';
+
+let version_iteration_test_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR_UUID;
+let version_iteration_test_folder_name = TABLE_UNITTEST_FOLD_FIELDS.FIELD_FOLD_NAME;
 
 let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let field_unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
@@ -73,6 +78,7 @@ let unittest_step_param = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PARAM;
 let unittest_step_path_variable = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let unittest_step_body = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_BODY;
 let unittest_step_continue = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CONTINUE;
+let unittest_step_wait_seconds = TABLE_UNITTEST_STEPS_FIELDS.FIELD_WAIT_SECONDS;
 let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
 let unittest_step_cuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CUID;
 let unittest_step_ctime = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CTIME;
@@ -123,6 +129,75 @@ let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
+export async function batchMoveIteratorUnittest(oldIterator : string, unittestArr : Array<string>, newIterator : string, cb : () => void) {
+    window.db.transaction('rw',
+        window.db[TABLE_USER_NAME],
+        window.db[TABLE_UNITTEST_NAME],
+        window.db[TABLE_UNITTEST_FOLD_NAME], 
+        window.db[TABLE_UNITTEST_STEPS_NAME],
+        window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME],
+        async () => {
+            for (let _unittestRow of unittestArr) {
+                let version_iteration_unittest = await window.db[TABLE_UNITTEST_NAME]
+                .where(field_unittest_uuid)
+                .equals(_unittestRow)
+                .first();
+        
+                if (version_iteration_unittest === undefined) {
+                    continue;
+                }
+        
+                let selectedFold = version_iteration_unittest[unittest_fold];
+                let iteration_unittest_fold = await window.db[TABLE_UNITTEST_FOLD_NAME]
+                .where([version_iteration_test_folder_iterator, version_iteration_test_folder_name])
+                .equals([oldIterator, selectedFold])
+                .first();
+        
+                let iteration_unittest_steps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+                .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+                .equals([0, oldIterator, _unittestRow])
+                .toArray();
+        
+                for (let iteration_unittest_step of iteration_unittest_steps) {
+                    let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
+                    let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
+                    .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
+                    .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
+                    .toArray();
+                }
+        
+                version_iteration_unittest[unittest_iterator_uuid] = newIterator;
+                await window.db[TABLE_UNITTEST_NAME].put(version_iteration_unittest);
+
+                if (iteration_unittest_fold !== undefined) {
+                    iteration_unittest_fold[version_iteration_test_folder_iterator] = newIterator;
+                    await window.db[TABLE_UNITTEST_FOLD_NAME].put(iteration_unittest_fold);
+                }
+
+                let cloneIterationUnittestSteps = cloneDeep(iteration_unittest_steps);
+                for (let iteration_unittest_step of cloneIterationUnittestSteps) {
+                    iteration_unittest_step[unittest_step_iterator_uuid] = newIterator;
+                    await window.db[TABLE_UNITTEST_STEPS_NAME].put(iteration_unittest_step);
+                }
+
+                cloneIterationUnittestSteps = cloneDeep(iteration_unittest_steps);
+                for (let iteration_unittest_step of cloneIterationUnittestSteps) {
+                    let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
+                    let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
+                    .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
+                    .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
+                    .toArray();
+                    for (let iteration_unittest_assert of iteration_unittest_asserts) {
+                        iteration_unittest_assert[unittest_step_assert_iterator] = newIterator;
+                        await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].put(iteration_unittest_assert);
+                    }
+                }
+            }
+            cb();
+        }
+    );
+}
+
 export async function addUnitTest(versionIteratorId : string, title : string, folder : string, device : object, cb) {
     let unit_test : any = {};
     unit_test[unittest_iterator_uuid] = versionIteratorId;
@@ -142,7 +217,7 @@ export async function addUnitTestStep(
     title : string, project : string, method: string, uri : string,
     header: object, param: object, pathVariable: object, body: object,
     assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>,
-    sort: number, continueEnable: string,
+    sort: number, continueEnable: string, waitSeconds: number,
     device : object, cb) {
         window.db.transaction('rw',
             window.db[TABLE_UNITTEST_STEPS_NAME],
@@ -164,6 +239,7 @@ export async function addUnitTestStep(
                 unit_test_step[unittest_step_path_variable] = pathVariable;
                 unit_test_step[unittest_step_body] = body;
                 unit_test_step[unittest_step_continue] = continueEnable;
+                unit_test_step[unittest_step_wait_seconds] = waitSeconds;
                 unit_test_step[unittest_step_sort] = sort;
                 unit_test_step[unittest_step_cuid] = device.uuid;
                 unit_test_step[unittest_step_ctime] = Date.now();
@@ -216,7 +292,8 @@ export async function editUnitTestStep(
     unittest_step_uuid : string, title : string,
     header: object, param: object, pathVariable: object, body: object,
     assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>, 
-    assertUuidArr: Array<string>, sort: number, continueEnable: string, device: any, cb) {
+    assertUuidArr: Array<string>, sort: number, continueEnable: string, waitSeconds: number,
+    device: any, cb) {
     let unit_test_step = await window.db[TABLE_UNITTEST_STEPS_NAME]
     .where(field_unittest_step_uuid).equals(unittest_step_uuid)
     .first();
@@ -229,6 +306,7 @@ export async function editUnitTestStep(
         unit_test_step[unittest_step_body] = body;
         unit_test_step[unittest_step_sort] = sort;
         unit_test_step[unittest_step_continue] = continueEnable;
+        unit_test_step[unittest_step_wait_seconds] = waitSeconds;
         await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
     }
 
@@ -593,9 +671,21 @@ export async function continueProjectExecuteUnitTest(
 
 export async function executeProjectUnitTest(
     iteratorId : string, unitTestId : string, 
-    steps : Array<any>, env : string, dispatch : any) : Promise<string>
+    steps : Array<any>, env : string, dispatch : any,
+    cb : Function
+)
     {
     let batch_uuid = uuidv4() as string;
+    let progressCb = cb;
+
+    let unittest_result : any = {};
+    unittest_result[unittest_report_iterator] = "";
+    unittest_result[unittest_report_env] = env;
+    unittest_result[unittest_report_unittest] = unitTestId;
+    unittest_result[unittest_report_batch] = batch_uuid;
+    unittest_result[unittest_report_delFlg] = 0;
+    unittest_result[unittest_report_ctime] = Date.now();
+    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
         (project : string) => {
@@ -622,34 +712,48 @@ export async function executeProjectUnitTest(
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
-        });
+        },
+        progressCb
+    );
+
+    let lastUnittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
+    .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest, unittest_report_env])
+    .equals([0, "", unitTestId, env])
+    .reverse()
+    .first();
     let success = ret.success;
     let recentStepUuid = ret.recentStepUuid;
     let errorMessage = ret.errorMessage;
     let btime = ret.btime;
 
+    lastUnittestReport[unittest_report_result] = success;
+    lastUnittestReport[unittest_report_step] = recentStepUuid;
+    lastUnittestReport[unittest_report_failure_reason] = errorMessage;
+    lastUnittestReport[unittest_report_cost_time] = Date.now() - btime;
+    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(lastUnittestReport);
+
+    progressCb(batch_uuid, "");
+}
+
+export async function executeIteratorUnitTest(
+    iteratorId : string, unitTestId : string, 
+    steps : Array<any>, env : string, dispatch : any,
+    cb : Function
+)
+    {
+    let batch_uuid = uuidv4() as string;
+    let progressCb = cb;
+
+    //预输入数据
     let unittest_result : any = {};
-    unittest_result[unittest_report_iterator] = "";
+    unittest_result[unittest_report_iterator] = iteratorId;
     unittest_result[unittest_report_env] = env;
     unittest_result[unittest_report_unittest] = unitTestId;
     unittest_result[unittest_report_batch] = batch_uuid;
     unittest_result[unittest_report_delFlg] = 0;
     unittest_result[unittest_report_ctime] = Date.now();
-    unittest_result[unittest_report_result] = success;
-    unittest_result[unittest_report_step] = recentStepUuid;
-    unittest_result[unittest_report_failure_reason] = errorMessage;
-    unittest_result[unittest_report_cost_time] = Date.now() - btime;
 
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
-
-    return batch_uuid;
-}
-
-export async function executeIteratorUnitTest(
-    iteratorId : string, unitTestId : string, 
-    steps : Array<any>, env : string, dispatch : any) : Promise<string>
-    {
-    let batch_uuid = uuidv4() as string;
 
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
         (project : string) => {
@@ -676,27 +780,27 @@ export async function executeIteratorUnitTest(
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
-        });
+        },
+        progressCb
+    );
+
+    //登记结果
+    let lastUnittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
+    .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest, unittest_report_env])
+    .equals([0, iteratorId, unitTestId, env])
+    .reverse()
+    .first();
     let success = ret.success;
     let recentStepUuid = ret.recentStepUuid;
     let errorMessage = ret.errorMessage;
     let btime = ret.btime;
+    lastUnittestReport[unittest_report_result] = success;
+    lastUnittestReport[unittest_report_step] = recentStepUuid;
+    lastUnittestReport[unittest_report_failure_reason] = errorMessage;
+    lastUnittestReport[unittest_report_cost_time] = Date.now() - btime;
+    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(lastUnittestReport);
 
-    let unittest_result : any = {};
-    unittest_result[unittest_report_iterator] = iteratorId;
-    unittest_result[unittest_report_env] = env;
-    unittest_result[unittest_report_unittest] = unitTestId;
-    unittest_result[unittest_report_batch] = batch_uuid;
-    unittest_result[unittest_report_delFlg] = 0;
-    unittest_result[unittest_report_ctime] = Date.now();
-    unittest_result[unittest_report_result] = success;
-    unittest_result[unittest_report_step] = recentStepUuid;
-    unittest_result[unittest_report_failure_reason] = errorMessage;
-    unittest_result[unittest_report_cost_time] = Date.now() - btime;
-
-    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
-
-    return batch_uuid;
+    progressCb(batch_uuid, "");
 }
 
 async function stepsExecutor(
@@ -708,6 +812,7 @@ async function stepsExecutor(
     getEnvVarTipsFunc : Function,
     getJsonParamTipsFunc : Function,
     saveStepResultFunc : Function,
+    progressCb : Function,
 ) : Promise<any> {
     let btime = Date.now();
     let success = UNITTEST_RESULT_SUCCESS;
@@ -728,13 +833,16 @@ async function stepsExecutor(
         let body = unit_test_step[unittest_step_body];
         let file = new Object();
         let isContinue = unit_test_step[unittest_step_continue];
+        let delaySeconds = unit_test_step[unittest_step_wait_seconds];
 
         let breakFlg = true;
 
         //不继续了，且不是最后一步，结果就是未知的，并且记录下最后执行的步骤 uuid，以便于继续执行
-        if (!(isContinue == 1) && stepUuid !== firstStepUuid) {
+        if (isContinue == 0 && stepUuid !== firstStepUuid) {
             success = UNITTEST_RESULT_UNKNOWN;
             break;
+        } else if (isContinue == 2 && delaySeconds > 0) {
+            await waitSeconds(delaySeconds);
         }
         recentStepUuid = stepUuid;
 
@@ -954,6 +1062,8 @@ async function stepsExecutor(
             "", isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
 
         await saveStepResultFunc(stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg);
+
+        progressCb(batch_uuid, stepUuid);
 
         //遇到错误结束
         if (breakFlg) {

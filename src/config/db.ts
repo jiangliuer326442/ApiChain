@@ -39,6 +39,7 @@ export const TABLE_ENV_VAR_FIELDS = {
     FIELD_UNITTEST : "unittest",
     FIELD_PARAM_NAME : "param_name",
     FIELD_PARAM_VAR : "param_var",
+    FIELD_PARAM_REMARK : "param_remark",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
@@ -211,7 +212,8 @@ export const TABLE_UNITTEST_STEPS_FIELDS = {
     FIELD_REQUEST_PARAM : "param",
     FIELD_REQUEST_PATH_VARIABLE : "path_variable",
     FIELD_REQUEST_BODY : "body",
-    FIELD_CONTINUE : "continue",
+    FIELD_CONTINUE : "continue", //0 手动执行 1 自动执行 2 等待执行
+    FIELD_WAIT_SECONDS : "wait_seconds",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",

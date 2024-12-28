@@ -37,6 +37,7 @@ let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
+let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
@@ -50,6 +51,7 @@ class EnvVar extends Component {
     super(props);
 
     let unittestId = props.match.params.unittestId;
+    let project = props.match.params.prj;
 
     this.state = {
       listColumn: [
@@ -57,6 +59,11 @@ class EnvVar extends Component {
           title: '参数名称',
           dataIndex: pname,
           width: 100,
+          render: (value) => {
+            return (
+              <Text copyable={{text: value}}>{ value }</Text>
+            );
+          }
         },
         {
           title: '参数值',
@@ -66,6 +73,11 @@ class EnvVar extends Component {
               <Text copyable={{text: value}}>{ value }</Text>
             );
           }
+        },
+        {
+          title: '备注',
+          dataIndex: premark,
+          width: 150,
         },
         {
           title: '创建人',
@@ -111,7 +123,7 @@ class EnvVar extends Component {
       tips: [],
       pkeys: [],
       env: "",
-      prj: "",
+      prj: project,
       copiedKeys: [],
     }
   }
@@ -155,6 +167,7 @@ class EnvVar extends Component {
           open: true,
           pname: record[pname],
           pvalue: record[pvar],
+          premark: record[premark],
       });
     }
 
@@ -183,9 +196,9 @@ class EnvVar extends Component {
   
     render() : ReactNode {
       return (
-        <Layout>
+        <>
           <Header style={{ padding: 0 }}>
-            单测环境变量配置
+            单侧环境变量配置
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '单测' }, { title: '环境变量' }]} />
@@ -259,7 +272,7 @@ class EnvVar extends Component {
           <Footer style={{ textAlign: 'center' }}>
           ApiChain ©{new Date().getFullYear()} Created by 方海亮
           </Footer>
-        </Layout>
+        </>
       );
     }
 }

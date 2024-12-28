@@ -28,6 +28,7 @@ let env_var_iteration = TABLE_ENV_VAR_FIELDS.FIELD_ITERATION;
 let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
+let env_var_premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
 let env_var_cuid = TABLE_ENV_VAR_FIELDS.FIELD_CUID;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
@@ -323,7 +324,10 @@ export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
     });
 }
 
-export async function addEnvValues(prj, env, iteration, unittest, pname, pval, device, cb) {
+export async function addEnvValues(
+    prj, env, iteration, unittest, 
+    pname, pval, premark,
+    device, cb) {
     window.db.transaction('rw',
     window.db[TABLE_ENV_KEY_NAME],
     window.db[TABLE_USER_NAME],
@@ -343,6 +347,7 @@ export async function addEnvValues(prj, env, iteration, unittest, pname, pval, d
         property_key[env_var_unittest] = unittest;
         property_key[env_var_pname] = pname;
         property_key[env_var_pvalue] = pval;
+        property_key[env_var_premark] = premark;
         property_key[env_var_cuid] = device.uuid;
         property_key[env_var_ctime] = Date.now();
         property_key[env_var_delFlg] = 0;

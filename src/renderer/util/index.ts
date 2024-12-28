@@ -197,3 +197,7 @@ export function mixedSort (arr, key, sortByNumericalSize = true) {
   newArr = [...newArr.slice(index), ...newArr.slice(0, index)]
   return newArr
 }
+
+export function waitSeconds(seconds : number) {
+  return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}

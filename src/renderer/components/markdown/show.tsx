@@ -10,6 +10,7 @@ import 'markdown-navbar/dist/navbar.css';
 import Markdown from 'react-markdown';
 
 import "./less/show.less";
+import { isStringEmpty } from '../../util';
 
 export default class extends Component {
 
@@ -48,7 +49,7 @@ export default class extends Component {
                     </div>
                 </Flex>
                 <Flex>
-                    <div className="ReackMarkerContent">
+                    <div className="ReackMarkerContent" style={{ width: this.props.width === undefined ? 750 : this.props.width}}>
                         <Markdown 
                             remarkPlugins={[remarkGfm]}
                             rehypePlugins={[rehypeRaw]}

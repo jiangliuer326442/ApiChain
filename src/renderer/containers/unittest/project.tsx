@@ -11,7 +11,6 @@ import {
     MergeOutlined, 
     DeleteOutlined, 
     MoreOutlined, 
-    AppstoreOutlined,
 } from '@ant-design/icons';
 
 import { 
@@ -134,11 +133,15 @@ class UnittestListVersion extends Component {
                                         }
                                         this.setState({
                                             executeFlg: false,
-                                            unittestUuid: "",
+                                            unittestUuid,
                                             batchUuid: "",
                                         })
-                                        let batchUuid = await executeProjectUnitTest(iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch);
-                                        this.setState({ unittestUuid, batchUuid})
+                                        executeProjectUnitTest(
+                                            iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch,
+                                            (batchUuid : string, stepUuid : string) => {
+                                                this.setState({ unittestUuid, batchUuid, stepUuid})
+                                            }
+                                        );
                                     }}>执行用例</Button>
                                     {record.result !== undefined ? 
                                     <Button type='link' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/__empty__/' + unittestUuid }>执行记录</Button>
@@ -182,6 +185,7 @@ class UnittestListVersion extends Component {
             project,
             unittestUuid: "", 
             batchUuid: "",
+            stepUuid: "",
             env: null
         };
     }
@@ -220,7 +224,7 @@ class UnittestListVersion extends Component {
                 label: <Button type='text' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>编辑</Button>,
             },{
                 key: "2",
-                label: <Button type='link' href={ "#/unittest_envvars/" + record[unittest_uuid] } icon={<MergeOutlined />}>环境变量</Button>,
+                label: <Button type='link' href={ "#/unittest_envvars/" + record[unittest_uuid] + "/" + this.state.project} icon={<MergeOutlined />}>环境变量</Button>,
             },{
                 key: "3",
                 danger: true,
@@ -294,6 +298,7 @@ class UnittestListVersion extends Component {
                         iteratorId=""
                         unittestUuid={ this.state.unittestUuid }
                         batchUuid={ this.state.batchUuid }
+                        stepUuid={ this.state.stepUuid }
                         env={ this.state.env }
                         cb={ () => {
                             this.setState({executeFlg: true});
