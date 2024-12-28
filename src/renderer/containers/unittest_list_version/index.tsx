@@ -137,11 +137,15 @@ class UnittestListVersion extends Component {
                                         }
                                         this.setState({
                                             executeFlg: false,
-                                            unittestUuid: "",
+                                            unittestUuid,
                                             batchUuid: "",
                                         })
-                                        let batchUuid = await executeIteratorUnitTest(iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch);
-                                        this.setState({ unittestUuid, batchUuid})
+                                        executeIteratorUnitTest(
+                                            iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch,
+                                            (batchUuid : string, stepUuid : string) => {
+                                                this.setState({ unittestUuid, batchUuid, stepUuid})
+                                            }
+                                        );
                                     }}>执行用例</Button>
                                     {record.result !== undefined ? 
                                     <Button type='link' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/' + iteratorId + '/' + unittestUuid }>执行记录</Button>
@@ -198,6 +202,7 @@ class UnittestListVersion extends Component {
             iteratorId,
             unittestUuid: "", 
             batchUuid: "",
+            stepUuid: "",
             env: null
         };
     }
@@ -338,6 +343,7 @@ class UnittestListVersion extends Component {
                         iteratorId={ this.state.iteratorId }
                         unittestUuid={ this.state.unittestUuid }
                         batchUuid={ this.state.batchUuid }
+                        stepUuid={ this.state.stepUuid }
                         env={ this.state.env }
                         cb={ () => {
                             this.setState({executeFlg: true});

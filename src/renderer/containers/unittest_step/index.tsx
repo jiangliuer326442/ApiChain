@@ -62,6 +62,7 @@ let unittest_step_method = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_METHOD;
 let unittest_step_uri = TABLE_UNITTEST_STEPS_FIELDS.FIELD_URI;
 let unittest_step_title = TABLE_UNITTEST_STEPS_FIELDS.FIELD_TITLE;
 let unittest_step_continue = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CONTINUE;
+let unittest_step_wait_seconds = TABLE_UNITTEST_STEPS_FIELDS.FIELD_WAIT_SECONDS;
 let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
 let unittest_step_request_param = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PARAM;
 let unittest_step_request_path_variable = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
@@ -93,7 +94,8 @@ class UnittestStepContainer extends Component {
         let assertOperator = [" == "];
         let assertAfter = [""];
         let sort = 0;
-        let continueEnable = "0";
+        let continueEnable = "1";
+        let waitSeconds = 60;
         let requestParam = {};
         let jsonFlg = false;
         let requestPathVariable = {};
@@ -116,7 +118,8 @@ class UnittestStepContainer extends Component {
                 uri = cUnitTestStep[unittest_step_uri];
                 title = cUnitTestStep[unittest_step_title];
                 sort = cUnitTestStep[unittest_step_sort];
-                continueEnable = cUnitTestStep[unittest_step_continue] ? cUnitTestStep[unittest_step_continue] : "1";
+                continueEnable = cUnitTestStep[unittest_step_continue] == 0 ? "0" : cUnitTestStep[unittest_step_continue];
+                waitSeconds = cUnitTestStep[unittest_step_wait_seconds];
                 requestParam = cUnitTestStep[unittest_step_request_param];
                 requestPathVariable = cUnitTestStep[unittest_step_request_path_variable] ? cUnitTestStep[unittest_step_request_path_variable] : {};
                 requestHead = cUnitTestStep[unittest_step_request_head];
@@ -152,6 +155,7 @@ class UnittestStepContainer extends Component {
             responseHeader: {},
             responseCookie: {},
             continueEnable,
+            waitSeconds,
             sort,
             jsonFlg,
             paramTips: [],
@@ -458,6 +462,10 @@ class UnittestStepContainer extends Component {
             message.error("步骤顺序填写错误");
             return;
         }
+        if (this.state.waitSeconds < 0) {
+            message.error("延时时间错误");
+            return;
+        }
         let assertLength = this.state.assertLength;
         for (let i = 0; i < assertLength; i++) {
             if (isStringEmpty(this.state.assertTitle[i])) {
@@ -486,7 +494,7 @@ class UnittestStepContainer extends Component {
                 this.state.title, this.state.prj, this.state.method, this.state.uri,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
                 this.state.assertTitle, this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
-                this.state.sort, this.state.continueEnable,
+                this.state.sort, this.state.continueEnable, this.state.waitSeconds,
                 this.props.device, ()=>{
                     this.props.history.goBack();
                 }
@@ -495,7 +503,9 @@ class UnittestStepContainer extends Component {
             editUnitTestStep(this.state.unitTestStepUuid, this.state.title,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
                 this.state.assertTitle, this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
-                this.state.assertUuidArr, this.state.sort, this.state.continueEnable, this.props.device, ()=>{
+                this.state.assertUuidArr, 
+                this.state.sort, this.state.continueEnable, this.state.waitSeconds,
+                this.props.device, ()=>{
                     this.props.history.goBack();
                 }
             );
@@ -553,14 +563,18 @@ class UnittestStepContainer extends Component {
                             <Form.Item
                                 label="触发方式"
                             >
-                                <Select
-                                    value={this.state.continueEnable}
-                                    style={{ width: 174 }}
-                                    onChange={ value => this.setState({continueEnable: value}) }
-                                >
-                                    <Select.Option value="1">自动执行</Select.Option>
-                                    <Select.Option value="0">手动执行</Select.Option>
-                                </Select>
+                                <Space size="middle" wrap>
+                                    <Select
+                                        value={this.state.continueEnable}
+                                        style={{ width: 174 }}
+                                        onChange={ value => this.setState({continueEnable: value}) }
+                                    >
+                                        <Select.Option value="2">等待执行</Select.Option>
+                                        <Select.Option value="1">自动执行</Select.Option>
+                                        <Select.Option value="0">手动执行</Select.Option>
+                                    </Select>
+                                    {this.state.continueEnable === "2" ? <InputNumber addonBefore="等待" addonAfter="秒执行" min={1} value={this.state.waitSeconds} onChange={waitSeconds=>this.setState({waitSeconds})} /> : null}
+                                </Space>
                             </Form.Item>
                             <Form.Item
                                 label="步骤排序"

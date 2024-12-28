@@ -16,6 +16,7 @@ import {
 
 import { 
     TABLE_UNITTEST_FIELDS,
+    TABLE_VERSION_ITERATION_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     UNAME,
@@ -38,12 +39,17 @@ import {
     continueIteratorExecuteUnitTest,
     copyFromIteratorToProject,
     copyFromProjectToIterator,
+    batchMoveIteratorUnittest,
 } from '../../actions/unittest';
+import { getOpenVersionIterators } from '../../actions/version_iterator';
 import PayModel from '../../components/topup';
 import SingleUnitTestReport from '../../components/unittest/single_unittest_report';
 import AddUnittestComponent from '../../components/unittest/add_unittest';
 
 const { Header, Content, Footer } = Layout;
+
+let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
+let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
@@ -144,11 +150,15 @@ class UnittestListVersion extends Component {
                                         }
                                         this.setState({
                                             executeFlg: false,
-                                            unittestUuid: "",
+                                            unittestUuid,
                                             batchUuid: "",
                                         })
-                                        let batchUuid = await executeIteratorUnitTest(iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch);
-                                        this.setState({ unittestUuid, batchUuid})
+                                        executeIteratorUnitTest(
+                                            iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch, 
+                                            (batchUuid : string, stepUuid : string) => {
+                                                this.setState({ unittestUuid, batchUuid, stepUuid})
+                                            }
+                                        );
                                     }}>执行用例</Button>
                                     {record.result !== undefined ? 
                                     <Button type='link' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/' + iteratorId + '/' + unittestUuid }>执行记录</Button>
@@ -205,8 +215,11 @@ class UnittestListVersion extends Component {
             iteratorId,
             unittestUuid: "", 
             batchUuid: "",
+            stepUuid: "",
             env: null,
             showPay: false,
+            versionIterators: [],
+            movedUnittests: [],
         };
     }
 
@@ -228,13 +241,24 @@ class UnittestListVersion extends Component {
         if(this.props.envs.length === 0) {
             getEnvs(this.props.dispatch);
         }
-        await getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+        getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+        this.setMovedIteratos();
     }
 
     async componentDidUpdate(prevProps) {  
         if (this.props.match.params.id !== prevProps.match.params.id) { 
-            await getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+            this.setMovedIteratos();
         }
+    }
+
+    setMovedIteratos = async () => {
+        let versionIterators = (await getOpenVersionIterators())
+        .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
+        .map(item => {
+            return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
+        });
+        this.setState({ versionIterators });
     }
 
     getMore = (record : any) : MenuProps => {
@@ -315,6 +339,11 @@ class UnittestListVersion extends Component {
         });
     }
 
+    setMovedUnittests = newMovedUnittestKeys => {
+        let filteredUnittestKeys = newMovedUnittestKeys.filter(item => item.indexOf("$$") === -1);
+        this.setState({movedUnittests: filteredUnittestKeys});
+    }
+
     render() : ReactNode {
         return (
             <Layout>
@@ -339,6 +368,19 @@ class UnittestListVersion extends Component {
                                     })}
                                 />
                             </Form.Item>
+                            <Form.Item label="移动到迭代">
+                                <Select
+                                    style={{minWidth: 130}}
+                                    onChange={ value => {
+                                        batchMoveIteratorUnittest(this.state.iteratorId, this.state.movedUnittests, value, () => {
+                                            this.state.movedUnittests = [];
+                                            message.success("移动迭代成功");
+                                            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+                                        });
+                                    }}
+                                    options={ this.state.versionIterators }
+                                />
+                            </Form.Item>
                         </Form>
                         <Button style={{ margin: '16px 0' }} type="primary" onClick={this.addUnitTestClick}>添加单测</Button>
                         <AddUnittestComponent />
@@ -347,13 +389,18 @@ class UnittestListVersion extends Component {
                         iteratorId={ this.state.iteratorId }
                         unittestUuid={ this.state.unittestUuid }
                         batchUuid={ this.state.batchUuid }
+                        stepUuid={ this.state.stepUuid }
                         env={ this.state.env }
                         cb={ () => {
                             this.setState({executeFlg: true});
                             getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
                         } }
                         />
-                    <Table columns={this.state.column} dataSource={this.props.unittest[this.state.iteratorId] ? this.props.unittest[this.state.iteratorId] : []} />
+                    <Table 
+                        rowSelection={{selectedRowKeys: this.state.movedUnittests, onChange: this.setMovedUnittests}}
+                        columns={this.state.column} 
+                        dataSource={this.props.unittest[this.state.iteratorId] ? this.props.unittest[this.state.iteratorId] : []} 
+                        />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                 ApiChain ©{new Date().getFullYear()} Created by 方海亮

@@ -75,6 +75,7 @@ class RequestListVersion extends Component {
                 {
                     title: '接口地址',
                     dataIndex: iteration_request_uri,
+                    width: 150,
                     render: (uri) => { 
                         if (uri.length > 50) {
                             return <Tooltip title={ uri } placement='right'>
@@ -88,10 +89,12 @@ class RequestListVersion extends Component {
                 {
                     title: '接口说明',
                     dataIndex: iteration_request_title,
+                    width: 150,
                 },
                 {
                     title: '排序',
                     dataIndex: iteration_request_sort,
+                    width: 50,
                     render: (sort, record) => {
                         let prj = record[iteration_request_prj];
                         let method = record[iteration_request_method];
@@ -106,6 +109,7 @@ class RequestListVersion extends Component {
                 {
                     title: '操作',
                     key: 'operater',
+                    width: 50,
                     render: (_, record) => {
                         let url = "#/version_iterator_request/" + this.state.iteratorId + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
                         return (
@@ -248,178 +252,176 @@ class RequestListVersion extends Component {
                     迭代接口列表
                 </Header>
                 {this.state.formReadyFlg ?
-                <Content style={{ padding: '0 16px' }}>
+                <Content style={{ padding: '0 16px', width: "calc(100% - 16px)" }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '迭代' }, 
                         { title: '接口列表' }
                     ]} />
-                    <Flex vertical gap="middle">
-                        <Flex>
-                            <Descriptions column={2} title="迭代信息" items={ [
-                                {
-                                    key: version_iterator_title,
-                                    label: '迭代名称',
-                                    children: this.state.versionIteration[version_iterator_title],
-                                },
-                                {
-                                    key: version_iterator_openflg,
-                                    label: '迭代状态',
-                                    children: this.state.versionIteration[version_iterator_openflg] === 1 ? "进行中" : "已结束",
-                                },
-                                {
-                                    key: UNAME,
-                                    label: '创建人',
-                                    children: this.state.versionIteration[UNAME],
-                                },
-                                {
-                                    key: version_iterator_ctime,
-                                    label: '创建时间',
-                                    children: getdayjs(this.state.versionIteration[version_iterator_ctime]).format("YYYY-MM-DD"),
-                                },
-                                ] } />
+                    <Descriptions column={2} title="迭代信息" items={ [
+                        {
+                            key: version_iterator_title,
+                            label: '迭代名称',
+                            children: this.state.versionIteration[version_iterator_title],
+                        },
+                        {
+                            key: version_iterator_openflg,
+                            label: '迭代状态',
+                            children: this.state.versionIteration[version_iterator_openflg] === 1 ? "进行中" : "已结束",
+                        },
+                        {
+                            key: UNAME,
+                            label: '创建人',
+                            children: this.state.versionIteration[UNAME],
+                        },
+                        {
+                            key: version_iterator_ctime,
+                            label: '创建时间',
+                            children: getdayjs(this.state.versionIteration[version_iterator_ctime]).format("YYYY-MM-DD"),
+                        },
+                        ] } />
+                    <Flex justify="flex-start" align="center" gap="middle">
+                        <Form 
+                            layout="inline"
+                            onFinish={ this.onFinish } 
+                            initialValues={ { prj: this.state.prj } }
+                            autoComplete="off"
+                        >
+                            <Form.Item<FieldType> style={{paddingBottom: 20}} label="接口地址" name="uri" rules={[{ required: false }]}>
+                                <Input />
+                            </Form.Item>
+
+                            <Form.Item<FieldType> label="接口说明" name="title" rules={[{ required: false }]}>
+                                <Input />
+                            </Form.Item>
+
+                            <Form.Item<FieldType> label="选择项目" name="prj" rules={[{ required:  false }]}>
+                                <Select
+                                    style={{ width: 180 }}
+                                    options={this.state.versionIteration[version_iterator_prjs].map(item => {
+                                        return {value: item, label: this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : ""}
+                                    })}
+                                    onChange={ async value => {
+                                        this.setState({ prj: value });
+                                    } }
+                                />
+                            </Form.Item>                           
+
+                            <Form.Item<FieldType> label="选择文件夹" name="folder" rules={[{ required:  false }]}>
+                                <Select
+                                    style={{ width: 180 }}
+                                    options={ this.state.folders[this.state.prj] }
+                                />
+                            </Form.Item>
+
+                            <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+                                <Button htmlType="submit">
+                                    搜索
+                                </Button>
+                            </Form.Item>
+                        </Form>
+                        <Flex vertical justify="flex-start" align="center" gap="middle">
+                            <ConfigProvider
+                                theme={{
+                                    components: {
+                                    Button: {
+                                        colorPrimary: `linear-gradient(90deg,  ${colorsAddRequestApi.join(', ')})`,
+                                        colorPrimaryHover: `linear-gradient(90deg, ${getHoverColors(colorsAddRequestApi).join(', ')})`,
+                                        colorPrimaryActive: `linear-gradient(90deg, ${getActiveColors(colorsAddRequestApi).join(', ')})`,
+                                        lineWidth: 0,
+                                    },
+                                    },
+                                }}
+                                >
+                                <Button type="primary" href={'#/interator_add_request/' + this.state.iteratorId} size="large">
+                                    新增接口
+                                </Button>
+                            </ConfigProvider>
+
+                            <ConfigProvider
+                                theme={{
+                                    components: {
+                                    Button: {
+                                        colorPrimary: `linear-gradient(135deg,  ${colorsSendRequestApi.join(', ')})`,
+                                        colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(colorsSendRequestApi).join(', ')})`,
+                                        colorPrimaryActive: `linear-gradient(135deg, ${getActiveColors(colorsSendRequestApi).join(', ')})`,
+                                        lineWidth: 0,
+                                    },
+                                    },
+                                }}
+                                >
+                                <Button type="primary" href={'#/internet_request_send_by_iterator/' + this.state.iteratorId} size="large">
+                                    发起请求
+                                </Button>
+                            </ConfigProvider>
+
                         </Flex>
-                        <Flex justify="flex-start" align="center" gap="middle">
-                            <Form 
-                                layout="inline"
-                                onFinish={ this.onFinish } 
-                                initialValues={ { prj: this.state.prj } }
-                                autoComplete="off"
-                            >
-                                <Form.Item<FieldType> style={{paddingBottom: 20}} label="接口地址" name="uri" rules={[{ required: false }]}>
-                                    <Input />
-                                </Form.Item>
-
-                                <Form.Item<FieldType> label="接口说明" name="title" rules={[{ required: false }]}>
-                                    <Input />
-                                </Form.Item>
-
-                                <Form.Item<FieldType> label="选择项目" name="prj" rules={[{ required:  false }]}>
-                                    <Select
-                                        style={{ width: 180 }}
-                                        options={this.state.versionIteration[version_iterator_prjs].map(item => {
-                                            return {value: item, label: this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : ""}
-                                        })}
-                                        onChange={ async value => {
-                                            this.setState({ prj: value });
-                                        } }
-                                    />
-                                </Form.Item>                           
-
-                                <Form.Item<FieldType> label="选择文件夹" name="folder" rules={[{ required:  false }]}>
-                                    <Select
-                                        style={{ width: 180 }}
-                                        options={ this.state.folders[this.state.prj] }
-                                    />
-                                </Form.Item>
-
-                                <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-                                    <Button htmlType="submit">
-                                        搜索
-                                    </Button>
-                                </Form.Item>
-                            </Form>
-                            <Flex vertical justify="flex-start" align="center" gap="middle">
-                                <ConfigProvider
-                                    theme={{
-                                        components: {
-                                        Button: {
-                                            colorPrimary: `linear-gradient(90deg,  ${colorsAddRequestApi.join(', ')})`,
-                                            colorPrimaryHover: `linear-gradient(90deg, ${getHoverColors(colorsAddRequestApi).join(', ')})`,
-                                            colorPrimaryActive: `linear-gradient(90deg, ${getActiveColors(colorsAddRequestApi).join(', ')})`,
-                                            lineWidth: 0,
-                                        },
-                                        },
-                                    }}
-                                    >
-                                    <Button type="primary" href={'#/interator_add_request/' + this.state.iteratorId} size="large">
-                                        新增接口
-                                    </Button>
-                                </ConfigProvider>
-
-                                <ConfigProvider
-                                    theme={{
-                                        components: {
-                                        Button: {
-                                            colorPrimary: `linear-gradient(135deg,  ${colorsSendRequestApi.join(', ')})`,
-                                            colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(colorsSendRequestApi).join(', ')})`,
-                                            colorPrimaryActive: `linear-gradient(135deg, ${getActiveColors(colorsSendRequestApi).join(', ')})`,
-                                            lineWidth: 0,
-                                        },
-                                        },
-                                    }}
-                                    >
-                                    <Button type="primary" href={'#/internet_request_send_by_iterator/' + this.state.iteratorId} size="large">
-                                        发起请求
-                                    </Button>
-                                </ConfigProvider>
-
-                            </Flex>
-                        </Flex>
-                        {Object.keys(this.state.requestsJsxDividered).map(prj => (
-                            (this.props.prjs.length > 0 && this.props.prjs.find(row => row[prj_label] === prj) ? 
-                                <Flex vertical key={prj}>
-                                    <Divider orientation="left">
-                                        <p>{ "项目：" + (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "") }</p >
-                                    </Divider>
-                                    <Form layout="inline">
-                                        <Form.Item label="移动到迭代">
-                                            <Select
-                                                style={{minWidth: 130}}
-                                                onChange={ value => {
-                                                    batchMoveIteratorRequest(this.state.iteratorId, prj, this.state.movedRequests, value, () => {
-                                                        this.state.movedRequests = [];
-                                                        message.success("移动迭代成功");
-                                                        this.onFinish({
-                                                            prj: this.state.prj,
-                                                            folder: this.state.folder,
-                                                        });
-                                                    });
-                                                }}
-                                                options={ this.state.requestsJsxDividered[prj]['__iterators'] }
-                                            />
-                                        </Form.Item>
-                                        <Form.Item label="移动到文件夹">
-                                            <Select
-                                                style={{minWidth: 130}}
-                                                onChange={ async value => {
-                                                    await batchSetProjectRequestFold(this.state.iteratorId, prj, this.state.movedRequests, value);
-                                                    this.state.movedRequests = [];
-                                                    this.onFinish({
-                                                        title: this.state.title, 
-                                                        uri: this.state.uri
-                                                    });
-                                                } }
-                                                dropdownRender={(menu) => (
-                                                    <>
-                                                        {menu}
-                                                        <Divider style={{ margin: '8px 0' }} />
-                                                        <Input
-                                                            placeholder="回车新建文件夹"
-                                                            onKeyDown={e => {
-                                                                if (e.key === 'Enter') {
-                                                                    this.handleCreateFolder(e.target.value);
-                                                                    e.target.value = ""
-                                                                }
-                                                                e.stopPropagation()
-                                                            }}
-                                                        />
-                                                    </>
-                                                )}
-                                                options={ this.state.folders[prj] }
-                                            />
-                                        </Form.Item>
-                                    </Form>
-                                    <Collapse items={this.state.requestsJsxDividered[prj]['__requests']} />
-                                </Flex>
-                            : null)
-                        ))}
-                        <Flex vertical gap={"middle"}>
-                            <Flex>
-                                <Divider>迭代说明</Divider>
-                            </Flex>
-                            <MarkdownView showNav={ true } content={ this.state.versionIteration[version_iterator_content] } show={ this.state.formReadyFlg } />
-                        </Flex> 
                     </Flex>
+                    {Object.keys(this.state.requestsJsxDividered).map(prj => (
+                        (this.props.prjs.length > 0 && this.props.prjs.find(row => row[prj_label] === prj) ? 
+                            <div key={prj}>
+                                <Divider orientation="left">
+                                    <p>{ "项目：" + (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "") }</p >
+                                </Divider>
+                                <Form layout="inline">
+                                    <Form.Item label="移动到迭代">
+                                        <Select
+                                            style={{minWidth: 130}}
+                                            onChange={ value => {
+                                                batchMoveIteratorRequest(this.state.iteratorId, prj, this.state.movedRequests, value, () => {
+                                                    this.state.movedRequests = [];
+                                                    message.success("移动迭代成功");
+                                                    this.onFinish({
+                                                        prj: this.state.prj,
+                                                        folder: this.state.folder,
+                                                    });
+                                                });
+                                            }}
+                                            options={ this.state.requestsJsxDividered[prj]['__iterators'] }
+                                        />
+                                    </Form.Item>
+                                    <Form.Item label="移动到文件夹">
+                                        <Select
+                                            style={{minWidth: 130}}
+                                            onChange={ async value => {
+                                                await batchSetProjectRequestFold(this.state.iteratorId, prj, this.state.movedRequests, value);
+                                                this.state.movedRequests = [];
+                                                this.onFinish({
+                                                    title: this.state.title, 
+                                                    uri: this.state.uri
+                                                });
+                                            } }
+                                            dropdownRender={(menu) => (
+                                                <>
+                                                    {menu}
+                                                    <Divider style={{ margin: '8px 0' }} />
+                                                    <Input
+                                                        placeholder="回车新建文件夹"
+                                                        onKeyDown={e => {
+                                                            if (e.key === 'Enter') {
+                                                                this.handleCreateFolder(e.target.value);
+                                                                e.target.value = ""
+                                                            }
+                                                            e.stopPropagation()
+                                                        }}
+                                                    />
+                                                </>
+                                            )}
+                                            options={ this.state.folders[prj] }
+                                        />
+                                    </Form.Item>
+                                </Form>
+                                <Collapse items={this.state.requestsJsxDividered[prj]['__requests']} />
+                            </div>
+                        : null)
+                    ))}
+                    <Flex>
+                        <Divider>迭代说明</Divider>
+                    </Flex>
+                    <MarkdownView 
+                        showNav={ true } 
+                        content={ this.state.versionIteration[version_iterator_content] } show={ this.state.formReadyFlg } 
+                        width={ 630 }
+                        />
                     <FloatButton 
                         icon={<FileTextOutlined />}
                         description="迭代文档"

@@ -7,6 +7,8 @@ import { SHOW_ADD_PROPERTY_MODEL } from '../../../config/redux';
 import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
 import { addEnvValues, getEnvValues } from '../../actions/env_value';
 
+const { TextArea } = Input;
+
 class AddEnvVarComponent extends Component {
 
     constructor(props) {
@@ -16,6 +18,7 @@ class AddEnvVarComponent extends Component {
             loadingFlg: false,
             pname: "",
             pvalue: "",
+            premark: "",
             tips: [],
         };
     }
@@ -28,6 +31,7 @@ class AddEnvVarComponent extends Component {
                 actionType: "edit",
                 pname: nextProps.pname,
                 pvalue: nextProps.pvalue,
+                premark: nextProps.premark,
             });
         }
     }
@@ -35,6 +39,7 @@ class AddEnvVarComponent extends Component {
     handleOk = () => {
         const pname = this.state.pname.trim();
         const pvalue = this.state.pvalue.trim();
+        const premark = this.state.premark.trim();
 
         if (isStringEmpty(pname)) {
             message.error('请输入参数名称');
@@ -56,17 +61,20 @@ class AddEnvVarComponent extends Component {
             loadingFlg: true
         });
 
-        addEnvValues(this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "" , pname, pvalue, this.props.device, () => {
-            this.clearInput();
-            this.setState({
-                loadingFlg: false
+        addEnvValues(this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "" , 
+            pname, pvalue, premark,
+            this.props.device, 
+            () => {
+                this.clearInput();
+                this.setState({
+                    loadingFlg: false
+                });
+                this.props.dispatch({
+                    type: SHOW_ADD_PROPERTY_MODEL,
+                    open: false
+                });
+                getEnvValues(this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "", "", this.props.dispatch, env_vars => {});
             });
-            this.props.dispatch({
-                type: SHOW_ADD_PROPERTY_MODEL,
-                open: false
-            });
-            getEnvValues(this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "", "", this.props.dispatch, env_vars => {});
-        });
     }
 
     handleCancel = () => {
@@ -82,6 +90,7 @@ class AddEnvVarComponent extends Component {
             loadingFlg: false,
             pname: "",
             pvalue: "",
+            premark: "",
         });
     }
 
@@ -101,7 +110,16 @@ class AddEnvVarComponent extends Component {
                             value={this.state.pname} onChange={ event=>this.setState({pname : event.target.value}) } />
                     </Form.Item>
                     <Form.Item>
-                        <Input allowClear placeholder="参数值" value={this.state.pvalue} onChange={ event=>this.setState({pvalue : event.target.value}) } />
+                        <TextArea allowClear 
+                            placeholder="参数值" 
+                            value={this.state.pvalue} 
+                            onChange={ e=>this.setState({pvalue : e.target.value}) } />
+                    </Form.Item>
+                    <Form.Item>
+                        <TextArea allowClear 
+                            placeholder="备注" 
+                            value={this.state.premark} 
+                            onChange={ e=>this.setState({premark : e.target.value}) } />
                     </Form.Item>
                 </Form>
             </Modal>
@@ -120,6 +138,7 @@ function mapStateToProps (state) {
         env: state.env_var.env,
         pname: state.env_var.pname,
         pvalue: state.env_var.pvalue,
+        premark: state.env_var.premark,
     }
 }
 

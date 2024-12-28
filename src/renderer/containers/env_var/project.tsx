@@ -27,6 +27,7 @@ const { Text } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
+let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
@@ -42,15 +43,26 @@ class EnvVar extends Component {
           title: '参数名称',
           dataIndex: pname,
           width: 100,
-        },
-        {
-          title: '参数值',
-          dataIndex: pvar,
           render: (value) => {
             return (
               <Text copyable={{text: value}}>{ value }</Text>
             );
           }
+        },
+        {
+          title: '参数值',
+          dataIndex: pvar,
+          width: 205,
+          render: (value) => {
+            return (
+              <Text copyable={{text: value}}>{ value }</Text>
+            );
+          }
+        },
+        {
+          title: '备注',
+          dataIndex: premark,
+          width: 150,
         },
         {
           title: '创建人',
@@ -135,6 +147,7 @@ class EnvVar extends Component {
           open: true,
           pname: record[pname],
           pvalue: record[pvar],
+          premark: record[premark],
       });
     }
 
@@ -185,7 +198,7 @@ class EnvVar extends Component {
             <Flex justify="space-between" align="center">
               <Form layout="inline">
                   <Form.Item label="项目">
-                      {this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark]}
+                      {this.props.prjs.find(row => row[prj_label] === this.state.prj) ? this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark] : ""}
                   </Form.Item>
                   <Form.Item label="选择环境">
                       {this.props.envs.length > 0 ?

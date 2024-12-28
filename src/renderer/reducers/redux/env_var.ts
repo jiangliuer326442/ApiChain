@@ -47,12 +47,14 @@ export default function (state = {
               showAddPropertyModelFlg : action.open,
               pname: "",
               pvalue: "",
+              premark: "",
         });
         case SHOW_EDIT_PROPERTY_MODEL:
           return Object.assign({}, state, {
             showAddPropertyModelFlg : action.open,
             pname : action.pname,
             pvalue : action.pvalue,
+            premark : action.premark,
           });
         default:
             state.prj = localStorage.getItem(PRJ);

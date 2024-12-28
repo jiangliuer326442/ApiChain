@@ -42,6 +42,16 @@ export async function getVersionIterators(dispatch) {
     });
 }
 
+export async function getOpenVersionIterators() {
+    let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
+    .where([version_iterator_openFlg, version_iterator_delFlg])
+    .equals([1, 0])
+    .reverse()
+    .toArray();
+
+    return versionIterators;
+}
+
 export async function getOpenVersionIteratorsByPrj(prj : string) {
     let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
     .where([version_iterator_openFlg, version_iterator_delFlg])

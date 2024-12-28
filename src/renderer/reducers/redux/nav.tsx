@@ -153,7 +153,7 @@ export default function (state = {
           children: [
             {
               key: ITERATOR + "_" + versionIterator[version_iterator_uuid] + "_envvar",
-              label: <a href={"#/iterator_envvars/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">环境变量</a >
+              label: <a href={"#/iterator_envvars/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">迭代环境变量</a >
             },
             {
               key: ITERATOR + "_" + versionIterator[version_iterator_uuid] + "_doc",
@@ -197,7 +197,7 @@ export default function (state = {
           children: [
             {
               key: prj[prj_label] + "_envvar",
-              label: <a href={"#/prj_envvars/" + prj[prj_label] } rel="noopener noreferrer">环境变量</a >
+              label: <a href={"#/prj_envvars/" + prj[prj_label] } rel="noopener noreferrer">项目环境变量</a >
             },
             {
               key: prj[prj_label] + "_doc",
