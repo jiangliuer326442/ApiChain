@@ -7,10 +7,12 @@ import { dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import MarkNav from 'markdown-navbar';          // markdown 目录
 import 'github-markdown-css/github-markdown-dark.css';
 import 'markdown-navbar/dist/navbar.css';
+
+import { DOC_ITERATOR } from '@conf/storage';
+
 import Markdown from 'react-markdown';
 
 import "./less/show.less";
-import { isStringEmpty } from '../../util';
 
 export default class extends Component {
 
@@ -40,7 +42,7 @@ export default class extends Component {
                             ordered={ true }
                             updateHashAuto={ false }
                             onNavItemClick={(event, element, hash) => {
-                                let iteratorId = sessionStorage.getItem("iterator_doc_iteratorId");
+                                let iteratorId = sessionStorage.getItem(DOC_ITERATOR);
                                 setTimeout(() => {
                                     window.location.href = "#/version_iterator_doc/" + iteratorId + "#" + hash;
                                 }, 800);

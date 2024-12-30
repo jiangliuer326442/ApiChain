@@ -4,26 +4,27 @@ import axios from 'axios';
 import { Breadcrumb, Layout, FloatButton, Result } from "antd";
 import { FileMarkdownOutlined, Html5Outlined, ExportOutlined } from '@ant-design/icons';
 
+import { DOC_ITERATOR } from '@conf/storage';
 import {
     CONTENT_TYPE_URLENCODE
-} from '../../../config/contentType';
+} from '@conf/contentType';
 import {
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
-} from '../../../config/db';
-import { SET_NAV_COLLAPSED } from '../../../config/redux';
-import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
+} from '@conf/db';
+import { SET_NAV_COLLAPSED } from '@conf/redux';
+import { ENV_VALUE_API_HOST } from '@conf/envKeys';
 import { 
     ChannelsMarkdownStr, 
     ChannelsMarkdownShowStr, 
     ChannelsMarkdownSaveMarkdownStr, 
     ChannelsMarkdownSaveHtmlStr,
-} from '../../../config/channel';
-import MarkdownView from '../../components/markdown/show';
-import { getEnvs } from '../../actions/env';
-import { getVarsByKey } from '../../actions/env_value';
-import { getVersionIterator } from '../../actions/version_iterator';
-import { getVersionIteratorRequestsByProject } from '../../actions/version_iterator_requests';
+} from '@conf/channel';
+import MarkdownView from '@comp/markdown/show';
+import { getEnvs } from '@act/env';
+import { getVarsByKey } from '@act/env_value';
+import { getVersionIterator } from '@act/version_iterator';
+import { getVersionIteratorRequestsByProject } from '@act/version_iterator_requests';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 
@@ -36,7 +37,7 @@ class IteratorDoc extends Component {
     constructor(props) {
         super(props);
         let iteratorId = this.props.match.params.uuid;
-        sessionStorage.setItem("iterator_doc_iteratorId", iteratorId);
+        sessionStorage.setItem(DOC_ITERATOR, iteratorId);
         this.state = {
             iteratorId,
             md: "",

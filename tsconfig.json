@@ -12,7 +12,16 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "outDir": ".erb/dll"
+    "outDir": ".erb/dll",
+    "baseUrl": "src",
+    "paths": {
+      "@conf/*": ["config/*"],
+      "@rutil/*": ["renderer/util/*"],
+      "@act/*": ["renderer/actions/*"],
+      "@comp/*": ["renderer/components/*"],
+      "@contain/*": ["renderer/containers/*"],
+      "@store/*": ["renderer/stores/*"]
+    }
   },
   "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"]
 }

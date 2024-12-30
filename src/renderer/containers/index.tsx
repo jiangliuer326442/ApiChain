@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { HashRouter, Route, Switch } from 'react-router-dom';
 import { Layout } from "antd";
 
-import configureStore from '../stores/configureStore';
+import configureStore from '@store/configureStore';
 import { 
     ENV_LIST_ROUTE, 
     PROJECT_LIST_ROUTE,
@@ -35,29 +35,29 @@ import {
     VIP_ITERATOR_LIST_ROUTE,
     ITERATOR_ADD_REQUEST_ROUTE,
     WELCOME_ROUTE 
-} from '../../config/routers';
-import Nav from '../components/nav';
-import HomePage from "./home";
-import EnvListPage from "./env";
-import ProjectListPage from "./prj";
-import EnvVarPrjectPage from "./env_var/project";
-import EnvVarGlobalPage from "./env_var/global";
-import EnvVarIteratorPage from "./env_var/iterator";
-import EnvVarUnittestPage from "./env_var/unittest";
-import VersionIteratorPage from "./version_iterator";
-import VersionIteratorAddPage from "./version_iterator/add"
-import NetSendPage from './request_send';
-import RequestHistoryPage from './request_history';
-import RequestToSaveContainerPage from './request_save/to_save';
-import RequestSaveDetailContainerPage from './request_save/save_detail';
-import VersionIteratorRequestListPage from "./request_list_version";
-import ProjectRequestListPage from "./request_list_project";
-import VersionIteratorDocPage from "./iterator_doc";
-import UnittestListVersionPage from "./unittest/version_iterator";
-import UnittestListProjectPage from "./unittest/project";
-import UnittestExecutorListPage from "./unittest_executor_list";
-import UnittestStepPage from "./unittest_step";
-import VipFunctionPage from "./vip";
+} from '@conf/routers';
+import Nav from '@comp/nav';
+import HomePage from "@contain/home";
+import EnvListPage from "@contain/env";
+import ProjectListPage from "@contain/prj";
+import EnvVarPrjectPage from "@contain/env_var/project";
+import EnvVarGlobalPage from "@contain/env_var/global";
+import EnvVarIteratorPage from "@contain/env_var/iterator";
+import EnvVarUnittestPage from "@contain/env_var/unittest";
+import VersionIteratorPage from "@contain/version_iterator";
+import VersionIteratorAddPage from "@contain/version_iterator/add"
+import NetSendPage from '@contain/request_send';
+import RequestHistoryPage from '@contain/request_history';
+import RequestToSaveContainerPage from '@contain/request_save/to_save';
+import RequestSaveDetailContainerPage from '@contain/request_save/save_detail';
+import VersionIteratorRequestListPage from "@contain/request_list_version";
+import ProjectRequestListPage from "@contain/request_list_project";
+import VersionIteratorDocPage from "@contain/iterator_doc";
+import UnittestListVersionPage from "@contain/unittest/version_iterator";
+import UnittestListProjectPage from "@contain/unittest/project";
+import UnittestExecutorListPage from "@contain/unittest_executor_list";
+import UnittestStepPage from "@contain/unittest_step";
+import VipFunctionPage from "@contain/vip";
 
 const store = configureStore({});
 

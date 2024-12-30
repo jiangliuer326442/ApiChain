@@ -6,9 +6,10 @@ import {
   APPVERSION, 
   VIP_FLG, 
   EXPIRE_TIME, 
-} from '../../../config/global_config';
-import { SET_DEVICE_INFO } from '../../../config/redux';
-import { isStringEmpty } from '../../util';
+} from '@conf/storage';
+
+import { SET_DEVICE_INFO } from '@conf/redux';
+import { isStringEmpty } from '@rutil/index';
 
 export default function (state = {
   uuid: "",

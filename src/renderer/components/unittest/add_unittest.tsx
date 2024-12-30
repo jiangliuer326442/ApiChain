@@ -9,11 +9,10 @@ import {
     message,
 } from "antd";
 
-import { SHOW_ADD_UNITTEST_MODEL } from '../../../config/redux';
-import { isStringEmpty } from '../../util';
-
-import { addUnitTest, getIterationUnitTests, editUnitTest } from '../../actions/unittest';
-import { addUnitTestFolder, getUnitTestFolders } from '../../actions/unittest_folders';
+import { isStringEmpty } from '@rutil/index';
+import { SHOW_ADD_UNITTEST_MODEL } from '@conf/redux';
+import { addUnitTest, editUnitTest } from '@act/unittest';
+import { addUnitTestFolder, getUnitTestFolders } from '@act/unittest_folders';
 
 class AddUnittestComponent extends Component {
 
@@ -68,7 +67,7 @@ class AddUnittestComponent extends Component {
                 this.setState({
                     loadingFlg: false
                 });
-                getIterationUnitTests(this.props.iteratorId, null, this.props.dispatch);
+                this.props.refreshCb();
                 this.props.dispatch({
                     type: SHOW_ADD_UNITTEST_MODEL,
                     open: false,
@@ -82,7 +81,7 @@ class AddUnittestComponent extends Component {
                 this.setState({
                     loadingFlg: false
                 });
-                getIterationUnitTests(this.props.iteratorId, null, this.props.dispatch);
+                this.props.refreshCb();
                 this.props.dispatch({
                     type: SHOW_ADD_UNITTEST_MODEL,
                     open: false,

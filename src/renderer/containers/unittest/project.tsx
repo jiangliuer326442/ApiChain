@@ -8,7 +8,6 @@ import {
 import type { MenuProps } from 'antd';
 import { 
     EditOutlined, 
-    MergeOutlined, 
     DeleteOutlined, 
     MoreOutlined, 
 } from '@ant-design/icons';
@@ -18,24 +17,29 @@ import {
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     UNAME
-} from '../../../config/db';
+} from '@conf/db';
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
-} from '../../../config/unittest';
+} from '@conf/unittest';
 import {
     SHOW_EDIT_UNITTEST_MODEL
-} from '../../../config/redux';
-import { getdayjs, isStringEmpty } from '../../util';
-import { getEnvs } from '../../actions/env';
+} from '@conf/redux';
+import {
+    UNITTEST_ENV
+} from '@conf/storage';
+import { getdayjs, isStringEmpty } from '@rutil/index';
+import { getEnvs } from '@act/env';
 import {
     getProjectUnitTests, 
     executeProjectUnitTest,
     continueProjectExecuteUnitTest,
     copyFromProjectToIterator,
-} from '../../actions/unittest';
-import AddUnittestComponent from '../../components/unittest/add_unittest';
-import SingleUnitTestReport from '../../components/unittest/single_unittest_report';
+} from '@act/unittest';
+import PayModel from '@comp/topup';
+import AddUnittestComponent from '@comp/unittest/add_unittest';
+import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
+import { log } from 'console';
 
 const { Header, Content, Footer } = Layout;
 
@@ -126,23 +130,7 @@ class UnittestListVersion extends Component {
                             let unittestUuid = record[unittest_uuid];
                             return (
                                 <Space>
-                                    <Button disabled={!this.state.executeFlg} type="link" onClick={async ()=>{
-                                        if (isStringEmpty(this.state.env)) {
-                                            message.error("需要选择服务器环境");
-                                            return;
-                                        }
-                                        this.setState({
-                                            executeFlg: false,
-                                            unittestUuid,
-                                            batchUuid: "",
-                                        })
-                                        executeProjectUnitTest(
-                                            iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch,
-                                            (batchUuid : string, stepUuid : string) => {
-                                                this.setState({ unittestUuid, batchUuid, stepUuid})
-                                            }
-                                        );
-                                    }}>执行用例</Button>
+                                    <Button type='link' href={ "#/unittest_envvars/" + record[unittest_uuid] + "/" + this.state.project}>环境变量</Button>
                                     {record.result !== undefined ? 
                                     <Button type='link' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/__empty__/' + unittestUuid }>执行记录</Button>
                                     : null}
@@ -186,7 +174,9 @@ class UnittestListVersion extends Component {
             unittestUuid: "", 
             batchUuid: "",
             stepUuid: "",
-            env: null
+            env: localStorage.getItem(UNITTEST_ENV) ? localStorage.getItem(UNITTEST_ENV) : null,
+            showPay: false,
+            selectedUnittests: [],
         };
     }
 
@@ -224,9 +214,6 @@ class UnittestListVersion extends Component {
                 label: <Button type='text' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>编辑</Button>,
             },{
                 key: "2",
-                label: <Button type='link' href={ "#/unittest_envvars/" + record[unittest_uuid] + "/" + this.state.project} icon={<MergeOutlined />}>环境变量</Button>,
-            },{
-                key: "3",
                 danger: true,
                 label:  <Popconfirm
                             title="删除测试用例"
@@ -268,6 +255,11 @@ class UnittestListVersion extends Component {
         });
     }
 
+    setSelectedUnittests = newSelectedUnittests => {
+        let filteredUnittestKeys = newSelectedUnittests.filter(item => item.indexOf("$$") === -1);
+        this.setState({selectedUnittests: filteredUnittestKeys});
+    }
+
     render() : ReactNode {
         return (
             <Layout>
@@ -275,11 +267,13 @@ class UnittestListVersion extends Component {
                     项目单测列表
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
+                    <AddUnittestComponent refreshCb={() => getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch)} />
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '项目' }, 
                         { title: '单测列表' }
                     ]} />
-                    <Flex justify="space-between" align="center">
+                    <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
+                    <Flex justify="space-between" align="center" style={{marginBottom: 16}}>
                         <Form layout="inline">
                             <Form.Item label="选择环境">
                                 <Select
@@ -291,8 +285,42 @@ class UnittestListVersion extends Component {
                                     })}
                                 />
                             </Form.Item>
+                            <Form.Item>
+                                <Button 
+                                    type="primary"  
+                                    disabled={!this.state.executeFlg} 
+                                    onClick={() => {
+                                        if (!this.props.vipFlg) {
+                                            this.setState({
+                                                showPay: true,
+                                            });
+                                            return;
+                                        }
+                                        if (isStringEmpty(this.state.env)) {
+                                            message.error("需要选择服务器环境");
+                                            return;
+                                        }
+                                        localStorage.setItem(UNITTEST_ENV, this.state.env);
+
+                                        for (let unittestUuid of this.state.selectedUnittests) {
+                                            this.setState({
+                                                executeFlg: false,
+                                                unittestUuid,
+                                                batchUuid: "",
+                                            });
+                                            let currentUnitTest = this.props.unittest[this.state.project].find(item => item[unittest_uuid] === unittestUuid);
+                                            let iteratorId = currentUnitTest[unittest_iterator];
+                                            executeProjectUnitTest(
+                                                iteratorId, unittestUuid, currentUnitTest.children, this.state.env, this.props.dispatch, 
+                                                (batchUuid : string, stepUuid : string) => {
+                                                    this.setState({ unittestUuid, batchUuid, stepUuid})
+                                                }
+                                            );
+                                        }
+                                    }}
+                                >执行用例</Button>
+                            </Form.Item>
                         </Form>
-                        <AddUnittestComponent />
                     </Flex>
                     <SingleUnitTestReport 
                         iteratorId=""
@@ -305,7 +333,11 @@ class UnittestListVersion extends Component {
                             getProjectUnitTests(this.state.project, this.state.env, this.props.dispatch);
                         } }
                         />
-                    <Table columns={this.state.column} dataSource={this.props.unittest[this.state.project] ? this.props.unittest[this.state.project] : []} />
+                    <Table 
+                        rowSelection={{selectedRowKeys: this.state.selectedUnittests, onChange: this.setSelectedUnittests}}
+                        columns={this.state.column} 
+                        dataSource={this.props.unittest[this.state.project] ? this.props.unittest[this.state.project] : []} 
+                        />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                 ApiChain ©{new Date().getFullYear()} Created by 方海亮
@@ -318,6 +350,7 @@ class UnittestListVersion extends Component {
 
 function mapStateToProps (state) {
     return {
+        vipFlg: state.device.vipFlg,
         unittest: state.unittest.list,
         envs: state.env.list,
     }

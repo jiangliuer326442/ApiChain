@@ -2,19 +2,17 @@ import {
   SHOW_ADD_PROPERTY_MODEL,
   SHOW_EDIT_PROPERTY_MODEL,
   GET_ENV_VALS
-} from '../../../config/redux';
+} from '@conf/redux';
 
 import {
     PRJ, ENV
-} from '../../../config/global_config';
+} from '@conf/storage';
 
 import { 
     TABLE_ENV_VAR_FIELDS,
-} from '../../../config/db';
-import unittest from './unittest';
+} from '@conf/db';
 
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
-let env_var_pval = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 
 export default function (state = {
     showAddPropertyModelFlg: false,

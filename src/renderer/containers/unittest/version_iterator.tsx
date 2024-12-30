@@ -10,8 +10,7 @@ import {
     EditOutlined, 
     MergeOutlined, 
     DeleteOutlined, 
-    MoreOutlined, 
-    CarryOutOutlined 
+    MoreOutlined
 } from '@ant-design/icons';
 
 import { 
@@ -20,17 +19,18 @@ import {
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     UNAME,
-} from '../../../config/db';
+} from '@conf/db';
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
-} from '../../../config/unittest';
+} from '@conf/unittest';
 import {
     SHOW_ADD_UNITTEST_MODEL,
     SHOW_EDIT_UNITTEST_MODEL
-} from '../../../config/redux';
-import { getdayjs, isStringEmpty } from '../../util';
-import { getEnvs } from '../../actions/env';
+} from '@conf/redux';
+import { UNITTEST_ENV } from '@conf/storage';
+import { getdayjs, isStringEmpty } from '@rutil/index';
+import { getEnvs } from '@act/env';
 import {
     getIterationUnitTests, 
     delUnitTest, 
@@ -40,11 +40,11 @@ import {
     copyFromIteratorToProject,
     copyFromProjectToIterator,
     batchMoveIteratorUnittest,
-} from '../../actions/unittest';
-import { getOpenVersionIterators } from '../../actions/version_iterator';
-import PayModel from '../../components/topup';
-import SingleUnitTestReport from '../../components/unittest/single_unittest_report';
-import AddUnittestComponent from '../../components/unittest/add_unittest';
+} from '@act/unittest';
+import { getOpenVersionIterators } from '@act/version_iterator';
+import PayModel from '@comp/topup';
+import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
+import AddUnittestComponent from '@comp/unittest/add_unittest';
 
 const { Header, Content, Footer } = Layout;
 
@@ -137,31 +137,9 @@ class UnittestListVersion extends Component {
                             let unittestUuid = record[unittest_uuid];
                             return (
                                 <Space>
-                                    <Button disabled={!this.state.executeFlg} type="link" onClick={async ()=>{
-                                        if (!this.props.vipFlg) {
-                                            this.setState({
-                                                showPay: true,
-                                            });
-                                            return;
-                                        }
-                                        if (isStringEmpty(this.state.env)) {
-                                            message.error("需要选择服务器环境");
-                                            return;
-                                        }
-                                        this.setState({
-                                            executeFlg: false,
-                                            unittestUuid,
-                                            batchUuid: "",
-                                        })
-                                        executeIteratorUnitTest(
-                                            iteratorId, unittestUuid, record.children, this.state.env, this.props.dispatch, 
-                                            (batchUuid : string, stepUuid : string) => {
-                                                this.setState({ unittestUuid, batchUuid, stepUuid})
-                                            }
-                                        );
-                                    }}>执行用例</Button>
+                                    <Button type="link" href={ "#/version_iterator_tests_step_add/" + this.state.iteratorId + "/" + unittestUuid }>添加步骤</Button>
                                     {record.result !== undefined ? 
-                                    <Button type='link' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/' + iteratorId + '/' + unittestUuid }>执行记录</Button>
+                                    <Button type='text' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/' + iteratorId + '/' + unittestUuid }>执行记录</Button>
                                     : null}
                                     <Dropdown menu={this.getMore(record)}>
                                         <Button type="text" icon={<MoreOutlined />} />
@@ -216,10 +194,10 @@ class UnittestListVersion extends Component {
             unittestUuid: "", 
             batchUuid: "",
             stepUuid: "",
-            env: null,
+            env: localStorage.getItem(UNITTEST_ENV) ? localStorage.getItem(UNITTEST_ENV) : null,
             showPay: false,
             versionIterators: [],
-            movedUnittests: [],
+            selectedUnittests: [],
         };
     }
 
@@ -265,18 +243,9 @@ class UnittestListVersion extends Component {
         if (record[unittest_folder] !== undefined) {
             return {'items': [{
                 key: "1",
-                label: <Button type="link" icon={<CarryOutOutlined />} href={ "#/version_iterator_tests_step_add/" + this.state.iteratorId + "/" + record[unittest_uuid] }>添加步骤</Button>
+                label: <Button type='link' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>编辑</Button>,
             },{
                 key: "2",
-                label: (record[unittest_collectFlg] ? 
-                    <Button type='text' icon={<MergeOutlined />} onClick={()=>this.undoExportUnitTestClick(record)}>从项目移除</Button> 
-                : 
-                    <Button type='text' icon={<MergeOutlined />} onClick={()=>this.exportUnitTestClick(record)}>导出到项目</Button>),
-            },{
-                key: "3",
-                label: <Button type='text' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>编辑</Button>,
-            },{
-                key: "4",
                 danger: true,
                 label:  <Popconfirm
                             title="删除测试用例"
@@ -291,6 +260,23 @@ class UnittestListVersion extends Component {
                             >
                             <Button danger type="link" icon={<DeleteOutlined />}>删除</Button>
                         </Popconfirm>,
+            },{
+                key: "3",
+                danger: (record[unittest_collectFlg] ? true : false),
+                label: (record[unittest_collectFlg] ? 
+                    <Popconfirm
+                        title="从项目移除测试用例"
+                        description="确定从项目移除该测试用例吗？"
+                        onConfirm={e => {
+                            this.undoExportUnitTestClick(record);
+                        }}
+                        okText="移除"
+                        cancelText="取消"
+                        >
+                        <Button danger type='link' icon={<MergeOutlined />}>从项目移除</Button>
+                    </Popconfirm> 
+                : 
+                    <Button type='text' icon={<MergeOutlined />} onClick={()=>this.exportUnitTestClick(record)}>导出到项目</Button>),
             }]};
         } else {
             return {'items': [] };
@@ -339,9 +325,9 @@ class UnittestListVersion extends Component {
         });
     }
 
-    setMovedUnittests = newMovedUnittestKeys => {
-        let filteredUnittestKeys = newMovedUnittestKeys.filter(item => item.indexOf("$$") === -1);
-        this.setState({movedUnittests: filteredUnittestKeys});
+    setSelectedUnittests = newSelectedUnittests => {
+        let filteredUnittestKeys = newSelectedUnittests.filter(item => item.indexOf("$$") === -1);
+        this.setState({selectedUnittests: filteredUnittestKeys});
     }
 
     render() : ReactNode {
@@ -351,12 +337,13 @@ class UnittestListVersion extends Component {
                     迭代单测列表
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
+                    <AddUnittestComponent refreshCb={() => getIterationUnitTests(this.state.iteratorId, null, this.props.dispatch)} />
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '迭代' }, 
                         { title: '单测列表' }
                     ]} />
                     <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
-                    <Flex justify="space-between" align="center">
+                    <Flex justify="space-between" align="center" style={{marginBottom: 16}}>
                         <Form layout="inline">
                             <Form.Item label="选择环境">
                                 <Select
@@ -372,8 +359,8 @@ class UnittestListVersion extends Component {
                                 <Select
                                     style={{minWidth: 130}}
                                     onChange={ value => {
-                                        batchMoveIteratorUnittest(this.state.iteratorId, this.state.movedUnittests, value, () => {
-                                            this.state.movedUnittests = [];
+                                        batchMoveIteratorUnittest(this.state.iteratorId, this.state.selectedUnittests, value, () => {
+                                            this.state.selectedUnittests = [];
                                             message.success("移动迭代成功");
                                             getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
                                         });
@@ -381,9 +368,43 @@ class UnittestListVersion extends Component {
                                     options={ this.state.versionIterators }
                                 />
                             </Form.Item>
+                            <Form.Item>
+                                <Button 
+                                    type="primary"  
+                                    disabled={!this.state.executeFlg} 
+                                    onClick={() => {
+                                        if (!this.props.vipFlg) {
+                                            this.setState({
+                                                showPay: true,
+                                            });
+                                            return;
+                                        }
+                                        if (isStringEmpty(this.state.env)) {
+                                            message.error("需要选择服务器环境");
+                                            return;
+                                        }
+
+                                        localStorage.setItem(UNITTEST_ENV, this.state.env);
+
+                                        for (let unittestUuid of this.state.selectedUnittests) {
+                                            this.setState({
+                                                executeFlg: false,
+                                                unittestUuid,
+                                                batchUuid: "",
+                                            });
+                                            let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
+                                            executeIteratorUnitTest(
+                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.state.env, this.props.dispatch, 
+                                                (batchUuid : string, stepUuid : string) => {
+                                                    this.setState({ unittestUuid, batchUuid, stepUuid})
+                                                }
+                                            );
+                                        }
+                                    }}
+                                >执行用例</Button>
+                            </Form.Item>
                         </Form>
-                        <Button style={{ margin: '16px 0' }} type="primary" onClick={this.addUnitTestClick}>添加单测</Button>
-                        <AddUnittestComponent />
+                        <Button type="link" onClick={this.addUnitTestClick}>添加单测</Button>
                     </Flex>
                     <SingleUnitTestReport 
                         iteratorId={ this.state.iteratorId }
@@ -397,7 +418,7 @@ class UnittestListVersion extends Component {
                         } }
                         />
                     <Table 
-                        rowSelection={{selectedRowKeys: this.state.movedUnittests, onChange: this.setMovedUnittests}}
+                        rowSelection={{selectedRowKeys: this.state.selectedUnittests, onChange: this.setSelectedUnittests}}
                         columns={this.state.column} 
                         dataSource={this.props.unittest[this.state.iteratorId] ? this.props.unittest[this.state.iteratorId] : []} 
                         />

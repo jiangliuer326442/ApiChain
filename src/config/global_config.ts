@@ -1,25 +1,3 @@
-export const IS_AUTO_UPGRADE = "storage.checkAutoUpgrade";
-
-export const UUID = "device.uuid";
-
-export const BUY_TIMES = "device.buytimes";
-
-export const VIP_FLG = "device.vip.flg";
-
-export const EXPIRE_TIME = "device.expire.time";
-
-export const HTML = "app.html";
-
-export const IP = "app.ip";
-
-export const APPNAME = "app.name";
-
-export const APPVERSION = "app.version";
-
-export const PRJ = "env_vars_prj";
-
-export const ENV = "env_vars_env";
-
 export const REQUEST_METHOD_POST = "POST";
 
 export const REQUEST_METHOD_GET = "GET";

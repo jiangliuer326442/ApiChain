@@ -54,7 +54,7 @@ export default class MenuBuilder {
             },
           },
           {
-            label: '清空历史记录',
+            label: '清除缓存',
             click: () => {
               trunkDb(getWindow());  
             },

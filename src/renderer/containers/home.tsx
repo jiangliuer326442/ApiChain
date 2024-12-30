@@ -2,21 +2,21 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Checkbox, Typography, Layout, Card, notification, Space, Button} from "antd";
 
-import { IS_AUTO_UPGRADE } from '../../config/global_config';
-import { SET_DEVICE_INFO } from '../../config/redux';
+import { IS_AUTO_UPGRADE } from '@conf/storage';
+import { SET_DEVICE_INFO } from '@conf/redux';
 import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
   ChannelsAutoUpgradeNewVersionStr,
   ChannelsAutoUpgradeDownloadStr,
-} from '../../config/channel';
+} from '@conf/channel';
 import {
   TABLE_USER_NAME,
   TABLE_USER_FIELDS
-} from '../../config/db';
-import { getdayjs, isStringEmpty } from '../util';
-import { addUser, getUser, setUserName as ac_setUserName, } from '../actions/user';
-import registerMessageHook from '../actions/message';
+} from '@conf/db';
+import { isStringEmpty } from '@rutil/index';
+import { addUser, getUser, setUserName as ac_setUserName, } from '@act/user';
+import registerMessageHook from '@act/message';
 
 const { Header, Content, Footer } = Layout;
 
