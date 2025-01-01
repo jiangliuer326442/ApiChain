@@ -15,18 +15,18 @@ import {
   isStringEmpty,
   paramToString,
   isJsonString,
-} from '../../util';
+} from '@rutil/index';
 import {
   TABLE_FIELD_TYPE,
   TABLE_FIELD_VALUE,
   cleanJson
-} from '../../util/json';
-import { ENV_VALUE_API_HOST } from "../../../config/envKeys";
+} from '@rutil/json';
+import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { 
   TABLE_REQUEST_HISTORY_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
   TABLE_PROJECT_REQUEST_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 import {
   CONTENT_TYPE_HTML,
   CONTENT_TYPE_JSON,
@@ -41,33 +41,33 @@ import {
   CONTENT_TYPE_ATTACH_STREAM,
   CONTENT_TYPE_URLENCODE,
   CONTENT_TYPE_FORMDATA,
-} from '../../../config/contentType';
+} from '@conf/contentType';
 import {
   REQUEST_METHOD_GET,
   REQUEST_METHOD_POST,
   CONTENT_TYPE,
   INPUTTYPE_TEXT,
   INPUTTYPE_FILE,
-} from '../../../config/global_config';
-import RequestSendTips from '../../classes/RequestSendTips';
+} from '@conf/global_config';
+import RequestSendTips from '@clazz/RequestSendTips';
 import {
   getVersionIteratorRequest
-} from '../../actions/version_iterator_requests';
+} from '@act/version_iterator_requests';
 import {
   getProjectRequest
-} from '../../actions/project_request';
+} from '@act/project_request';
 import { 
   getRequestHistory,
   addRequestHistory 
-} from '../../actions/request_history';
+} from '@act/request_history';
 import {
   sendAjaxMessage
-} from '../../actions/message';
-import SelectPrjEnvComponent from "../../components/env_var/select_prj_env";
-import RequestSendBody from "../../components/request_send/body_form";
-import RequestSendHead from "../../components/request_send/head_form";
-import RequestSendParam from "../../components/request_send/request_param";
-import RequestSendPathVariable from "../../components/request_send/request_path_variable";
+} from '@act/message';
+import SelectPrjEnvComponent from "@comp/env_var/select_prj_env";
+import RequestSendBody from "@comp/request_send/body_form";
+import RequestSendHead from "@comp/request_send/head_form";
+import RequestSendParam from "@comp/request_send/request_param";
+import RequestSendPathVariable from "@comp/request_send/request_path_variable";
 
 let request_history_env = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ENV_LABEL;
 let request_history_micro_service = TABLE_REQUEST_HISTORY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -425,6 +425,7 @@ class RequestSendContainer extends Component {
   }
 
   getEnvValueData = (prj: string, env: string) => {
+    if (isStringEmpty(env)) return;
     this.setState(this.getClearState());
     this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.dispatch, env_vars => {
       if(env_vars.length === 0) {

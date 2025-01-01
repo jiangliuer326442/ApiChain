@@ -113,7 +113,7 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
     if (!isStringEmpty(iterator)) {
         if (!isStringEmpty(prj)) {
             let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+            .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest])
             .equals([env, prj, iterator, ""])
             .filter(row => {
                 if (row[env_var_delFlg]) {
@@ -137,7 +137,7 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
         }
 
         let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+        .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest])
         .equals([env, "", iterator, ""])
         .filter(row => {
             if (row[env_var_delFlg]) {
@@ -162,8 +162,8 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
     } else if (!isStringEmpty(unittest)) {
         if (!isStringEmpty(prj)) {
             let unittestPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
-            .equals([env, prj, "", unittest])
+            .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+            .equals([ env, prj, "", unittest ])
             .filter(row => {
                 if (row[env_var_delFlg]) {
                     return false;
@@ -186,8 +186,8 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
         }
 
         let unittestArrays = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
-        .equals([env, "", "", unittest])
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, "", "", unittest ])
         .filter(row => {
             if (row[env_var_delFlg]) {
                 return false;
@@ -212,8 +212,8 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
 
     if (prj) {
         let projectArrays = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
-        .equals([env, prj, "", ""])
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, "", "" ])
         .filter(row => {
             if (row[env_var_delFlg]) {
                 return false;
@@ -238,8 +238,8 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
     }
 
     let globalArrays = await db[TABLE_ENV_VAR_NAME]
-    .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
-    .equals([env, "", "", ""])
+    .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+    .equals([ env, "", "", "" ])
     .filter(row => {
         if (row[env_var_delFlg]) {
             return false;

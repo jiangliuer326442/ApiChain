@@ -20,7 +20,8 @@
       "@act/*": ["renderer/actions/*"],
       "@comp/*": ["renderer/components/*"],
       "@contain/*": ["renderer/containers/*"],
-      "@store/*": ["renderer/stores/*"]
+      "@store/*": ["renderer/stores/*"],
+      "@clazz/*": ["renderer/classes/*"]
     }
   },
   "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"]

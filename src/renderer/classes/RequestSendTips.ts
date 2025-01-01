@@ -4,6 +4,7 @@ import { cloneDeep } from 'lodash';
 import { 
     ENV_VALUE_API_HOST,
     ENV_VALUE_RANDOM_STRING,
+    ENV_VALUE_APP_VERSION,
     ENV_VALUE_RANDOM_INT,
     ENV_VALUE_RANDOM_LONG,
     ENV_VALUE_CURRENT_DATETIME_STR,
@@ -12,16 +13,16 @@ import {
     ENV_VALUE_CURRENT_DATE_IMT,
     ENV_VALUE_CURRENT_TIMESTAMP_SECOND,
     ENV_VALUE_CURRENT_TIMESTAMP_MICRO,
-} from "../../config/envKeys";
+} from "@conf/envKeys";
 import { 
   TABLE_ENV_VAR_FIELDS,
-} from '../../config/db';
-import { getEnvValues, getKeys } from '../actions/env_value';
+} from '@conf/db';
+import { getEnvValues, getKeys } from '@act/env_value';
 import { 
     getType, 
     isStringEmpty, 
     getNowdayjs 
-} from '../util';
+} from '@rutil/index';
 
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -114,7 +115,15 @@ export default class {
 
     getVarByKey(key : string) : string | undefined {
         if (key === ENV_VALUE_RANDOM_STRING) {
-            return uuidv4() as string;
+            return "ApiChain_" + uuidv4();
+        }
+
+        if (key === ENV_VALUE_APP_VERSION) {
+            let unixTimeStr = getNowdayjs().unix().toString();
+            let bigVersion = unixTimeStr.substring(0, 3);
+            let middleVersion = unixTimeStr.substring(3, 6);
+            let lastVersion = unixTimeStr.substring(6);
+            return bigVersion + "." + middleVersion + "." + lastVersion;
         }
 
         if (key === ENV_VALUE_CURRENT_DATETIME_STR) {
@@ -208,6 +217,7 @@ export default class {
         envKeys.add(ENV_VALUE_CURRENT_DATE_IMT);
         envKeys.add(ENV_VALUE_CURRENT_TIMESTAMP_SECOND);
         envKeys.add(ENV_VALUE_CURRENT_TIMESTAMP_MICRO);
+        envKeys.add(ENV_VALUE_APP_VERSION);
         return envKeys;
     }
 
