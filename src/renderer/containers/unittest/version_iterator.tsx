@@ -45,6 +45,7 @@ import { getOpenVersionIterators } from '@act/version_iterator';
 import PayModel from '@comp/topup';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
+import e from 'express';
 
 const { Header, Content, Footer } = Layout;
 
@@ -177,7 +178,7 @@ class UnittestListVersion extends Component {
                                         description="确定删除该步骤吗？"
                                         onConfirm={e => {
                                             delUnitTestStep(valueUnittestStepUuid, ()=>{
-                                                getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+                                                getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
                                             });
                                         }}
                                         okText="删除"
@@ -195,6 +196,7 @@ class UnittestListVersion extends Component {
             batchUuid: "",
             stepUuid: "",
             env: localStorage.getItem(UNITTEST_ENV) ? localStorage.getItem(UNITTEST_ENV) : null,
+            folder: null,
             showPay: false,
             versionIterators: [],
             selectedUnittests: [],
@@ -219,13 +221,13 @@ class UnittestListVersion extends Component {
         if(this.props.envs.length === 0) {
             getEnvs(this.props.dispatch);
         }
-        getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+        getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
         this.setMovedIteratos();
     }
 
     async componentDidUpdate(prevProps) {  
         if (this.props.match.params.id !== prevProps.match.params.id) { 
-            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
             this.setMovedIteratos();
         }
     }
@@ -252,7 +254,7 @@ class UnittestListVersion extends Component {
                             description="确定删除该测试用例吗？"
                             onConfirm={e => {
                                 delUnitTest(record, ()=>{
-                                    getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+                                    getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
                                 });
                             }}
                             okText="删除"
@@ -285,14 +287,25 @@ class UnittestListVersion extends Component {
 
     setEnvironmentChange = (value: string) => {
         this.setState({env: value});
-        getIterationUnitTests(this.state.iteratorId, value, this.props.dispatch);
+        getIterationUnitTests(this.state.iteratorId, this.state.folder, value, this.props.dispatch);
+    }
+
+    setFolderChange = (value: string) => {
+        let selectedFolder;
+        if (value === undefined) {
+            selectedFolder = null;
+        } else {
+            selectedFolder = value;
+        }
+        this.setState({folder: value});
+        getIterationUnitTests(this.state.iteratorId, selectedFolder, this.state.env, this.props.dispatch);
     }
 
     undoExportUnitTestClick = (record) => {
         let unittestId = record[unittest_uuid];
         copyFromProjectToIterator(unittestId, ()=>{
             message.success("已成功从项目删除该单测");
-            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
         });
     }
 
@@ -301,7 +314,7 @@ class UnittestListVersion extends Component {
         let unittestId = record[unittest_uuid];
         copyFromIteratorToProject(iteratorId, unittestId, ()=>{
             message.success("导出单测到项目成功");
-            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
         });
     }
 
@@ -331,13 +344,14 @@ class UnittestListVersion extends Component {
     }
 
     render() : ReactNode {
+        console.log("folders", this.props.folders);
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
                     迭代单测列表
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
-                    <AddUnittestComponent refreshCb={() => getIterationUnitTests(this.state.iteratorId, null, this.props.dispatch)} />
+                    <AddUnittestComponent refreshCb={() => getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch)} />
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: '迭代' }, 
                         { title: '单测列表' }
@@ -355,6 +369,16 @@ class UnittestListVersion extends Component {
                                     })}
                                 />
                             </Form.Item>
+                            <Form.Item label="选择文件夹">
+                                <Select allowClear
+                                    value={ this.state.folder }
+                                    onChange={this.setFolderChange}
+                                    style={{ width: 120 }}
+                                    options={this.state.iteratorId in this.props.folders && this.props.folders[this.state.iteratorId].map(item => {
+                                        return { value: item, label: item }
+                                    })}
+                                />
+                            </Form.Item>
                             <Form.Item label="移动到迭代">
                                 <Select
                                     style={{minWidth: 130}}
@@ -362,7 +386,7 @@ class UnittestListVersion extends Component {
                                         batchMoveIteratorUnittest(this.state.iteratorId, this.state.selectedUnittests, value, () => {
                                             this.state.selectedUnittests = [];
                                             message.success("移动迭代成功");
-                                            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+                                            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
                                         });
                                     }}
                                     options={ this.state.versionIterators }
@@ -414,7 +438,7 @@ class UnittestListVersion extends Component {
                         env={ this.state.env }
                         cb={ () => {
                             this.setState({executeFlg: true});
-                            getIterationUnitTests(this.state.iteratorId, this.state.env, this.props.dispatch);
+                            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
                         } }
                         />
                     <Table 
@@ -436,6 +460,7 @@ function mapStateToProps (state) {
     return {
         vipFlg: state.device.vipFlg,
         unittest: state.unittest.list,
+        folders: state.unittest.folders,
         envs: state.env.list,
     }
 }

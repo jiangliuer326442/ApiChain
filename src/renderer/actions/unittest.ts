@@ -12,12 +12,12 @@ import {
     TABLE_REQUEST_HISTORY_FIELDS, 
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
     UNAME,
-} from '../../config/db';
+} from '@conf/db';
 import {
     CONTENT_TYPE,
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST
-} from '../../config/global_config';
+} from '@conf/global_config';
 import {
     CONTENT_TYPE_HTML,
     CONTENT_TYPE_JSON,
@@ -31,24 +31,24 @@ import {
     CONTENT_TYPE_ATTACH_TAR,
     CONTENT_TYPE_ATTACH_STREAM,
     CONTENT_TYPE_FORMDATA,
-} from '../../config/contentType';
+} from '@conf/contentType';
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
     UNITTEST_RESULT_UNKNOWN
-} from '../../config/unittest';
-import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '../../config/redux';
+} from '@conf/unittest';
+import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 
-import { sendAjaxMessage } from './message';
-import { getUsers } from './user';
-import { addRequestHistory, getRequestHistory } from './request_history';
+import { sendAjaxMessage } from '@act/message';
+import { getUsers } from '@act/user';
+import { addRequestHistory, getRequestHistory } from '@act/request_history';
 
-import { getType, isStringEmpty, isJsonString, paramToString, waitSeconds } from '../util';
+import { getType, isStringEmpty, isJsonString, paramToString, waitSeconds } from '@rutil/index';
 
-import RequestSendTips from '../classes/RequestSendTips';
-import JsonParamTips from '../classes/JsonParamTips';
+import RequestSendTips from '@clazz/RequestSendTips';
+import JsonParamTips from '@clazz/JsonParamTips';
 
-let version_iteration_test_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR_UUID;
+let version_iteration_test_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR;
 let version_iteration_test_folder_name = TABLE_UNITTEST_FOLD_FIELDS.FIELD_FOLD_NAME;
 
 let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
@@ -198,7 +198,7 @@ export async function batchMoveIteratorUnittest(oldIterator : string, unittestAr
     );
 }
 
-export async function addUnitTest(versionIteratorId : string, title : string, folder : string, device : object, cb) {
+export async function addIteratorUnitTest(versionIteratorId : string, title : string, folder : string, device : object, cb) {
     let unit_test : any = {};
     unit_test[unittest_iterator_uuid] = versionIteratorId;
     unit_test[field_unittest_uuid] = uuidv4() as string;
@@ -476,7 +476,14 @@ export async function getSingleUnittest(unittest_uuid : string, env : string | n
     return unitTest;
 }
 
-export async function getProjectUnitTests(project : string, env : string|null, dispatch : any) {
+export async function getProjectUnitTests(project : string, folder : string | null, env : string|null, dispatch : any) {
+    let folders;
+    if (folder === null) {
+        folders = new Set();
+    } else {
+        folders = null;
+    }
+
     //单测列表
     let unitTests = await window.db[TABLE_UNITTEST_NAME]
     .where(unittest_projects)
@@ -486,6 +493,9 @@ export async function getProjectUnitTests(project : string, env : string|null, d
             return false;
         }
         if (row[unittest_delFlg]) {
+            return false;
+        }
+        if (folder !== null && row[unittest_fold] !== folder) {
             return false;
         }
         return true;
@@ -498,24 +508,40 @@ export async function getProjectUnitTests(project : string, env : string|null, d
         let unittest_uuid = unitTest[field_unittest_uuid];
         let newUnitTest = await getSingleUnittest(unittest_uuid, env, "");
         unitTests[i] = newUnitTest;
+        if (folder === null) {
+            folders.add(newUnitTest[unittest_fold]);
+        }
     }
 
     dispatch({
         type: GET_PROJECT_TESTS,
-        project: project,
-        unitTests
+        project,
+        unitTests,
+        folders: folders === null ? null : Array.from(folders)
     });
 }
 
-export async function getIterationUnitTests(iteratorId : string, env : string|null, dispatch : any) {
+export async function getIterationUnitTests(iteratorId : string, folder : string | null, env : string|null, dispatch : any) {
     let users = await getUsers();
+    let unitTests;
+    let folders;
 
     //单测列表
-    let unitTests = await window.db[TABLE_UNITTEST_NAME]
-    .where([unittest_delFlg, unittest_iterator_uuid])
-    .equals([0, iteratorId])
-    .reverse()
-    .toArray();
+    if (folder === null) {
+        folders = new Set();
+        unitTests = await window.db[TABLE_UNITTEST_NAME]
+        .where([unittest_delFlg, unittest_iterator_uuid])
+        .equals([0, iteratorId])
+        .reverse()
+        .toArray();
+    } else {
+        folders = null;
+        unitTests = await window.db[TABLE_UNITTEST_NAME]
+        .where([unittest_delFlg, unittest_iterator_uuid, unittest_fold])
+        .equals([0, iteratorId, folder])
+        .reverse()
+        .toArray();
+    }
 
     for (let i = 0; i < unitTests.length; i++) {
         let unitTest = unitTests[i];
@@ -523,12 +549,16 @@ export async function getIterationUnitTests(iteratorId : string, env : string|nu
         let newUnitTest = await getSingleUnittest(unittest_uuid, env, iteratorId);
         newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
         unitTests[i] = newUnitTest;
+        if (folder === null) {
+            folders.add(newUnitTest[unittest_fold]);
+        }
     }
 
     dispatch({
         type: GET_ITERATOR_TESTS,
         iteratorId,
-        unitTests
+        unitTests,
+        folders: folders === null ? null : Array.from(folders)
     });
 }
 

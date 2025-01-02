@@ -1,7 +1,31 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Breadcrumb, Layout, Flex, Divider, Collapse, Select, Tooltip, Popconfirm, InputNumber, Form, Table, message, Input, AutoComplete, Space, Button } from "antd";
-import { EyeOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
+import { 
+    Breadcrumb, 
+    Layout, 
+    Flex, 
+    Divider, 
+    Collapse, 
+    Select, 
+    Tooltip, 
+    Popconfirm, 
+    InputNumber, 
+    Form, 
+    Table, 
+    message, 
+    Input, 
+    AutoComplete, 
+    Space, 
+    Button,
+    Dropdown
+} from "antd";
+import { 
+    EyeOutlined, 
+    DeleteOutlined, 
+    SendOutlined, 
+    CloseSquareFilled, 
+    MoreOutlined 
+} from '@ant-design/icons';
 import type { FormProps } from 'antd';
 import { encode } from 'base-64';
 
@@ -93,26 +117,19 @@ class RequestListProject extends Component {
                     title: '操作',
                     key: 'operater',
                     render: (_, record) => {
-                        let url = "#/version_iterator_request/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
+                        let sendRequestUrl = "#/internet_request_send_by_api/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
+                        let docDetailUrl = "#/version_iterator_request/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
                         return (
                             <Space size="middle">
-                                <Button type="link" icon={<EyeOutlined />} href={ url } />
-                                <Popconfirm
-                                    title="删除api"
-                                    description="确定删除该 api 吗？"
-                                    onConfirm={e => {
-                                        delProjectRequest(record, ()=>{
-                                            this.onFinish({
-                                                title: this.state.title, 
-                                                uri: this.state.uri
-                                            });
-                                        });
-                                    }}
-                                    okText="确定"
-                                    cancelText="取消"
-                                >
-                                    <Button danger type="link" icon={<DeleteOutlined />} />
-                                </Popconfirm>
+                                <Tooltip title="发送">
+                                    <Button type="link" icon={<SendOutlined />} href={ sendRequestUrl } />
+                                </Tooltip>
+                                <Tooltip title="详情">
+                                    <Button type="link" icon={<EyeOutlined />} href={ docDetailUrl } />
+                                </Tooltip>
+                                <Dropdown menu={this.getMore(record)}>
+                                    <Button type="text" icon={<MoreOutlined />} />
+                                </Dropdown>
                             </Space>
                         );
                     },
@@ -268,7 +285,7 @@ class RequestListProject extends Component {
                 foldJsx.key = fold;
                 foldJsx.children = (
                 <Flex vertical>
-                    <Form layout="inline">
+                    <Form layout="inline" style={{marginBottom: 16}}>
                         <Form.Item label="移动到文件夹">
                             <Select
                                 style={{minWidth: 130}}
@@ -368,6 +385,30 @@ class RequestListProject extends Component {
                 uri: this.state.uri
             });
         });
+    }
+
+    getMore = (record : any) : MenuProps => {
+        return {'items': [{
+            key: "1",
+            danger: true,
+            label: 
+            <Popconfirm
+                title="删除api"
+                description="确定删除该 api 吗？"
+                onConfirm={e => {
+                    delProjectRequest(record, ()=>{
+                        this.onFinish({
+                            title: this.state.title, 
+                            uri: this.state.uri
+                        });
+                    });
+                }}
+                okText="确定"
+                cancelText="取消"
+            >
+                <Button danger type="link" icon={<DeleteOutlined />} />
+            </Popconfirm>,
+        }]};
     }
 
     render() : ReactNode {

@@ -206,6 +206,7 @@ class UnittestListVersion extends Component {
           },
         },
       ],
+      folder: null,
       project,
       unittestUuid: '',
       batchUuid: '',
@@ -238,6 +239,7 @@ class UnittestListVersion extends Component {
     }
     await getProjectUnitTests(
       this.state.project,
+      this.state.folder,
       this.state.env,
       this.props.dispatch,
     );
@@ -247,6 +249,7 @@ class UnittestListVersion extends Component {
     if (this.props.match.params.id !== prevProps.match.params.id) {
       await getProjectUnitTests(
         this.state.project,
+        this.state.folder,
         this.state.env,
         this.props.dispatch,
       );
@@ -280,6 +283,7 @@ class UnittestListVersion extends Component {
                   this.undoExportUnitTestClick(record, () => {
                     getProjectUnitTests(
                       this.state.project,
+                      this.state.folder,
                       this.state.env,
                       this.props.dispatch,
                     );
@@ -303,8 +307,19 @@ class UnittestListVersion extends Component {
 
   setEnvironmentChange = (value: string) => {
     this.setState({ env: value });
-    getProjectUnitTests(this.state.project, value, this.props.dispatch);
+    getProjectUnitTests(this.state.project, this.state.folder, value, this.props.dispatch);
   };
+
+  setFolderChange = (value: string) => {
+      let selectedFolder;
+      if (value === undefined) {
+          selectedFolder = null;
+      } else {
+          selectedFolder = value;
+      }
+      this.setState({folder: value});
+      getProjectUnitTests(this.state.project, selectedFolder, this.state.env, this.props.dispatch);
+  }
 
   undoExportUnitTestClick = (record, cb) => {
     const unittestId = record[unittest_uuid];
@@ -338,6 +353,7 @@ class UnittestListVersion extends Component {
             refreshCb={() =>
               getProjectUnitTests(
                 this.state.project,
+                this.state.folder,
                 this.state.env,
                 this.props.dispatch,
               )
@@ -366,6 +382,16 @@ class UnittestListVersion extends Component {
                     return { value: item.label, label: item.remark };
                   })}
                 />
+              </Form.Item>
+              <Form.Item label="选择文件夹">
+                  <Select allowClear
+                      value={ this.state.folder }
+                      onChange={this.setFolderChange}
+                      style={{ width: 120 }}
+                      options={this.state.project in this.props.folders && this.props.folders[this.state.project].map(item => {
+                          return { value: item, label: item }
+                      })}
+                  />
               </Form.Item>
               <Form.Item>
                 <Button
@@ -422,6 +448,7 @@ class UnittestListVersion extends Component {
               this.setState({ executeFlg: true });
               getProjectUnitTests(
                 this.state.project,
+                this.state.folder,
                 this.state.env,
                 this.props.dispatch,
               );
@@ -452,6 +479,7 @@ function mapStateToProps(state) {
   return {
     vipFlg: state.device.vipFlg,
     unittest: state.unittest.list,
+    folders: state.unittest.folders,
     envs: state.env.list,
   };
 }

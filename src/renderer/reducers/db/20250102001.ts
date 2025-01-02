@@ -1,5 +1,6 @@
 import { 
     FIELD_ID,
+    TABLE_USER_NAME, TABLE_USER_FIELDS,
     TABLE_ENV_NAME, TABLE_ENV_FIELDS, 
     TABLE_MICRO_SERVICE_NAME, TABLE_MICRO_SERVICE_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
@@ -17,6 +18,10 @@ import {
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME, TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
 } from '../../../config/db';
+
+let user_uid = TABLE_USER_FIELDS.FIELD_UID;
+let user_ctime = TABLE_USER_FIELDS.FIELD_CTIME;
+let user_delFlg = TABLE_USER_FIELDS.FIELD_DELFLG;
 
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_ctime = TABLE_ENV_FIELDS.FIELD_CTIME;
@@ -71,10 +76,12 @@ let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
 let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
-let version_iteration_test_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR;
-let version_iteration_test_folder_name = TABLE_UNITTEST_FOLD_FIELDS.FIELD_FOLD_NAME;
-let version_iteration_test_folder_delFlg = TABLE_UNITTEST_FOLD_FIELDS.FIELD_DELFLG;
-let version_iteration_test_folder_ctime = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CTIME;
+let unittest_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR;
+let unittest_folder_project = TABLE_UNITTEST_FOLD_FIELDS.FIELD_PROJECT;
+let unittest_folder_name = TABLE_UNITTEST_FOLD_FIELDS.FIELD_FOLD_NAME;
+let unittest_folder_delFlg = TABLE_UNITTEST_FOLD_FIELDS.FIELD_DELFLG;
+let unittest_folder_cuid = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CUID;
+let unittest_folder_ctime = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CTIME;
 
 let field_unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
@@ -82,6 +89,7 @@ let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_delFlg = TABLE_UNITTEST_FIELDS.FIELD_DELFLG;
+let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
 let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
@@ -112,6 +120,7 @@ let unittest_report_delFlg = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_DELFLG;
 let unittest_report_ctime = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_CTIME;
 
 let tables : any = {};
+tables[TABLE_USER_NAME] = "&" + user_uid + ", [" + user_delFlg + "+" + user_ctime + "]";
 tables[TABLE_ENV_NAME] = "&" + env_label + ", [" + env_delFlg + "+" + env_ctime + "]";
 tables[TABLE_MICRO_SERVICE_NAME] = "&" + micro_service_label + ", [" + micro_service_delFlg + "+" + micro_service_ctime + "]";
 tables[TABLE_ENV_KEY_NAME] = "&[" + env_key_micro_service + "+" + env_key_pname + "], [" + env_key_delFlg + "+" + env_key_micro_service + "+" + env_key_ctime + "]";
@@ -126,7 +135,8 @@ tables[TABLE_JSON_FRAGEMENT_NAME] = "&[" + json_fragement_name + "+" + json_frag
 tables[TABLE_VERSION_ITERATION_FOLD_NAME] = "&[" + version_iteration_folder_uuid + "+" + version_iteration_folder_project + "+" + version_iteration_folder_name + "], [" + version_iteration_folder_delFlg + "+" + version_iteration_folder_uuid + "+" + version_iteration_folder_project + "+" + version_iteration_folder_ctime + "]";
 tables[TABLE_VERSION_ITERATION_REQUEST_NAME] = "&[" + iteration_request_iteration_uuid + "+" + iteration_request_project + "+" + iteration_request_method + "+" + iteration_request_uri + "], [" + iteration_request_delFlg + "+" + iteration_request_iteration_uuid + "+" + iteration_request_ctime + "], [" + iteration_request_delFlg + "+" + iteration_request_project + "+" + iteration_request_method + "+" + iteration_request_uri + "+" + iteration_request_ctime + "]";
 tables[TABLE_PROJECT_REQUEST_NAME] = "&[" + project_request_project + "+" + project_request_method + "+" + project_request_uri + "], [" + project_request_delFlg + "+" + project_request_project + "+" + project_request_ctime + "]";
-tables[TABLE_UNITTEST_FOLD_NAME] = "&[" + version_iteration_test_folder_iterator + "+" + version_iteration_test_folder_name + "], [" + version_iteration_test_folder_delFlg + "+" + version_iteration_test_folder_iterator + "+" + version_iteration_test_folder_ctime + "]";
+tables[TABLE_UNITTEST_FOLD_NAME] = "&[" + unittest_folder_iterator + "+" + unittest_folder_name + "], [" + unittest_folder_delFlg + "+" + unittest_folder_iterator + "+" + unittest_folder_ctime + "], " +
+"&[" + unittest_folder_project + "+" + unittest_folder_name + "], [" + unittest_folder_delFlg + "+" + unittest_folder_project + "+" + unittest_folder_ctime + "]" + "";
 tables[TABLE_UNITTEST_NAME] = "&" + field_unittest_uuid 
 + ", *" + unittest_projects
 + ", [" + unittest_delFlg + "+" + unittest_iterator_uuid + "+" + unittest_ctime + "]" 
@@ -142,9 +152,24 @@ tables[TABLE_UNITTEST_EXECUTOR_NAME] = "&[" + unittest_executor_iterator + "+" +
 tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_batch + "], " 
 + "[" + unittest_report_delFlg + "+" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_env + "+" + unittest_report_ctime + "]";
 
-window.db.version(194).stores(tables).upgrade (trans => {
-    trans.table(TABLE_UNITTEST_NAME).toCollection().modify (unittest => {
-        unittest[unittest_collectFlg] = 0;
-        unittest[unittest_projects] = [];
-    });
+console.log(tables);
+
+window.db.version(200).stores(tables).upgrade (async trans => {
+    let unittestProjects = await db[TABLE_UNITTEST_NAME].filter(item => item[unittest_collectFlg] == 1).toArray();
+    console.log(unittestProjects);
+    for (let unittestProject of unittestProjects) {
+        let folderName = unittestProject[unittest_fold];
+        let projects = unittestProject[unittest_projects];
+        for (let project of projects) {
+            let version_iteration_test_folder : any = {};
+            version_iteration_test_folder[unittest_folder_iterator] = "";
+            version_iteration_test_folder[unittest_folder_project] = project;
+            version_iteration_test_folder[unittest_folder_name] = folderName;
+            version_iteration_test_folder[unittest_folder_cuid] = unittestProject[unittest_cuid];
+            version_iteration_test_folder[unittest_folder_ctime] = Date.now();
+            version_iteration_test_folder[unittest_folder_delFlg] = 0;
+            await window.db[TABLE_UNITTEST_FOLD_NAME].put(version_iteration_test_folder);
+        }
+    }
+    return true;
 });

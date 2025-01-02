@@ -14,7 +14,6 @@ import {
     REQUEST_METHOD_POST
 } from '../../../config/global_config';
 import {
-    TABLE_VERSION_ITERATION_FIELDS, 
     TABLE_UNITTEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
@@ -174,7 +173,7 @@ class UnittestStepContainer extends Component {
 
     componentDidMount(): void {
         if (!this.props.unittest[this.state.iteratorId]) {
-            getIterationUnitTests(this.state.iteratorId, null, this.props.dispatch);
+            getIterationUnitTests(this.state.iteratorId, null, null, this.props.dispatch);
         }
         if (!isStringEmpty(this.state.unitTestStepUuid)) {
             getUnitTestStepAsserts(this.state.iteratorId, this.state.unitTestUuid, this.state.unitTestStepUuid).then(unitTestAsserts => {
@@ -270,10 +269,7 @@ class UnittestStepContainer extends Component {
         let responseContent = request[iteration_response_content];
         let responseHeader = request[iteration_response_header];
         let responseCookie = request[iteration_response_cookie];
-        let title = this.state.title;
-        if (isStringEmpty(title)) {
-            title = request[iteration_request_title];
-        }
+        let title = request[iteration_request_title];
         this.requestSendTip.getTips(envKeys => {
             this.setState({ 
                 request, method, uri, 

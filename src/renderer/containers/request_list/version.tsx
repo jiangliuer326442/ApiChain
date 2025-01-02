@@ -1,33 +1,63 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Breadcrumb, Layout, Flex, ConfigProvider, FloatButton, Collapse, Popconfirm, InputNumber, Descriptions, Form, Tooltip, Select, Divider, Table, message, Input, Space, Button } from "antd";
-import { EyeOutlined, DeleteOutlined, FileTextOutlined } from '@ant-design/icons';
+import { 
+    Breadcrumb, 
+    Layout, 
+    Flex, 
+    ConfigProvider, 
+    FloatButton, 
+    Collapse, 
+    Popconfirm, 
+    InputNumber, 
+    Dropdown, 
+    Descriptions, 
+    Form, 
+    Tooltip, 
+    Select, 
+    Divider, 
+    Table, 
+    message, 
+    Input, 
+    Space, 
+    Button 
+} from "antd";
+import type { MenuProps } from 'antd';
+import { 
+    EyeOutlined, 
+    DeleteOutlined, 
+    FileTextOutlined, 
+    MoreOutlined,
+    SendOutlined,
+} from '@ant-design/icons';
 import { TinyColor } from '@ctrl/tinycolor';
 import type { FormProps } from 'antd';
 import { encode } from 'base-64';
+import { cloneDeep } from 'lodash';
 
+import MarkdownView from '@comp/markdown/show';
 import { 
     TABLE_VERSION_ITERATION_REQUEST_FIELDS, 
     TABLE_VERSION_ITERATION_FIELDS, 
     TABLE_MICRO_SERVICE_FIELDS,
     UNAME,
-} from '../../../config/db';
-import { getdayjs, isStringEmpty } from '../../util';
-import MarkdownView from '../../components/markdown/show';
-import { getPrjs } from '../../actions/project';
-import { getVersionIterator, getOpenVersionIteratorsByPrj } from '../../actions/version_iterator';
+} from '@conf/db';
+import { 
+    getdayjs, 
+    isStringEmpty 
+} from '@rutil/index';
+import { getPrjs } from '@act/project';
+import { getVersionIterator, getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import { 
     getVersionIteratorFolders, 
     delVersionIteratorFolder 
-} from '../../actions/version_iterator_folders';
+} from '@act/version_iterator_folders';
 import { 
     getVersionIteratorRequestsByProject, 
     delVersionIteratorRequest, 
     setVersionIterationRequestSort,
     batchMoveIteratorRequest,
     batchSetProjectRequestFold,
-} from '../../actions/version_iterator_requests';
-import { cloneDeep } from 'lodash';
+} from '@act/version_iterator_requests';
 
 const { Header, Content, Footer } = Layout;
 
@@ -111,24 +141,20 @@ class RequestListVersion extends Component {
                     key: 'operater',
                     width: 50,
                     render: (_, record) => {
-                        let url = "#/version_iterator_request/" + this.state.iteratorId + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
+                        let docDetailUrl = "#/version_iterator_request/" + this.state.iteratorId + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
+                        let sendRequestUrl = "#/internet_request_send_by_api/" + this.state.iteratorId + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
                         return (
                             <Space size="middle">
-                                <Button type="link" icon={<EyeOutlined />} href={ url } />
+                                <Tooltip title="发送">
+                                    <Button type="link" icon={<SendOutlined />} href={ sendRequestUrl } />
+                                </Tooltip>
+                                <Tooltip title="详情">
+                                    <Button type="link" icon={<EyeOutlined />} href={ docDetailUrl } />
+                                </Tooltip>
                                 { this.state.versionIteration[version_iterator_openflg] === 1 ? 
-                                <Popconfirm
-                                    title="删除api"
-                                    description="确定删除该 api 吗？"
-                                    onConfirm={e => {
-                                        delVersionIteratorRequest(record, ()=>{
-                                            this.onFinish({});
-                                        });
-                                    }}
-                                    okText="确定"
-                                    cancelText="取消"
-                                >
-                                    <Button danger type="link" icon={<DeleteOutlined />} />
-                                </Popconfirm>
+                                <Dropdown menu={this.getMore(record)}>
+                                    <Button type="text" icon={<MoreOutlined />} />
+                                </Dropdown>
                                 : null}
                             </Space>
                         );
@@ -174,6 +200,26 @@ class RequestListVersion extends Component {
             prj: this.state.prj,
             folder: this.state.folder,
         });
+    }
+
+    getMore = (record : any) : MenuProps => {
+            return {'items': [{
+                key: "1",
+                danger: true,
+                label: <Popconfirm
+                    title="删除api"
+                    description="确定删除该 api 吗？"
+                    onConfirm={e => {
+                        delVersionIteratorRequest(record, ()=>{
+                            this.onFinish({});
+                        });
+                    }}
+                    okText="确定"
+                    cancelText="取消"
+                >
+                    <Button danger type="link" icon={<DeleteOutlined />} />
+                </Popconfirm>,
+            }]};
     }
 
     onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
@@ -362,7 +408,7 @@ class RequestListVersion extends Component {
                                 <Divider orientation="left">
                                     <p>{ "项目：" + (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "") }</p >
                                 </Divider>
-                                <Form layout="inline">
+                                <Form layout="inline" style={{marginBottom: 16}}>
                                     <Form.Item label="移动到迭代">
                                         <Select
                                             style={{minWidth: 130}}

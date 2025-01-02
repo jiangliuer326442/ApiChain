@@ -178,7 +178,8 @@ export const TABLE_PROJECT_REQUEST_FIELDS = {
 
 export const TABLE_UNITTEST_FOLD_NAME = "unittest_fold";
 export const TABLE_UNITTEST_FOLD_FIELDS = {
-    FIELD_ITERATOR_UUID : "iterator_uuid",
+    FIELD_ITERATOR : "iterator_uuid",
+    FIELD_PROJECT : "project",
     FIELD_FOLD_NAME : "name",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",

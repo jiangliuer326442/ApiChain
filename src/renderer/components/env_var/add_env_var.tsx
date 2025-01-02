@@ -102,7 +102,7 @@ class AddEnvVarComponent extends Component {
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
                 onCancel={this.handleCancel}
-                width={230}
+                width={300}
             >
                <Form layout="vertical">
                     <Form.Item>
@@ -110,7 +110,7 @@ class AddEnvVarComponent extends Component {
                             value={this.state.pname} onChange={ event=>this.setState({pname : event.target.value}) } />
                     </Form.Item>
                     <Form.Item>
-                        <TextArea allowClear 
+                        <TextArea allowClear rows={ 3 }
                             placeholder="参数值" 
                             value={this.state.pvalue} 
                             onChange={ e=>this.setState({pvalue : e.target.value}) } />

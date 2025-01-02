@@ -11,8 +11,13 @@ import {
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_UNITTEST_MODEL } from '@conf/redux';
-import { addUnitTest, editUnitTest } from '@act/unittest';
-import { addUnitTestFolder, getUnitTestFolders } from '@act/unittest_folders';
+import { addIteratorUnitTest, editUnitTest } from '@act/unittest';
+import { 
+    addIteratorUnitTestFolder, 
+    getIteratorUnitTestFolders,
+    addProjectUnitTestFolder,
+    getProjectUnitTestFolders, 
+} from '@act/unittest_folders';
 
 class AddUnittestComponent extends Component {
 
@@ -62,19 +67,20 @@ class AddUnittestComponent extends Component {
         });
 
         if (this.state.actionType === "create") {
-            addUnitTest(this.props.iteratorId, unitTestTitle, selectedFolder, this.props.device, () => {
-                this.clearInput();
-                this.setState({
-                    loadingFlg: false
+            if (isStringEmpty(this.props.project)) {
+                addIteratorUnitTest(this.props.iteratorId, unitTestTitle, selectedFolder, this.props.device, () => {
+                    this.clearInput();
+                    this.setState({
+                        loadingFlg: false
+                    });
+                    this.props.refreshCb();
+                    this.props.dispatch({
+                        type: SHOW_ADD_UNITTEST_MODEL,
+                        open: false,
+                        unitTestUuid: "",
+                    });
                 });
-                this.props.refreshCb();
-                this.props.dispatch({
-                    type: SHOW_ADD_UNITTEST_MODEL,
-                    open: false,
-                    iteratorId: "",
-                    unitTestUuid: "",
-                });
-            });
+            }
         } else {
             editUnitTest(this.state.unitTestUuid, unitTestTitle, selectedFolder, () => {
                 this.clearInput();
@@ -85,7 +91,6 @@ class AddUnittestComponent extends Component {
                 this.props.dispatch({
                     type: SHOW_ADD_UNITTEST_MODEL,
                     open: false,
-                    iteratorId: "",
                     unitTestUuid: "",
                 });
             });
@@ -97,7 +102,6 @@ class AddUnittestComponent extends Component {
         this.props.dispatch({
             type: SHOW_ADD_UNITTEST_MODEL,
             open: false,
-            iteratorId: "",
             unitTestUuid: ""
         });
     }
@@ -114,16 +118,25 @@ class AddUnittestComponent extends Component {
     }
 
     componentDidUpdate(prevProps) {  
-        if (this.props.iteratorId !== prevProps.iteratorId) {  
-            getUnitTestFolders(this.props.iteratorId, folders => this.setState({ folders }));
+        if (!isStringEmpty(this.props.project) && this.props.project !== prevProps.project) {  
+            getProjectUnitTestFolders(this.props.project, folders => this.setState({ folders }));
+        } else if (!isStringEmpty(this.props.iteratorId) && this.props.iteratorId !== prevProps.iteratorId) {  
+            getIteratorUnitTestFolders(this.props.iteratorId, folders => this.setState({ folders }));
         }  
     }
 
     handleCreateFolder = () => {
-        addUnitTestFolder(this.props.iteratorId, this.state.folderName, this.props.device, ()=>{
-            this.setState({folderName: ""});
-            getUnitTestFolders(this.props.iteratorId, folders => this.setState({ folders }));
-        });
+        if (isStringEmpty(this.props.project)) {
+            addIteratorUnitTestFolder(this.props.iteratorId, this.state.folderName, this.props.device, ()=>{
+                this.setState({folderName: ""});
+                getIteratorUnitTestFolders(this.props.iteratorId, folders => this.setState({ folders }));
+            });
+        } else {
+            addProjectUnitTestFolder(this.props.project, this.state.folderName, this.props.device, ()=>{
+                this.setState({folderName: ""});
+                getProjectUnitTestFolders(this.props.project, folders => this.setState({ folders }));
+            });
+        }
     }
 
     render() : ReactNode {
@@ -177,6 +190,7 @@ function mapStateToProps (state) {
     return {
         open : state.unittest.showAddUnittestModelFlg,
         iteratorId: state.unittest.iteratorId,
+        project: state.unittest.project,
         device : state.device,
         unitTestUuid: state.unittest.unitTestUuid,
         title: state.unittest.title,

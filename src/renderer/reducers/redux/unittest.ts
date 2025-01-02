@@ -13,11 +13,13 @@ import {
 } from '../../../config/db';
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
+let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let step_unittest_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
 let step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 
 export default function (state = {
     list: {},
+    folders: {},
     showAddUnittestModelFlg: false,
     iteratorId: "",
     project: "",
@@ -46,6 +48,10 @@ export default function (state = {
             let project = action.project;
             let listProject = cloneDeep(state.list);
             listProject[project] = action.unitTests;
+            let foldersProject = cloneDeep(state.folders);
+            if (action.folders !== null) {
+                foldersProject[project] = action.folders;
+            }
             for(let unittest of listProject[project]) {
                 unittest.key = unittest[unittest_uuid];
                 let children = unittest.children;
@@ -54,12 +60,18 @@ export default function (state = {
                 }
             }
             return Object.assign({}, state, {
-                list: listProject
+                list: listProject,
+                folders: foldersProject,
+                project,
             });
         case GET_ITERATOR_TESTS:
             let iteratorId = action.iteratorId;
             let listIterator = cloneDeep(state.list);
             listIterator[iteratorId] = action.unitTests;
+            let foldersIterator = cloneDeep(state.folders);
+            if (action.folders !== null) {
+                foldersIterator[iteratorId] = action.folders;
+            }
             for(let unittest of listIterator[iteratorId]) {
                 unittest.key = unittest[unittest_uuid];
                 let children = unittest.children;
@@ -68,7 +80,9 @@ export default function (state = {
                 }
             }
             return Object.assign({}, state, {
-                list: listIterator
+                list: listIterator,
+                iteratorId,
+                folders: foldersIterator,
             });
         default:
             return state;
