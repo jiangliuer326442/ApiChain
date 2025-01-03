@@ -1,12 +1,9 @@
 import { cloneDeep } from 'lodash';
 
-import RequestSendTips from '../classes/RequestSendTips';
-import { isStringEmpty, getType } from "../util";
-import { TABLE_FIELD_TYPE, TABLE_FIELD_REMARK, TABLE_FIELD_VALUE, TABLE_FIELD_NECESSARY } from '../util/json';
+import RequestSendTips from '@clazz/RequestSendTips';
+import { isStringEmpty, getType } from "@rutil/index";
+import { TABLE_FIELD_TYPE, TABLE_FIELD_REMARK, TABLE_FIELD_VALUE, TABLE_FIELD_NECESSARY } from '@rutil/json';
 import { 
-    UNITTEST_FUNCTION_ARRAY_RANDOM,
-    UNITTEST_FUNCTION_ARRAY_FIRST,
-    UNITTEST_FUNCTION_ANY_EVAL,
     UNITTEST_STEP_CURRENT,
     UNITTEST_STEP_RESPONSE,
     UNITTEST_STEP_RESPONSE_HEADER,
@@ -20,13 +17,19 @@ import {
     UNITTEST_STEP_PARAM,
     UNITTEST_STEP_PATH_VARIABLE,
     UNITTEST_STEP_HEADER,
-} from '../../config/unittest';
+} from '@conf/unittest';
+
+import {
+    UNITTEST_FUNCTION_ANY_EVAL,
+    UNITTEST_FUNCTION_ARRAY_RANDOM,
+    UNITTEST_FUNCTION_ARRAY_FIRST,
+} from '@conf/envKeys';
 
 import { 
-    TABLE_REQUEST_HISTORY_FIELDS, TABLE_UNITTEST_EXECUTOR_FIELDS,
-} from '../../config/db';
+    TABLE_REQUEST_HISTORY_FIELDS,
+} from '@conf/db';
 
-import { getSingleExecutorStep } from '../actions/unittest';
+import { getSingleExecutorStep } from '@act/unittest';
 
 let request_history_response_content = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
 let request_history_response_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
@@ -68,12 +71,15 @@ export default class {
 
     private dispatch : any;
 
+    private randomVal : any;
+
     constructor(project: string, iteration: string, unittest: string, content : string, dispatch : any) {
         this.project = project;
         this.currentProject = project;
         this.currentIteration = iteration;
         this.currentUnittest = unittest;
         this.dispatch = dispatch;
+        this.randomVal = Math.random();
         if (getType(content) === "String") {
             this.parseFromStandardExpression(content);
         } else {
@@ -325,7 +331,7 @@ export default class {
             if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_FIRST)) {
                 dataSource = dataSource[0]
             } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_RANDOM)) {
-                dataSource = dataSource[Math.floor(Math.random()*(dataSource.length))]
+                dataSource = dataSource[Math.floor(this.randomVal*(dataSource.length))]
             } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ANY_EVAL)) {
                 let params = _pathKey.substring(currentFuncName.length + 2, _pathKey.length - 2);
                 return eval("\"" + dataSource + "\"" + "." + params);

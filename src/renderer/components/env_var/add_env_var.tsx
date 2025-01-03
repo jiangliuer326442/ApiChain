@@ -39,7 +39,10 @@ class AddEnvVarComponent extends Component {
     handleOk = () => {
         const pname = this.state.pname.trim();
         const pvalue = this.state.pvalue.trim();
-        const premark = this.state.premark.trim();
+        let premark = "";
+        if (!isStringEmpty(this.state.premark)) {
+            premark = this.state.premark.trim();
+        }
 
         if (isStringEmpty(pname)) {
             message.error('请输入参数名称');

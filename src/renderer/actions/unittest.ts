@@ -42,6 +42,7 @@ import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 import { sendAjaxMessage } from '@act/message';
 import { getUsers } from '@act/user';
 import { addRequestHistory, getRequestHistory } from '@act/request_history';
+import { addProjectUnitTestFolder } from '@act/unittest_folders';
 
 import { getType, isStringEmpty, isJsonString, paramToString, waitSeconds } from '@rutil/index';
 
@@ -1225,7 +1226,7 @@ export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
     cb();
 }
 
-export async function copyFromIteratorToProject(iteratorId : string, unittest_uuid : string, cb) {
+export async function copyFromIteratorToProject(iteratorId : string, unittest_uuid : string, device, cb) {
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(unittest_uuid)
     .first();
@@ -1234,12 +1235,14 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
         return;
     }
 
+    let folderName = unitTest[unittest_fold];
+
     let unitTestSteps : any[] = await window.db[TABLE_UNITTEST_STEPS_NAME]
     .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
     .equals([0, iteratorId, unittest_uuid])
     .toArray();
 
-    let prjs = new Set<String>();
+    let prjs = new Set<string>();
     for (let unitTestStep of unitTestSteps) {
         prjs.add(unitTestStep[unittest_step_project]);
     }
@@ -1261,6 +1264,7 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
     }
 
     for (let prj of prjs) {
+        addProjectUnitTestFolder(prj, folderName, device, ()=>{});
         let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
         .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
         .equals([prj, iteratorId, ""])

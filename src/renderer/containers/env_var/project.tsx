@@ -175,7 +175,8 @@ class EnvVar extends Component {
             }
           }
           if(!hasApiHost) {
-            addEnvValues(prj, env, "", "", ENV_VALUE_API_HOST, "", this.props.device, ()=>{
+            addEnvValues(prj, env, "", "", 
+              ENV_VALUE_API_HOST, "", "接口域名及前缀", this.props.device, ()=>{
               getEnvValues(prj, env, "", "", "", this.props.dispatch, env_vars => {});
             });
           }

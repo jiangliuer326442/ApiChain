@@ -20,3 +20,13 @@ export const ENV_VALUE_RANDOM_INT = "$randomInt";
 
 //RANDOM_LONG
 export const ENV_VALUE_RANDOM_LONG = "$randomLong";
+
+//函数数组
+//取第一个元素
+export const UNITTEST_FUNCTION_ARRAY_FIRST = "*first()"
+
+//随机取一个元素
+export const UNITTEST_FUNCTION_ARRAY_RANDOM = "*random()"
+
+//执行任意指令
+export const UNITTEST_FUNCTION_ANY_EVAL = "*eval()"

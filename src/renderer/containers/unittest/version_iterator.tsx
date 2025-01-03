@@ -312,9 +312,9 @@ class UnittestListVersion extends Component {
     exportUnitTestClick = (record) => {
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        copyFromIteratorToProject(iteratorId, unittestId, ()=>{
+        copyFromIteratorToProject(iteratorId, unittestId, this.props.device, ()=>{
             message.success("导出单测到项目成功");
-            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+            getIterationUnitTests(iteratorId, this.state.folder, this.state.env, this.props.dispatch);
         });
     }
 
@@ -397,7 +397,7 @@ class UnittestListVersion extends Component {
                                     type="primary"  
                                     disabled={!this.state.executeFlg} 
                                     onClick={() => {
-                                        if (!this.props.vipFlg) {
+                                        if (!this.props.device.vipFlg) {
                                             this.setState({
                                                 showPay: true,
                                             });
@@ -458,7 +458,7 @@ class UnittestListVersion extends Component {
 
 function mapStateToProps (state) {
     return {
-        vipFlg: state.device.vipFlg,
+        device : state.device,
         unittest: state.unittest.list,
         folders: state.unittest.folders,
         envs: state.env.list,

@@ -3,12 +3,11 @@ import { AutoComplete, Select, Space, Input, Button, Modal, Form } from 'antd';
 import { CalculatorOutlined } from '@ant-design/icons';
 import { connect } from 'react-redux';
 import JsonView from 'react-json-view';
+import { cloneDeep } from 'lodash';
 
-import JsonParamTips from '../../classes/JsonParamTips';
-import {
-    cleanJson,
-} from '../../util/json';
-import { isStringEmpty } from '../../util';
+import JsonParamTips from '@clazz/JsonParamTips';
+import { cleanJson } from '@rutil/json';
+import { isStringEmpty } from '@rutil/index';
 import {
     UNITTEST_STEP_PROJECT_CURRENT,
     UNITTEST_STEP_CURRENT,
@@ -23,20 +22,19 @@ import {
     UNITTEST_DATASOURCE_TYPE_ENV,
     UNITTEST_STEP_POINTED,
     UNITTEST_STEP_PROJECT_POINTED,
-} from '../../../config/unittest';
+} from '@conf/unittest';
 import { 
     TABLE_UNITTEST_FIELDS, 
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 import { 
     getUnitTestRequests 
-} from '../../actions/version_iterator_requests';
+} from '@act/version_iterator_requests';
 import { 
     getIterationUnitTests
-} from '../../actions/unittest';
-import { cloneDeep } from 'lodash';
+} from '@act/unittest';
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
@@ -170,6 +168,7 @@ class StepExpressionBuilderBox extends Component {
             } else {
                 let selectedStepId = this.state.selectedStep.replace(UNITTEST_STEP_POINTED, "");
                 let step = this.state.steps.find(row => row[unittest_step_uuid] === selectedStepId);
+                if (step === undefined) return;
                 getUnitTestRequests(step[unittest_step_prj], this.props.iteratorId, step[unittest_step_uri]).then(requests => {
                     let request = requests.find(row => row[iteration_request_method] === step[unittest_step_method]);
 
