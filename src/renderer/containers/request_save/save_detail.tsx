@@ -2,40 +2,40 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Input, Divider, Select } from "antd";
 import { cloneDeep } from 'lodash';
-import { decode, encode } from 'base-64';
+import { decode } from 'base-64';
 import JsonView from 'react-json-view';
 
 import {
     isStringEmpty, getdayjs
-} from '../../util';
+} from '@rutil/index';
 import {
     TABLE_FIELD_NAME,
     TABLE_FIELD_TYPE,
     TABLE_FIELD_VALUE,
     TABLE_FIELD_TYPE_REF,
     genHash,
-} from '../../util/json';
-import { ENV_VALUE_API_HOST } from "../../../config/envKeys";
+} from '@rutil/json';
+import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { 
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_PROJECT_REQUEST_FIELDS,
     UNAME
-} from '../../../config/db';
+} from '@conf/db';
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST,
-} from '../../../config/global_config';
-import { getPrjs } from '../../actions/project';
-import { addJsonFragement } from '../../actions/request_save';
+} from '@conf/global_config';
+import JsonSaveTableComponent from "@comp/request_save/json_save_table";
+import { getPrjs } from '@act/project';
+import { addJsonFragement } from '@act/request_save';
 import { 
     addVersionIteratorFolder,
     getVersionIteratorFolders 
-} from '../../actions/version_iterator_folders';
-import { editVersionIteratorRequest, getVersionIteratorRequest } from '../../actions/version_iterator_requests';
-import { editProjectRequest, getProjectRequest } from '../../actions/project_request';
-import JsonSaveTableComponent from "../../components/request_save/json_save_table";
+} from '@act/version_iterator_folders';
+import { editVersionIteratorRequest, getVersionIteratorRequest } from '@act/version_iterator_requests';
+import { editProjectRequest, getProjectRequest } from '@act/project_request';
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;

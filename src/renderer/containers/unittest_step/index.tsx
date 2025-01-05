@@ -7,33 +7,32 @@ import {
 } from 'antd';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
-import {
-    TABLE_FIELD_VALUE,
-} from '../../util/json';
+
+import { parseJsonToChildren, parseJsonToFilledTable, TABLE_FIELD_TYPE, TABLE_FIELD_VALUE } from '@rutil/json';
+import { getType, isStringEmpty } from '@rutil/index';
 import {
     REQUEST_METHOD_POST
-} from '../../../config/global_config';
+} from '@conf/global_config';
 import {
     TABLE_UNITTEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_STEP_ASSERT_FIELDS,
-} from '../../../config/db';
-import RequestSendTips from '../../classes/RequestSendTips';
-import { getUnitTestRequests } from '../../actions/version_iterator_requests';
+} from '@conf/db';
+import RequestSendTips from '@clazz/RequestSendTips';
+import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { 
     getIterationUnitTests,
     addUnitTestStep,
     editUnitTestStep,
     getUnitTestStepAsserts,
-} from '../../actions/unittest';
-import RequestPathVariableFormTable from "../../components/unittest_step/request_path_variable_form_table";
-import RequestParamFormTable from "../../components/unittest_step/request_param_form_table";
-import RequestHeadFormTable from "../../components/unittest_step/request_head_form_table";
-import RequestBodyFormTable from "../../components/unittest_step/request_body_form_table";
-import StepExpressionBuilderBox from "../../components/unittest_step/step_expression_builder_box";
-import { isStringEmpty } from '../../util';
+} from '@act/unittest';
+import RequestPathVariableFormTable from "@comp/unittest_step/request_path_variable_form_table";
+import RequestParamFormTable from "@comp/unittest_step/request_param_form_table";
+import RequestHeadFormTable from "@comp/unittest_step/request_head_form_table";
+import RequestBodyFormTable from "@comp/unittest_step/request_body_form_table";
+import StepExpressionBuilderBox from "@comp/unittest_step/step_expression_builder_box";
 
 const { Header, Content, Footer } = Layout;
 
@@ -203,7 +202,7 @@ class UnittestStepContainer extends Component {
         this.initMethodUri(method, uri);
     }
 
-    initMethodUri = (method, uri) => {
+    initMethodUri = async (method, uri) => {
         let request = this.state.requests.find(row => row[iteration_request_method] === method && row[iteration_request_uri] === uri);
         let formRequestHeadData = request[iteration_request_header];
         let formRequestBodyData = request[iteration_request_body];
@@ -232,6 +231,16 @@ class UnittestStepContainer extends Component {
         if (Object.keys(this.state.requestBody).length === 0){
             requestBody = {};
             for (let _key in formRequestBodyData) {
+                if (formRequestBodyData[_key][TABLE_FIELD_TYPE] === "JsonString") {
+                    let formRequestBodyJsonStringObject = JSON.parse(formRequestBodyData[_key][TABLE_FIELD_VALUE]);
+                    formRequestBodyData[_key][TABLE_FIELD_TYPE] =  getType(formRequestBodyJsonStringObject);
+                    formRequestBodyData[_key][TABLE_FIELD_VALUE] = "";
+                    let formRequestBodyJsonStringParsedData = {};
+                    parseJsonToFilledTable(formRequestBodyJsonStringParsedData, formRequestBodyJsonStringObject, null);
+                    for (let formRequestBodyJsonStringParsedDataKey in formRequestBodyJsonStringParsedData) {
+                        formRequestBodyData[_key][formRequestBodyJsonStringParsedDataKey] = formRequestBodyJsonStringParsedData[formRequestBodyJsonStringParsedDataKey];
+                    }
+                }
                 requestBody[_key] = formRequestBodyData[_key][TABLE_FIELD_VALUE];
             }
         } else {
@@ -270,6 +279,10 @@ class UnittestStepContainer extends Component {
         let responseHeader = request[iteration_response_header];
         let responseCookie = request[iteration_response_cookie];
         let title = request[iteration_request_title];
+
+        console.log("formRequestBodyData", formRequestBodyData);
+        console.log("requestBody", requestBody);
+
         this.requestSendTip.getTips(envKeys => {
             this.setState({ 
                 request, method, uri, 

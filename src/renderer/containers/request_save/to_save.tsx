@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import {
     isStringEmpty
-} from '../../util';
+} from '@rutil/index';
 import {
     TABLE_FIELD_NAME,
     TABLE_FIELD_TYPE,
@@ -21,10 +21,10 @@ import {
     retParseBodyJsonToTable,
     parseJsonToFilledTable,
     cleanJson,
-} from '../../util/json';
+} from '@rutil/json';
 
-import { createWindow } from '../../util/window';
-import { ENV_VALUE_API_HOST } from "../../../config/envKeys";
+import { createWindow } from '@rutil/window';
+import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { 
     TABLE_ENV_VAR_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
@@ -33,37 +33,37 @@ import {
     TABLE_REQUEST_HISTORY_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_ENV_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 import {
     CONTENT_TYPE_URLENCODE,
-} from '../../../config/contentType';
+} from '@conf/contentType';
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST,
     CONTENT_TYPE,
-} from '../../../config/global_config';
-import { VERSION_ITERATOR_ADD_ROUTE } from '../../../config/routers';
-import { getEnvs } from '../../actions/env';
-import { getPrjs } from '../../actions/project';
-import { getEnvValues } from '../../actions/env_value';
-import { getOpenVersionIteratorsByPrj } from '../../actions/version_iterator';
-import { getVersionIteratorRequest } from '../../actions/version_iterator_requests';
-import { getProjectRequest } from '../../actions/project_request';
-import { getRequestHistory } from '../../actions/request_history';
-import { addJsonFragement } from '../../actions/request_save';
+} from '@conf/global_config';
+import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
+import { getEnvs } from '@act/env';
+import { getPrjs } from '@act/project';
+import { getEnvValues } from '@act/env_value';
+import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
+import { getVersionIteratorRequest } from '@act/version_iterator_requests';
+import { getProjectRequest } from '@act/project_request';
+import { getRequestHistory } from '@act/request_history';
+import { addJsonFragement } from '@act/request_save';
 import { 
     addVersionIteratorFolder,
     getVersionIteratorFolders 
-} from '../../actions/version_iterator_folders';
-import { addProjectRequest } from '../../actions/project_request';
-import { addVersionIteratorRequest } from '../../actions/version_iterator_requests';
-import JsonSaveParamTableContainer from "../../components/request_save/json_save_table_param";
-import JsonSavePathVariTableContainer from "../../components/request_save/json_save_table_path_variable";
-import JsonSaveBodyTableContainer from "../../components/request_save/json_save_table_body";
-import JsonSaveHeaderTableContainer from "../../components/request_save/json_save_table_header";
-import JsonSaveResponseHeaderTableContainer from "../../components/request_save/json_save_table_response_header";
-import JsonSaveResponseCookieTableContainer from "../../components/request_save/json_save_table_response_cookie";
-import JsonSaveResponseTableComponent from "../../components/request_save/json_save_table_response";
+} from '@act/version_iterator_folders';
+import { addProjectRequest } from '@act/project_request';
+import { addVersionIteratorRequest } from '@act/version_iterator_requests';
+import JsonSaveParamTableContainer from "@comp/request_save/json_save_table_param";
+import JsonSavePathVariTableContainer from "@comp/request_save/json_save_table_path_variable";
+import JsonSaveBodyTableContainer from "@comp/request_save/json_save_table_body";
+import JsonSaveHeaderTableContainer from "@comp/request_save/json_save_table_header";
+import JsonSaveResponseHeaderTableContainer from "@comp/request_save/json_save_table_response_header";
+import JsonSaveResponseCookieTableContainer from "@comp/request_save/json_save_table_response_cookie";
+import JsonSaveResponseTableComponent from "@comp/request_save/json_save_table_response";
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
