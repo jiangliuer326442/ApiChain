@@ -164,7 +164,17 @@ class UnittestListVersion extends Component {
                                             batchUuid: "",
                                         });
 
-                                        let batchUuid = await continueIteratorExecuteUnitTest(iteratorId, valueUnittestStepUnittestUuid, record[unittest_report_batch], valueUnittestReportStep, record[unittest_report_env], this.props.dispatch);
+                                        let batchUuid = await continueIteratorExecuteUnitTest(
+                                            iteratorId, 
+                                            valueUnittestStepUnittestUuid, 
+                                            record[unittest_report_batch], 
+                                            valueUnittestReportStep, 
+                                            record[unittest_report_env], 
+                                            this.props.dispatch,
+                                            (batchUuid : string, stepUuid : string) => {
+                                                this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid})
+                                            }
+                                        );
 
                                         this.setState({
                                             unittestUuid: valueUnittestStepUnittestUuid,
@@ -344,7 +354,6 @@ class UnittestListVersion extends Component {
     }
 
     render() : ReactNode {
-        console.log("folders", this.props.folders);
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
@@ -395,7 +404,7 @@ class UnittestListVersion extends Component {
                             <Form.Item>
                                 <Button 
                                     type="primary"  
-                                    disabled={!this.state.executeFlg} 
+                                    disabled={!this.state.executeFlg || this.state.selectedUnittests.length === 0} 
                                     onClick={() => {
                                         if (!this.props.device.vipFlg) {
                                             this.setState({

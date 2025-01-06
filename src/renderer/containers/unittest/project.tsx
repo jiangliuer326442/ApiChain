@@ -189,6 +189,9 @@ class UnittestListVersion extends Component {
                           valueUnittestReportStep,
                           record[unittest_report_env],
                           this.props.dispatch,
+                          (batchUuid: string, stepUuid: string) => {
+                            this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid });
+                          },
                         );
 
                         this.setState({

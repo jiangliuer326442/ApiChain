@@ -64,7 +64,9 @@ class StepExpressionBuilderBox extends Component {
 
         let content = props.value;
 
-        this.paramTips  = new JsonParamTips(props.project, props.iteratorId, props.unitTestUuid, content, props.dispatch);
+        this.paramTips  = new JsonParamTips(props.iteratorId, props.unitTestUuid, props.dispatch);
+        this.paramTips.setProject(props.project);
+        this.paramTips.setContent(content);
 
         this.state = {
             loadeadFlg: false,

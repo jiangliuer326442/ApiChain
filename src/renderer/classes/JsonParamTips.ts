@@ -73,13 +73,21 @@ export default class {
 
     private randomVal : any;
 
-    constructor(project: string, iteration: string, unittest: string, content : string, dispatch : any) {
-        this.project = project;
-        this.currentProject = project;
+    constructor(iteration: string, unittest: string, dispatch : any) {
         this.currentIteration = iteration;
         this.currentUnittest = unittest;
         this.dispatch = dispatch;
         this.randomVal = Math.random();
+    }
+
+    setProject(project: string) {
+        this.project = project;
+        this.currentProject = project;
+        this.envVarTips = new RequestSendTips();
+        this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
+    }
+
+    setContent(content: string) {
         if (getType(content) === "String") {
             this.parseFromStandardExpression(content);
         } else {
@@ -87,9 +95,6 @@ export default class {
             this.dataSourceType = UNITTEST_DATASOURCE_TYPE_ENV;
             this.assertPrev = content;
         }
-
-        this.envVarTips = new RequestSendTips();
-        this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
     }
 
     setEnv(env: string) {
@@ -331,10 +336,15 @@ export default class {
             if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_FIRST)) {
                 dataSource = dataSource[0]
             } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_RANDOM)) {
-                dataSource = dataSource[Math.floor(this.randomVal*(dataSource.length))]
+                if (dataSource.length > 0) {
+                    dataSource = dataSource[Math.floor(this.randomVal*(dataSource.length))];
+                } else {
+                    dataSource = "";
+                }
             } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ANY_EVAL)) {
+                let $$ = dataSource;
                 let params = _pathKey.substring(currentFuncName.length + 2, _pathKey.length - 2);
-                return eval("\"" + dataSource + "\"" + "." + params);
+                return eval(params);
             } else {
                 dataSource = dataSource[_pathKey];
             }

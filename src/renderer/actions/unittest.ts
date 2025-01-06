@@ -575,8 +575,9 @@ export async function getUnitTestStepAsserts(iteratorId : string, unitTestId : s
 
 export async function continueIteratorExecuteUnitTest(
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
-    env : string, dispatch : any) {
+    env : string, dispatch : any, cb) {
 
+    let progressCb = cb;
     let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
     .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
     .equals([0, iteratorId, unitTestId])
@@ -600,8 +601,8 @@ export async function continueIteratorExecuteUnitTest(
             envVarTips.init(project, env, iteratorId, "", dispatch, env_vars => {});
             return envVarTips;
         },
-        (project : string, content : string) => {
-            let jsonParamTips = new JsonParamTips(project, iteratorId, "", content, dispatch);
+        () => {
+            let jsonParamTips = new JsonParamTips(iteratorId, "", dispatch);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         }, 
@@ -619,7 +620,9 @@ export async function continueIteratorExecuteUnitTest(
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
-        });
+        },
+        progressCb
+    );
     let success = ret.success;
     let recentStepUuid = ret.recentStepUuid;
     let errorMessage = ret.errorMessage;
@@ -638,8 +641,9 @@ export async function continueIteratorExecuteUnitTest(
 
 export async function continueProjectExecuteUnitTest(
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
-    env : string, dispatch : any) {
+    env : string, dispatch : any, cb : Function) {
 
+    let progressCb = cb;
     let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
     .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
     .equals([0, iteratorId, unitTestId])
@@ -663,8 +667,8 @@ export async function continueProjectExecuteUnitTest(
             envVarTips.init(project, env, "", unitTestId, dispatch, env_vars => {});
             return envVarTips;
         },
-        (project : string, content : string) => {
-            let jsonParamTips = new JsonParamTips(project, "", unitTestId, content, dispatch);
+        () => {
+            let jsonParamTips = new JsonParamTips("", unitTestId, dispatch);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         }, 
@@ -683,7 +687,8 @@ export async function continueProjectExecuteUnitTest(
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
-        });
+        }, progressCb
+    );
     let success = ret.success;
     let recentStepUuid = ret.recentStepUuid;
     let errorMessage = ret.errorMessage;
@@ -724,8 +729,8 @@ export async function executeProjectUnitTest(
             envVarTips.init(project, env, "", unitTestId, dispatch, env_vars => {});
             return envVarTips;
         },
-        (project : string, content : string) => {
-            let jsonParamTips = new JsonParamTips(project, "", unitTestId, content, dispatch);
+        () => {
+            let jsonParamTips = new JsonParamTips("", unitTestId, dispatch);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         },
@@ -792,8 +797,8 @@ export async function executeIteratorUnitTest(
             envVarTips.init(project, env, iteratorId, "", dispatch, env_vars => {});
             return envVarTips;
         },
-        (project : string, content : string) => {
-            let jsonParamTips = new JsonParamTips(project, iteratorId, "", content, dispatch);
+        () => {
+            let jsonParamTips = new JsonParamTips(iteratorId, "", dispatch);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         },
@@ -845,6 +850,7 @@ async function stepsExecutor(
     saveStepResultFunc : Function,
     progressCb : Function,
 ) : Promise<any> {
+    let jsonParamTips = getJsonParamTipsFunc();
     let btime = Date.now();
     let success = UNITTEST_RESULT_SUCCESS;
     let errorMessage = "";
@@ -865,6 +871,8 @@ async function stepsExecutor(
         let file = new Object();
         let isContinue = unit_test_step[unittest_step_continue];
         let delaySeconds = unit_test_step[unittest_step_wait_seconds];
+
+        jsonParamTips.setProject(project);
 
         let breakFlg = true;
 
@@ -889,7 +897,7 @@ async function stepsExecutor(
                 if (_key === CONTENT_TYPE) {
                     contentType = header[_key];
                 }
-                let jsonParamTips = getJsonParamTipsFunc(project, header[_key]);
+                jsonParamTips.setContent(header[_key]);
                 try {
                     header[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                 } catch (error) {
@@ -902,7 +910,7 @@ async function stepsExecutor(
 
         if (Object.keys(pathVariable).length > 0) {
             for (let _key in pathVariable) {
-                let jsonParamTips = getJsonParamTipsFunc(project, pathVariable[_key]);
+                jsonParamTips.setContent(pathVariable[_key]);
                 try {
                     let value = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                     pathVariable[_key] = value;
@@ -924,20 +932,22 @@ async function stepsExecutor(
                         //移除 body
                         delete body[_key];
                     } else {
-                        let jsonParamTips = getJsonParamTipsFunc(project, body[_key]);
+                        jsonParamTips.setContent(body[_key]);
                         try {
                             body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                         } catch (error) {
+                            console.error(error);
                             errorMessage = error.message;
                             success = UNITTEST_RESULT_FAILURE;
                             break outerLoop1;
                         }
                     }
                 } else {
-                    let jsonParamTips = getJsonParamTipsFunc(project, body[_key]);
+                    jsonParamTips.setContent(body[_key]);
                     try {
                         body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                     } catch (error) {
+                        console.error("_key", body[_key], error);
                         errorMessage = error.message;
                         success = UNITTEST_RESULT_FAILURE;
                         break outerLoop1;
@@ -949,7 +959,7 @@ async function stepsExecutor(
 
         if (Object.keys(param).length > 0) {
             for (let _key in param) {
-                let jsonParamTips = getJsonParamTipsFunc(project, param[_key]);
+                jsonParamTips.setContent(param[_key]);
                 try {
                     param[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
                 } catch (error) {
@@ -1040,18 +1050,18 @@ async function stepsExecutor(
                     let assertRight = unitTestAssert[unittest_step_assert_right];
                     let assertOperator = unitTestAssert[unittest_step_assert_operator];
     
-                    let leftJsonParamTips = getJsonParamTipsFunc(project, assertLeft);
+                    jsonParamTips.setContent(assertLeft);
                     try {
-                        assertLeftValue[keyNumber] = await leftJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                        assertLeftValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
                     } catch (error) {
                         errorMessage = error.message;
                         breakFlg = true;
                         break;
                     }
     
-                    let rightJsonParamTips = getJsonParamTipsFunc(project, assertRight);
+                    jsonParamTips.setContent(assertRight);
                     try {
-                        assertRightValue[keyNumber] = await rightJsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                        assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
                     } catch (error) {
                         errorMessage = error.message;
                         breakFlg = true;
