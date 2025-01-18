@@ -1,9 +1,9 @@
 import md5 from 'js-md5';
 import { cloneDeep } from 'lodash';
 
-import { getType, isStringEmpty } from './';
+import { getType, isStringEmpty } from './index';
 import { TABLE_JSON_FRAGEMENT_FIELDS } from '../../config/db';
-import { CONTENT_TYPE } from '../../config/global_config';
+import { CONTENT_TYPE, DataTypeJsonObject } from '../../config/global_config';
 
 import { getJsonFragment } from '../actions/request_save';
 
@@ -129,6 +129,12 @@ export function parseJsonToFilledTable(parseResult : any, jsonObject : any, fill
             parseResult[_key][TABLE_FIELD_NECESSARY] = 0;
             if (getType(jsonObject[_key][0]) === "Object") {
                 parseJsonToFilledTable(parseResult[_key], jsonObject[_key][0], (filledObject && filledObject[_key]) ? filledObject[_key] : null);
+            } else {
+                parseResult[_key][TABLE_FIELD_VALUE] = {};
+                parseResult[_key][TABLE_FIELD_VALUE][TABLE_FIELD_REMARK] = "";
+                parseResult[_key][TABLE_FIELD_VALUE][TABLE_FIELD_TYPE] = getType(jsonObject[_key][0]);
+                parseResult[_key][TABLE_FIELD_VALUE][TABLE_FIELD_NECESSARY] = 0;
+                parseResult[_key][TABLE_FIELD_VALUE][TABLE_FIELD_VALUE] = jsonObject[_key][0];
             }
         } else {
             parseResult[_key] = {};
@@ -142,50 +148,74 @@ export function parseJsonToFilledTable(parseResult : any, jsonObject : any, fill
 
 export async function parseJsonToChildren(parentKeys, parentKey, result, content, cb) {
     let json_fragment = await cb(parentKey, content);
-    for(let key in content) {
-        if(isInnerKey(key)) {
-            continue;
-        }
-        let necessary = 0;
-        if(getType(content[key][TABLE_FIELD_NECESSARY]) !== "Undefined") {
-            necessary = content[key][TABLE_FIELD_NECESSARY];
-        }
-        let remark = "";
-        if(getType(content[key][TABLE_FIELD_REMARK]) !== "Undefined") {
-            remark = content[key][TABLE_FIELD_REMARK];
-        }
-        if ( json_fragment !== undefined ) {
-            let json_fragment_obj = json_fragment[json_fragement_fields][key];
-            if (json_fragment_obj[TABLE_FIELD_TYPE] === "String" || json_fragment_obj[TABLE_FIELD_TYPE] === "Number") {
-                remark = json_fragment_obj[TABLE_FIELD_REMARK];
-            } else if (json_fragment_obj[TABLE_FIELD_TYPE] === TABLE_FIELD_TYPE_REF) {
-                let tmp_fragement_name = json_fragment_obj[TABLE_FIELD_NAME];
-                let tmp_fragement_name_arr = tmp_fragement_name.split('@');
-                let fragement_name = tmp_fragement_name_arr[0];
-                let fragement_hash = tmp_fragement_name_arr[1];
-                let tmp_json_fragment = await getJsonFragment(fragement_name, fragement_hash);
-                remark = tmp_json_fragment !== undefined ? tmp_json_fragment[json_fragement_remark] : '';
-            }
-        }
 
-        let obj : any = {};
-        let type = content[key][TABLE_FIELD_TYPE];
-        obj["key"] = parentKeys.join(".") + (parentKey === "" ? "" : ".") + key;
-        obj[TABLE_FIELD_NAME] = key;
-        obj[TABLE_FIELD_TYPE] = type;
-        obj[TABLE_FIELD_NECESSARY] = necessary;
-        obj[TABLE_FIELD_REMARK] = remark;
-        obj[TABLE_FIELD_VALUE] = getType(content[key][TABLE_FIELD_VALUE]) === "Undefined" ? null : content[key][TABLE_FIELD_VALUE];
-        if (type === "Object" || type === "Array") {
-            obj["children"] = [];
+    if (content[TABLE_FIELD_TYPE] === "Array" && content[TABLE_FIELD_VALUE] !== undefined) {
+        let _obj = content[TABLE_FIELD_VALUE];
+        if (_obj.length > 0) {
+            await innerParseJsonToChildrend(_obj, json_fragment, "0", parentKeys, parentKey, result, cb);
         }
-        result.push(obj);
-        content[key][TABLE_FIELD_REMARK] = remark;
-        if (type === "Object" || type === "Array") {
-            parentKeys.push(key);
-            await parseJsonToChildren(parentKeys, key, obj["children"], content[key], cb);
-            parentKeys.pop();
+    } else {
+        for(let key in content) {
+            if(isInnerKey(key)) {
+                continue;
+            }
+            let _obj = content[key];
+            await innerParseJsonToChildrend(_obj, json_fragment, key, parentKeys, parentKey, result, cb);
         }
+    }
+}
+
+async function innerParseJsonToChildrend(
+    _obj : any, 
+    json_fragment : any,
+    key : string | null,
+    parentKeys, parentKey,
+    result,
+    cb
+) {
+    let necessary = 0;
+    if(getType(_obj[TABLE_FIELD_NECESSARY]) !== "Undefined") {
+        necessary = _obj[TABLE_FIELD_NECESSARY];
+    }
+    let remark = "";
+    if(getType(_obj[TABLE_FIELD_REMARK]) !== "Undefined") {
+        remark = _obj[TABLE_FIELD_REMARK];
+    }
+    if ( json_fragment !== undefined ) {
+        let json_fragment_obj = json_fragment[json_fragement_fields][key];
+        console.log("1111111111", key, json_fragment_obj);
+        if (json_fragment_obj[TABLE_FIELD_TYPE] === "String" || json_fragment_obj[TABLE_FIELD_TYPE] === "Number") {
+            remark = json_fragment_obj[TABLE_FIELD_REMARK];
+        } else if (json_fragment_obj[TABLE_FIELD_TYPE] === TABLE_FIELD_TYPE_REF) {
+            let tmp_fragement_name = json_fragment_obj[TABLE_FIELD_NAME];
+            let tmp_fragement_name_arr = tmp_fragement_name.split('@');
+            let fragement_name = tmp_fragement_name_arr[0];
+            let fragement_hash = tmp_fragement_name_arr[1];
+            let tmp_json_fragment = await getJsonFragment(fragement_name, fragement_hash);
+            remark = tmp_json_fragment !== undefined ? tmp_json_fragment[json_fragement_remark] : '';
+        }
+    }
+
+    let obj : any = {};
+    let type = _obj[TABLE_FIELD_TYPE];
+    obj["key"] = parentKeys.join(".") + (parentKey === "" ? "" : ".") + key;
+    obj[TABLE_FIELD_NAME] = key;
+    obj[TABLE_FIELD_TYPE] = type;
+    obj[TABLE_FIELD_NECESSARY] = necessary;
+    obj[TABLE_FIELD_REMARK] = remark;
+    obj[TABLE_FIELD_VALUE] = (
+        getType(_obj[TABLE_FIELD_VALUE]) === "Undefined" || 
+        type === "Object" || 
+        type === "Array"
+    ) ? null : _obj[TABLE_FIELD_VALUE];
+    if (type === "Object" || type === "Array") {
+        obj["children"] = [];
+    }
+    result.push(obj);
+    if (type === "Object" || type === "Array") {
+        parentKeys.push(key);
+        await parseJsonToChildren(parentKeys, key, obj["children"], _obj, cb);
+        parentKeys.pop();
     }
 }
 
@@ -228,6 +258,48 @@ export function iteratorBodyGenHash(bodyObject : Object, fileObject : Object) : 
     return genHash;
 }
 
+export async function buildJsonString(formObjectDefine : any) {
+    let jsonStringKeys = new Set<String>();
+
+    for (let _key in formObjectDefine) {
+        let _val = formObjectDefine[_key];
+        if (_val[TABLE_FIELD_TYPE] === DataTypeJsonObject) {
+            jsonStringKeys.add(_key);
+            let formRequestBodyJsonStringObject;
+            if (getType(_val[TABLE_FIELD_VALUE]) === "String") {
+                formRequestBodyJsonStringObject = JSON.parse(_val[TABLE_FIELD_VALUE]);
+            } else {
+                formRequestBodyJsonStringObject = _val[TABLE_FIELD_VALUE];
+            }
+            _val[TABLE_FIELD_TYPE] =  getType(formRequestBodyJsonStringObject);
+            _val[TABLE_FIELD_VALUE] = "";
+            let formRequestBodyJsonStringParsedData : any = {};
+            let wrappedObject : any = {};
+            wrappedObject[_key] = formRequestBodyJsonStringObject;
+            parseJsonToFilledTable(formRequestBodyJsonStringParsedData, wrappedObject, null);
+            _val = formRequestBodyJsonStringParsedData[_key];
+            formObjectDefine[_key] = _val;
+        }
+    }
+    let parseJsonToChildrenResult : Array<any> = [];
+    await parseJsonToChildren([], "", parseJsonToChildrenResult, formObjectDefine, async (_1, _2) => undefined);
+
+    let returnObject = cleanJson(formObjectDefine);
+
+    for (let _key in returnObject) {
+        if (jsonStringKeys.has(_key)) {
+            returnObject[_key] = JSON.stringify(returnObject[_key]);
+        }
+    }
+
+    return {
+        formObjectDefine,
+        parseJsonToChildrenResult,
+        returnObject,
+        jsonStringKeys,
+    };
+}
+
 function innerIteratorGenHash(hash, object) {
     let genHash = hash;
     for (let key in object) {
@@ -247,14 +319,13 @@ function innerCleanJson(outJsonObject : any, inJsonObject : any) {
         let _currentObjectType = _currentObject[TABLE_FIELD_TYPE];
 		let delFlg = true;
         if (_currentObjectType === "Array") {
-            let value = "";
             for (let _key2 in _currentObject) {                
                 if (!isInnerKey(_key2)) {
                     delFlg = false;
                 }
             }
             if (delFlg) {
-                _currentObject = [value];
+                _currentObject = [_currentObject[TABLE_FIELD_VALUE][TABLE_FIELD_VALUE]];
             } else {
                 delete _currentObject[TABLE_FIELD_REMARK];
                 delete _currentObject[TABLE_FIELD_TYPE];

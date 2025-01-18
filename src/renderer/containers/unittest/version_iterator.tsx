@@ -389,9 +389,12 @@ class UnittestListVersion extends Component {
                                 />
                             </Form.Item>
                             <Form.Item label="移动到迭代">
-                                <Select
+                                <Select allowClear
                                     style={{minWidth: 130}}
                                     onChange={ value => {
+                                        if (isStringEmpty(value)) {
+                                            return;
+                                        }
                                         batchMoveIteratorUnittest(this.state.iteratorId, this.state.selectedUnittests, value, () => {
                                             this.state.selectedUnittests = [];
                                             message.success("移动迭代成功");

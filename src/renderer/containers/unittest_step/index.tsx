@@ -8,10 +8,13 @@ import {
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 
-import { parseJsonToChildren, parseJsonToFilledTable, TABLE_FIELD_TYPE, TABLE_FIELD_VALUE } from '@rutil/json';
-import { getType, isStringEmpty } from '@rutil/index';
+import { 
+    TABLE_FIELD_VALUE,
+    buildJsonString
+} from '@rutil/json';
+import { isStringEmpty } from '@rutil/index';
 import {
-    REQUEST_METHOD_POST
+    REQUEST_METHOD_POST,
 } from '@conf/global_config';
 import {
     TABLE_UNITTEST_FIELDS,
@@ -229,20 +232,8 @@ class UnittestStepContainer extends Component {
 
         let requestBody : any;
         if (Object.keys(this.state.requestBody).length === 0){
-            requestBody = {};
-            for (let _key in formRequestBodyData) {
-                if (formRequestBodyData[_key][TABLE_FIELD_TYPE] === "JsonString") {
-                    let formRequestBodyJsonStringObject = JSON.parse(formRequestBodyData[_key][TABLE_FIELD_VALUE]);
-                    formRequestBodyData[_key][TABLE_FIELD_TYPE] =  getType(formRequestBodyJsonStringObject);
-                    formRequestBodyData[_key][TABLE_FIELD_VALUE] = "";
-                    let formRequestBodyJsonStringParsedData = {};
-                    parseJsonToFilledTable(formRequestBodyJsonStringParsedData, formRequestBodyJsonStringObject, null);
-                    for (let formRequestBodyJsonStringParsedDataKey in formRequestBodyJsonStringParsedData) {
-                        formRequestBodyData[_key][formRequestBodyJsonStringParsedDataKey] = formRequestBodyJsonStringParsedData[formRequestBodyJsonStringParsedDataKey];
-                    }
-                }
-                requestBody[_key] = formRequestBodyData[_key][TABLE_FIELD_VALUE];
-            }
+            let buildJsonStringRet = await buildJsonString(formRequestBodyData);
+            requestBody = buildJsonStringRet.returnObject;
         } else {
             requestBody = this.state.requestBody;
             for (let _key in requestBody) {
@@ -279,9 +270,6 @@ class UnittestStepContainer extends Component {
         let responseHeader = request[iteration_response_header];
         let responseCookie = request[iteration_response_cookie];
         let title = request[iteration_request_title];
-
-        console.log("formRequestBodyData", formRequestBodyData);
-        console.log("requestBody", requestBody);
 
         this.requestSendTip.getTips(envKeys => {
             this.setState({ 

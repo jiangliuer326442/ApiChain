@@ -3,30 +3,37 @@ import { connect } from 'react-redux';
 import { 
   Breadcrumb, Layout, Form, Select,
   Flex, Space, Button, Popconfirm, Table,
-  Typography, AutoComplete, Input, message
+  Typography, AutoComplete, Input, Checkbox, message
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
 
-import { isStringEmpty, getdayjs } from '../../util';
-
+import { isStringEmpty, getdayjs } from '@rutil/index';
+import RequestSendTips from '@clazz/RequestSendTips';
+import AddEnvVarComponent from '@comp/env_var/add_env_var';
 import { 
   TABLE_ENV_VAR_FIELDS, 
   TABLE_VERSION_ITERATION_FIELDS,
   TABLE_MICRO_SERVICE_FIELDS, UNAME,
-} from '../../../config/db';
-import { ENV_LIST_ROUTE } from '../../../config/routers';
-import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '../../../config/redux';
-
-import { getEnvs } from '../../actions/env';
+} from '@conf/db';
+import { 
+  ENV_LIST_ROUTE 
+} from '@conf/routers';
+import { 
+  SHOW_ADD_PROPERTY_MODEL, 
+  SHOW_EDIT_PROPERTY_MODEL 
+} from '@conf/redux';
+import { 
+  getEnvs 
+} from '@act/env';
 import { 
   getEnvValues, 
   delEnvValue,
   batchCopyEnvVales,
-} from '../../actions/env_value';
-import { getVersionIterator } from '../../actions/version_iterator';
-
-import RequestSendTips from '../../classes/RequestSendTips';
-import AddEnvVarComponent from '../../components/env_var/add_env_var';
+  batchMoveIteratorEnvValue,
+} from '@act/env_value';
+import { 
+  getVersionIterator, getOpenVersionIterators
+} from '@act/version_iterator';
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -40,6 +47,8 @@ let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
+let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
+let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 class EnvVar extends Component {
 
@@ -100,7 +109,12 @@ class EnvVar extends Component {
                   description="确定删除该环境变量吗？"
                   onConfirm={e => {
                       delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", record, ()=>{
-                        getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", "", this.props.dispatch, env_vars=>{});
+                        this.getEnvValueData(
+                          this.state.prj, 
+                          this.state.iterator, 
+                          (this.state.env ? this.state.env : this.props.env), 
+                          ""
+                        );
                       });
                   }}
                   okText="删除"
@@ -114,29 +128,47 @@ class EnvVar extends Component {
         }
       ],
       iterator: iteratorId,
-      versionIteration: {},
+      versionIteration: {}, //当前迭代信息
+      versionIterators: [], //所有迭代列表
       tips: [],
       pkeys: [],
       env: "",
       prj: "",
       copiedKeys: [],
+      showCurrent: true,
+      list: [],
     }
   }
   
-  componentDidMount(): void {
-    this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
-    getVersionIterator(this.state.iterator).then(versionIteration => this.setState( { versionIteration } ));
-    if(this.props.envs.length === 0) {
-      getEnvs(this.props.dispatch);
+    async componentDidMount(): void {
+      this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+      let versionIteration = await getVersionIterator(this.state.iterator);
+      let versionIterations = await this.getMovedIteratos();
+      this.setState({ versionIterators: versionIterations, versionIteration });
+      if (this.props.envs.length === 0) {
+        getEnvs(this.props.dispatch);
+      }
     }
-  }
 
     async componentWillReceiveProps(nextProps) {
       let iteratorId = nextProps.match.params.iteratorId;
       if (this.state.iterator !== iteratorId) {
-          let versionIteration = await getVersionIterator(iteratorId);
-          this.setState( { iterator: iteratorId, versionIteration });
+        this.state.iterator = iteratorId;
+        this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+        let versionIteration = await getVersionIterator(iteratorId);
+        let versionIterations = await this.getMovedIteratos();
+        this.setState({ versionIterators: versionIterations, versionIteration });
+        this.setState( { versionIteration });
       }
+    }
+
+    getMovedIteratos = async () => {
+      let versionIterators = (await getOpenVersionIterators())
+      .filter(item => item[version_iterator_uuid] != this.state.iterator)
+      .map(item => {
+          return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
+      });
+      return versionIterators;
     }
 
     setEnvironmentChange = (value: string) => {
@@ -165,7 +197,7 @@ class EnvVar extends Component {
       });
     }
 
-    getEnvValueData = (prj: string, iterator: string, env: string, paramName: string) => {
+    getEnvValueData = async (prj: string, iterator: string, env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
       requestSendTip.init(prj, "", iterator, "", this.props.dispatch, env_vars => {});
       requestSendTip.getTips(envKeys => {
@@ -176,11 +208,19 @@ class EnvVar extends Component {
         this.setState( { prj, tips } );
       });
       if(!isStringEmpty(env)) {
-        getEnvValues(prj, env, iterator, "", paramName, this.props.dispatch, env_vars => {
-          if (!paramName) {
-            this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
-          }
+        let envVars = await getEnvValues(prj, env, iterator, "", paramName, this.props.dispatch, envVars => {});
+        if (this.state.showCurrent) {
+          envVars = envVars.filter(envVar => envVar['allow_del'])
+        }
+        envVars.map(envVar => {
+          envVar.key = envVar[pname];
         });
+        let extend = [];
+        if (!paramName) {
+          extend = {pkeys: envVars.map(item => ({ value: item[pname] }))};
+        }
+        let newState = Object.assign({}, { list: envVars }, extend);
+        this.setState(newState);
       }
     }
     
@@ -196,7 +236,7 @@ class EnvVar extends Component {
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '迭代' }, { title: '环境变量' }]} />
-            <Flex justify="space-between" align="center">
+            <Flex justify="space-between" align="center" style={{marginBottom: 18}}>
               <Form layout="inline">
                   <Form.Item label="选择项目">
                       <Select
@@ -238,7 +278,9 @@ class EnvVar extends Component {
                     <Select
                         onChange={ async value => {
                           if (this.state.copiedKeys.length === 0) return;
-                          await batchCopyEnvVales(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", this.state.copiedKeys, value);
+                          await batchCopyEnvVales(
+                            this.state.prj, 
+                            (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", this.state.copiedKeys, value);
                           this.state.copiedKeys = [];
                           message.success("环境变量拷贝成功");
                           this.setEnvironmentChange(value);
@@ -253,13 +295,47 @@ class EnvVar extends Component {
                         allowClear
                     />
                   </Form.Item>
+                  <Form.Item label="移动到迭代">
+                      <Select allowClear
+                          style={{minWidth: 130}}
+                          onChange={ newIterator => {
+                            if (isStringEmpty(newIterator)) {
+                              return;
+                            }
+                            batchMoveIteratorEnvValue(
+                              this.state.prj, 
+                              (this.state.env ? this.state.env : this.props.env), 
+                              this.state.iterator, this.state.copiedKeys, newIterator, () => {
+                                this.state.selectedUnittests = [];
+                                message.success("移动迭代成功");
+                                this.getEnvValueData(this.state.prj, this.state.iterator, (this.state.env ? this.state.env : this.props.env), "");
+                              });
+                          }}
+                          options={ this.state.versionIterators }
+                      />
+                  </Form.Item>
+                  <Form.Item>
+                    <Checkbox checked={this.state.showCurrent} onChange={e => {
+                      this.state.showCurrent = e.target.checked;
+                      this.getEnvValueData(
+                        this.state.prj, 
+                        this.state.iterator, 
+                        (this.state.env ? this.state.env : this.props.env), 
+                        ""
+                      );
+                    }}>
+                      仅展示当前
+                    </Checkbox>
+                  </Form.Item>
               </Form>
               <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>添加环境变量</Button>
-              <AddEnvVarComponent tips={this.state.tips} />
+              <AddEnvVarComponent tips={this.state.tips} cb={()=>{
+                this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+              }} />
             </Flex>
             <Table 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
-              dataSource={this.props.listDatas} 
+              dataSource={this.state.list} 
               columns={this.state.listColumn} 
               />
           </Content>
@@ -273,7 +349,6 @@ class EnvVar extends Component {
 
 function mapStateToProps (state) {
   return {
-      listDatas: state.env_var.list,
       env: state.env_var.env,
       prjs: state.prj.list,
       device : state.device,

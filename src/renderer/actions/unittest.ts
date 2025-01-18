@@ -16,7 +16,9 @@ import {
 import {
     CONTENT_TYPE,
     REQUEST_METHOD_GET,
-    REQUEST_METHOD_POST
+    REQUEST_METHOD_POST,
+    DataTypeJsonObject,
+    INPUTTYPE_FILE
 } from '@conf/global_config';
 import {
     CONTENT_TYPE_HTML,
@@ -43,8 +45,11 @@ import { sendAjaxMessage } from '@act/message';
 import { getUsers } from '@act/user';
 import { addRequestHistory, getRequestHistory } from '@act/request_history';
 import { addProjectUnitTestFolder } from '@act/unittest_folders';
+import { getVersionIteratorRequest } from '@act/version_iterator_requests';
+import { getProjectRequest } from '@act/project_request';
 
 import { getType, isStringEmpty, isJsonString, paramToString, waitSeconds } from '@rutil/index';
+import { TABLE_FIELD_TYPE } from '@rutil/json';
 
 import RequestSendTips from '@clazz/RequestSendTips';
 import JsonParamTips from '@clazz/JsonParamTips';
@@ -621,6 +626,13 @@ export async function continueIteratorExecuteUnitTest(
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
         },
+        async (project, method, requestUri) => {
+            let request = await getVersionIteratorRequest(iteratorId, project, method, requestUri);
+            if (request === null) {
+                request = await getProjectRequest(project, method, requestUri);
+            }
+            return request;
+        },
         progressCb
     );
     let success = ret.success;
@@ -687,7 +699,12 @@ export async function continueProjectExecuteUnitTest(
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
-        }, progressCb
+        }, 
+        async (project, method, requestUri) => {
+            let request = await getProjectRequest(project, method, requestUri);
+            return request;
+        },
+        progressCb
     );
     let success = ret.success;
     let recentStepUuid = ret.recentStepUuid;
@@ -748,6 +765,10 @@ export async function executeProjectUnitTest(
             unit_test_executor[unittest_executor_delFlg] = 0;
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
+        },
+        async (project, method, requestUri) => {
+            let request = await getProjectRequest(project, method, requestUri);
+            return request;
         },
         progressCb
     );
@@ -817,6 +838,13 @@ export async function executeIteratorUnitTest(
             unit_test_executor[unittest_executor_ctime] = Date.now();
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
         },
+        async (project, method, requestUri) => {
+            let request = await getVersionIteratorRequest(iteratorId, project, method, requestUri);
+            if (request === null) {
+                request = await getProjectRequest(project, method, requestUri);
+            }
+            return request;
+        },
         progressCb
     );
 
@@ -848,6 +876,7 @@ async function stepsExecutor(
     getEnvVarTipsFunc : Function,
     getJsonParamTipsFunc : Function,
     saveStepResultFunc : Function,
+    getRequestFunc : Function,
     progressCb : Function,
 ) : Promise<any> {
     let jsonParamTips = getJsonParamTipsFunc();
@@ -871,6 +900,8 @@ async function stepsExecutor(
         let file = new Object();
         let isContinue = unit_test_step[unittest_step_continue];
         let delaySeconds = unit_test_step[unittest_step_wait_seconds];
+
+        let originRequest = await getRequestFunc(project, method, requestUri);
 
         jsonParamTips.setProject(project);
 
@@ -922,39 +953,19 @@ async function stepsExecutor(
                 }
             }
         }
+        
+        let iteratorBodyObjectRet = await iteratorBodyObject(
+            envVarTips, param, pathVariable, header,
+            body, contentType, 
+            jsonParamTips, file,
+            unitTestId, batch_uuid,
+            originRequest.body
+        );
 
-        if (Object.keys(body).length > 0) {
-            for (let _key in body) {
-                if (contentType === CONTENT_TYPE_FORMDATA) {
-                    //文件类型取 blob 格式的数据
-                    if (getType(body[_key]) === "Object") {
-                        file[_key] = cloneDeep(body[_key]);
-                        //移除 body
-                        delete body[_key];
-                    } else {
-                        jsonParamTips.setContent(body[_key]);
-                        try {
-                            body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
-                        } catch (error) {
-                            console.error(error);
-                            errorMessage = error.message;
-                            success = UNITTEST_RESULT_FAILURE;
-                            break outerLoop1;
-                        }
-                    }
-                } else {
-                    jsonParamTips.setContent(body[_key]);
-                    try {
-                        body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
-                    } catch (error) {
-                        console.error("_key", body[_key], error);
-                        errorMessage = error.message;
-                        success = UNITTEST_RESULT_FAILURE;
-                        break outerLoop1;
-                    }
-                }
-
-            }
+        if (iteratorBodyObjectRet.error !== null) {
+            errorMessage = iteratorBodyObjectRet.error;
+            success = iteratorBodyObjectRet.success;
+            break outerLoop1;
         }
 
         if (Object.keys(param).length > 0) {
@@ -1097,6 +1108,7 @@ async function stepsExecutor(
                 breakFlg = false;
             }
         }
+
         let requestHistoryId = await addRequestHistory(env, project, requestUri, method, 
             header, body, pathVariable, param, file, 
             content, response?.headers, response?.cookieObj, 
@@ -1299,4 +1311,87 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
     await window.db[TABLE_UNITTEST_NAME].put(unitTest);
 
     cb();
+}
+
+async function iteratorBodyObject(
+    envVarTips : any, param : any, pathVariable : any, header : any,
+	body : any, 
+	contentType : string, 
+	jsonParamTips : JsonParamTips,
+    file : any,
+    unitTestId : string, batch_uuid : string,
+    format : any
+) {
+	if (Object.keys(body).length > 0) {
+		for (let _key in body) {
+            let isJsonString = false;
+            let isArray = false;
+            let isFile = false;
+            if (format != null && format.hasOwnProperty(_key)) {
+                if (format[_key][TABLE_FIELD_TYPE].toLowerCase() === INPUTTYPE_FILE.toLowerCase()) {
+                    isFile = true;
+                } else if (format[_key][TABLE_FIELD_TYPE].toLowerCase() === DataTypeJsonObject.toLowerCase()) {
+                    isJsonString = true;
+                }
+            }
+            if (isJsonString && getType(body[_key]) === "String") {
+                body[_key] = JSON.parse(body[_key]);
+            }
+            if (getType(body[_key]) === "Array") {
+                isArray = true;
+                body[_key] = body[_key][0];
+            }
+			if (getType(body[_key]) === "Object" && !isFile) {
+				await iteratorBodyObject(
+                    envVarTips, param, pathVariable, header,
+                    body[_key], contentType, jsonParamTips, file,
+                    unitTestId, batch_uuid,
+                    null
+                );
+			} else {
+				if (contentType === CONTENT_TYPE_FORMDATA) {
+					//文件类型取 blob 格式的数据
+					if (isFile) {
+						file[_key] = cloneDeep(body[_key]);
+						//移除 body
+						delete body[_key];
+					} else {
+						jsonParamTips.setContent(body[_key]);
+						try {
+							body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
+						} catch (error) {
+							console.error(error);
+							let errorMessage = error.message;
+							let result : any = {};
+							result.error = errorMessage;
+							result.success = UNITTEST_RESULT_FAILURE;
+							return result;
+						}
+					}
+				} else {
+					jsonParamTips.setContent(body[_key]);
+					try {
+						body[_key] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, {}, {}, {}, unitTestId, batch_uuid);
+					} catch (error) {
+						console.error("_key", body[_key], error);
+						let result : any = {};
+						result.error = error.message;
+						result.success = UNITTEST_RESULT_FAILURE;
+						return result;
+					}
+				}
+			}
+            if (isArray) {
+                body[_key] = [body[_key]];
+            }
+            if (isJsonString) {
+                body[_key] = JSON.stringify(body[_key]);
+            }
+		}
+	}
+	
+	let result : any = {};
+	result.error = null;
+	result.success = null;
+	return result;
 }

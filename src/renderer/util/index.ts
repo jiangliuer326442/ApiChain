@@ -30,6 +30,10 @@ export function isStringEmpty(str) {
   return str === null || str === undefined || str.trim() === '';  
 }
 
+export function isNumeric(str) {
+  return /^-?\d+(\.\d+)?$/.test(str);
+}
+
 export function getNowdayjs() : dayjs.Dayjs {
   dayjs.locale('zh-cn'); 
   dayjs.extend(weekday)

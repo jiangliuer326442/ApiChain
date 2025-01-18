@@ -3,6 +3,11 @@ import { connect } from 'react-redux';
 import { cloneDeep } from 'lodash';
 import { Table, Input, Checkbox, Select, message } from "antd";
 
+import { 
+    dataTypeSelect,
+    DataTypeJsonObject,
+} from '@conf/global_config';
+
 import {
     TABLE_FIELD_NAME,
     TABLE_FIELD_TYPE,
@@ -13,19 +18,10 @@ import {
     genHash,
 } from '@rutil/json';
 
-import { CONTENT_TYPE } from '@conf/global_config';
-
 import { getJsonFragment } from '@act/request_save';
 import { isJsonString } from '@rutil/index';
 
 const { TextArea } = Input;
-
-const dataTypeSelect = [
-    {label: "字符串", value: "String"},
-    {label: "布尔型", value: "Boolean"},
-    {label: "数字", value: "Number"},
-    {label: "json字符串", value: "JsonString"},
-];
 
 class JsonSaveTableContainer extends Component {
 
@@ -122,7 +118,7 @@ class JsonSaveTableContainer extends Component {
     }
 
     handleSetDataType = (key, dataType) => {
-        if (dataType === "JsonString") {
+        if (dataType === DataTypeJsonObject) {
             let value = this.state.object[key][TABLE_FIELD_VALUE];
             if (!isJsonString(value)) {
                 message.error("示例数据不符合json规范");

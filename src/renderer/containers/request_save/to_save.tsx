@@ -403,58 +403,43 @@ class RequestSaveContainer extends Component {
 
     simpleBootByRequestHistoryRecord = (historyRecord: any, prj : string, method : string, uri : string) => {
         let requestHeadData = historyRecord[request_history_head];
-        let shortRequestHeadJsonObject = {};
-        shortJsonContent(shortRequestHeadJsonObject, requestHeadData);
-        let requestHeaderHash = iteratorGenHash(shortRequestHeadJsonObject);
+        let requestHeaderHash = iteratorGenHash(requestHeadData);
         let formRequestHeadData = {};
-        parseJsonToTable(formRequestHeadData, shortRequestHeadJsonObject);
+        parseJsonToTable(formRequestHeadData, requestHeadData);
         let requestBodyData = historyRecord[request_history_body];
         let requestFileData = historyRecord[request_history_file];
-        let shortRequestBodyJsonObject = {};
-        shortJsonContent(shortRequestBodyJsonObject, requestBodyData);
-        let requestBodyHash = iteratorBodyGenHash(shortRequestBodyJsonObject, requestFileData);
-        let formRequestBodyData = retParseBodyJsonToTable(shortRequestBodyJsonObject, requestFileData);
+        let requestBodyHash = iteratorBodyGenHash(requestBodyData, requestFileData);
+        let formRequestBodyData = retParseBodyJsonToTable(requestBodyData, requestFileData);
 
         let requestParamData = historyRecord[request_history_param];
-        let shortRequestParamJsonObject = {};
-        shortJsonContent(shortRequestParamJsonObject, requestParamData);
-        let requestParamHash = iteratorGenHash(shortRequestParamJsonObject);
+        let requestParamHash = iteratorGenHash(requestParamData);
         let formRequestParamData = {};
-        parseJsonToTable(formRequestParamData, shortRequestParamJsonObject);
+        parseJsonToTable(formRequestParamData, requestParamData);
 
         let requestPathVariableData = historyRecord[request_history_path_variable];
-        let shortRequestPathVariableJsonObject = {};
-        shortJsonContent(shortRequestPathVariableJsonObject, requestPathVariableData);
-        let requestPathVariableHash = iteratorGenHash(shortRequestPathVariableJsonObject);
+        let requestPathVariableHash = iteratorGenHash(requestPathVariableData);
         let formRequestPathVariableData = {};
-        parseJsonToTable(formRequestPathVariableData, shortRequestPathVariableJsonObject);
+        parseJsonToTable(formRequestPathVariableData, requestPathVariableData);
         let responseData = {};
-        let shortResponseJsonObject = {};
         let responseHash = "";
         let formResponseData = {};
         let responseDemo = "";
         if (historyRecord[request_history_jsonFlg]) {
             responseData = JSON.parse(historyRecord[request_history_response_content]);
-            shortJsonContent(shortResponseJsonObject, responseData);
-            responseHash = iteratorGenHash(shortResponseJsonObject);
-            parseJsonToTable(formResponseData, shortResponseJsonObject);
-            responseDemo = JSON.stringify(shortResponseJsonObject);
+            responseHash = iteratorGenHash(responseData);
+            parseJsonToTable(formResponseData, responseData);
+            responseDemo = JSON.stringify(responseData);
         } else {
             responseDemo = historyRecord[request_history_response_content];
         }
 
-        let shortResponseHeadJsonObject = {};
         let formResponseHeadData = {};
         let responseHead = historyRecord[request_history_response_head];
-        shortJsonContent(shortResponseHeadJsonObject, responseHead);
-        parseJsonToTable(formResponseHeadData, shortResponseHeadJsonObject);
+        parseJsonToTable(formResponseHeadData, responseHead);
 
-        let shortResponseCookieJsonObject = {};
         let formResponseCookieData = {};
         let responseCookie = historyRecord[request_history_response_cookie];
-        shortJsonContent(shortResponseCookieJsonObject, responseCookie);
-        parseJsonToTable(formResponseCookieData, shortResponseCookieJsonObject);
-
+        parseJsonToTable(formResponseCookieData, responseCookie);
 
         this.setState({
             showFlg: true,

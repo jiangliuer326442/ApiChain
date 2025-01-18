@@ -15,6 +15,7 @@ import {
 } from '../../config/envKeys';
 import { GET_ENV_VALS } from '../../config/redux';
 import { getUsers } from './user';
+import { cloneDeep } from 'lodash';
 
 let env_key_delFlg = TABLE_ENV_KEY_FIELDS.FIELD_DELFLG;
 let env_key_prj = TABLE_ENV_KEY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -32,6 +33,78 @@ let env_var_premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
 let env_var_cuid = TABLE_ENV_VAR_FIELDS.FIELD_CUID;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
+
+export async function batchMoveIteratorEnvValue(prj : string, env : string, oldIterator : string, envVarKeyArr : Array<string>, newIterator : string, cb : () => void) {
+    window.db.transaction('rw',
+        window.db[TABLE_USER_NAME],
+        window.db[TABLE_ENV_VAR_NAME],
+        window.db[TABLE_ENV_KEY_NAME],
+        async () => {
+            for (let _envVarKey of envVarKeyArr) {
+                if (!isStringEmpty(prj)) {
+                    let iteratorPlusPrjObject = await db[TABLE_ENV_VAR_NAME]
+                    .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
+                    .equals([env, prj, oldIterator, "", _envVarKey])
+                    .filter(row => {
+                        if (row[env_var_delFlg]) {
+                            return false;
+                        }
+                        return true;
+                    })
+                    .first();
+
+                    if (iteratorPlusPrjObject === undefined) {
+                        continue;
+                    }
+
+                    await db[TABLE_ENV_VAR_NAME]
+                    .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
+                    .equals([env, prj, oldIterator, "", _envVarKey])
+                    .filter(row => {
+                        if (row[env_var_delFlg]) {
+                            return false;
+                        }
+                        return true;
+                    })
+                    .delete();
+                    let newData = cloneDeep(iteratorPlusPrjObject);
+                    newData[env_var_iteration] = newIterator;
+                    await window.db[TABLE_ENV_VAR_NAME].put(newData);
+                }
+                
+                let iteratorObject = await db[TABLE_ENV_VAR_NAME]
+                .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
+                .equals([env, "", oldIterator, "", _envVarKey])
+                .filter(row => {
+                    if (row[env_var_delFlg]) {
+                        return false;
+                    }
+                    return true;
+                })
+                .first();
+                
+                if (iteratorObject === undefined) {
+                    continue;
+                }
+
+                await db[TABLE_ENV_VAR_NAME]
+                .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
+                .equals([env, "", oldIterator, "", _envVarKey])
+                .filter(row => {
+                    if (row[env_var_delFlg]) {
+                        return false;
+                    }
+                    return true;
+                })
+                .delete();
+                let newData = cloneDeep(iteratorObject);
+                newData[env_var_iteration] = newIterator;
+                await window.db[TABLE_ENV_VAR_NAME].put(newData);
+            }
+            cb();
+        }
+    );
+}
 
 export async function getVarsByKey(prj, pname) {
     const envVarItems = await db[TABLE_ENV_VAR_NAME]
@@ -100,6 +173,96 @@ export async function batchCopyEnvVales(prj : string, env : string, iterator : s
 }
 
 export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch, cb) : Promise<Array<any>> {
+
+    let env_vars = await doGetEnvValues(prj, env, iterator, unittest, pname);
+
+    cb(env_vars);
+
+    dispatch({
+        type: GET_ENV_VALS,
+        prj,
+        env,
+        iterator,
+        unittest,
+        env_vars,
+    });
+
+    return env_vars;
+}
+
+export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
+    window.db.transaction('rw',
+        window.db[TABLE_ENV_KEY_NAME],
+        window.db[TABLE_ENV_VAR_NAME], 
+        window.db[TABLE_USER_NAME],
+        async () => {
+            let pname = row[env_var_pname];
+
+            const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
+            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+            .equals([env, prj, iteration, unittest, pname]).first();  
+            if (envVarItem !== undefined) {
+                envVarItem[env_var_delFlg] = 1;
+                await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
+            }
+
+            const envVars = await window.db[TABLE_ENV_VAR_NAME]
+            .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+            .equals([prj, iteration, "", pname]).toArray();  
+            let delEnvKeyFlag = true;
+            for (const envVarItem of envVars) {  
+                if (envVarItem[env_var_delFlg] === 0) {
+                    delEnvKeyFlag = false;
+                }
+            }
+            if (delEnvKeyFlag) {
+                let env_key = await window.db[TABLE_ENV_KEY_NAME]
+                .where('[' + env_key_prj + '+' + env_key_pname + ']')
+                .equals([prj, pname])
+                .first();
+                env_key[env_key_prj] = prj;
+                env_key[env_key_pname] = pname;
+                env_key[env_key_delFlg] = 1;
+                console.debug(env_key);
+                await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+            }
+            cb();
+    });
+}
+
+export async function addEnvValues(
+    prj, env, iteration, unittest, 
+    pname, pval, premark,
+    device, cb) {
+    window.db.transaction('rw',
+    window.db[TABLE_ENV_KEY_NAME],
+    window.db[TABLE_USER_NAME],
+    window.db[TABLE_ENV_VAR_NAME], async () => {
+        let env_key : any = {};
+        env_key[env_key_prj] = prj;
+        env_key[env_key_pname] = pname;
+        env_key[env_key_cuid] = device.uuid;
+        env_key[env_key_ctime] = Date.now();
+        env_key[env_key_delFlg] = 0;
+        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+
+        let property_key : any = {};
+        property_key[env_var_micro_service] = prj;
+        property_key[env_var_env] = env;
+        property_key[env_var_iteration] = iteration;
+        property_key[env_var_unittest] = unittest;
+        property_key[env_var_pname] = pname;
+        property_key[env_var_pvalue] = pval;
+        property_key[env_var_premark] = premark;
+        property_key[env_var_cuid] = device.uuid;
+        property_key[env_var_ctime] = Date.now();
+        property_key[env_var_delFlg] = 0;
+        await window.db[TABLE_ENV_VAR_NAME].put(property_key);
+        cb();
+    })
+}
+
+async function doGetEnvValues(prj, env, iterator, unittest, pname) : Promise<Array<any>> {
     const env_vars = []; 
 
     // 优先级 迭代+项目 > 迭代 > 项目 > 全局
@@ -270,88 +433,5 @@ export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch
 
     mixedSort(env_vars, env_var_pname);
 
-    cb(env_vars);
-
-    dispatch({
-        type: GET_ENV_VALS,
-        prj,
-        env,
-        iterator,
-        unittest,
-        env_vars,
-    });
-
     return env_vars;
-}
-
-export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
-    window.db.transaction('rw',
-        window.db[TABLE_ENV_KEY_NAME],
-        window.db[TABLE_ENV_VAR_NAME], 
-        window.db[TABLE_USER_NAME],
-        async () => {
-            let pname = row[env_var_pname];
-
-            const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-            .equals([env, prj, iteration, unittest, pname]).first();  
-            if (envVarItem !== undefined) {
-                envVarItem[env_var_delFlg] = 1;
-                await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
-            }
-
-            const envVars = await window.db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-            .equals([prj, iteration, "", pname]).toArray();  
-            let delEnvKeyFlag = true;
-            for (const envVarItem of envVars) {  
-                if (envVarItem[env_var_delFlg] === 0) {
-                    delEnvKeyFlag = false;
-                }
-            }
-            if (delEnvKeyFlag) {
-                let env_key = await window.db[TABLE_ENV_KEY_NAME]
-                .where('[' + env_key_prj + '+' + env_key_pname + ']')
-                .equals([prj, pname])
-                .first();
-                env_key[env_key_prj] = prj;
-                env_key[env_key_pname] = pname;
-                env_key[env_key_delFlg] = 1;
-                console.debug(env_key);
-                await window.db[TABLE_ENV_KEY_NAME].put(env_key);
-            }
-            cb();
-    });
-}
-
-export async function addEnvValues(
-    prj, env, iteration, unittest, 
-    pname, pval, premark,
-    device, cb) {
-    window.db.transaction('rw',
-    window.db[TABLE_ENV_KEY_NAME],
-    window.db[TABLE_USER_NAME],
-    window.db[TABLE_ENV_VAR_NAME], async () => {
-        let env_key : any = {};
-        env_key[env_key_prj] = prj;
-        env_key[env_key_pname] = pname;
-        env_key[env_key_cuid] = device.uuid;
-        env_key[env_key_ctime] = Date.now();
-        env_key[env_key_delFlg] = 0;
-        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
-
-        let property_key : any = {};
-        property_key[env_var_micro_service] = prj;
-        property_key[env_var_env] = env;
-        property_key[env_var_iteration] = iteration;
-        property_key[env_var_unittest] = unittest;
-        property_key[env_var_pname] = pname;
-        property_key[env_var_pvalue] = pval;
-        property_key[env_var_premark] = premark;
-        property_key[env_var_cuid] = device.uuid;
-        property_key[env_var_ctime] = Date.now();
-        property_key[env_var_delFlg] = 0;
-        await window.db[TABLE_ENV_VAR_NAME].put(property_key);
-        cb();
-    })
 }

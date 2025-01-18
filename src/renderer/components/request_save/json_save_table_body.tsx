@@ -13,16 +13,18 @@ import {
     parseJsonToChildren,
     parseJsonToTable,
     shortJsonContent,
-} from '../../util/json';
+} from '@rutil/json';
 import {
     CONTENT_TYPE_JSON,
     CONTENT_TYPE_FORMDATA,
-} from '../../../config/contentType';
+} from '@conf/contentType';
 import {
     INPUTTYPE_TEXT,
     INPUTTYPE_FILE,
-} from '../../../config/global_config';
-import { isStringEmpty, isJsonString } from '../../util';
+    dataTypeSelect,
+    DataTypeJsonObject,
+} from '@conf/global_config';
+import { isStringEmpty, isJsonString } from '@rutil/index';
 
 const { TextArea } = Input;
 
@@ -46,6 +48,19 @@ class JsonSaveBodyTableContainer extends Component {
                 {
                     title: '参数类型',
                     dataIndex: TABLE_FIELD_TYPE,
+                    render: (dtype : any, row : any) => {
+                        if (dtype === "Array" || dtype === "Object") {
+                            return <span>{dtype}</span>;
+                        } else {
+                            let key = row.key;
+                            return <Select
+                                value={ dtype }
+                                style={{ width: 170 }}
+                                onChange={ value => this.handleSetDataType(key, value) }
+                                options={ dataTypeSelect }
+                            />
+                        }
+                    }
                 },
                 {
                     title: '必填',
@@ -90,7 +105,7 @@ class JsonSaveBodyTableContainer extends Component {
                                 }
                                 return fileName;
                             } else {
-                                if(demo != null && demo.length > 50) {
+                                if(type !== DataTypeJsonObject && demo != null && demo.length > 50) {
                                     return demo.substring(0, 50) + "...";
                                 }
                                 return demo;
@@ -144,6 +159,21 @@ class JsonSaveBodyTableContainer extends Component {
         let parseJsonToChildrenResult : Array<any> = [];
         await parseJsonToChildren([], "", parseJsonToChildrenResult, this.state.object, async (parentKey, content) => undefined);
         this.setState({ datas : parseJsonToChildrenResult })
+    }
+
+    handleSetDataType = (key, dataType) => {
+        let obj = this.state.object;
+        if (dataType === DataTypeJsonObject) {
+            let value = obj[key][TABLE_FIELD_VALUE];
+            if (!isJsonString(value)) {
+                message.error("示例数据不符合json规范");
+                return;
+            }
+        }
+        obj[key][TABLE_FIELD_TYPE] = dataType;
+        this.props.cb(this.state.object);
+
+        this.parseJsonToChildren();
     }
 
     handleSetNecessary = (key, checked) => {

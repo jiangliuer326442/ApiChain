@@ -30,6 +30,15 @@ export const VipTagDoc = "vip.tag.doc";
 
 export const VipTagMockServer = "vip.tag.mock";
 
+export const DataTypeJsonObject = "JsonString";
+
+export const dataTypeSelect = [
+    {label: "字符串", value: "String"},
+    {label: "布尔型", value: "Boolean"},
+    {label: "数字", value: "Number"},
+    {label: "json字符串", value: DataTypeJsonObject},
+];
+
 export const PayJumpUrl = "http://pay.fanghailiang.cn/pay/jump/";
 
 export const PayQueryUrl = "http://pay.fanghailiang.cn/pay/query/";

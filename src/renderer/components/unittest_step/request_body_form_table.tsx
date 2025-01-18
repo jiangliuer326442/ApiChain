@@ -1,6 +1,7 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Table, Button, Input } from "antd";
+import { cloneDeep } from 'lodash';
 
 import StepExpressionBuilderBox from "./step_expression_builder_box";
 import {
@@ -8,9 +9,9 @@ import {
     TABLE_FIELD_TYPE,
     TABLE_FIELD_VALUE,
     TABLE_FIELD_REMARK,
-    parseJsonToChildren,
-} from '../../util/json';
-import { cloneDeep } from 'lodash';
+    buildJsonString,
+} from '@rutil/json';
+import { getType, isNumeric } from '@rutil/index';
 
 class RequestBodyFormTable extends Component {
 
@@ -20,9 +21,7 @@ class RequestBodyFormTable extends Component {
     }
 
     async componentDidMount() {
-        let parseJsonToChildrenResult : Array<any> = [];
-        await parseJsonToChildren([], "", parseJsonToChildrenResult, this.state.object, async (_1, _2) => undefined);
-        this.setState({ datas : parseJsonToChildrenResult })
+        this.initData(this.state.object);
     }
 
     async componentWillReceiveProps(nextProps) {
@@ -30,17 +29,38 @@ class RequestBodyFormTable extends Component {
             let newState = this.getState(nextProps);
             this.setState(newState);
 
-            let parseJsonToChildrenResult : Array<any> = [];
-            await parseJsonToChildren([], "", parseJsonToChildrenResult, newState.object, async (_1, _2) => undefined);
-            this.setState({ datas : parseJsonToChildrenResult })
+            this.initData(newState.object);
         }
     }
 
-    getState = (props) => {
-        let returnObject : any = {};
-        for(let _key in props.object ) {
-            returnObject[_key] = props.object[_key][TABLE_FIELD_VALUE];
+    initData = async (obj : any) => {
+        let ret = await buildJsonString(obj);
+        this.setState({
+            jsonStringKeys: ret.jsonStringKeys,
+            datas: ret.parseJsonToChildrenResult,
+            returnObject: ret.returnObject,
+        });
+    }
+
+    resetReturnObject = (returnObject) => {
+        for (let _key in returnObject) {
+            if (this.state.jsonStringKeys.has(_key)) {
+                returnObject[_key] = JSON.stringify(returnObject[_key]);
+            }
         }
+        return returnObject;
+    }
+
+    setReturnObject = (returnObject) => {
+        for (let _key in returnObject) {
+            if (this.state.jsonStringKeys.has(_key)) {
+                returnObject[_key] = JSON.parse(returnObject[_key]);
+            }
+        }
+        return returnObject;
+    }
+
+    getState = (props) => {
         return {
             object: props.object,
             columns: [
@@ -63,7 +83,7 @@ class RequestBodyFormTable extends Component {
                     title: '数据',
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (data, row) => {
-                        let key = row[TABLE_FIELD_NAME];
+                        let key = row.key;
                         let type = row[TABLE_FIELD_TYPE];
                         if (type === "Object" || type === "Array") {
                             return null;
@@ -108,8 +128,8 @@ class RequestBodyFormTable extends Component {
                 },
             ],
             datas: [],
-            returnObject,
             options: {},
+            jsonStringKeys: new Set<String>(),
         }
     }
 
@@ -134,7 +154,36 @@ class RequestBodyFormTable extends Component {
         if (value === undefined) {
             value = "";
         }
-        this.state.returnObject[key] = value;
+        let keyArr = key.split(".");
+        let initObj = cloneDeep(this.setReturnObject(this.state.returnObject));
+        let _obj = initObj;
+        let keyIndex = 0;
+        for (let _key of keyArr) {
+            keyIndex++;
+            if (keyIndex == keyArr.length) {
+                if (getType(_obj) === "Array") {
+                    if (isNumeric(_key)) {
+                        _obj[0] = value;
+                    } else {
+                        _obj[0][_key] = value;
+                    }
+                } else {
+                    _obj[_key] = value;
+                }
+            } else {
+                if (getType(_obj) === "Array") {
+                    _obj[0] = _obj[_key];
+                } else {
+                    _obj = _obj[_key];
+                }
+            }
+        }
+
+        let keyPrefix = keyArr[0];
+        if (this.state.jsonStringKeys.has(keyPrefix)) {
+            initObj[keyPrefix] = JSON.stringify(initObj[keyPrefix]);
+        }
+        this.state.returnObject = initObj;
         this.props.cb(this.state.returnObject);
     }
 

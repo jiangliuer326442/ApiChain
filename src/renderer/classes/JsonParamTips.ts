@@ -87,7 +87,8 @@ export default class {
         this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
     }
 
-    setContent(content: string) {
+    setContent(param: string) {
+        let content = cloneDeep(param);
         if (getType(content) === "String") {
             this.parseFromStandardExpression(content);
         } else {
@@ -402,6 +403,8 @@ export default class {
 
             if (content.indexOf(UNITTEST_STEP_POINTED) > 0) {
                 this.selectedStep = this.trimContent(content).split('.')[0];
+            } else {
+                this.selectedStep = UNITTEST_STEP_CURRENT;
             }
 
             if (this.selectedProject !== UNITTEST_STEP_PROJECT_CURRENT) {
