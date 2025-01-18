@@ -25,6 +25,9 @@ export const ENV_VALUE_RANDOM_LONG = "$randomLong";
 //取第一个元素
 export const UNITTEST_FUNCTION_ARRAY_FIRST = "*first()"
 
+//取最后一个元素
+export const UNITTEST_FUNCTION_ARRAY_LAST = "*last()"
+
 //随机取一个元素
 export const UNITTEST_FUNCTION_ARRAY_RANDOM = "*random()"
 

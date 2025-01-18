@@ -23,6 +23,7 @@ import {
     UNITTEST_FUNCTION_ANY_EVAL,
     UNITTEST_FUNCTION_ARRAY_RANDOM,
     UNITTEST_FUNCTION_ARRAY_FIRST,
+    UNITTEST_FUNCTION_ARRAY_LAST,
 } from '@conf/envKeys';
 
 import { 
@@ -189,6 +190,11 @@ export default class {
                 result.push(item);
 
                 item = {};
+                item.label = UNITTEST_FUNCTION_ARRAY_LAST;
+                item.value = tipsBefore + UNITTEST_FUNCTION_ARRAY_LAST;
+                result.push(item);
+
+                item = {};
                 item.label = UNITTEST_FUNCTION_ARRAY_RANDOM;
                 item.value = tipsBefore + UNITTEST_FUNCTION_ARRAY_RANDOM;
                 result.push(item);
@@ -335,7 +341,19 @@ export default class {
         for(let _pathKey of pathArr) {
             let currentFuncName = this.getFuncName(_pathKey);
             if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_FIRST)) {
-                dataSource = dataSource[0]
+                let length = dataSource.length;
+                if (length > 0) {
+                    dataSource = dataSource[0];
+                } else {
+                    dataSource = "";
+                }
+            } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_LAST)) {
+                let length = dataSource.length;
+                if (length > 0) {
+                    dataSource = dataSource[length - 1];
+                } else {
+                    dataSource = "";
+                }
             } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_RANDOM)) {
                 if (dataSource.length > 0) {
                     dataSource = dataSource[Math.floor(this.randomVal*(dataSource.length))];
