@@ -17,12 +17,18 @@ import {
 import { 
   TABLE_ENV_VAR_FIELDS,
 } from '@conf/db';
+import {
+    DataTypeJsonObject
+} from '@conf/global_config'
 import { getEnvValues, getKeys } from '@act/env_value';
 import { 
     getType, 
     isStringEmpty, 
-    getNowdayjs 
+    getNowdayjs,
 } from '@rutil/index';
+import {
+    TABLE_FIELD_TYPE
+} from "@rutil/json";
 
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -65,7 +71,7 @@ export default class {
         this.cb = cb;
     }
 
-    getTips(cb: (result: Array<string>) => void) : void {
+    getTips(cb: (result: Set<String>) => void) : void {
         if (this.env_vars.length === 0) {
             if (isStringEmpty(this.prj)) {
                 this.prj = "";
@@ -107,9 +113,9 @@ export default class {
         }
     }
 
-    iteratorGetVarByKey(postData : any) : any {
+    iteratorGetVarByKey(postData : any, format : any) : any {
         postData = cloneDeep (postData);
-        this.iteratorGetEnvValue(postData);
+        this.iteratorGetEnvValue(postData, format);
         return postData;
     }
 
@@ -161,14 +167,24 @@ export default class {
         return this.envKeyVar.get(key);
     }
 
-    private iteratorGetEnvValue(postData : any) {
+    private iteratorGetEnvValue(postData : any, format : any) {
         for (let _key in postData) {
             let value = postData[_key];
+            let isJsonString = false;
+            if (format != null && format.hasOwnProperty(_key)) {
+                if (format[_key][TABLE_FIELD_TYPE].toLowerCase() === DataTypeJsonObject.toLowerCase()) {
+                    isJsonString = true;
+                }
+            }
+            if (isJsonString && getType(value) === "String") {
+                value = JSON.parse(value);
+            }
+
             if (getType(value) === "Array") {
                 for (let _index in value) {
                     let _item = value[_index];
                     if (getType(_item) === "Object") {
-                        this.iteratorGetEnvValue(_item);
+                        this.iteratorGetEnvValue(_item, null);
                     } else {
                         let beginIndex = value[_index].indexOf("{{");
                         let endIndex = value[_index].indexOf("}}");
@@ -179,7 +195,7 @@ export default class {
                     }
                 }
             } else if (getType(value) === "Object") {
-                this.iteratorGetEnvValue(value);
+                this.iteratorGetEnvValue(value, null);
             } else if (getType(value) === "String") {
                 let beginIndex = value.indexOf("{{");
                 let endIndex = value.indexOf("}}");
@@ -188,6 +204,10 @@ export default class {
                     value = this.getVarByKey(envValueKey);
                     postData[_key] = value;
                 }
+            }
+
+            if (isJsonString) {
+                postData[_key] = JSON.stringify(value);
             }
         }
     }
@@ -207,7 +227,7 @@ export default class {
         return this.appendEnvKeys(envKeys);
     }
 
-    private appendEnvKeys(envKeys : Set<string>) : Set<string> {
+    private appendEnvKeys(envKeys : Set<String>) : Set<String> {
         envKeys.add(ENV_VALUE_RANDOM_STRING);
         envKeys.add(ENV_VALUE_RANDOM_INT);
         envKeys.add(ENV_VALUE_RANDOM_LONG);

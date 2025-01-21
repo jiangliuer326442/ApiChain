@@ -1,10 +1,11 @@
 import fse from 'fs-extra';
 import { dialog } from 'electron';
-import chalk from 'chalk';
 import log from 'electron-log';
 
+import i18n from '../lang/i18n';
 import { uuidExists, getUuid, getUname, getSalt } from '../store/config/user';
-import { isVip, getExpireTime, getBuyTimes } from '../store/config/vip';
+import { isFirstLauch } from '../store/config/first';
+import { isVip, getExpireTime, getBuyTimes, giftVip } from '../store/config/vip';
 import { osLocale } from '../third_party/os-locale';
 import { 
     getIpV4,
@@ -19,17 +20,27 @@ export async function getInitParams() : Promise<string[]> {
     let content = (await fse.readFile(packageJsonPath)).toString();
     let packageJson = JSON.parse(content);
     let lang = await osLocale();
+
+    log.info("lang", lang);
+    i18n.setLocale(lang);
+
     if (!uuidExists()) {
-        dialog.showErrorBox("ssh key错误", "未找到ssh key 文件，清先在.ssh文件夹中生成rsa ssh key文件");
+        dialog.showErrorBox("未找到 id_rsa.pub 文件", "请通过 ssh-keygen -t RSA 命令生成该文件，用于标记您在团队内的身份");
         process.exit(1);
     }
 
-    let result = doGetInitParams(packageJson, lang);
-    log.info("getInitParams finished, cost time: " + (Date.now() - _btime))
+    let firstLauch = isFirstLauch();
+    if (firstLauch) {
+        giftVip(3);
+    }
+
+    let result = doGetInitParams(packageJson, lang, firstLauch);
+    log.info("getInitParams finished, cost time: " + (Date.now() - _btime));
+    log.info(i18n.__('welcome'));
     return result;
 }
 
-function doGetInitParams(packageJson : any, lang : string) : string[] {
+function doGetInitParams(packageJson : any, lang : string, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
@@ -54,5 +65,6 @@ function doGetInitParams(packageJson : any, lang : string) : string[] {
         "$$" + base64Encode("appName=" + appName),
         "$$" + base64Encode("userLang=" + userLang),
         "$$" + base64Encode("userCountry=" + userCountry),
+        "$$" + base64Encode("firstLauch=" + firstLauch),
     ];
 }

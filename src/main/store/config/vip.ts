@@ -74,6 +74,11 @@ export function getExpireTime() {
     return Number(expireTime);
 }
 
+export function giftVip(days : number) {
+    let expireTime = Date.now() + 86400 * 1000 * days;
+    setExpireTime(expireTime);
+}
+
 export function setExpireTime(expireTime : number) {
     let cache = getCache("");
     cache.set(VIP_END_TIME, expireTime);

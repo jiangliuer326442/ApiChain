@@ -18,7 +18,7 @@ import {
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
-    UNAME,
+    UNAME, TABLE_UNITTEST_STEPS_NAME,
 } from '@conf/db';
 import {
     UNITTEST_RESULT_SUCCESS,
@@ -41,11 +41,12 @@ import {
     copyFromProjectToIterator,
     batchMoveIteratorUnittest,
 } from '@act/unittest';
+import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { getOpenVersionIterators } from '@act/version_iterator';
+import { buildUnitTestStepFromRequest } from '@act/unittest_step';
 import PayModel from '@comp/topup';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
-import e from 'express';
 
 const { Header, Content, Footer } = Layout;
 
@@ -59,7 +60,13 @@ let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
 let unittest_step_unittest_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
+let unittest_step_project = TABLE_UNITTEST_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
+let unittest_step_uri = TABLE_UNITTEST_STEPS_FIELDS.FIELD_URI;
 let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
+let unittest_step_request_head = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_HEADER;
+let unittest_step_request_body = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_BODY;
+let unittest_step_request_param = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PARAM;
+let unittest_step_request_path_variable = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
 let unittest_report_result = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_RESULT;
 let unittest_report_env = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_ENV;
@@ -140,9 +147,9 @@ class UnittestListVersion extends Component {
                                 <Space>
                                     <Button type="link" href={ "#/version_iterator_tests_step_add/" + this.state.iteratorId + "/" + unittestUuid }>添加步骤</Button>
                                     {record.result !== undefined ? 
-                                    <Button type='text' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/' + iteratorId + '/' + unittestUuid }>执行记录</Button>
+                                    <Button type='text' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/' + this.state.iteratorId + '/' + unittestUuid }>执行记录</Button>
                                     : null}
-                                    <Dropdown menu={this.getMore(record)}>
+                                    <Dropdown menu={this.getMoreUnittest(record)}>
                                         <Button type="text" icon={<MoreOutlined />} />
                                     </Dropdown>
                                 </Space>
@@ -165,7 +172,7 @@ class UnittestListVersion extends Component {
                                         });
 
                                         let batchUuid = await continueIteratorExecuteUnitTest(
-                                            iteratorId, 
+                                            this.state.iteratorId, 
                                             valueUnittestStepUnittestUuid, 
                                             record[unittest_report_batch], 
                                             valueUnittestReportStep, 
@@ -182,19 +189,27 @@ class UnittestListVersion extends Component {
                                         })
                                     }}>继续执行</Button>
                                     : null}
-                                    <Button icon={<EditOutlined />} type='link' href={ "#/version_iterator_tests_step_edit/" + this.state.iteratorId + "/" + valueUnittestStepUnittestUuid + "/" + valueUnittestStepUuid } />
-                                    <Popconfirm
-                                        title="删除测试用例步骤"
-                                        description="确定删除该步骤吗？"
-                                        onConfirm={e => {
-                                            delUnitTestStep(valueUnittestStepUuid, ()=>{
-                                                getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
-                                            });
-                                        }}
-                                        okText="删除"
-                                        cancelText="取消">
-                                        <Button danger type="link" icon={<DeleteOutlined />} />
-                                    </Popconfirm>
+                                    <Button 
+                                        type='link' 
+                                        href={ "#/version_iterator_tests_step_edit/" + this.state.iteratorId + "/" + valueUnittestStepUnittestUuid + "/" + valueUnittestStepUuid }
+                                    >编辑</Button>
+                                    <Button type="text" onClick={async ()=>{
+                                        let request = (await getUnitTestRequests(record[unittest_step_project], this.state.iteratorId, record[unittest_step_uri]))[0];
+                                        let stepRequest = await buildUnitTestStepFromRequest(request);
+                                        let unit_test_step = await window.db[TABLE_UNITTEST_STEPS_NAME]
+                                        .where(unittest_step_uuid).equals(valueUnittestStepUuid)
+                                        .first();
+                                        unit_test_step[unittest_step_request_head] = stepRequest.requestHead;
+                                        unit_test_step[unittest_step_request_body] = stepRequest.requestBody;
+                                        unit_test_step[unittest_step_request_param] = stepRequest.requestParam;
+                                        unit_test_step[unittest_step_request_path_variable] = stepRequest.requestPathVariable;
+                                        await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
+                                        message.success("重置步骤 " + unit_test_step[unittest_title] + " 的参数成功");
+                                        getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+                                    }}>重置步骤</Button>
+                                    <Dropdown menu={this.getMoreStep(record)}>
+                                        <Button type="text" icon={<MoreOutlined />} />
+                                    </Dropdown>
                                 </Space>
                             );
                         }
@@ -251,7 +266,37 @@ class UnittestListVersion extends Component {
         this.setState({ versionIterators });
     }
 
-    getMore = (record : any) : MenuProps => {
+    getMoreStep = (record : any) : MenuProps => {
+        if (record[unittest_folder] === undefined) {
+            //整体单测的 uuid
+            let valueUnittestStepUnittestUuid = record[unittest_step_unittest_uuid];
+            //当前步骤的 uuid
+            let valueUnittestStepUuid = record[unittest_step_uuid];
+
+            return {'items': [{
+                key: "1",
+                danger: true,
+                label: (
+                    <Popconfirm
+                        title="删除测试用例步骤"
+                        description="确定删除该步骤吗？"
+                        onConfirm={e => {
+                            delUnitTestStep(valueUnittestStepUuid, ()=>{
+                                getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+                            });
+                        }}
+                        okText="删除"
+                        cancelText="取消">
+                        <Button danger type="link" icon={<DeleteOutlined />}>删除</Button>
+                    </Popconfirm>
+                ),
+            }]};
+        } else {
+            return {'items': [] };
+        }
+    }
+
+    getMoreUnittest = (record : any) : MenuProps => {
         if (record[unittest_folder] !== undefined) {
             return {'items': [{
                 key: "1",

@@ -12,10 +12,10 @@ import {
     parseJsonToTable,
     genHash,
     shortJsonContent,
-} from '../../util/json';
+} from '@rutil/json';
 
-import { getJsonFragment } from '../../actions/request_save';
-import { isStringEmpty, isJsonString } from '../../util';
+import { getJsonFragment } from '@act/request_save';
+import { isStringEmpty, isJsonString } from '@rutil/index';
 
 const { TextArea } = Input;
 

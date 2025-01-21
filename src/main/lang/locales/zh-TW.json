@@ -1,0 +1,4 @@
+{
+    "welcome": "欢迎来到我的 Electron 应用程序！",
+    "greeting": "你好，{{name}}！"
+}

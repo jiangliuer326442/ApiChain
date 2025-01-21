@@ -456,6 +456,19 @@ class RequestSendContainer extends Component {
     state.sendingFlg = true;
     this.setState(state);
 
+    let requestDefine = await getVersionIteratorRequest(
+      this.state.iteratorId, 
+      this.state.prj, 
+      this.state.requestMethod, 
+      this.state.requestUri
+    );
+    if (requestDefine === null) {
+      requestDefine = await getProjectRequest(this.state.prj, this.state.requestMethod, this.state.requestUri);
+      if (requestDefine == null) {
+        requestDefine = {};
+      }
+    }
+
     let url = this.state.requestHost + this.state.requestUri;
 
     for (let _key in this.state.requestPathVariableData) {
@@ -495,7 +508,10 @@ class RequestSendContainer extends Component {
       }
     }
     if (this.state.requestMethod === REQUEST_METHOD_POST) {
-      let postData = this.requestSendTip.iteratorGetVarByKey(this.state.requestBodyData);
+      let postData = this.requestSendTip.iteratorGetVarByKey(
+        this.state.requestBodyData, 
+        Object.keys(requestDefine).length > 0 ? requestDefine['body'] : null 
+      );
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
         sendAjaxMessage('post', url, headData, postData, this.state.requestFileData).then(response => {
@@ -637,7 +653,7 @@ class RequestSendContainer extends Component {
   calculatePathVariableData = (requestPathVariableData) => {
     let list = [];
     for (let _key in requestPathVariableData) {
-        let item = {};
+        let item : any = {};
         item["key"] = _key;
         item["value"] = requestPathVariableData[_key];
         list.push(item);
@@ -646,7 +662,7 @@ class RequestSendContainer extends Component {
     return list;
   }
 
-  getCookies = () : Promise<DescriptionsProps['items']> => {
+  getCookies = () : DescriptionsProps['items'] => {
     let cookieArr = [];
     for (let i = 0; i < Object.keys(this.state.responseCookie).length; i++) {
       let _key = Object.keys(this.state.responseCookie)[i];

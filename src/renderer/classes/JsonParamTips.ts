@@ -167,13 +167,14 @@ export default class {
             let textArr = this.splitStr(text);
 
             let tipsBefore = "";
+            let structType;
 
             if (textArr.length > 1) {
                 for (let i = 0; i < textArr.length - 1; i++) {
                     let objectKey = textArr[i];
                     //函数
                     if (objectKey.indexOf('*') === 0) {
-                        jsonObject[TABLE_FIELD_TYPE] = "Object";
+                        structType = "Object";
                     } else {
                         jsonObject = jsonObject[objectKey];
                     }
@@ -181,7 +182,9 @@ export default class {
                     text = text.substring(tipsBefore.length);
                 }
             } 
-            let structType = jsonObject[TABLE_FIELD_TYPE];
+            if (isStringEmpty(structType)) {
+                structType = getType(jsonObject);
+            }
 
             if (structType === "Array") {
                 let item : any = {};
