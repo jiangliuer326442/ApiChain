@@ -2,7 +2,12 @@ import { cloneDeep } from 'lodash';
 
 import RequestSendTips from '@clazz/RequestSendTips';
 import { isStringEmpty, getType } from "@rutil/index";
-import { TABLE_FIELD_TYPE, TABLE_FIELD_REMARK, TABLE_FIELD_VALUE, TABLE_FIELD_NECESSARY } from '@rutil/json';
+import { 
+    TABLE_FIELD_TYPE, 
+    TABLE_FIELD_REMARK, 
+    TABLE_FIELD_VALUE, 
+    TABLE_FIELD_NECESSARY 
+} from '@rutil/json';
 import { 
     UNITTEST_STEP_CURRENT,
     UNITTEST_STEP_RESPONSE,
@@ -177,6 +182,7 @@ export default class {
                         structType = "Object";
                     } else {
                         jsonObject = jsonObject[objectKey];
+                        structType = jsonObject[TABLE_FIELD_TYPE];
                     }
                     tipsBefore += objectKey + ".";
                     text = text.substring(tipsBefore.length);

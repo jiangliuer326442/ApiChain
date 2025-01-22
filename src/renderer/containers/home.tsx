@@ -14,7 +14,10 @@ import {
   TABLE_USER_NAME,
   TABLE_USER_FIELDS
 } from '@conf/db';
-import { isStringEmpty } from '@rutil/index';
+import { 
+  isStringEmpty,
+  getStartParams
+} from '@rutil/index';
 import { addUser, getUser, setUserName as ac_setUserName, } from '@act/user';
 import registerMessageHook from '@act/message';
 
@@ -46,14 +49,7 @@ class Home extends Component {
       this.initUser(this.props.uid);
     }
     if('electron' in window) {
-      let args = window.electron.getAdditionalArguments()
-      .map(arg => atob(arg))
-      .map(arg => arg.split("="));
-      let argsObject = {};
-      for (let arg of args) {
-          argsObject[arg[0]] = arg[1];
-      }
-
+      let argsObject = getStartParams();
       let uuid = argsObject.uuid;
       let uname = argsObject.uname;
       let ip = argsObject.ip;

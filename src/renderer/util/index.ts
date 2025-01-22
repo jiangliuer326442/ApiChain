@@ -3,6 +3,17 @@ import weekday from "dayjs/plugin/weekday"
 import localeData from "dayjs/plugin/localeData"
 import 'dayjs/locale/zh-cn';
 
+export function getStartParams() : any {
+  let args = window.electron.getAdditionalArguments()
+  .map(arg => atob(arg))
+  .map(arg => arg.split("="));
+  let argsObject : any = {};
+  for (let arg of args) {
+      argsObject[arg[0]] = arg[1];
+  }
+  return argsObject;
+}
+
 export function paramToString(obj) {
   let ret = "";
   if (Object.keys(obj).length > 0) {

@@ -71,7 +71,7 @@ export default class {
         this.cb = cb;
     }
 
-    getTips(cb: (result: Set<String>) => void) : void {
+    getTips(cb: (result: Array<string>) => void) : void {
         if (this.env_vars.length === 0) {
             if (isStringEmpty(this.prj)) {
                 this.prj = "";
@@ -227,7 +227,7 @@ export default class {
         return this.appendEnvKeys(envKeys);
     }
 
-    private appendEnvKeys(envKeys : Set<String>) : Set<String> {
+    private appendEnvKeys(envKeys : Set<string>) : Set<string> {
         envKeys.add(ENV_VALUE_RANDOM_STRING);
         envKeys.add(ENV_VALUE_RANDOM_INT);
         envKeys.add(ENV_VALUE_RANDOM_LONG);

@@ -3,10 +3,12 @@ import { connect } from 'react-redux';
 import { Layout, Menu, Flex } from "antd";
 import Dexie from 'dexie';
 
-import { DB_NAME } from '../../config/db';
-import { SET_NAV_COLLAPSED } from '../../config/redux';
-import { getVersionIterators } from "../actions/version_iterator";
-import { getPrjs } from "../actions/project";
+import { setLang } from '../../lang/i18n';
+import { getStartParams } from '@rutil/index';
+import { DB_NAME } from '@conf/db';
+import { SET_NAV_COLLAPSED } from '@conf/redux';
+import { getVersionIterators } from "@act/version_iterator";
+import { getPrjs } from "@act/project";
 
 const { Sider } = Layout;
 
@@ -14,6 +16,11 @@ class Nav extends Component {
 
     constructor(props) {
         super(props);
+
+        let argsObject = getStartParams();
+        let userCountry = argsObject.userCountry;
+        let userLang = argsObject.userLang;
+        setLang(userCountry, userLang);
 
         if(window.db === undefined) {
             window.db = new Dexie(DB_NAME);

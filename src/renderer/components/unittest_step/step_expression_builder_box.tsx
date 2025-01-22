@@ -35,7 +35,9 @@ import {
 } from '@conf/global_config';
 import { 
     TABLE_FIELD_TYPE, 
-    retShortJsonContent 
+    retShortJsonContent,
+    shortJsonContent,
+    parseJsonToFilledTable
 } from '@rutil/json';
 import { 
     getUnitTestRequests 
@@ -154,25 +156,25 @@ class StepExpressionBuilderBox extends Component {
                 let selectedDataSource = this.state.selectedDataSource;
                 let dataSource = {};
                 if (selectedDataSource === UNITTEST_STEP_HEADER) {
-                    dataSource = cleanJson(this.props.stepHeaderData);
+                    dataSource = this.props.stepHeaderData;
                 }
                 if (selectedDataSource === UNITTEST_STEP_BODY) {
-                    dataSource = cleanJson(this.props.stepBodyData);
+                    dataSource = this.props.stepBodyData;
                 }
                 if (selectedDataSource === UNITTEST_STEP_PARAM) {
-                    dataSource = cleanJson(this.props.stepParamData);
+                    dataSource = this.props.stepParamData;
                 }
                 if (selectedDataSource === UNITTEST_STEP_PATH_VARIABLE) {
-                    dataSource = cleanJson(this.props.stepPathVariableData);
+                    dataSource = this.props.stepPathVariableData;
                 }
                 if (selectedDataSource === UNITTEST_STEP_RESPONSE) {
-                    dataSource = cleanJson(this.props.stepResponseContentData);
+                    dataSource = this.props.stepResponseContentData;
                 }
                 if (selectedDataSource === UNITTEST_STEP_RESPONSE_HEADER) {
-                    dataSource = cleanJson(this.props.stepResponseHeaderData);
+                    dataSource = this.props.stepResponseHeaderData;
                 }
                 if (selectedDataSource === UNITTEST_STEP_RESPONSE_COOKIE) {
-                    dataSource = cleanJson(this.props.stepResponseCookieData);
+                    dataSource = this.props.stepResponseCookieData;
                 }
                 this.handleDataSourceCallback(dataSource);
             } else {
@@ -185,7 +187,7 @@ class StepExpressionBuilderBox extends Component {
                     let selectedDataSource = this.state.selectedDataSource;
                     let dataSource = {};
                     if (selectedDataSource === UNITTEST_STEP_HEADER) {
-                        dataSource = cleanJson(request[iteration_request_header]);
+                        dataSource = request[iteration_request_header];
                     }
                     if (selectedDataSource === UNITTEST_STEP_BODY) {
                         let format = request[iteration_request_body];
@@ -202,22 +204,26 @@ class StepExpressionBuilderBox extends Component {
                                 }
                             }
                         }
-                        dataSource = body;
+                        let shortRequestBodyJsonObject = {};
+                        shortJsonContent(shortRequestBodyJsonObject, body);
+                        let formRequestBodyData = {};
+                        parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, {});
+                        dataSource = formRequestBodyData;
                     }
                     if (selectedDataSource === UNITTEST_STEP_PARAM) {
-                        dataSource = cleanJson(request[iteration_request_param]);
+                        dataSource = request[iteration_request_param];
                     }
                     if (selectedDataSource === UNITTEST_STEP_PATH_VARIABLE) {
-                        dataSource = cleanJson(request[iteration_request_path_variable]);
+                        dataSource = request[iteration_request_path_variable];
                     }
                     if (selectedDataSource === UNITTEST_STEP_RESPONSE) {
-                        dataSource = cleanJson(request[iteration_request_response_content]);
+                        dataSource = request[iteration_request_response_content];
                     }
                     if (selectedDataSource === UNITTEST_STEP_RESPONSE_HEADER) {
-                        dataSource = cleanJson(request[iteration_request_response_header]);
+                        dataSource = request[iteration_request_response_header];
                     }
                     if (selectedDataSource === UNITTEST_STEP_RESPONSE_COOKIE) {
-                        dataSource = cleanJson(request[iteration_request_response_cookie]);
+                        dataSource = request[iteration_request_response_cookie];
                     }
                     this.handleDataSourceCallback(dataSource);
                 });
@@ -371,7 +377,7 @@ class StepExpressionBuilderBox extends Component {
                                 label="响应示例"
                             >
                             <JsonView 
-                                src={this.state.dataSource}   
+                                src={cleanJson(this.state.dataSource)}   
                                 name="response"
                                 theme={ "bright" }
                                 collapsed={false}  

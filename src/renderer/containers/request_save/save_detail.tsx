@@ -216,6 +216,8 @@ class RequestSaveContainer extends Component {
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData
             );
+            message.success("修改成功");
+            this.props.history.push("/project_requests/" + this.state.prj);
         } else {
             await editVersionIteratorRequest(
                 this.state.initRequestMethod, this.state.initRequestUri, 
@@ -225,9 +227,9 @@ class RequestSaveContainer extends Component {
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData
             );
             this.setState({initRequestMethod: this.state.requestMethod, initRequestUri: this.state.requestUri});
+            message.success("修改成功");
+            this.props.history.push("/version_iterator_requests/" + this.state.versionIterator);
         }
-        message.success("修改成功");
-        this.props.history.push("/version_iterator_requests/" + this.state.versionIterator);
     }
 
     parseJsonToStruct = (whiteKeys : Array<any>, parentKeys : Array<string>, parentKey : string, parseJsonToTableResultCopy : object, content : object) => {

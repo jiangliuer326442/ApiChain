@@ -1,9 +1,8 @@
 import fse from 'fs-extra';
 import { dialog } from 'electron';
 import log from 'electron-log';
-
-import i18n from '../lang/i18n';
-import { uuidExists, getUuid, getUname, getSalt } from '../store/config/user';
+import { setLang } from '../../lang/i18n';
+import { uuidExists, getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { isVip, getExpireTime, getBuyTimes, giftVip } from '../store/config/vip';
 import { osLocale } from '../third_party/os-locale';
@@ -21,9 +20,6 @@ export async function getInitParams() : Promise<string[]> {
     let packageJson = JSON.parse(content);
     let lang = await osLocale();
 
-    log.info("lang", lang);
-    i18n.setLocale(lang);
-
     if (!uuidExists()) {
         dialog.showErrorBox("未找到 id_rsa.pub 文件", "请通过 ssh-keygen -t RSA 命令生成该文件，用于标记您在团队内的身份");
         process.exit(1);
@@ -36,7 +32,6 @@ export async function getInitParams() : Promise<string[]> {
 
     let result = doGetInitParams(packageJson, lang, firstLauch);
     log.info("getInitParams finished, cost time: " + (Date.now() - _btime));
-    log.info(i18n.__('welcome'));
     return result;
 }
 
@@ -52,6 +47,8 @@ function doGetInitParams(packageJson : any, lang : string, firstLauch : boolean)
     let appName = packageJson.name;
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
+
+    setLang(userCountry, userLang);
 
     return [
         "$$" + base64Encode("uuid=" + uuid),

@@ -29,34 +29,59 @@ import {
 import type { FormProps } from 'antd';
 import { encode } from 'base-64';
 
-import { TABLE_PROJECT_REQUEST_FIELDS, TABLE_ENV_VAR_FIELDS } from '../../../config/db';
-import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
-import { CONTENT_TYPE_FORMDATA, CONTENT_TYPE_URLENCODE } from '../../../config/contentType';
-import { REQUEST_METHOD_POST, REQUEST_METHOD_GET, CONTENT_TYPE } from '../../../config/global_config';
+import { 
+    TABLE_PROJECT_REQUEST_FIELDS, 
+    TABLE_ENV_VAR_FIELDS 
+} from '@conf/db';
+import { 
+    ENV_VALUE_API_HOST 
+} from '@conf/envKeys';
+import { 
+    CONTENT_TYPE_FORMDATA, 
+    CONTENT_TYPE_JSON, 
+    CONTENT_TYPE_URLENCODE 
+} from '@conf/contentType';
+import { 
+    REQUEST_METHOD_POST, 
+    REQUEST_METHOD_GET, 
+    CONTENT_TYPE 
+} from '@conf/global_config';
 import {
     ChannelsPostmanStr, 
     ChannelsPostmanInStr, 
     ChannelsPostmanOutStr,
-} from '../../../config/channel';
-import { isStringEmpty } from '../../util';
-import { getHostRight } from '../../util/uri';
+} from '@conf/channel';
 import { 
-    TABLE_FIELD_REMARK, TABLE_FIELD_TYPE, TABLE_FIELD_VALUE,
-    shortJsonContent, genHash, iteratorGenHash, parseJsonToTable,
-} from '../../util/json';
-import { getVarsByKey } from '../../actions/env_value';
+    getType, 
+    isStringEmpty 
+} from '@rutil/index';
+import { 
+    getHostRight 
+} from '@rutil/uri';
+import { 
+    TABLE_FIELD_REMARK, 
+    TABLE_FIELD_TYPE, 
+    TABLE_FIELD_VALUE,
+    shortJsonContent, 
+    genHash, 
+    iteratorGenHash, 
+    parseJsonToTable,
+    iteratorBodyGenHash, 
+    parseJsonToFilledTable
+} from '@rutil/json';
+import { getVarsByKey } from '@act/env_value';
 import { 
     addVersionIteratorFolder,
     getVersionIteratorFolders, 
     delVersionIteratorFolder 
-} from '../../actions/version_iterator_folders';
+} from '@act/version_iterator_folders';
 import { 
     getProjectRequests, 
     delProjectRequest, 
     addProjectRequest,
     setProjectRequestSort,
     batchSetProjectRequestFold,
-} from '../../actions/project_request';
+} from '@act/project_request';
 
 const { Header, Content, Footer } = Layout;
 
@@ -180,19 +205,14 @@ class RequestListProject extends Component {
         });
     }
 
-    parsePostman = async (postmanObj : object) => {
+    parsePostman = async (replaceHost : string, postmanObj : object) => {
         let schema = postmanObj.info.schema;
         let schemaLeft = schema.substring(0, schema.lastIndexOf('/'));
         let schemaVersion = parseFloat(schemaLeft.substring(schemaLeft.lastIndexOf("/") + 2));
         if (schemaVersion >= 2 && schemaVersion < 3) {
-            const envVarItems = await getVarsByKey(this.state.projectLabel, ENV_VALUE_API_HOST);
-            let replaceHost = "";
-            for(let envVar of envVarItems) {
-                replaceHost = getHostRight(envVar[env_var_pvalue]) + "/";
-            }
             for(let line of postmanObj.item){
                 let title = line.name;
-                let uri = getHostRight(line.request.url);
+                let uri = getHostRight(getType(line.request.url) === "String" ? line.request.url : line.request.url.raw);
                 if (uri.indexOf(replaceHost) === 0) {
                     uri = uri.substring(replaceHost.length);
                 }
@@ -209,6 +229,12 @@ class RequestListProject extends Component {
                     headerItem[TABLE_FIELD_TYPE] = "String";
                     headerItem[TABLE_FIELD_VALUE] = CONTENT_TYPE_FORMDATA;
                     header[CONTENT_TYPE] = headerItem;
+                } else if(line.request.body.mode === "raw") {
+                    let headerItem : any = {};
+                    headerItem[TABLE_FIELD_REMARK] = "";
+                    headerItem[TABLE_FIELD_TYPE] = "String";
+                    headerItem[TABLE_FIELD_VALUE] = CONTENT_TYPE_JSON;
+                    header[CONTENT_TYPE] = headerItem;
                 } else {
                     let headerItem : any = {};
                     headerItem[TABLE_FIELD_REMARK] = "";
@@ -224,7 +250,7 @@ class RequestListProject extends Component {
                     header[_header.key] = headerItem;
                 }
                 let body : any = {};
-                if(line.request.body.mode === "formdata") {
+                if (line.request.body.mode === "formdata") {
                     for (let _bodyItem of line.request.body.formdata) {
                         let bodyItem : any = {};
                         bodyItem[TABLE_FIELD_REMARK] = _bodyItem.description;
@@ -232,6 +258,14 @@ class RequestListProject extends Component {
                         bodyItem[TABLE_FIELD_VALUE] = _bodyItem.value;
                         body[_bodyItem.key] = bodyItem;
                     }
+                } else if (line.request.body.mode === "raw") {
+                    method = REQUEST_METHOD_POST;
+                    let responseBody = JSON.parse(line.request.body.raw);
+                    let shortRequestBodyJsonObject = {};
+                    shortJsonContent(shortRequestBodyJsonObject, responseBody);
+                    let formRequestBodyData = {};
+                    parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, {});
+                    body = formRequestBodyData;
                 }
                 let param = {};
                 let response_demo = "";
@@ -240,14 +274,16 @@ class RequestListProject extends Component {
                 }
                 this.loadPostmanData(title, uri, method, header, param, body, response_demo);
             }
+            return true;
         } else {
             message.error("不支持的 postman 文件版本");
+            return false;
         }
     }
 
     loadPostmanData = async (title : string, uri : string, method : string, header : object, param : object, body : object, response_demo_str : string) => {
-        let headerHash = genHash(header);
-        let bodyHash = genHash(body);
+        let headerHash = genHash(header)
+        let bodyHash = iteratorBodyGenHash(body, {});
         let paramHash = genHash(param);
         let shortResponseJsonObject = {};
         let formResponseData = {};
@@ -462,14 +498,23 @@ class RequestListProject extends Component {
 
                                 <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                     <Button type="link" danger onClick={async ()=>{
+                                        const envVarItems = await getVarsByKey(this.state.projectLabel, ENV_VALUE_API_HOST);
+                                        let replaceHost = "";
+                                        for(let envVar of envVarItems) {
+                                            replaceHost = getHostRight(envVar[env_var_pvalue]) + "/";
+                                        }
+                                        if (isStringEmpty(replaceHost)) {
+                                            message.error("当前项目环境变量未设置 " + ENV_VALUE_API_HOST + " 的值");
+                                            return;
+                                        }
+
                                         let response = await this.uploadPostMan();
                                         let postmanContent = response.postmanContent;
-                                        await this.parsePostman(JSON.parse(postmanContent as string));
-                                        message.success("导入 postman 成功");
-                                        this.onFinish({
-                                            title: this.state.title, 
-                                            uri: this.state.uri
-                                        });
+                                        let result = await this.parsePostman(replaceHost, JSON.parse(postmanContent as string));
+                                        if (result) {
+                                            message.success("导入 postman 成功");
+                                            this.onFinish({});
+                                        }
                                     }}>
                                         从 PostMan 导入
                                     </Button>

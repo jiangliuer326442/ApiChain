@@ -1,6 +1,6 @@
 {
   "name": "ApiChainDebug",
-  "version": "1.0.10",
+  "version": "1.0.9",
   "description": "接口文档与单元测试工具",
   "keywords": [
     "postman",
@@ -81,6 +81,7 @@
     "less": "^4.2.0",
     "lodash": "^4.17.21",
     "markdown-navbar": "^1.4.3",
+    "path-browserify": "^1.0.1",
     "prismjs": "^1.29.0",
     "qrcode": "^1.5.3",
     "react": "^18.2.0",
