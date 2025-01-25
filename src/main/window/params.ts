@@ -47,7 +47,6 @@ function doGetInitParams(packageJson : any, lang : string, firstLauch : boolean)
     let appName = packageJson.name;
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
-
     setLang(userCountry, userLang);
 
     return [

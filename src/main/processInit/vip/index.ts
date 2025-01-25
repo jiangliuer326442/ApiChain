@@ -26,24 +26,38 @@ export default function (){
 
         if (action !== ChannelsVipGenUrlStr) return;
 
-        if (productName !== "product4" && productName !== "product5" && productName !== "product6" && productName !== "product7" && productName !== "product8") {
+        if (productName !== "product9" && productName !== "product10" && productName !== "product11" && productName !== "product12" && productName !== "product13") {
             return ;
         }
-        if (payMethod !== "alipay" && payMethod !== "wxpay") {
+        if (payMethod !== "alipay" && payMethod !== "wxpay" && payMethod !== "dollerpay") {
             return ;
         }
 
         let money = "1000";
-        if (productName === "product4") {
-            money = "10";
-        } else if (productName === "product5") {
-            money = "100";
-        } else if (productName === "product6") {
-            money = "200";
-        } else if (productName === "product7") {
-            money = "1";
-        } else if (productName === "product8") {
-            money = "5";
+        if (payMethod === "dollerpay") {
+            if (productName === "product9") {
+                money = "2";
+            } else if (productName === "product10") {
+                money = "14";
+            } else if (productName === "product11") {
+                money = "28";
+            } else if (productName === "product12") {
+                money = "1";
+            } else if (productName === "product13") {
+                money = "1";
+            }
+        } else {
+            if (productName === "product9") {
+                money = "10";
+            } else if (productName === "product10") {
+                money = "100";
+            } else if (productName === "product11") {
+                money = "200";
+            } else if (productName === "product12") {
+                money = "1";
+            } else if (productName === "product13") {
+                money = "5";
+            }
         }
 
         let encryptString = genEncryptString(productName, payMethod);

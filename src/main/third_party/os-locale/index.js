@@ -70,7 +70,7 @@ async function getWinLocale() {
 	const stdout = await getStdOut('wmic', ['os', 'get', 'locale']);
 	const lcidCode = Number.parseInt(stdout.replace('Locale', ''), 16);
 
-	return lcid.from(lcidCode);
+	return all[lcidCode];
 }
 
 function getWinLocaleSync() {
@@ -89,7 +89,6 @@ export async function osLocale(options = defaultOptions) {
 	if (cache.has(options.spawn)) {
 		return cache.get(options.spawn);
 	}
-
 	let locale;
 
 	try {

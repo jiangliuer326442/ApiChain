@@ -2,6 +2,7 @@ import {
   UUID, 
   BUY_TIMES, 
   APPNAME, 
+  USERCOUNTRY,
   HTML, 
   APPVERSION, 
   VIP_FLG, 
@@ -16,6 +17,7 @@ export default function (state = {
   html: "",
   appName: "",
   appVersion: "",
+  userCountry: "",
   vipFlg: false,
   expireTime: 0,
   buyTimes: 0,
@@ -46,6 +48,11 @@ export default function (state = {
       if (action.appName !== undefined) {
         sessionStorage.setItem(APPNAME, action.appName);
         newState.appName = action.appName;
+      }
+
+      if (action.userCountry !== undefined) {
+        sessionStorage.setItem(USERCOUNTRY, action.userCountry);
+        newState.userCountry = action.userCountry;
       }
 
       if (action.appVersion !== undefined) {
