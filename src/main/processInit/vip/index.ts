@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 
-import { PayJumpUrl, PayQueryUrl } from '../../../config/global_config';
+import { PayJumpUrl, PayQueryUrl } from '../../../config/url';
 import { 
     ChannelsVipStr, 
     ChannelsVipGenUrlStr, 

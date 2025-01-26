@@ -5,6 +5,8 @@ import {
     ENV_VALUE_API_HOST,
     ENV_VALUE_RANDOM_STRING,
     ENV_VALUE_APP_VERSION,
+    ENV_VALUE_EMAIL,
+    ENV_VALUE_AGE,
     ENV_VALUE_RANDOM_INT,
     ENV_VALUE_RANDOM_LONG,
     ENV_VALUE_CURRENT_DATETIME_STR,
@@ -119,9 +121,17 @@ export default class {
         return postData;
     }
 
-    getVarByKey(key : string) : string | undefined {
+    getVarByKey(key : string) : string | number | undefined {
         if (key === ENV_VALUE_RANDOM_STRING) {
             return "ApiChain_" + uuidv4();
+        }
+
+        if (key === ENV_VALUE_EMAIL) {
+            return uuidv4().replaceAll("-", "") + "@email.com";
+        }
+
+        if (key === ENV_VALUE_AGE) {
+            return getNowdayjs().valueOf() % 120;
         }
 
         if (key === ENV_VALUE_APP_VERSION) {
@@ -238,6 +248,8 @@ export default class {
         envKeys.add(ENV_VALUE_CURRENT_TIMESTAMP_SECOND);
         envKeys.add(ENV_VALUE_CURRENT_TIMESTAMP_MICRO);
         envKeys.add(ENV_VALUE_APP_VERSION);
+        envKeys.add(ENV_VALUE_EMAIL);
+        envKeys.add(ENV_VALUE_AGE);
         return envKeys;
     }
 

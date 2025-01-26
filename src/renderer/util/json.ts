@@ -183,7 +183,6 @@ async function innerParseJsonToChildrend(
     }
     if ( json_fragment !== undefined ) {
         let json_fragment_obj = json_fragment[json_fragement_fields][key];
-        console.log("1111111111", key, json_fragment_obj);
         if (json_fragment_obj[TABLE_FIELD_TYPE] === "String" || json_fragment_obj[TABLE_FIELD_TYPE] === "Number") {
             remark = json_fragment_obj[TABLE_FIELD_REMARK];
         } else if (json_fragment_obj[TABLE_FIELD_TYPE] === TABLE_FIELD_TYPE_REF) {

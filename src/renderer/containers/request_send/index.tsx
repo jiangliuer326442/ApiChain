@@ -79,7 +79,8 @@ let request_history_file = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_FILE;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
-let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE
+let request_history_response_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
+let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE;
 let request_history_iterator = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ITERATOR;
 let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
@@ -124,6 +125,7 @@ class RequestSendContainer extends Component {
       defaultTabKey: "body",
       responseData: "",
       responseCookie: {},
+      responseHeader: {},
       isResponseJson: false,
       isResponseHtml: false,
       isResponsePic: false,
@@ -149,6 +151,7 @@ class RequestSendContainer extends Component {
       alertMessage: "",
       responseData: "",
       responseCookie: {},
+      responseHeader: {},
       sendingFlg: false,
       statusCode: 0,
       costTime: 0,
@@ -189,6 +192,7 @@ class RequestSendContainer extends Component {
         requestUri: record[request_history_uri],
         requestMethod: method,
         responseCookie: record[request_history_response_cookie],
+        responseHeader: record[request_history_response_header],
         responseData: record[request_history_response],
         isResponseJson: record[request_history_jsonFlg],
         isResponseHtml: record[request_history_htmlFlg],
@@ -588,6 +592,7 @@ class RequestSendContainer extends Component {
     this.setState({ 
       costTime,
       responseCookie: cookieObj,
+      responseHeader: headers,
       responseData : content, 
       isResponseJson, 
       isResponseHtml, 
@@ -660,6 +665,19 @@ class RequestSendContainer extends Component {
     }
     this.setRequestPathVariableData(list);
     return list;
+  }
+
+  getHeaders = () : DescriptionsProps['items'] => {
+    let headerArr = [];
+    for (let i = 0; i < Object.keys(this.state.responseHeader).length; i++) {
+      let _key = Object.keys(this.state.responseHeader)[i];
+      headerArr.push({
+        key: i + "",
+        label: <Text copyable={{text: _key}}>{ _key }</Text>,
+        children: <Text copyable={{text: this.state.responseHeader[_key]}}>{ this.state.responseHeader[_key] }</Text>,
+      });
+    }
+    return headerArr;
   }
 
   getCookies = () : DescriptionsProps['items'] => {
@@ -770,6 +788,9 @@ class RequestSendContainer extends Component {
                 )
                 : null}
                 </Divider>
+                {this.state.responseHeader != null && Object.keys(this.state.responseHeader).length > 0 ?
+                <Descriptions column={1} title="header" items={this.getHeaders()} />
+                : null}
                 {this.state.responseCookie != null && Object.keys(this.state.responseCookie).length > 0 ?
                 <Descriptions column={1} title="cookie" items={this.getCookies()} />
                 : null}

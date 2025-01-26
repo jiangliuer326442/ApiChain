@@ -38,7 +38,3 @@ export const dataTypeSelect = [
     {label: "数字", value: "Number"},
     {label: "json字符串", value: DataTypeJsonObject},
 ];
-
-export const PayJumpUrl = "http://pay.fanghailiang.cn/pay/jump/";
-
-export const PayQueryUrl = "http://pay.fanghailiang.cn/pay/query/";

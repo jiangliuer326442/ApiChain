@@ -4,6 +4,12 @@ export const ENV_VALUE_API_HOST = "api_host";
 //APP_VERSION
 export const ENV_VALUE_APP_VERSION = "$randomAppVersion";
 
+//EMAIL
+export const ENV_VALUE_EMAIL = "$randomEmail";
+
+//AGE
+export const ENV_VALUE_AGE = "$randomAge";
+
 //RANDOM_STRIN
 export const ENV_VALUE_RANDOM_STRING = "$randomString";
 
