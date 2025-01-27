@@ -1,7 +1,15 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Checkbox, Typography, Layout, Card, notification, Space, Button} from "antd";
+import { Checkbox, Typography, Layout, Card, notification, Space, Button } from "antd";
 
+import { 
+  DownloadDemoDatabase,
+  DownloadDemoPostMan,
+  PROJECT_CN_URL,
+  WikiCnUrl,
+  WikiCnWeatherReportUrl,
+  WikiCnUserRegisterUrl,
+} from '@conf/url';
 import { IS_AUTO_UPGRADE } from '@conf/storage';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import {
@@ -187,7 +195,7 @@ class Home extends Component {
                 <Title level={3}>下载并导入我们的示例demo数据</Title>
                 <ul>
                   <li>
-                  点击<Link href="http://cdn.fanghailiang.cn/demo_database.json">这里</Link>下载示例数据库
+                  点击<Link href={ DownloadDemoDatabase }>这里</Link>下载示例数据库
                   </li>
                   <li>
                     点击顶部菜单-数据-还原数据库，选择下载的示例数据库文件
@@ -196,13 +204,24 @@ class Home extends Component {
                     点击顶部菜单-页面-刷新当前页面，就可以看到已经导入的示例数据了，包含示例的环境、项目、接口、单侧等，通过查看编辑、发送网络请求等，学习他的配置和使用哦！
                   </li>
                 </ul>  
+                <Paragraph>
+                  示例数据库包含了两个示例，一个演示了 ApiChain 的基本使用，另一个包含了 ApiChain 的高阶使用，你可以参照教程一步步学习，在学习的过程中熟悉对这款软件的使用。
+                </Paragraph>
+                <ul>
+                  <li>
+                    <Link href={ WikiCnWeatherReportUrl }>入门教程1：用任意城市查询天气预报-ApiChain基本使用</Link>
+                  </li>
+                  <li>
+                    <Link href={ WikiCnUserRegisterUrl }>入门教程2：用户注册登录鉴权-ApiChain高阶使用</Link>
+                  </li>
+                </ul>
                 <Title level={3}>从PostMan导入您的接口数据</Title>
                 <Paragraph>
                   这里假设你需要从PostMan导入接口数据，首先你需要在PostMan中导出接口数据，然后在ApiChain中导入接口数据。具体步骤如下：
                 </Paragraph>
                 <ul>
                   <li>
-                  点击<Link href="http://cdn.fanghailiang.cn/demo_postman.json">这里</Link>下载 PostMan 的备份文件。
+                  点击<Link href={ DownloadDemoPostMan }>这里</Link>下载 PostMan 的备份文件。
                   </li>
                   <li>
                     点击设置-项目-添加微服务，项目标识 填写 “fly”，备注填写 “无人机”，确定按钮新增项目。
@@ -221,7 +240,7 @@ class Home extends Component {
                   </li>
                 </ul>
                 <Paragraph>
-                  更多教程请查阅我们的<Link href="https://gitee.com/onlinetool/mypostman/wikis">文档</Link>，版本更新后新增功能也会同步更新到该文档中。
+                  更多教程请查阅我们的<Link href={ WikiCnUrl }>文档</Link>，版本更新后新增功能也会同步更新到该文档中。
                 </Paragraph>
                 <Title level={3}>您的隐私数据非常重要！！！</Title>
                 <Paragraph>
@@ -234,7 +253,7 @@ class Home extends Component {
                   尽管非常希望将这款软件做成无需网络完全单机的，但是检查更新依然需要连接外部网络。新版本能够修复现有软件的一些bug以及能够让您使用到一些新增的功能。
                 </Paragraph>
                 <Paragraph>
-                  您自行决定是否使用自动检查更新，如果关闭自动检查更新，强烈建议您定期点击一下手动检查按钮，看一下是否有新的软件版本可用。也可以经常光顾我们的<Link href="https://gitee.com/onlinetool/mypostman">项目主页</Link>，看看新增了什么你感兴趣的功能。
+                  您自行决定是否使用自动检查更新，如果关闭自动检查更新，强烈建议您定期点击一下手动检查按钮，看一下是否有新的软件版本可用。也可以经常光顾我们的<Link href={ PROJECT_CN_URL }>项目主页</Link>，看看新增了什么你感兴趣的功能。
                 </Paragraph>
                 <Checkbox
                   checked={this.state.checkAutoUpgrade == 1}
