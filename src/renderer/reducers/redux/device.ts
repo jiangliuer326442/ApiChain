@@ -3,6 +3,7 @@ import {
   BUY_TIMES, 
   APPNAME, 
   USERCOUNTRY,
+  USERLANG,
   HTML, 
   APPVERSION, 
   VIP_FLG, 
@@ -18,6 +19,7 @@ export default function (state = {
   appName: "",
   appVersion: "",
   userCountry: "",
+  userLang: "",
   vipFlg: false,
   expireTime: 0,
   buyTimes: 0,
@@ -53,6 +55,11 @@ export default function (state = {
       if (action.userCountry !== undefined) {
         sessionStorage.setItem(USERCOUNTRY, action.userCountry);
         newState.userCountry = action.userCountry;
+      }
+
+      if (action.userLang !== undefined) {
+        sessionStorage.setItem(USERLANG, action.userLang);
+        newState.userLang = action.userLang;
       }
 
       if (action.appVersion !== undefined) {

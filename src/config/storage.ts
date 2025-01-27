@@ -14,6 +14,8 @@ export const APPNAME = "app.name";
 
 export const USERCOUNTRY = "user.country";
 
+export const USERLANG = "user.lang";
+
 export const HTML = "app.html";
 
 export const APPVERSION = "app.version";
