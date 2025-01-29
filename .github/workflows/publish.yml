@@ -11,8 +11,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest]
-        # os: [windows-latest]
+        # os: [macos-latest]
+        os: [windows-latest]
         # os: [ubuntu-latest]
 
     steps:
@@ -38,14 +38,14 @@ jobs:
 
       - name: Publish releases
         run: |
-          yarn electron-builder -- --publish always --mac
-          # yarn electron-builder -- --publish always --windows
+          # yarn electron-builder -- --publish always --mac
+          yarn electron-builder -- --publish always --windows
           # yarn electron-builder -- --publish always --linux
           
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ApiChain_macos
-          # name: ApiChain_windows
+          # name: ApiChain_macos
+          name: ApiChain_windows
           # name: ApiChain_linux
           path: release/build/
