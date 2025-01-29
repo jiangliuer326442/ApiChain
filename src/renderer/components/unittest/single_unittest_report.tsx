@@ -112,7 +112,9 @@ class SingleUnitTestReport extends Component {
     }
 
     async componentDidUpdate(prevProps, prevState) {
-        if (this.props.batchUuid !== prevProps.batchUuid) {
+        if (this.props.batchUuid !== "" && (
+            this.props.batchUuid !== prevProps.batchUuid || this.props.stepUuid !== prevProps.stepUuid
+        )) {
             let prjs;
             if (isStringEmpty(this.props.iteratorId)) {
                 prjs = this.props.prjs.map(row => row[prj_label]);

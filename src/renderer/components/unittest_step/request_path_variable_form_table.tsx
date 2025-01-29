@@ -15,11 +15,32 @@ class RequestPathVariableFormTable extends Component {
 
     constructor(props) {
         super(props);
+        this.state = this.getState(props);
+    }
+
+    async componentDidMount() {
+        let parseJsonToChildrenResult : Array<any> = [];
+        await parseJsonToChildren([], "", parseJsonToChildrenResult, this.state.object, async (_1, _2) => undefined);
+        this.setState({ datas : parseJsonToChildrenResult })
+    }
+
+    async componentWillReceiveProps(nextProps) {
+        if (nextProps.object !== this.props.object) {
+            let newState = this.getState(nextProps);
+            this.setState(newState);
+
+            let parseJsonToChildrenResult : Array<any> = [];
+            await parseJsonToChildren([], "", parseJsonToChildrenResult, newState.object, async (_1, _2) => undefined);
+            this.setState({ datas : parseJsonToChildrenResult })
+        }
+    }
+
+    getState = (props) => {
         let returnObject : any = {};
         for(let _key in props.object ) {
             returnObject[_key] = props.object[_key][TABLE_FIELD_VALUE];
         }
-        this.state = {
+        return {
             object: props.object,
             columns: [
                 {
@@ -44,21 +65,21 @@ class RequestPathVariableFormTable extends Component {
                         let key = row[TABLE_FIELD_NAME];
                         return (
                             <StepExpressionBuilderBox
-                                enableFlag={ this.props.enableFlag }
-                                stepPathVariableData={ this.props.stepPathVariableData }
-                                stepHeaderData={ this.props.stepHeaderData }
-                                stepBodyData={ this.props.stepBodyData }
-                                stepParamData={ this.props.stepParamData }
-                                stepResponseContentData={this.props.responseContent}
-                                stepResponseHeaderData={this.props.responseHeader}
-                                stepResponseCookieData={this.props.responseCookie}
+                                enableFlag={ props.enableFlag }
+                                stepPathVariableData={ props.stepPathVariableData }
+                                stepHeaderData={ props.stepHeaderData }
+                                stepBodyData={ props.stepBodyData }
+                                stepParamData={ props.stepParamData }
+                                stepResponseContentData={props.responseContent}
+                                stepResponseHeaderData={props.responseHeader}
+                                stepResponseCookieData={props.responseCookie}
                                 value={data}
                                 cb={value => this.setData(key, value)}
                                 width={288}
-                                iteratorId={this.props.iteratorId}
-                                unitTestUuid={this.props.unitTestUuid}
-                                unitTestStepUuid={this.props.unitTestStepUuid}
-                                project={this.props.project}
+                                iteratorId={ props.iteratorId }
+                                unitTestUuid={ props.unitTestUuid }
+                                unitTestStepUuid={ props.unitTestStepUuid }
+                                project={ props.project }
                             />
                         );
                     }
@@ -68,12 +89,6 @@ class RequestPathVariableFormTable extends Component {
             returnObject,
             options: {},
         }
-    }
-
-    async componentDidMount() {
-        let parseJsonToChildrenResult : Array<any> = [];
-        await parseJsonToChildren([], "", parseJsonToChildrenResult, this.state.object, async (_1, _2) => undefined);
-        this.setState({ datas : parseJsonToChildrenResult })
     }
 
     setData = (key, value) => {

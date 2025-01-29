@@ -1,6 +1,15 @@
 //API_HOST
 export const ENV_VALUE_API_HOST = "api_host";
 
+//APP_VERSION
+export const ENV_VALUE_APP_VERSION = "$randomAppVersion";
+
+//EMAIL
+export const ENV_VALUE_EMAIL = "$randomEmail";
+
+//AGE
+export const ENV_VALUE_AGE = "$randomAge";
+
 //RANDOM_STRIN
 export const ENV_VALUE_RANDOM_STRING = "$randomString";
 
@@ -17,3 +26,16 @@ export const ENV_VALUE_RANDOM_INT = "$randomInt";
 
 //RANDOM_LONG
 export const ENV_VALUE_RANDOM_LONG = "$randomLong";
+
+//函数数组
+//取第一个元素
+export const UNITTEST_FUNCTION_ARRAY_FIRST = "*first()"
+
+//取最后一个元素
+export const UNITTEST_FUNCTION_ARRAY_LAST = "*last()"
+
+//随机取一个元素
+export const UNITTEST_FUNCTION_ARRAY_RANDOM = "*random()"
+
+//执行任意指令
+export const UNITTEST_FUNCTION_ANY_EVAL = "*eval()"

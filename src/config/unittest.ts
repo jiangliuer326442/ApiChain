@@ -37,16 +37,6 @@ export const UNITTEST_STEP_RESPONSE_HEADER = "__response_header__";
 //返回的cookie
 export const UNITTEST_STEP_RESPONSE_COOKIE = "__response_cookie__";
 
-//函数数组
-//取第一个元素
-export const UNITTEST_FUNCTION_ARRAY_FIRST = "*first()"
-
-//随机取一个元素
-export const UNITTEST_FUNCTION_ARRAY_RANDOM = "*random()"
-
-//执行任意指令
-export const UNITTEST_FUNCTION_ANY_EVAL = "*eval()"
-
 // 执行成功
 export const UNITTEST_RESULT_SUCCESS = "success";
 

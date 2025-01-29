@@ -1,7 +1,7 @@
 {
   "name": "ApiChain",
-  "version": "1.0.9",
-  "description": "基于版本迭代和项目视角的接口测试和文档生成",
+  "version": "1.0.11",
+  "description": "是一款类似 PostMan 的接口请求软件",
   "license": "MIT",
   "author": {
     "name": "方海亮",

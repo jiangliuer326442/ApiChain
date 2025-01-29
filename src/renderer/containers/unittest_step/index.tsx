@@ -7,34 +7,35 @@ import {
 } from 'antd';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
-import {
+
+import { 
     TABLE_FIELD_VALUE,
-} from '../../util/json';
+    buildJsonString
+} from '@rutil/json';
+import { isStringEmpty } from '@rutil/index';
 import {
-    REQUEST_METHOD_POST
-} from '../../../config/global_config';
+    REQUEST_METHOD_POST,
+} from '@conf/global_config';
 import {
-    TABLE_VERSION_ITERATION_FIELDS, 
     TABLE_UNITTEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_STEP_ASSERT_FIELDS,
-} from '../../../config/db';
-import RequestSendTips from '../../classes/RequestSendTips';
-import { getUnitTestRequests } from '../../actions/version_iterator_requests';
+} from '@conf/db';
+import RequestSendTips from '@clazz/RequestSendTips';
+import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { 
     getIterationUnitTests,
     addUnitTestStep,
     editUnitTestStep,
     getUnitTestStepAsserts,
-} from '../../actions/unittest';
-import RequestPathVariableFormTable from "../../components/unittest_step/request_path_variable_form_table";
-import RequestParamFormTable from "../../components/unittest_step/request_param_form_table";
-import RequestHeadFormTable from "../../components/unittest_step/request_head_form_table";
-import RequestBodyFormTable from "../../components/unittest_step/request_body_form_table";
-import StepExpressionBuilderBox from "../../components/unittest_step/step_expression_builder_box";
-import { isStringEmpty } from '../../util';
+} from '@act/unittest';
+import RequestPathVariableFormTable from "@comp/unittest_step/request_path_variable_form_table";
+import RequestParamFormTable from "@comp/unittest_step/request_param_form_table";
+import RequestHeadFormTable from "@comp/unittest_step/request_head_form_table";
+import RequestBodyFormTable from "@comp/unittest_step/request_body_form_table";
+import StepExpressionBuilderBox from "@comp/unittest_step/step_expression_builder_box";
 
 const { Header, Content, Footer } = Layout;
 
@@ -62,6 +63,7 @@ let unittest_step_method = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_METHOD;
 let unittest_step_uri = TABLE_UNITTEST_STEPS_FIELDS.FIELD_URI;
 let unittest_step_title = TABLE_UNITTEST_STEPS_FIELDS.FIELD_TITLE;
 let unittest_step_continue = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CONTINUE;
+let unittest_step_wait_seconds = TABLE_UNITTEST_STEPS_FIELDS.FIELD_WAIT_SECONDS;
 let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
 let unittest_step_request_param = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PARAM;
 let unittest_step_request_path_variable = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
@@ -93,7 +95,8 @@ class UnittestStepContainer extends Component {
         let assertOperator = [" == "];
         let assertAfter = [""];
         let sort = 0;
-        let continueEnable = "0";
+        let continueEnable = "1";
+        let waitSeconds = 60;
         let requestParam = {};
         let jsonFlg = false;
         let requestPathVariable = {};
@@ -116,7 +119,8 @@ class UnittestStepContainer extends Component {
                 uri = cUnitTestStep[unittest_step_uri];
                 title = cUnitTestStep[unittest_step_title];
                 sort = cUnitTestStep[unittest_step_sort];
-                continueEnable = cUnitTestStep[unittest_step_continue] ? cUnitTestStep[unittest_step_continue] : "1";
+                continueEnable = cUnitTestStep[unittest_step_continue] == 0 ? "0" : cUnitTestStep[unittest_step_continue];
+                waitSeconds = cUnitTestStep[unittest_step_wait_seconds];
                 requestParam = cUnitTestStep[unittest_step_request_param];
                 requestPathVariable = cUnitTestStep[unittest_step_request_path_variable] ? cUnitTestStep[unittest_step_request_path_variable] : {};
                 requestHead = cUnitTestStep[unittest_step_request_head];
@@ -152,6 +156,7 @@ class UnittestStepContainer extends Component {
             responseHeader: {},
             responseCookie: {},
             continueEnable,
+            waitSeconds,
             sort,
             jsonFlg,
             paramTips: [],
@@ -170,7 +175,7 @@ class UnittestStepContainer extends Component {
 
     componentDidMount(): void {
         if (!this.props.unittest[this.state.iteratorId]) {
-            getIterationUnitTests(this.state.iteratorId, null, this.props.dispatch);
+            getIterationUnitTests(this.state.iteratorId, null, null, this.props.dispatch);
         }
         if (!isStringEmpty(this.state.unitTestStepUuid)) {
             getUnitTestStepAsserts(this.state.iteratorId, this.state.unitTestUuid, this.state.unitTestStepUuid).then(unitTestAsserts => {
@@ -200,7 +205,7 @@ class UnittestStepContainer extends Component {
         this.initMethodUri(method, uri);
     }
 
-    initMethodUri = (method, uri) => {
+    initMethodUri = async (method, uri) => {
         let request = this.state.requests.find(row => row[iteration_request_method] === method && row[iteration_request_uri] === uri);
         let formRequestHeadData = request[iteration_request_header];
         let formRequestBodyData = request[iteration_request_body];
@@ -227,10 +232,8 @@ class UnittestStepContainer extends Component {
 
         let requestBody : any;
         if (Object.keys(this.state.requestBody).length === 0){
-            requestBody = {};
-            for (let _key in formRequestBodyData) {
-                requestBody[_key] = formRequestBodyData[_key][TABLE_FIELD_VALUE];
-            }
+            let buildJsonStringRet = await buildJsonString(formRequestBodyData);
+            requestBody = buildJsonStringRet.returnObject;
         } else {
             requestBody = this.state.requestBody;
             for (let _key in requestBody) {
@@ -266,10 +269,8 @@ class UnittestStepContainer extends Component {
         let responseContent = request[iteration_response_content];
         let responseHeader = request[iteration_response_header];
         let responseCookie = request[iteration_response_cookie];
-        let title = this.state.title;
-        if (isStringEmpty(title)) {
-            title = request[iteration_request_title];
-        }
+        let title = request[iteration_request_title];
+
         this.requestSendTip.getTips(envKeys => {
             this.setState({ 
                 request, method, uri, 
@@ -458,6 +459,10 @@ class UnittestStepContainer extends Component {
             message.error("步骤顺序填写错误");
             return;
         }
+        if (this.state.waitSeconds < 0) {
+            message.error("延时时间错误");
+            return;
+        }
         let assertLength = this.state.assertLength;
         for (let i = 0; i < assertLength; i++) {
             if (isStringEmpty(this.state.assertTitle[i])) {
@@ -486,7 +491,7 @@ class UnittestStepContainer extends Component {
                 this.state.title, this.state.prj, this.state.method, this.state.uri,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
                 this.state.assertTitle, this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
-                this.state.sort, this.state.continueEnable,
+                this.state.sort, this.state.continueEnable, this.state.waitSeconds,
                 this.props.device, ()=>{
                     this.props.history.goBack();
                 }
@@ -495,7 +500,9 @@ class UnittestStepContainer extends Component {
             editUnitTestStep(this.state.unitTestStepUuid, this.state.title,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
                 this.state.assertTitle, this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
-                this.state.assertUuidArr, this.state.sort, this.state.continueEnable, this.props.device, ()=>{
+                this.state.assertUuidArr, 
+                this.state.sort, this.state.continueEnable, this.state.waitSeconds,
+                this.props.device, ()=>{
                     this.props.history.goBack();
                 }
             );
@@ -553,14 +560,18 @@ class UnittestStepContainer extends Component {
                             <Form.Item
                                 label="触发方式"
                             >
-                                <Select
-                                    value={this.state.continueEnable}
-                                    style={{ width: 174 }}
-                                    onChange={ value => this.setState({continueEnable: value}) }
-                                >
-                                    <Select.Option value="1">自动执行</Select.Option>
-                                    <Select.Option value="0">手动执行</Select.Option>
-                                </Select>
+                                <Space size="middle" wrap>
+                                    <Select
+                                        value={this.state.continueEnable}
+                                        style={{ width: 174 }}
+                                        onChange={ value => this.setState({continueEnable: value}) }
+                                    >
+                                        <Select.Option value="2">等待执行</Select.Option>
+                                        <Select.Option value="1">自动执行</Select.Option>
+                                        <Select.Option value="0">手动执行</Select.Option>
+                                    </Select>
+                                    {this.state.continueEnable === "2" ? <InputNumber addonBefore="等待" addonAfter="秒执行" min={1} value={this.state.waitSeconds} onChange={waitSeconds=>this.setState({waitSeconds})} /> : null}
+                                </Space>
                             </Form.Item>
                             <Form.Item
                                 label="步骤排序"

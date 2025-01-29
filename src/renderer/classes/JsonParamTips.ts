@@ -1,12 +1,14 @@
 import { cloneDeep } from 'lodash';
 
-import RequestSendTips from '../classes/RequestSendTips';
-import { isStringEmpty, getType } from "../util";
-import { TABLE_FIELD_TYPE, TABLE_FIELD_REMARK, TABLE_FIELD_VALUE, TABLE_FIELD_NECESSARY } from '../util/json';
+import RequestSendTips from '@clazz/RequestSendTips';
+import { isStringEmpty, getType } from "@rutil/index";
 import { 
-    UNITTEST_FUNCTION_ARRAY_RANDOM,
-    UNITTEST_FUNCTION_ARRAY_FIRST,
-    UNITTEST_FUNCTION_ANY_EVAL,
+    TABLE_FIELD_TYPE, 
+    TABLE_FIELD_REMARK, 
+    TABLE_FIELD_VALUE, 
+    TABLE_FIELD_NECESSARY 
+} from '@rutil/json';
+import { 
     UNITTEST_STEP_CURRENT,
     UNITTEST_STEP_RESPONSE,
     UNITTEST_STEP_RESPONSE_HEADER,
@@ -20,13 +22,20 @@ import {
     UNITTEST_STEP_PARAM,
     UNITTEST_STEP_PATH_VARIABLE,
     UNITTEST_STEP_HEADER,
-} from '../../config/unittest';
+} from '@conf/unittest';
+
+import {
+    UNITTEST_FUNCTION_ANY_EVAL,
+    UNITTEST_FUNCTION_ARRAY_RANDOM,
+    UNITTEST_FUNCTION_ARRAY_FIRST,
+    UNITTEST_FUNCTION_ARRAY_LAST,
+} from '@conf/envKeys';
 
 import { 
-    TABLE_REQUEST_HISTORY_FIELDS, TABLE_UNITTEST_EXECUTOR_FIELDS,
-} from '../../config/db';
+    TABLE_REQUEST_HISTORY_FIELDS,
+} from '@conf/db';
 
-import { getSingleExecutorStep } from '../actions/unittest';
+import { getSingleExecutorStep } from '@act/unittest';
 
 let request_history_response_content = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
 let request_history_response_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
@@ -68,12 +77,24 @@ export default class {
 
     private dispatch : any;
 
-    constructor(project: string, iteration: string, unittest: string, content : string, dispatch : any) {
-        this.project = project;
-        this.currentProject = project;
+    private randomVal : any;
+
+    constructor(iteration: string, unittest: string, dispatch : any) {
         this.currentIteration = iteration;
         this.currentUnittest = unittest;
         this.dispatch = dispatch;
+        this.randomVal = Math.random();
+    }
+
+    setProject(project: string) {
+        this.project = project;
+        this.currentProject = project;
+        this.envVarTips = new RequestSendTips();
+        this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
+    }
+
+    setContent(param: string) {
+        let content = cloneDeep(param);
         if (getType(content) === "String") {
             this.parseFromStandardExpression(content);
         } else {
@@ -81,9 +102,6 @@ export default class {
             this.dataSourceType = UNITTEST_DATASOURCE_TYPE_ENV;
             this.assertPrev = content;
         }
-
-        this.envVarTips = new RequestSendTips();
-        this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
     }
 
     setEnv(env: string) {
@@ -154,26 +172,35 @@ export default class {
             let textArr = this.splitStr(text);
 
             let tipsBefore = "";
+            let structType;
 
             if (textArr.length > 1) {
                 for (let i = 0; i < textArr.length - 1; i++) {
                     let objectKey = textArr[i];
                     //函数
                     if (objectKey.indexOf('*') === 0) {
-                        jsonObject[TABLE_FIELD_TYPE] = "Object";
+                        structType = "Object";
                     } else {
                         jsonObject = jsonObject[objectKey];
+                        structType = jsonObject[TABLE_FIELD_TYPE];
                     }
                     tipsBefore += objectKey + ".";
                     text = text.substring(tipsBefore.length);
                 }
             } 
-            let structType = jsonObject[TABLE_FIELD_TYPE];
+            if (isStringEmpty(structType)) {
+                structType = getType(jsonObject);
+            }
 
             if (structType === "Array") {
                 let item : any = {};
                 item.label = UNITTEST_FUNCTION_ARRAY_FIRST;
                 item.value = tipsBefore + UNITTEST_FUNCTION_ARRAY_FIRST;
+                result.push(item);
+
+                item = {};
+                item.label = UNITTEST_FUNCTION_ARRAY_LAST;
+                item.value = tipsBefore + UNITTEST_FUNCTION_ARRAY_LAST;
                 result.push(item);
 
                 item = {};
@@ -323,12 +350,29 @@ export default class {
         for(let _pathKey of pathArr) {
             let currentFuncName = this.getFuncName(_pathKey);
             if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_FIRST)) {
-                dataSource = dataSource[0]
+                let length = dataSource.length;
+                if (length > 0) {
+                    dataSource = dataSource[0];
+                } else {
+                    dataSource = "";
+                }
+            } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_LAST)) {
+                let length = dataSource.length;
+                if (length > 0) {
+                    dataSource = dataSource[length - 1];
+                } else {
+                    dataSource = "";
+                }
             } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_RANDOM)) {
-                dataSource = dataSource[Math.floor(Math.random()*(dataSource.length))]
+                if (dataSource.length > 0) {
+                    dataSource = dataSource[Math.floor(this.randomVal*(dataSource.length))];
+                } else {
+                    dataSource = "";
+                }
             } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ANY_EVAL)) {
+                let $$ = dataSource;
                 let params = _pathKey.substring(currentFuncName.length + 2, _pathKey.length - 2);
-                return eval("\"" + dataSource + "\"" + "." + params);
+                return eval(params);
             } else {
                 dataSource = dataSource[_pathKey];
             }
@@ -386,6 +430,8 @@ export default class {
 
             if (content.indexOf(UNITTEST_STEP_POINTED) > 0) {
                 this.selectedStep = this.trimContent(content).split('.')[0];
+            } else {
+                this.selectedStep = UNITTEST_STEP_CURRENT;
             }
 
             if (this.selectedProject !== UNITTEST_STEP_PROJECT_CURRENT) {

@@ -15,18 +15,18 @@ import {
   isStringEmpty,
   paramToString,
   isJsonString,
-} from '../../util';
+} from '@rutil/index';
 import {
   TABLE_FIELD_TYPE,
   TABLE_FIELD_VALUE,
   cleanJson
-} from '../../util/json';
-import { ENV_VALUE_API_HOST } from "../../../config/envKeys";
+} from '@rutil/json';
+import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { 
   TABLE_REQUEST_HISTORY_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
   TABLE_PROJECT_REQUEST_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 import {
   CONTENT_TYPE_HTML,
   CONTENT_TYPE_JSON,
@@ -41,33 +41,33 @@ import {
   CONTENT_TYPE_ATTACH_STREAM,
   CONTENT_TYPE_URLENCODE,
   CONTENT_TYPE_FORMDATA,
-} from '../../../config/contentType';
+} from '@conf/contentType';
 import {
   REQUEST_METHOD_GET,
   REQUEST_METHOD_POST,
   CONTENT_TYPE,
   INPUTTYPE_TEXT,
   INPUTTYPE_FILE,
-} from '../../../config/global_config';
-import RequestSendTips from '../../classes/RequestSendTips';
+} from '@conf/global_config';
+import RequestSendTips from '@clazz/RequestSendTips';
 import {
   getVersionIteratorRequest
-} from '../../actions/version_iterator_requests';
+} from '@act/version_iterator_requests';
 import {
   getProjectRequest
-} from '../../actions/project_request';
+} from '@act/project_request';
 import { 
   getRequestHistory,
   addRequestHistory 
-} from '../../actions/request_history';
+} from '@act/request_history';
 import {
   sendAjaxMessage
-} from '../../actions/message';
-import SelectPrjEnvComponent from "../../components/env_var/select_prj_env";
-import RequestSendBody from "../../components/request_send/body_form";
-import RequestSendHead from "../../components/request_send/head_form";
-import RequestSendParam from "../../components/request_send/request_param";
-import RequestSendPathVariable from "../../components/request_send/request_path_variable";
+} from '@act/message';
+import SelectPrjEnvComponent from "@comp/env_var/select_prj_env";
+import RequestSendBody from "@comp/request_send/body_form";
+import RequestSendHead from "@comp/request_send/head_form";
+import RequestSendParam from "@comp/request_send/request_param";
+import RequestSendPathVariable from "@comp/request_send/request_path_variable";
 
 let request_history_env = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ENV_LABEL;
 let request_history_micro_service = TABLE_REQUEST_HISTORY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -79,7 +79,8 @@ let request_history_file = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_FILE;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 let request_history_response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
-let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE
+let request_history_response_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_HEAD;
+let request_history_response_cookie = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_COOKIE;
 let request_history_iterator = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ITERATOR;
 let request_history_jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let request_history_htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
@@ -124,6 +125,7 @@ class RequestSendContainer extends Component {
       defaultTabKey: "body",
       responseData: "",
       responseCookie: {},
+      responseHeader: {},
       isResponseJson: false,
       isResponseHtml: false,
       isResponsePic: false,
@@ -149,6 +151,7 @@ class RequestSendContainer extends Component {
       alertMessage: "",
       responseData: "",
       responseCookie: {},
+      responseHeader: {},
       sendingFlg: false,
       statusCode: 0,
       costTime: 0,
@@ -189,6 +192,7 @@ class RequestSendContainer extends Component {
         requestUri: record[request_history_uri],
         requestMethod: method,
         responseCookie: record[request_history_response_cookie],
+        responseHeader: record[request_history_response_header],
         responseData: record[request_history_response],
         isResponseJson: record[request_history_jsonFlg],
         isResponseHtml: record[request_history_htmlFlg],
@@ -425,6 +429,7 @@ class RequestSendContainer extends Component {
   }
 
   getEnvValueData = (prj: string, env: string) => {
+    if (isStringEmpty(env)) return;
     this.setState(this.getClearState());
     this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.dispatch, env_vars => {
       if(env_vars.length === 0) {
@@ -454,6 +459,19 @@ class RequestSendContainer extends Component {
     let state : any = this.getClearState();
     state.sendingFlg = true;
     this.setState(state);
+
+    let requestDefine = await getVersionIteratorRequest(
+      this.state.iteratorId, 
+      this.state.prj, 
+      this.state.requestMethod, 
+      this.state.requestUri
+    );
+    if (requestDefine === null) {
+      requestDefine = await getProjectRequest(this.state.prj, this.state.requestMethod, this.state.requestUri);
+      if (requestDefine == null) {
+        requestDefine = {};
+      }
+    }
 
     let url = this.state.requestHost + this.state.requestUri;
 
@@ -494,7 +512,10 @@ class RequestSendContainer extends Component {
       }
     }
     if (this.state.requestMethod === REQUEST_METHOD_POST) {
-      let postData = this.requestSendTip.iteratorGetVarByKey(this.state.requestBodyData);
+      let postData = this.requestSendTip.iteratorGetVarByKey(
+        this.state.requestBodyData, 
+        Object.keys(requestDefine).length > 0 ? requestDefine['body'] : null 
+      );
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
         sendAjaxMessage('post', url, headData, postData, this.state.requestFileData).then(response => {
@@ -571,6 +592,7 @@ class RequestSendContainer extends Component {
     this.setState({ 
       costTime,
       responseCookie: cookieObj,
+      responseHeader: headers,
       responseData : content, 
       isResponseJson, 
       isResponseHtml, 
@@ -636,7 +658,7 @@ class RequestSendContainer extends Component {
   calculatePathVariableData = (requestPathVariableData) => {
     let list = [];
     for (let _key in requestPathVariableData) {
-        let item = {};
+        let item : any = {};
         item["key"] = _key;
         item["value"] = requestPathVariableData[_key];
         list.push(item);
@@ -645,7 +667,20 @@ class RequestSendContainer extends Component {
     return list;
   }
 
-  getCookies = () : Promise<DescriptionsProps['items']> => {
+  getHeaders = () : DescriptionsProps['items'] => {
+    let headerArr = [];
+    for (let i = 0; i < Object.keys(this.state.responseHeader).length; i++) {
+      let _key = Object.keys(this.state.responseHeader)[i];
+      headerArr.push({
+        key: i + "",
+        label: <Text copyable={{text: _key}}>{ _key }</Text>,
+        children: <Text copyable={{text: this.state.responseHeader[_key]}}>{ this.state.responseHeader[_key] }</Text>,
+      });
+    }
+    return headerArr;
+  }
+
+  getCookies = () : DescriptionsProps['items'] => {
     let cookieArr = [];
     for (let i = 0; i < Object.keys(this.state.responseCookie).length; i++) {
       let _key = Object.keys(this.state.responseCookie)[i];
@@ -753,6 +788,9 @@ class RequestSendContainer extends Component {
                 )
                 : null}
                 </Divider>
+                {this.state.responseHeader != null && Object.keys(this.state.responseHeader).length > 0 ?
+                <Descriptions column={1} title="header" items={this.getHeaders()} />
+                : null}
                 {this.state.responseCookie != null && Object.keys(this.state.responseCookie).length > 0 ?
                 <Descriptions column={1} title="cookie" items={this.getCookies()} />
                 : null}

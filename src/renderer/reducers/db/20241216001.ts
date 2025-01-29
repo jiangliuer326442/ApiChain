@@ -76,7 +76,7 @@ let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
 let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
-let version_iteration_test_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR_UUID;
+let version_iteration_test_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR;
 let version_iteration_test_folder_name = TABLE_UNITTEST_FOLD_FIELDS.FIELD_FOLD_NAME;
 let version_iteration_test_folder_delFlg = TABLE_UNITTEST_FOLD_FIELDS.FIELD_DELFLG;
 let version_iteration_test_folder_ctime = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CTIME;
@@ -148,7 +148,6 @@ tables[TABLE_UNITTEST_EXECUTOR_NAME] = "&[" + unittest_executor_iterator + "+" +
 tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_batch + "], " 
 + "[" + unittest_report_delFlg + "+" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_env + "+" + unittest_report_ctime + "]";
 
-console.debug(tables);
 window.db.version(195).stores(tables).upgrade (trans => {
 
 });

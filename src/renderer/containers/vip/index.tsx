@@ -10,7 +10,7 @@ import {
     GLobalPort,
     VipTagDoc,
     VipTagMockServer,
-} from '../../../config/global_config';
+} from '@conf/global_config';
 import {
     ChannelsMarkdownAccessSetStr,
     ChannelsMockServerAccessSetStr,
@@ -20,19 +20,19 @@ import {
     ChannelsMarkdownAccessGetStr,
     ChannelsMockServerAccessGetStr,
     ChannelsMockServerAccessSetResultStr,
-} from '../../../config/channel';
+} from '@conf/channel';
 import { 
     TABLE_MICRO_SERVICE_FIELDS, 
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_USER_FIELDS,
-} from '../../../config/db';
-import PayModel from '../../components/topup';
-import { getUser } from '../../actions/user';
+} from '@conf/db';
+import PayModel from '@comp/topup';
+import { getUser } from '@act/user';
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
 
-let user_ip = TABLE_USER_FIELDS.FIELD_IP;
+let field_user_ip = TABLE_USER_FIELDS.FIELD_IP;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
@@ -91,7 +91,7 @@ class Vip extends Component {
             });
         }
         getUser(this.props.uuid).then(async user => {
-            let ip = user[user_ip];
+            let ip = user[field_user_ip];
             let docUrl = this.props.html.replace("localhost", ip) + "#/version_iterator_doc/" + this.state.iteratorId;
             let projects = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_projects];
             let mockServers = [];

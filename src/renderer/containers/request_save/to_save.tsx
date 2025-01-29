@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import {
     isStringEmpty
-} from '../../util';
+} from '@rutil/index';
 import {
     TABLE_FIELD_NAME,
     TABLE_FIELD_TYPE,
@@ -21,10 +21,10 @@ import {
     retParseBodyJsonToTable,
     parseJsonToFilledTable,
     cleanJson,
-} from '../../util/json';
+} from '@rutil/json';
 
-import { createWindow } from '../../util/window';
-import { ENV_VALUE_API_HOST } from "../../../config/envKeys";
+import { createWindow } from '@rutil/window';
+import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { 
     TABLE_ENV_VAR_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
@@ -33,37 +33,37 @@ import {
     TABLE_REQUEST_HISTORY_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_ENV_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 import {
     CONTENT_TYPE_URLENCODE,
-} from '../../../config/contentType';
+} from '@conf/contentType';
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST,
     CONTENT_TYPE,
-} from '../../../config/global_config';
-import { VERSION_ITERATOR_ADD_ROUTE } from '../../../config/routers';
-import { getEnvs } from '../../actions/env';
-import { getPrjs } from '../../actions/project';
-import { getEnvValues } from '../../actions/env_value';
-import { getOpenVersionIteratorsByPrj } from '../../actions/version_iterator';
-import { getVersionIteratorRequest } from '../../actions/version_iterator_requests';
-import { getProjectRequest } from '../../actions/project_request';
-import { getRequestHistory } from '../../actions/request_history';
-import { addJsonFragement } from '../../actions/request_save';
+} from '@conf/global_config';
+import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
+import { getEnvs } from '@act/env';
+import { getPrjs } from '@act/project';
+import { getEnvValues } from '@act/env_value';
+import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
+import { getVersionIteratorRequest } from '@act/version_iterator_requests';
+import { getProjectRequest } from '@act/project_request';
+import { getRequestHistory } from '@act/request_history';
+import { addJsonFragement } from '@act/request_save';
 import { 
     addVersionIteratorFolder,
     getVersionIteratorFolders 
-} from '../../actions/version_iterator_folders';
-import { addProjectRequest } from '../../actions/project_request';
-import { addVersionIteratorRequest } from '../../actions/version_iterator_requests';
-import JsonSaveParamTableContainer from "../../components/request_save/json_save_table_param";
-import JsonSavePathVariTableContainer from "../../components/request_save/json_save_table_path_variable";
-import JsonSaveBodyTableContainer from "../../components/request_save/json_save_table_body";
-import JsonSaveHeaderTableContainer from "../../components/request_save/json_save_table_header";
-import JsonSaveResponseHeaderTableContainer from "../../components/request_save/json_save_table_response_header";
-import JsonSaveResponseCookieTableContainer from "../../components/request_save/json_save_table_response_cookie";
-import JsonSaveResponseTableComponent from "../../components/request_save/json_save_table_response";
+} from '@act/version_iterator_folders';
+import { addProjectRequest } from '@act/project_request';
+import { addVersionIteratorRequest } from '@act/version_iterator_requests';
+import JsonSaveParamTableContainer from "@comp/request_save/json_save_table_param";
+import JsonSavePathVariTableContainer from "@comp/request_save/json_save_table_path_variable";
+import JsonSaveBodyTableContainer from "@comp/request_save/json_save_table_body";
+import JsonSaveHeaderTableContainer from "@comp/request_save/json_save_table_header";
+import JsonSaveResponseHeaderTableContainer from "@comp/request_save/json_save_table_response_header";
+import JsonSaveResponseCookieTableContainer from "@comp/request_save/json_save_table_response_cookie";
+import JsonSaveResponseTableComponent from "@comp/request_save/json_save_table_response";
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
@@ -403,58 +403,43 @@ class RequestSaveContainer extends Component {
 
     simpleBootByRequestHistoryRecord = (historyRecord: any, prj : string, method : string, uri : string) => {
         let requestHeadData = historyRecord[request_history_head];
-        let shortRequestHeadJsonObject = {};
-        shortJsonContent(shortRequestHeadJsonObject, requestHeadData);
-        let requestHeaderHash = iteratorGenHash(shortRequestHeadJsonObject);
+        let requestHeaderHash = iteratorGenHash(requestHeadData);
         let formRequestHeadData = {};
-        parseJsonToTable(formRequestHeadData, shortRequestHeadJsonObject);
+        parseJsonToTable(formRequestHeadData, requestHeadData);
         let requestBodyData = historyRecord[request_history_body];
         let requestFileData = historyRecord[request_history_file];
-        let shortRequestBodyJsonObject = {};
-        shortJsonContent(shortRequestBodyJsonObject, requestBodyData);
-        let requestBodyHash = iteratorBodyGenHash(shortRequestBodyJsonObject, requestFileData);
-        let formRequestBodyData = retParseBodyJsonToTable(shortRequestBodyJsonObject, requestFileData);
+        let requestBodyHash = iteratorBodyGenHash(requestBodyData, requestFileData);
+        let formRequestBodyData = retParseBodyJsonToTable(requestBodyData, requestFileData);
 
         let requestParamData = historyRecord[request_history_param];
-        let shortRequestParamJsonObject = {};
-        shortJsonContent(shortRequestParamJsonObject, requestParamData);
-        let requestParamHash = iteratorGenHash(shortRequestParamJsonObject);
+        let requestParamHash = iteratorGenHash(requestParamData);
         let formRequestParamData = {};
-        parseJsonToTable(formRequestParamData, shortRequestParamJsonObject);
+        parseJsonToTable(formRequestParamData, requestParamData);
 
         let requestPathVariableData = historyRecord[request_history_path_variable];
-        let shortRequestPathVariableJsonObject = {};
-        shortJsonContent(shortRequestPathVariableJsonObject, requestPathVariableData);
-        let requestPathVariableHash = iteratorGenHash(shortRequestPathVariableJsonObject);
+        let requestPathVariableHash = iteratorGenHash(requestPathVariableData);
         let formRequestPathVariableData = {};
-        parseJsonToTable(formRequestPathVariableData, shortRequestPathVariableJsonObject);
+        parseJsonToTable(formRequestPathVariableData, requestPathVariableData);
         let responseData = {};
-        let shortResponseJsonObject = {};
         let responseHash = "";
         let formResponseData = {};
         let responseDemo = "";
         if (historyRecord[request_history_jsonFlg]) {
             responseData = JSON.parse(historyRecord[request_history_response_content]);
-            shortJsonContent(shortResponseJsonObject, responseData);
-            responseHash = iteratorGenHash(shortResponseJsonObject);
-            parseJsonToTable(formResponseData, shortResponseJsonObject);
-            responseDemo = JSON.stringify(shortResponseJsonObject);
+            responseHash = iteratorGenHash(responseData);
+            parseJsonToTable(formResponseData, responseData);
+            responseDemo = JSON.stringify(responseData);
         } else {
             responseDemo = historyRecord[request_history_response_content];
         }
 
-        let shortResponseHeadJsonObject = {};
         let formResponseHeadData = {};
         let responseHead = historyRecord[request_history_response_head];
-        shortJsonContent(shortResponseHeadJsonObject, responseHead);
-        parseJsonToTable(formResponseHeadData, shortResponseHeadJsonObject);
+        parseJsonToTable(formResponseHeadData, responseHead);
 
-        let shortResponseCookieJsonObject = {};
         let formResponseCookieData = {};
         let responseCookie = historyRecord[request_history_response_cookie];
-        shortJsonContent(shortResponseCookieJsonObject, responseCookie);
-        parseJsonToTable(formResponseCookieData, shortResponseCookieJsonObject);
-
+        parseJsonToTable(formResponseCookieData, responseCookie);
 
         this.setState({
             showFlg: true,

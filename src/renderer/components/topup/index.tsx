@@ -11,9 +11,9 @@ import {
     ChannelsVipGenUrlStr, 
     ChannelsVipCkCodeStr,
     ChannelsVipDoCkCodeStr,
-} from '../../../config/channel';
-import { SET_DEVICE_INFO } from '../../../config/redux';
-import { isStringEmpty, getdayjs } from '../../util';
+} from '@conf/channel';
+import { SET_DEVICE_INFO } from '@conf/redux';
+import { isStringEmpty, getdayjs } from '@rutil/index';
 
 const { TextArea } = Input;
 
@@ -171,6 +171,14 @@ class PayModel extends Component {
     }
 
     render() : ReactNode {
+        let payTools = "";
+        if (this.state.payMethod === 'wxpay') {
+            payTools = "微信";
+        } else if (this.state.payMethod === 'alipay') {
+            payTools = "支付宝";
+        } else if (this.state.payMethod === 'dollerpay') {
+            payTools = "浏览器";
+        }
         return (
             <>
                 <Modal
@@ -192,21 +200,22 @@ class PayModel extends Component {
                         <Form>
                             <Form.Item label="购买时长">
                                 <Radio.Group onChange={this.setProductName} value={this.state.productName}>
-                                    <Radio value={this.props.buyTimes === 0 ? "product7" : (this.props.buyTimes === 1 ? "product8" : "product4") } >1 个月</Radio>
-                                    <Radio value="product5">1 年</Radio>
-                                    <Radio value="product6">永久</Radio>
+                                    <Radio value={this.props.buyTimes === 0 ? "product12" : (this.props.buyTimes === 1 ? "product13" : "product9") } >1 个月</Radio>
+                                    <Radio value="product10">1 年</Radio>
+                                    <Radio value="product11">永久</Radio>
                                 </Radio.Group>
                             </Form.Item>
                             <Form.Item label="支付方式">
                                 <Radio.Group onChange={this.setPayMethod} value={this.state.payMethod}>
                                     <Radio value="wxpay">微信</Radio>
                                     <Radio value="alipay">支付宝</Radio>
+                                    {this.props.userCountry === 'CN' ? null : <Radio value="dollerpay">加密货币</Radio>}
                                 </Radio.Group>
                             </Form.Item>
                         </Form>
                         {this.state.showPayQrCode ? 
                         <>
-                            <p>共需支付 { this.state.money } 元，使用 {this.state.payMethod === 'wxpay' ? "微信" : "支付宝"} 扫描以下二维码</p>
+                            <p>共需支付 { this.state.money }{this.state.payMethod === 'dollerpay' ? ' 美元 ' : ' 元 '}，使用 { payTools } 扫描以下二维码</p>
                             <img src={ this.state.qrcode } />
                         </>
                         : null}
@@ -253,6 +262,7 @@ class PayModel extends Component {
 function mapStateToProps (state) {
     return {
         buyTimes: state.device.buyTimes,
+        userCountry: state.device.userCountry,
     }
   }
   

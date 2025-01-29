@@ -137,7 +137,7 @@ class RequestSendBody extends Component {
             text = text.substring(2);
             let options = [];
             for(let tip_value of this.props.tips) {
-                if (isStringEmpty(text) || tip_value.indexOf(text) >= 0) {
+                if (isStringEmpty(text) || tip_value.toLowerCase().indexOf(text.toLowerCase()) >= 0) {
                     options.push({
                         label: tip_value,
                         value: "{{" + tip_value + "}}"

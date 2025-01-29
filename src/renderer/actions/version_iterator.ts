@@ -4,12 +4,12 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_NAME, TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_VERSION_ITERATION_NAME, TABLE_VERSION_ITERATION_FIELDS,
     TABLE_PROJECT_REQUEST_NAME, TABLE_VERSION_ITERATION_FOLD_NAME,
-    UNAME,
-} from '../../config/db';
-import { GET_VERSION_ITERATORS } from '../../config/redux';
+    UNAME, TABLE_USER_NAME,
+} from '@conf/db';
+import { GET_VERSION_ITERATORS } from '@conf/redux';
 
-import { getUsers } from './user';
-import { addProjectRequestFromVersionIterator } from './project_request';
+import { getUsers } from '@act/user';
+import { addProjectRequestFromVersionIterator } from '@act/project_request';
 
 let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
@@ -40,6 +40,16 @@ export async function getVersionIterators(dispatch) {
         type: GET_VERSION_ITERATORS,
         versionIterators
     });
+}
+
+export async function getOpenVersionIterators() {
+    let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
+    .where([version_iterator_openFlg, version_iterator_delFlg])
+    .equals([1, 0])
+    .reverse()
+    .toArray();
+
+    return versionIterators;
 }
 
 export async function getOpenVersionIteratorsByPrj(prj : string) {
@@ -98,10 +108,11 @@ export async function openVersionIterator(uuid, cb) {
 
 export async function closeVersionIterator(uuid, cb) {
     window.db.transaction('rw',
-    window.db[TABLE_VERSION_ITERATION_REQUEST_NAME], 
-    window.db[TABLE_VERSION_ITERATION_NAME], 
-    window.db[TABLE_PROJECT_REQUEST_NAME],
-    window.db[TABLE_VERSION_ITERATION_FOLD_NAME], async () => {
+        window.db[TABLE_USER_NAME], 
+        window.db[TABLE_VERSION_ITERATION_REQUEST_NAME], 
+        window.db[TABLE_VERSION_ITERATION_NAME], 
+        window.db[TABLE_PROJECT_REQUEST_NAME],
+        window.db[TABLE_VERSION_ITERATION_FOLD_NAME], async () => {
         let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
         .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
         .equals([ 0, uuid ])

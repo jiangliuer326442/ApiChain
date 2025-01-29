@@ -1,13 +1,22 @@
 import IDBExportImport from 'indexeddb-export-import';
 
+import { isStringEmpty } from '@rutil/index';
+import {
+    IS_AUTO_UPGRADE,
+    UNITTEST_ENV,
+    PRJ,
+    ENV,
+} from '@conf/storage';
 import { 
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_REQUEST_HISTORY_NAME,
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME,
     TABLE_UNITTEST_EXECUTOR_NAME,
-} from '../../config/db';
-import { ENV_VALUE_API_HOST } from '../../config/envKeys';
+} from '@conf/db';
+import { 
+    ENV_VALUE_API_HOST 
+} from '@conf/envKeys';
 import {
     ChannelsDbLongStr, 
     ChannelsDbExportStr,
@@ -23,14 +32,13 @@ import {
     ChannelsAxioBreidgeStr, 
     ChannelsAxioBreidgeSendStr, 
     ChannelsAxioBreidgeReplyStr,
-} from '../../config/channel';
+} from '@conf/channel';
 
-import { getVarsByKey } from '../actions/env_value';
-import { getPrjs } from '../actions/project';
-import { getEnvs } from '../actions/env';
-import { getVersionIterator } from '../actions/version_iterator';
-import { getVersionIteratorRequestsByProject } from '../actions/version_iterator_requests';
-import { isStringEmpty } from '../util';
+import { getVarsByKey } from '@act/env_value';
+import { getPrjs } from '@act/project';
+import { getEnvs } from '@act/env';
+import { getVersionIterator } from '@act/version_iterator';
+import { getVersionIteratorRequestsByProject } from '@act/version_iterator_requests';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -115,10 +123,15 @@ export default function(dispatch, cb) : void {
                 window.db[TABLE_UNITTEST_EXECUTOR_NAME],
                 window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME],
                 async () => {
-                  await window.db[TABLE_REQUEST_HISTORY_NAME].clear();
-                  await window.db[TABLE_UNITTEST_EXECUTOR_NAME].clear();
-                  await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].clear();
-                  alert("清空缓存成功!");
+                    await window.db[TABLE_REQUEST_HISTORY_NAME].clear();
+                    await window.db[TABLE_UNITTEST_EXECUTOR_NAME].clear();
+                    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].clear();
+
+                    localStorage.removeItem(IS_AUTO_UPGRADE);
+                    localStorage.removeItem(UNITTEST_ENV);
+                    localStorage.removeItem(PRJ);
+                    localStorage.removeItem(ENV);
+                    alert("清空缓存成功!");
                 },
               );
             }

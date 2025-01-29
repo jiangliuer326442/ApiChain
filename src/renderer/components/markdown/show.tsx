@@ -7,6 +7,9 @@ import { dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import MarkNav from 'markdown-navbar';          // markdown 目录
 import 'github-markdown-css/github-markdown-dark.css';
 import 'markdown-navbar/dist/navbar.css';
+
+import { DOC_ITERATOR } from '@conf/storage';
+
 import Markdown from 'react-markdown';
 
 import "./less/show.less";
@@ -39,7 +42,7 @@ export default class extends Component {
                             ordered={ true }
                             updateHashAuto={ false }
                             onNavItemClick={(event, element, hash) => {
-                                let iteratorId = sessionStorage.getItem("iterator_doc_iteratorId");
+                                let iteratorId = sessionStorage.getItem(DOC_ITERATOR);
                                 setTimeout(() => {
                                     window.location.href = "#/version_iterator_doc/" + iteratorId + "#" + hash;
                                 }, 800);
@@ -48,7 +51,7 @@ export default class extends Component {
                     </div>
                 </Flex>
                 <Flex>
-                    <div className="ReackMarkerContent">
+                    <div className="ReackMarkerContent" style={{ width: this.props.width === undefined ? 750 : this.props.width}}>
                         <Markdown 
                             remarkPlugins={[remarkGfm]}
                             rehypePlugins={[rehypeRaw]}

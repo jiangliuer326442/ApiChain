@@ -1,7 +1,12 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { cloneDeep } from 'lodash';
-import { Table, Input, Checkbox } from "antd";
+import { Table, Input, Checkbox, Select, message } from "antd";
+
+import { 
+    dataTypeSelect,
+    DataTypeJsonObject,
+} from '@conf/global_config';
 
 import {
     TABLE_FIELD_NAME,
@@ -11,11 +16,12 @@ import {
     TABLE_FIELD_REMARK,
     parseJsonToChildren,
     genHash,
-} from '../../util/json';
+} from '@rutil/json';
 
-import { CONTENT_TYPE } from '../../../config/global_config';
+import { getJsonFragment } from '@act/request_save';
+import { isJsonString } from '@rutil/index';
 
-import { getJsonFragment } from '../../actions/request_save';
+const { TextArea } = Input;
 
 class JsonSaveTableContainer extends Component {
 
@@ -31,6 +37,19 @@ class JsonSaveTableContainer extends Component {
                 {
                     title: '参数类型',
                     dataIndex: TABLE_FIELD_TYPE,
+                    render: (dtype : any, row : any) => {
+                        if (dtype === "Array" || dtype === "Object") {
+                            return <span>{dtype}</span>;
+                        } else {
+                            let key = row.key;
+                            return <Select
+                                value={ dtype }
+                                style={{ width: 170 }}
+                                onChange={ value => this.handleSetDataType(key, value) }
+                                options={ dataTypeSelect }
+                            />
+                        }
+                    }
                 },
                 {
                     title: '必填',
@@ -69,10 +88,12 @@ class JsonSaveTableContainer extends Component {
                             }
                             return demo.name;
                         } else {
-                            if(key !== CONTENT_TYPE && demo != null && demo.length > 50) {
-                                return demo.substring(0, 50) + "...";
-                            }
-                            return demo;
+                            return <TextArea 
+                                allowClear
+                                placeholder="示例数据" 
+                                value={demo} 
+                                onChange={ event => this.handleSetContent(key, event.target.value) } 
+                            />
                         }
                     }
                 },
@@ -94,6 +115,29 @@ class JsonSaveTableContainer extends Component {
             return json_fragement;
         });
         this.setState({ datas : parseJsonToChildrenResult })
+    }
+
+    handleSetDataType = (key, dataType) => {
+        if (dataType === DataTypeJsonObject) {
+            let value = this.state.object[key][TABLE_FIELD_VALUE];
+            if (!isJsonString(value)) {
+                message.error("示例数据不符合json规范");
+                return;
+            }
+        }
+        let obj = this.state.object;
+        obj[key][TABLE_FIELD_TYPE] = dataType;
+        this.props.cb(this.state.object);
+
+        this.parseJsonToChildren();
+    }
+
+    handleSetContent = (key, content) => {
+        let obj = this.state.object;
+        obj[key][TABLE_FIELD_VALUE] = content;
+        this.props.cb(this.state.object);
+
+        this.parseJsonToChildren();
     }
 
     handleSetNecessary = (key, checked) => {

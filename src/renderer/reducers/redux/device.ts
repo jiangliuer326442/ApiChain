@@ -2,19 +2,24 @@ import {
   UUID, 
   BUY_TIMES, 
   APPNAME, 
+  USERCOUNTRY,
+  USERLANG,
   HTML, 
   APPVERSION, 
   VIP_FLG, 
   EXPIRE_TIME, 
-} from '../../../config/global_config';
-import { SET_DEVICE_INFO } from '../../../config/redux';
-import { isStringEmpty } from '../../util';
+} from '@conf/storage';
+
+import { SET_DEVICE_INFO } from '@conf/redux';
+import { isStringEmpty } from '@rutil/index';
 
 export default function (state = {
   uuid: "",
   html: "",
   appName: "",
   appVersion: "",
+  userCountry: "",
+  userLang: "",
   vipFlg: false,
   expireTime: 0,
   buyTimes: 0,
@@ -45,6 +50,16 @@ export default function (state = {
       if (action.appName !== undefined) {
         sessionStorage.setItem(APPNAME, action.appName);
         newState.appName = action.appName;
+      }
+
+      if (action.userCountry !== undefined) {
+        sessionStorage.setItem(USERCOUNTRY, action.userCountry);
+        newState.userCountry = action.userCountry;
+      }
+
+      if (action.userLang !== undefined) {
+        sessionStorage.setItem(USERLANG, action.userLang);
+        newState.userLang = action.userLang;
       }
 
       if (action.appVersion !== undefined) {

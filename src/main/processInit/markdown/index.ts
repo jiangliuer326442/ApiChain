@@ -233,7 +233,7 @@ export default function (mainWindow : BrowserWindow){
         });
 
         let html = converter.makeHtml(markdownContent);
-        html = "<style>\nimg {width: 40%;}\ntable { width: 100%; }\ntable { border-collapse: collapse; }\ntable thead { height: 29px; }\ntable thead th { border: 1px solid #525252; }\ntable tbody { height: 24px; }\ntable th { text-align: center; }\ntable td { text-align: left; }</style>\n\n" + html;
+        html = "<meta charset=\"UTF-8\">\n<style>\nimg {width: 40%;}\ntable { width: 100%; }\ntable { border-collapse: collapse; }\ntable thead { height: 29px; }\ntable thead th { border: 1px solid #525252; }\ntable tbody { height: 24px; }\ntable th { text-align: center; }\ntable td { text-align: left; }</style>\n\n" + html;
 
         fs.writeFile(filePath, html, err => {
             if (err != null) {

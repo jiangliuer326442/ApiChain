@@ -3,10 +3,16 @@ import { connect } from 'react-redux';
 import { Layout, Menu, Flex } from "antd";
 import Dexie from 'dexie';
 
-import { DB_NAME } from '../../config/db';
-import { SET_NAV_COLLAPSED } from '../../config/redux';
-import { getVersionIterators } from "../actions/version_iterator";
-import { getPrjs } from "../actions/project";
+import { setLang } from '../../lang/i18n';
+import { getStartParams, isStringEmpty } from '@rutil/index';
+import { DB_NAME } from '@conf/db';
+import {
+  USERCOUNTRY,
+  USERLANG,
+} from '@conf/storage';
+import { SET_NAV_COLLAPSED } from '@conf/redux';
+import { getVersionIterators } from "@act/version_iterator";
+import { getPrjs } from "@act/project";
 
 const { Sider } = Layout;
 
@@ -14,6 +20,18 @@ class Nav extends Component {
 
     constructor(props) {
         super(props);
+
+        let argsObject = getStartParams();
+        console.log("argsObject", argsObject);
+        let userCountry = argsObject.userCountry;
+        let userLang = argsObject.userLang;
+
+        if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
+          userCountry = sessionStorage.getItem(USERCOUNTRY);
+          userLang = sessionStorage.getItem(USERLANG);
+        }
+
+        setLang(userCountry, userLang);
 
         if(window.db === undefined) {
             window.db = new Dexie(DB_NAME);
@@ -34,6 +52,7 @@ class Nav extends Component {
         require('../reducers/db/20241112001');
         require('../reducers/db/20241114001');
         require('../reducers/db/20241216001');
+        require('../reducers/db/20250102001');
 
         this.state = {
           initNavFlg: false,

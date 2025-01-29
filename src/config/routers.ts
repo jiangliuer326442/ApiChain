@@ -3,7 +3,7 @@ export const ENV_LIST_ROUTE = "/envs";
 //微服务管理
 export const PROJECT_LIST_ROUTE = "/projects";
 //单测环境变量管理
-export const ENVVAR_UNITTEST_LIST_ROUTE = "/unittest_envvars/:unittestId";
+export const ENVVAR_UNITTEST_LIST_ROUTE = "/unittest_envvars/:unittestId/:prj";
 //迭代环境变量管理
 export const ENVVAR_ITERATOR_LIST_ROUTE = "/iterator_envvars/:iteratorId";
 //全局环境变量管理

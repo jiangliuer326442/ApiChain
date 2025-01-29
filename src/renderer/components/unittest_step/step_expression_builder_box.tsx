@@ -3,12 +3,12 @@ import { AutoComplete, Select, Space, Input, Button, Modal, Form } from 'antd';
 import { CalculatorOutlined } from '@ant-design/icons';
 import { connect } from 'react-redux';
 import JsonView from 'react-json-view';
+import { cloneDeep } from 'lodash';
 
-import JsonParamTips from '../../classes/JsonParamTips';
-import {
-    cleanJson,
-} from '../../util/json';
-import { isStringEmpty } from '../../util';
+import JsonParamTips from '@clazz/JsonParamTips';
+import { cleanJson } from '@rutil/json';
+import { getType } from '@rutil/index';
+import { isStringEmpty } from '@rutil/index';
 import {
     UNITTEST_STEP_PROJECT_CURRENT,
     UNITTEST_STEP_CURRENT,
@@ -23,20 +23,28 @@ import {
     UNITTEST_DATASOURCE_TYPE_ENV,
     UNITTEST_STEP_POINTED,
     UNITTEST_STEP_PROJECT_POINTED,
-} from '../../../config/unittest';
+} from '@conf/unittest';
 import { 
     TABLE_UNITTEST_FIELDS, 
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
+import {
+    DataTypeJsonObject,
+} from '@conf/global_config';
+import { 
+    TABLE_FIELD_TYPE, 
+    retShortJsonContent,
+    shortJsonContent,
+    parseJsonToFilledTable
+} from '@rutil/json';
 import { 
     getUnitTestRequests 
-} from '../../actions/version_iterator_requests';
+} from '@act/version_iterator_requests';
 import { 
     getIterationUnitTests
-} from '../../actions/unittest';
-import { cloneDeep } from 'lodash';
+} from '@act/unittest';
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
@@ -66,7 +74,9 @@ class StepExpressionBuilderBox extends Component {
 
         let content = props.value;
 
-        this.paramTips  = new JsonParamTips(props.project, props.iteratorId, props.unitTestUuid, content, props.dispatch);
+        this.paramTips  = new JsonParamTips(props.iteratorId, props.unitTestUuid, props.dispatch);
+        this.paramTips.setProject(props.project);
+        this.paramTips.setContent(content);
 
         this.state = {
             loadeadFlg: false,
@@ -94,7 +104,7 @@ class StepExpressionBuilderBox extends Component {
 
     async componentDidMount() {
         if (!this.props.unittest[this.props.iteratorId]) {
-            await getIterationUnitTests(this.props.iteratorId, null, this.props.dispatch);
+            await getIterationUnitTests(this.props.iteratorId, null, null, this.props.dispatch);
             this.setState({loadeadFlg: true});
         } else {
             this.setState({loadeadFlg: true});
@@ -170,6 +180,7 @@ class StepExpressionBuilderBox extends Component {
             } else {
                 let selectedStepId = this.state.selectedStep.replace(UNITTEST_STEP_POINTED, "");
                 let step = this.state.steps.find(row => row[unittest_step_uuid] === selectedStepId);
+                if (step === undefined) return;
                 getUnitTestRequests(step[unittest_step_prj], this.props.iteratorId, step[unittest_step_uri]).then(requests => {
                     let request = requests.find(row => row[iteration_request_method] === step[unittest_step_method]);
 
@@ -179,7 +190,25 @@ class StepExpressionBuilderBox extends Component {
                         dataSource = request[iteration_request_header];
                     }
                     if (selectedDataSource === UNITTEST_STEP_BODY) {
-                        dataSource = request[iteration_request_body];
+                        let format = request[iteration_request_body];
+                        let body = cleanJson(format);
+                        if (Object.keys(body).length > 0) {
+                            for (let _key in body) {
+                                let isJsonString = false;
+                                if (format[_key][TABLE_FIELD_TYPE].toLowerCase() === DataTypeJsonObject.toLowerCase()) {
+                                    isJsonString = true;
+                                }
+
+                                if (isJsonString && getType(body[_key]) === "String") {
+                                    body[_key] = retShortJsonContent(JSON.parse(body[_key]));
+                                }
+                            }
+                        }
+                        let shortRequestBodyJsonObject = {};
+                        shortJsonContent(shortRequestBodyJsonObject, body);
+                        let formRequestBodyData = {};
+                        parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, {});
+                        dataSource = formRequestBodyData;
                     }
                     if (selectedDataSource === UNITTEST_STEP_PARAM) {
                         dataSource = request[iteration_request_param];

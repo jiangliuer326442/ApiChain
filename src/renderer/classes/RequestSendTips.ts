@@ -4,6 +4,9 @@ import { cloneDeep } from 'lodash';
 import { 
     ENV_VALUE_API_HOST,
     ENV_VALUE_RANDOM_STRING,
+    ENV_VALUE_APP_VERSION,
+    ENV_VALUE_EMAIL,
+    ENV_VALUE_AGE,
     ENV_VALUE_RANDOM_INT,
     ENV_VALUE_RANDOM_LONG,
     ENV_VALUE_CURRENT_DATETIME_STR,
@@ -12,16 +15,22 @@ import {
     ENV_VALUE_CURRENT_DATE_IMT,
     ENV_VALUE_CURRENT_TIMESTAMP_SECOND,
     ENV_VALUE_CURRENT_TIMESTAMP_MICRO,
-} from "../../config/envKeys";
+} from "@conf/envKeys";
 import { 
   TABLE_ENV_VAR_FIELDS,
-} from '../../config/db';
-import { getEnvValues, getKeys } from '../actions/env_value';
+} from '@conf/db';
+import {
+    DataTypeJsonObject
+} from '@conf/global_config'
+import { getEnvValues, getKeys } from '@act/env_value';
 import { 
     getType, 
     isStringEmpty, 
-    getNowdayjs 
-} from '../util';
+    getNowdayjs,
+} from '@rutil/index';
+import {
+    TABLE_FIELD_TYPE
+} from "@rutil/json";
 
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -106,15 +115,31 @@ export default class {
         }
     }
 
-    iteratorGetVarByKey(postData : any) : any {
+    iteratorGetVarByKey(postData : any, format : any) : any {
         postData = cloneDeep (postData);
-        this.iteratorGetEnvValue(postData);
+        this.iteratorGetEnvValue(postData, format);
         return postData;
     }
 
-    getVarByKey(key : string) : string | undefined {
+    getVarByKey(key : string) : string | number | undefined {
         if (key === ENV_VALUE_RANDOM_STRING) {
-            return uuidv4() as string;
+            return "ApiChain_" + uuidv4();
+        }
+
+        if (key === ENV_VALUE_EMAIL) {
+            return uuidv4().replaceAll("-", "") + "@email.com";
+        }
+
+        if (key === ENV_VALUE_AGE) {
+            return getNowdayjs().valueOf() % 120;
+        }
+
+        if (key === ENV_VALUE_APP_VERSION) {
+            let unixTimeStr = getNowdayjs().unix().toString();
+            let bigVersion = unixTimeStr.substring(0, 3);
+            let middleVersion = unixTimeStr.substring(3, 6);
+            let lastVersion = unixTimeStr.substring(6);
+            return bigVersion + "." + middleVersion + "." + lastVersion;
         }
 
         if (key === ENV_VALUE_CURRENT_DATETIME_STR) {
@@ -152,14 +177,24 @@ export default class {
         return this.envKeyVar.get(key);
     }
 
-    private iteratorGetEnvValue(postData : any) {
+    private iteratorGetEnvValue(postData : any, format : any) {
         for (let _key in postData) {
             let value = postData[_key];
+            let isJsonString = false;
+            if (format != null && format.hasOwnProperty(_key)) {
+                if (format[_key][TABLE_FIELD_TYPE].toLowerCase() === DataTypeJsonObject.toLowerCase()) {
+                    isJsonString = true;
+                }
+            }
+            if (isJsonString && getType(value) === "String") {
+                value = JSON.parse(value);
+            }
+
             if (getType(value) === "Array") {
                 for (let _index in value) {
                     let _item = value[_index];
                     if (getType(_item) === "Object") {
-                        this.iteratorGetEnvValue(_item);
+                        this.iteratorGetEnvValue(_item, null);
                     } else {
                         let beginIndex = value[_index].indexOf("{{");
                         let endIndex = value[_index].indexOf("}}");
@@ -170,7 +205,7 @@ export default class {
                     }
                 }
             } else if (getType(value) === "Object") {
-                this.iteratorGetEnvValue(value);
+                this.iteratorGetEnvValue(value, null);
             } else if (getType(value) === "String") {
                 let beginIndex = value.indexOf("{{");
                 let endIndex = value.indexOf("}}");
@@ -179,6 +214,10 @@ export default class {
                     value = this.getVarByKey(envValueKey);
                     postData[_key] = value;
                 }
+            }
+
+            if (isJsonString) {
+                postData[_key] = JSON.stringify(value);
             }
         }
     }
@@ -208,6 +247,9 @@ export default class {
         envKeys.add(ENV_VALUE_CURRENT_DATE_IMT);
         envKeys.add(ENV_VALUE_CURRENT_TIMESTAMP_SECOND);
         envKeys.add(ENV_VALUE_CURRENT_TIMESTAMP_MICRO);
+        envKeys.add(ENV_VALUE_APP_VERSION);
+        envKeys.add(ENV_VALUE_EMAIL);
+        envKeys.add(ENV_VALUE_AGE);
         return envKeys;
     }
 

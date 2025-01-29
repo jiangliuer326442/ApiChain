@@ -2,40 +2,40 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Input, Divider, Select } from "antd";
 import { cloneDeep } from 'lodash';
-import { decode, encode } from 'base-64';
+import { decode } from 'base-64';
 import JsonView from 'react-json-view';
 
 import {
     isStringEmpty, getdayjs
-} from '../../util';
+} from '@rutil/index';
 import {
     TABLE_FIELD_NAME,
     TABLE_FIELD_TYPE,
     TABLE_FIELD_VALUE,
     TABLE_FIELD_TYPE_REF,
     genHash,
-} from '../../util/json';
-import { ENV_VALUE_API_HOST } from "../../../config/envKeys";
+} from '@rutil/json';
+import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { 
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_PROJECT_REQUEST_FIELDS,
     UNAME
-} from '../../../config/db';
+} from '@conf/db';
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST,
-} from '../../../config/global_config';
-import { getPrjs } from '../../actions/project';
-import { addJsonFragement } from '../../actions/request_save';
+} from '@conf/global_config';
+import JsonSaveTableComponent from "@comp/request_save/json_save_table";
+import { getPrjs } from '@act/project';
+import { addJsonFragement } from '@act/request_save';
 import { 
     addVersionIteratorFolder,
     getVersionIteratorFolders 
-} from '../../actions/version_iterator_folders';
-import { editVersionIteratorRequest, getVersionIteratorRequest } from '../../actions/version_iterator_requests';
-import { editProjectRequest, getProjectRequest } from '../../actions/project_request';
-import JsonSaveTableComponent from "../../components/request_save/json_save_table";
+} from '@act/version_iterator_folders';
+import { editVersionIteratorRequest, getVersionIteratorRequest } from '@act/version_iterator_requests';
+import { editProjectRequest, getProjectRequest } from '@act/project_request';
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
@@ -216,6 +216,8 @@ class RequestSaveContainer extends Component {
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData
             );
+            message.success("修改成功");
+            this.props.history.push("/project_requests/" + this.state.prj);
         } else {
             await editVersionIteratorRequest(
                 this.state.initRequestMethod, this.state.initRequestUri, 
@@ -225,9 +227,9 @@ class RequestSaveContainer extends Component {
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData
             );
             this.setState({initRequestMethod: this.state.requestMethod, initRequestUri: this.state.requestUri});
+            message.success("修改成功");
+            this.props.history.push("/version_iterator_requests/" + this.state.versionIterator);
         }
-        message.success("修改成功");
-        this.props.history.push("/version_iterator_requests/" + this.state.versionIterator);
     }
 
     parseJsonToStruct = (whiteKeys : Array<any>, parentKeys : Array<string>, parentKey : string, parseJsonToTableResultCopy : object, content : object) => {
@@ -333,44 +335,36 @@ class RequestSaveContainer extends Component {
                                 },
                                 ] } />
                         </Flex>
-                        <Flex justify="space-between" gap="middle">
-                            <Form layout="inline">
-                                <Form.Item label="标题">
-                                    <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} placeholder='接口说明' />
-                                </Form.Item>
-                                <Form.Item label="选择文件夹">
-                                    <Select
-                                        style={{minWidth: 130}}
-                                        value={ this.state.selectedFolder }
-                                        onChange={ value => this.setState({selectedFolder: value}) }
-                                        dropdownRender={(menu) => (
-                                            <>
-                                                {menu}
-                                                <Divider style={{ margin: '8px 0' }} />
-                                                <Input
-                                                    placeholder="回车新建文件夹"
-                                                    onChange={e => { this.setState({ folderName: e.target.value }) }}
-                                                    value={ this.state.folderName }
-                                                    onKeyDown={e => {
-                                                        if (e.key === 'Enter') {
-                                                            this.handleCreateFolder();
-                                                        }
-                                                        e.stopPropagation()
-                                                    }}
-                                                />
-                                            </>
-                                        )}
-                                        options={ this.state.folders }
-                                    />
-                                </Form.Item>
-                            </Form>
-                            <Button 
-                                size='large' 
-                                type="primary" 
-                                onClick={ this.handleSave }
-                                style={ { background: "#3b3b3b", color: "rgba(255, 255, 255, 0.5)"} }
-                                >修改api</Button>
-                        </Flex>
+                        <Form layout="inline">
+                            <Form.Item label="标题">
+                                <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} placeholder='接口说明' />
+                            </Form.Item>
+                            <Form.Item label="选择文件夹">
+                                <Select
+                                    style={{minWidth: 130}}
+                                    value={ this.state.selectedFolder }
+                                    onChange={ value => this.setState({selectedFolder: value}) }
+                                    dropdownRender={(menu) => (
+                                        <>
+                                            {menu}
+                                            <Divider style={{ margin: '8px 0' }} />
+                                            <Input
+                                                placeholder="回车新建文件夹"
+                                                onChange={e => { this.setState({ folderName: e.target.value }) }}
+                                                value={ this.state.folderName }
+                                                onKeyDown={e => {
+                                                    if (e.key === 'Enter') {
+                                                        this.handleCreateFolder();
+                                                    }
+                                                    e.stopPropagation()
+                                                }}
+                                            />
+                                        </>
+                                    )}
+                                    options={ this.state.folders }
+                                />
+                            </Form.Item>
+                        </Form>
                         <Flex>
                             <Select 
                                 style={{borderRadius: 0, width: 118}} 
@@ -387,12 +381,11 @@ class RequestSaveContainer extends Component {
                                 onChange={ event => this.setState({requestUri: event.target.value}) }
                                 size='large' />
                             <Button 
-                                disabled={this.state.initRequestMethod !== this.state.requestMethod || this.state.initRequestUri !== this.state.requestUri}
                                 size='large' 
                                 type="primary" 
+                                onClick={ this.handleSave }
                                 style={{borderRadius: 0}} 
-                                href={this.state.versionIterator ? "#/internet_request_send_by_api/" + this.state.versionIterator + "/" + this.state.prj + "/" + this.state.initRequestMethod + "/" + encode(this.state.initRequestUri) : "#/internet_request_send_by_api/" + this.state.prj + "/" + this.state.initRequestMethod + "/" + encode(this.state.initRequestUri)}
-                                >发送请求</Button>
+                                >编辑</Button>
                         </Flex>
                         <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
