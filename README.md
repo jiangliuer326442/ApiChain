@@ -1,93 +1,106 @@
-github & 演示链接：[点击这里](https://github.com/jiangliuer326442/ApiChain)
+<img src="https://gitee.com/onlinetool/mypostman/raw/master/assets/icons/256x256.png" />
 
+ApiChain是一款基于版本迭代和项目视角的文档生成和接口自动化测试软件，完成从若干项目创建迭代，针对迭代涉及的接口进行api调用、给迭代涉及接口生成api文档并分享，对迭代内的接口编写可自动化执行的测试用例。迭代完成代码合并上线时，将迭代内接口和自动化测试用例合并到项目中，并对项目进行回归测试的完整流程。相比于postman这样的外来品，ApiChain 更“懂”你。
 
-ApiChain是一款基于版本迭代和项目视角的接口测试和文档生成软件，相比于postman这样的外来品，ApiChain 更“懂”你。APIChain拥有如下特色：
+ApiChain拥有如下特色：
 
-1. 按迭代产出接口文档，按项目汇总迭代相关接口，迭代文档可生成本机内网ip的链接地址实时共享，也可导出成html、markdown等格式；
-2. 环境变量支持全局、项目、迭代三个层面；
-3. 支持更多类型的随机入参；
-4. 支持URL路径类型的入参的测试和文档生成；
-5. 可将请求返回的header、cookie信息纳入接口文档；
-6. 可将一系列接口的调用入参和返回串联起来调用接口，做成可重复运行的单测用例，甚至包括使用前面步骤返回的cookie、header里的信息；
-7. 迭代单测用例可合并到项目，用于项目的回归测试；
-8. 纯内网，无需连接互联网；
-9. 可将迭代关联的一系列需求文档、ui设计文档的链接以及数据库变动、配置中心变动等信息汇总在这个迭代接口文档里；
+1. 接口测试发送网络请求，支持Uri路径参数、发送json报文，提交数据可以来源于全局、项目、迭代环境变量，也支持通过内置函数生成各种类型的随机不重复数据，包括 uuid、当前时间、不重复邮箱等，可以拿到接口请求返回的header、cookie等信息，基于这些信息编写迭代完整、进行自动化接口测试等；
+2. 迭代文档可导出html、markdown格式，也可以生成内网链接实时共享；
+3. 自动化测试对项目和迭代内涉及的接口采用链式调用，起始数据源为固定值、环境变量、内置函数生成的随机数据经过层层的链式调用，将返回json报文、返回header、返回cookie以及前面步骤使用的数据作为下一个接口调用的输入数据源，制作出可无限重复执行的测试用例，在每个步骤断言该步骤是否达成了预期效果；
+4. 自动化测试支持对json转的string类型的数据进行自动构造；
+5. 自动化测试步骤之间可选择手动执行下一步、等待固定时间自动执行下一步等，也可针对项目和迭代选择多个测试用例依次执行，进行项目的回归测试；
+6. 纯内网，无需连接互联网，既保证高性能，也确保安全性。
 
 🔥🔥🔥如果你也认可Ta更“懂”你，不妨 [点击这里给个star](https://gitee.com/onlinetool/mypostman) 支持一下呗 (*￣︶￣)💋💋💋
-<a href='https://gitee.com/onlinetool/mypostman/stargazers'><img src='https://gitee.com/onlinetool/mypostman/badge/star.svg?theme=dark' alt='star'></img></a>
-PS：收到100个star后我就有动力去开发以下功能：
-1. java、php语言项目的代码扫描生成迭代文档的第三方包
-2. 让单机版的ApiChain支持团队需要的相关功能，也就是迭代、项目、单测、环境变量的在团队内共享，成为团队的数字化资产（当然，肯定是支持私有化部署的）
 
 ## 软件下载
 
-基于Electron跨平台开发，可根据你的平台下载源码自行编译，也可直接使用我们这里编译好的
+v1.0.11:
 
-windows 平台：[ApiChain_windows_1.0.7.exe](https://gitee.com/onlinetool/mypostman/releases/download/v1.0.7/ApiChain_windows_1.0.7.zip)
+    1. 支持JsonString类型参数的自动化测试
+    2. 自动化测试可以多选执行
+    3. 自动化测试支持等待一定时间后执行
+    4. 强化从postMan导入接口到ApiChain项目
+    5. 支持环境变量在不同服务器环境间选择拷贝
 
-linux 平台：[ApiChain_linux_1.0.7.AppImage](https://github.com/jiangliuer326442/ApiChain/releases/download/v1.0%2C7/ApiChain_linux_1.0.7.zip)
+windows 平台：[ApiChain_v1.0.11_windows.zip](https://gitee.com/onlinetool/mypostman/releases/download/v1.0.11/ApiChain_v1.0.11_windows.zip)
 
-mac 平台：[MyPostMan-0.0.5.dmg](https://gitee.com/onlinetool/mypostman/releases/download/v0.0.5/MyPostMan-0.0.5.dmg)
+linux 平台：[ApiChain_v1.0.11_linux.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.0.11/ApiChain_v1.0.11_linux.zip)
 
-mac最新版本请下载源码自行编译，编译方法参照 从源码编译 部分，**如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开**
+mac 平台：[ApiChain_v1.0.11_macos.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.0.11/ApiChain_v1.0.11_macos.zip)
+
+mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开
 
 ## 简介
 
-* 按照项目、文件夹管理我们的接口
+* 在版本迭代中按照项目、文件夹管理我们的接口，并生成接口文档
 
-  [在迭代内点击发送请求，可以使用我们给这个迭代设置的环境变量，这些环境变量可以对这个迭代内涉及的全部项目或者某个项目有效。](https://gitee.com/onlinetool/mypostman/wikis/%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F)
 
-![image-20240706090322612](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_17-15-21.png)
+![image-20250129184724573](doc/images\image-20250129184724573.png)
 
 - 发送网络请求
 
-  [发送网络请求时，可以使用我们给特定环境设置的环境变量，这些环境变量分为全局有效、特定项目有效、特定版本迭代有效、迭代内特定项目有效。](https://gitee.com/onlinetool/mypostman/wikis/%E5%8F%91%E9%80%81%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82)
+  发送网络请求，支持路径变量，数据可以使用迭代、全局、项目范围的环境变量，以及内置函数生成的随机不重复数据，返回数据包括了cookie、header信息等，同时能够跟踪302跳转拿到所有跳转路径的全部header、cookie信息。
 
-![image-20240706090456589](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_17-33-57.png)
+![image-20250129184912567](doc/images\image-20250129184912567.png)
 
 * 接口详情页
 
-  可以查看我们接口的入参和返回示例、接口说明、字段含义说明等
+  可以查看我们接口的入参和返回示例、接口说明、字段含义说明等，包括了返回的header、cookie等信息的文档说明。
 
-![image-20240706090456589](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_17-17-17.png)
+![image-20250129185653338](doc/images\image-20250129185653338.png)
 
-![image-20240706090456590](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-19_09-54-55.png)
+![image-20250129185726301](doc/images\image-20250129185726301.png)
+
+![image-20250129185800680](doc/images\image-20250129185800680.png)
 
 * 接口文档页
 
   以迭代为单位，生成接口文档，可以标注一些这个迭代的注意事项，可导出分享，也可直接通过浏览器共享页面。
 
-  [mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。](https://gitee.com/onlinetool/mypostman/wikis/mock%E6%9C%8D%E5%8A%A1%E5%99%A8)
+  mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。
+  
+  ![image-20250129185948052](doc/images\image-20250129185948052.png)
+  
+  ![image-20250129190011909](doc/images\image-20250129190011909.png)
+  
+  ![image-20250129190037820](doc/images\image-20250129190037820.png)
 
-![image-20240706090943885](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_17-23-36.png)
+* 迭代、项目单测页
 
-![image-20240706090943886](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-19_09-57-35.png)
-
-* 迭代单测页
-
-  [把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。](https://gitee.com/onlinetool/mypostman/wikis/%E7%BC%96%E5%86%99%E8%BF%AD%E4%BB%A3%E5%8D%95%E6%B5%8B%E7%94%A8%E4%BE%8B)
+  把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。
 
   若某个测试用例执行失败，可以点击请求地址跳转到发送请求的页面，可以重复发送单测的请求，用来复现并调试bug。
+  
+  可以选择多个测试用例依次执行，进行迭代和整个项目的回归测试。
 
-![image-20240706091153839](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_18-04-42.png)
+![image-20250129190341901](doc/images\image-20250129190341901.png)
 
-![image-20240706091217351](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-18_18-06-42.png)
+![image-20250129190609901](doc/images\image-20250129190609901.png)
+
+![image-20250129190630661](doc/images\image-20250129190630661.png)
+
+![image-20250129190652605](doc/images\image-20250129190652605.png)
+
+![image-20250129190715834](doc/images\image-20250129190715834.png)
 
 * 填写单测参数
 
   我们迭代编写单测入参和断言支持大量常用的情景输入，如引起前面步骤的数据，读取项目环境变量数据等，变量支持随机字符串（uuid）、随机整数、当前时间，甚至使用 **eval** 函数自定义您对数据的处理逻辑。这样设计出来的单测，只要接口未做变更，未来无需修改可反复执行。用于迭代的测试以及项目回归测试。
 
-![image-20240706091305806](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706091305806.png)
+![image-20250129190825705](doc/images\image-20250129190825705.png)
 
 - 项目接口管理 & 单测列表页
 
-  [迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。](https://gitee.com/onlinetool/mypostman/wikis/%E4%BB%8E%E8%BF%AD%E4%BB%A3%E5%88%B0%E9%A1%B9%E7%9B%AE)
+  迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。
 
-![image-20240706091305807](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-19_10-03-05.png)
+![image-20250129190929161](doc/images\image-20250129190929161.png)
+
+![image-20250129191002128](doc/images\image-20250129191002128.png)
 
 项目的每个单测用例，都可以有自己的环境变量，这些环境变量属于这个单测一系列步骤的共享数据。
 
-![image-20240706091305808](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/Snipaste_2024-11-19_10-09-17.png)
+![image-20250129191024256](doc/images\image-20250129191024256.png)
 
 ## 相关术语
 
@@ -121,198 +134,77 @@ mac最新版本请下载源码自行编译，编译方法参照 从源码编译 
 
 ## 开始旅程
 
-### 准备接口调用 key
+不会使用？跟着示例慢慢学
 
-在以下教程中，我们使用聚合数据的（[天气预报](https://www.juhe.cn/docs/api/id/73)）相关接口演示如何使用  **ApiChain** 进行接口调用、文档生成、自动化测试。
+#### 下载并导入我们的示例demo数据
 
-首先你需要申请一下 key，如果嫌麻烦，可以使用我的 `2c173c8a08cb275c6925c775c038903b` ，但可能有限额。
+- 点击[这里](http://cdn.fanghailiang.cn/demo_database.json)下载示例数据库
 
-### 环境、微服务、环境变量
+- 点击顶部菜单-数据-还原数据库，选择下载的示例数据库文件
 
-在开始之前，先要设置好这些信息。我们企业中的环境一般分为开发、测试、预发布、线上等环境。通常我们只对某几个项目（微服务）拥有权限。不同的项目在不同环境中部署后，又会存在不同的访问地址，我们使用**环境变量**来管理这些在不同项目、不同运行环境中呈现不一样的字符串。
+- 点击顶部菜单-页面-刷新当前页面，就可以看到已经导入的示例数据了，包含示例的环境、项目、接口、单侧等，通过查看编辑、发送网络请求等，学习他的配置和使用哦！
 
-点击设置 -> 开发环境 -> 新增 来创建我们的开发环境
+  
 
-![image-20240706092455309](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706092455309.png)
+  示例数据库包含了两个示例，一个演示了 Apichain 的基本使用，另一个包含了 Apichain 的高阶使用，你可以参照教程一步步学习，在学习的过程中熟悉对这款软件的使用。以下是这两个示例的详细操作流程的链接。
 
-点击设置 -> 项目 -> 添加 来创建我们的项目
+  [入门教程1：用任意城市查询天气预报-ApiChain基本使用](https://gitee.com/onlinetool/mypostman/wikis/入门教程1：用任意城市查询天气预报-ApiChain基本使用)
 
-![image-20240706092615686](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706092615686.png)
+  [入门教程2：用户注册登录鉴权-ApiChain高阶使用](https://gitee.com/onlinetool/mypostman/wikis/入门教程2：用户注册登录鉴权-ApiChain高阶使用)
 
-在项目菜单下可以看到我们刚刚新增的项目，在环境变量菜单下设置我们这个项目在这个环境中，接口访问的 host 信息，点击项目->天气预报->环境变量->选择环境（本地环境）->api_host->编辑，下面填写的地址为 `http://apis.juhe.cn/simpleWeather/`  (注意，要求必须是以 `http:// ` 或者 `https://` 开头且以 /结尾的 url 地址)
+#### 从PostMan导入您的接口数据
 
-![image-20240706093448150](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706093448150.png)
+这里假设你需要从PostMan导入接口数据，首先你需要在PostMan中导出接口数据，然后在ApiChain中导入接口数据。具体步骤如下：
 
-![image-20240706093601637](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706093601637.png)
+- 点击[这里](http://cdn.fanghailiang.cn/demo_postman.json)下载 PostMan 的备份文件。
 
-再新建一个环境变量，把我们准备阶段辛苦申请的 `appKey` 填进去。点击 项目->天气预报 -> 环境变量 -> 添加。参数名称填写 **appKey**，参数值填写你刚刚申请的 key，我的填写 **2c173c8a08cb275c6925c775c038903b**
+- 点击设置-项目-添加微服务，项目标识 填写 “fly”，备注填写 “无人机”，确定按钮新增项目。
 
-![image-20240706093808274](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706093808274.png)
+- 在左侧项目菜单找到“无人机”项目，点击项目环境变量，选择环境，本地环境，可以看到一个名为“api_host”的环境变量，这代表这个项目的接口域名地址。是这个项目所有接口的地址前缀，需要 “http://”或者“https://”开头，“/”结尾。点击旁边的编辑按钮，参数值填写 **http://127.0.0.1:8081/**，点击确定按钮保存。
 
-以上这些，相当于我们初始化了一个项目。完成后效果如下
+- 点击当前项目左侧菜单的“文档”菜单，可以看到红色的“从PostMan导入”按钮，点击这个按钮，选择第一步下载的 PostMan 备份为难。
 
-![image-20240706093917870](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706093917870.png)
+- 看到“导入PostMan成功”的提示，但是没有看到接口数据？别着急，点击顶部的页面-刷新当前页面，就可以看到刚刚从PostMan导入的数据了。
 
-### 迭代、接口测试、编写文档
+- 选择一个刚刚导入的接口，点击发送请求按钮，就可以测试接口了，可以看到这是一个 application/json 格式的网络请求。
 
-我们这个天气预报项目 研发第一个迭代开发了两个接口：**查询支持的城市列表** 和 **根据城市查询未来天气**，
+  更多教程请查阅我们的[文档](https://gitee.com/onlinetool/mypostman/wikis)，版本更新后新增功能也会同步更新到该文档中。
 
-先创建一个迭代，在这个迭代里生产我们的接口文档，编写测试用例，最后迭代完成，接口合并到项目中，上线！
+## 版本发布记录
 
-点击 设置 ->  版本迭代 -> 新增
+v1.0.9:
 
-![image-20240706094026608](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706094026608.png)
+    1. 启动速度优化
+    2. 使用ssh key作为默认用户
+    3. 修复bug
+    4. 界面滚动条优化
 
-我们现在通常是一个月一个迭代，因此我的迭代名称就是 **天气预报 2406**，因为我这个迭代涉及的项目就一个天气预报项目，所以微服务只选了一个。通常情况下，你们一个迭代会涉及很多个项目，都把它们选出来吧，多选漏选也无所谓，可以在 设置 -> 版本迭代 找到你的版本迭代，进行修改的。迭代说明是一个 markdown 的文案，这会在你们迭代的文档顶部展现出来，你、前端、测试 所有想要看迭代接口文档的人都会看到～
+v1.0.8:
 
-![image-20240706094140072](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706094140072.png)
+  1. 支持将本次迭代部分接口因功能不上线移动到另一个迭代中
+  2. 支持选择部分环境变量拷贝到另一个开发环境
+  3. 支持将部分项目导出到另一个用户电脑，实现项目接口的共享
+  4. 将原有收费功能价格调整为1元
 
-当你的迭代上线后，可以关闭这个迭代，相当于归档，迭代变得不可修改，所有接口会按照关闭的先后顺序覆盖到你项目的接口列表中。
+v1.0.7:
+  1. 单测链支持引用前面步骤cookie作为入参
+  2. 网络请求和单测统计接口耗时
+  3. 支持将迭代的单测导出到项目用于项目回归测试
 
-![image-20240706094219494](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706094219494.png)
+v1.0.6:
+  1. 修复历史记录无法使用迭代环境变量的问题
 
-------------
+v1.0.5:
+  1. 完善发送网络请求和迭代单元测试相关功能，支持从迭代到项目的可复用单元测试
 
-测试一下我写的查询支持城市列表接口是否正确：请求 -> 发送请求，选择项目（天气预报）-> 选择环境（本地环境）->请求方式（GET）->地址（cityList），参数 `key` 值 **{{appKey}}** （“{{”开头，“}}”结尾的值会引用我们环境变量的数据，最终发送网络请求的数据是环境变量设置的值而不是这个字符串本身；这个界面就是参照 PostMan；在你输入“{{”时，会自动提示出这个项目下所有的环境变量，因此输入不会太困难;）。点击发送请求按钮可以得到下图的响应，代表查询天气预报接口是可用的。
+v0.0.5:
+  1. 增加VIP充值和mock服务器功能
 
-![image-20240706094542276](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706094542276.png)
-
-点击**发送请求**按钮上面的 **保存** 按钮，把刚刚自测验证通过的接口保存到这个迭代文档中。
-
-![image-20240706094644961](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706094644961.png)
-
-![image-20240706094713496](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706094713496.png)
-
-我们需要告诉其他人，这个接口是用来干什么的，传的那些字段是什么含义，返回的那些字段又是什么含义，这些在我们的迭代文档中都会有所体现。另外这个接口是属于哪个迭代的，如果这个迭代涉及的接口太多，我们还要通过文件夹在迭代这个池子中进行接口和接口的分类。
-
-![image-20240706094942628](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706094942628.png)
-
-![image-20240706095136239](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706095136239.png)
-
-![image-20240706095201555](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706095201555.png)
-
-点击保存就在我们这个迭代中新建了第一个接口 ——查询支持的城市列表！
-
-![image-20240706095239198](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706095239198.png)
-
-验证第二个接口，根据城市名称查询天气。请求->发送请求->选择项目->选择环境->请求方式（POST）->请求地址query。`key` 填写 `{{appKey}}` 读取 **appKey** 环境变量， `city` 填写 `上海`，代表查询上海这座城市的天气。发送请求得到以下响应：
-
-![image-20240706095515141](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706095515141.png)
-
-看起来接口没有问题，我们点击保存按钮把这个接口存入迭代的接口文档中吧！选择好迭代、文件夹，填好接口名称、字段含义，over
-
-![image-20240706095735338](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706095735338.png)
-
-![image-20240706095840613](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706095840613.png)
-
-下面看看我们的劳动成果，一份迭代的接口文档已经准备好了
-
-在迭代导航下可以看到我们刚刚创建的迭代，点到文档菜单，可以看到这个迭代下面的接口列表，支持根据接口地址、接口说明、接口所属的项目（微服务），接口在迭代里的文件夹进行帅选；对接口列表的管理包括编辑、删除、设置排序值等。<u>在右下角漂浮着有一个迭代文档的按钮</u>
-
-![image-20240706100226251](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706100226251.png)
-
-点击迭代文档按钮，查看我们的迭代文档
-
-![image-20240706100302483](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706100302483.png)
-
-![image-20240706100324571](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706100324571.png)
-
-不对，这个接口文档就我一个人能看到有个 p 用啊。别急，页面右下角漂浮着一个导出按钮，点击。支持将迭代的接口文档导出成 markdown 和 html 两种格式。
-
-![image-20240706100420041](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240706100420041.png)
-
-### 编写单测用例、执行测试
-
-上面，我们在编写接口文档时，已经大概测试了单个接口是可用的。实际上，这些接口不是单独存在的，他们需要根据特定的使用场景，按一定的规则将这些接口的入参、返回值串联起来，通过一步步的断言验证在这个特定场景下，接口返回信息是正确无误的。
-
-以我们的天气预报项目为例，上面验证了 **上海** 这个城市查询天气是没有问题的，然而我们的实际场景是：从支持的城市列表中任意拿出一个城市，都要求必须能够查询出这个城市的天气，只有这样才能确保我们的接口是真的可用。
-
-新建一个单测用例：从迭代菜单找到**天气预报 2407**->单测，点击添加，单测名称我写的是 **任意城市查询天气**，点击确定。
-
-![image-20240707102424224](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707102424224.png)
-
-在这个单测用例中，包含两个步骤：
-
-1. 查询城市列表
-2. 从城市列表的返回中，任意选择一个城市名作为入参，查询该城市的天气
-
-为了保证这些步骤顺利执行下去，每个步骤必须添加一个断言，断言失败终止执行测试用例，并告知亲在哪里断言出错了，入参是什么、返回是什么，方便你进行排查修复 bug。
-
-![image-20240707102756485](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707102756485.png)
-
-从单测列表中找到你新加的单测，右边三个点中找到添加步骤入口
-
-接口选择 **天气预报** 项目 的 **查询支持的城市列表** 接口，触发方式选择**自动执行**，其他使用默认值即可。`{{appKey}}`会从接口关联项目的环境变量中读取对应的环境变量值。
-
-![image-20240707103942845](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707103942845.png)
-
-下面填写返回断言：这个接口的断言是要求 **接口返回正确的错误码**，也就是 error_code 必须是 0
-
-![image-20240707103334352](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707103334352.png)
-
-![image-20240707103501796](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707103501796.png)
-
-![image-20240707103551274](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707103551274.png)
-
-![image-20240707103723536](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707103723536.png)
-
-最终生成下面的断言表达式，支持添加多个断言的，他们之间是且的关系。点击**添加步骤**按钮，添加我们第一个单元测试的第一个步骤。
-
-![image-20240707103814352](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707103814352.png)
-
-我们可以试着运行一下测试用例，看一下效果，选择环境->本地环境，点击执行用例按钮。
-
-![image-20240707104126273](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707104126273.png)
-
-![image-20240707104205155](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707104205155.png)
-
-从图中可以看到，我们的执行结果是成功的，也可以看到，我们每个步骤、接口调用的入参、返回值，断言两边的计算结果，方便我们在遇到失败时进行排障。
-
-再接再厉，添加第二个接口，拿刚刚成功的获取城市列表接口返回的 **任意一个城市**作为入参，调用查询天气预报接口，断言接口返回的城市就是我们入参提供的来自于城市列表接口返回的任意城市。（有点绕，诶，看图）
-
-![image-20240707104257873](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707104257873.png)
-
-![image-20240707104424462](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707104424462.png)
-
-下面是高能区，仔细看图
-
-![image-20240707104528380](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707104528380.png)
-
-![image-20240707104955815](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707104955815.png)
-
-`result.*random().city` 是参数数据源的具体路径，result 下面是一个数据，我们选数组下面的任意的一个元素，拿到这个元素后，我们使用他的 **city** 字段作为入参。（放心，在输入“.”号时会自动触发语法提示，输入这些不会太难，你体验一下就知道了～）
-
-点击确定，入参已经填好了
-
-![image-20240707105035032](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105035032.png)
-
-下面添加返回断言，我的断言名称是 **接口的返回城市名称字段需要与入参的城市名一致**
-
-![image-20240707105215871](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105215871.png)
-
-![image-20240707105315750](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105315750.png)
-
-这个能看懂吧？我们拿当前步骤执行结果中的 `result.city` 路径的数据作为断言的左侧。
-
-![image-20240707105421385](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105421385.png)
-
-这个是拿我们当前步骤 body 入参的 `city` 路径的实际数值作为断言比较的对象，结果如下：
-
-![image-20240707105631212](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105631212.png)
-
-可以看到，我们已经添加好了两个步骤，下面在 **本地环境** 下执行我们的用例。
-
-![image-20240707105728516](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105728516.png)
-
-![image-20240707105808555](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105808555.png)
-
-我们从城市列表接口的返回中随机取了一个叫 **廊坊** 的城市查询了天气预报，返回的城市名称正是**廊坊**，断言成功！
-
-![image-20240707105907676](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105907676.png)
-
-![image-20240707105917096](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240707105917096.png)
-
-好了，我们的入门教程就到这里，其他功能，比如备份、还原数据库，从 PostMan 导入接口到项目等功能可查看项目的wiki文档。
+v0.0.4
+  1. 迭代支持接口先行方式添加 api
+  2. header 支持 application/json，multipart/form-data 两种方式的 api
+  3. 迭代自动化测试支持手动和自动两种触发方式
+  4. 其他 bug 修复和界面调整
 
 ## 从源码编译
 
@@ -348,8 +240,8 @@ yarn package
 
 您对软件有任何批评建议，可以加我微信沟通，二维码如下：
 
-<img src="https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240619222612484.png" width="50%" />
+<img src="images\image-20240619222612484.png" width="50%" />
 
-软件目前所有功能均不收费，无需连接外部网络即可使用。如果觉得帮到了你，可以不吝打赏一个鸡腿哦，打赏二维码如下：
+如果觉得帮到了你，可以不吝打赏一个鸡腿哦，打赏二维码如下：
 
-<img src="https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240619222828912.png" width="50%" />
+<img src="images\image-20240619222828912.png" width="50%" />
