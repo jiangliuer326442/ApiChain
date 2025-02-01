@@ -29,30 +29,31 @@ linux 平台：[ApiChain_v1.0.11_linux.zip](https://gitcode.com/fanghailiang2016
 
 mac 平台：[ApiChain_v1.0.11_macos.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.0.11/ApiChain_v1.0.11_macos.zip)
 
-mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开
+mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开。
+另外，由于linux和mac平台的包大小超过gitee允许的最大附件大小（100M），故提供外站（gitcode.com）的下载地址。
 
 ## 简介
 
 * 在版本迭代中按照项目、文件夹管理我们的接口，并生成接口文档
 
 
-![image-20250129184724573](doc/images\image-20250129184724573.png)
+![image-20250129184724573](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129184724573.png)
 
 - 发送网络请求
 
   发送网络请求，支持路径变量，数据可以使用迭代、全局、项目范围的环境变量，以及内置函数生成的随机不重复数据，返回数据包括了cookie、header信息等，同时能够跟踪302跳转拿到所有跳转路径的全部header、cookie信息。
 
-![image-20250129184912567](doc/images\image-20250129184912567.png)
+![image-20250129184912567](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129184912567.png)
 
 * 接口详情页
 
   可以查看我们接口的入参和返回示例、接口说明、字段含义说明等，包括了返回的header、cookie等信息的文档说明。
 
-![image-20250129185653338](doc/images\image-20250129185653338.png)
+![image-20250129185653338](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129185653338.png)
 
-![image-20250129185726301](doc/images\image-20250129185726301.png)
+![image-20250129185726301](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129185726301.png)
 
-![image-20250129185800680](doc/images\image-20250129185800680.png)
+![image-20250129185800680](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129185800680.png)
 
 * 接口文档页
 
@@ -60,11 +61,11 @@ mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --
 
   mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。
   
-  ![image-20250129185948052](doc/images\image-20250129185948052.png)
+  ![image-20250129185948052](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129185948052.png)
   
-  ![image-20250129190011909](doc/images\image-20250129190011909.png)
+  ![image-20250129190011909](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190011909.png)
   
-  ![image-20250129190037820](doc/images\image-20250129190037820.png)
+  ![image-20250129190037820](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190037820.png)
 
 * 迭代、项目单测页
 
@@ -74,33 +75,33 @@ mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --
   
   可以选择多个测试用例依次执行，进行迭代和整个项目的回归测试。
 
-![image-20250129190341901](doc/images\image-20250129190341901.png)
+![image-20250129190341901](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190341901.png)
 
-![image-20250129190609901](doc/images\image-20250129190609901.png)
+![image-20250129190609901](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190609901.png)
 
-![image-20250129190630661](doc/images\image-20250129190630661.png)
+![image-20250129190630661](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190630661.png)
 
-![image-20250129190652605](doc/images\image-20250129190652605.png)
+![image-20250129190652605](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190652605.png)
 
-![image-20250129190715834](doc/images\image-20250129190715834.png)
+![image-20250129190715834](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190715834.png)
 
 * 填写单测参数
 
   我们迭代编写单测入参和断言支持大量常用的情景输入，如引起前面步骤的数据，读取项目环境变量数据等，变量支持随机字符串（uuid）、随机整数、当前时间，甚至使用 **eval** 函数自定义您对数据的处理逻辑。这样设计出来的单测，只要接口未做变更，未来无需修改可反复执行。用于迭代的测试以及项目回归测试。
 
-![image-20250129190825705](doc/images\image-20250129190825705.png)
+![image-20250129190825705](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190825705.png)
 
 - 项目接口管理 & 单测列表页
 
   迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。
 
-![image-20250129190929161](doc/images\image-20250129190929161.png)
+![image-20250129190929161](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190929161.png)
 
-![image-20250129191002128](doc/images\image-20250129191002128.png)
+![image-20250129191002128](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129191002128.png)
 
 项目的每个单测用例，都可以有自己的环境变量，这些环境变量属于这个单测一系列步骤的共享数据。
 
-![image-20250129191024256](doc/images\image-20250129191024256.png)
+![image-20250129191024256](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129191024256.png)
 
 ## 相关术语
 
@@ -240,8 +241,8 @@ yarn package
 
 您对软件有任何批评建议，可以加我微信沟通，二维码如下：
 
-<img src="images\image-20240619222612484.png" width="50%" />
+<img src="https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240619222612484.png" width="50%" />
 
 如果觉得帮到了你，可以不吝打赏一个鸡腿哦，打赏二维码如下：
 
-<img src="images\image-20240619222828912.png" width="50%" />
+<img src="https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240619222828912.png" width="50%" />
