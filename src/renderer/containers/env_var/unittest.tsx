@@ -7,7 +7,7 @@ import {
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
 
-import { isStringEmpty, getdayjs } from '../../util';
+import { isStringEmpty, getdayjs } from '@rutil/index';
 
 import { 
   TABLE_UNITTEST_FIELDS,
@@ -15,23 +15,24 @@ import {
   TABLE_VERSION_ITERATION_FIELDS,
   TABLE_MICRO_SERVICE_FIELDS,
   UNAME,
-} from '../../../config/db';
-import { ENV_LIST_ROUTE } from '../../../config/routers';
-import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '../../../config/redux';
+} from '@conf/db';
+import { getWikiEnv } from '@conf/url';
+import { ENV_LIST_ROUTE } from '@conf/routers';
+import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 
-import { getEnvs } from '../../actions/env';
-import { getSingleUnittest } from '../../actions/unittest';
+import { getEnvs } from '@act/env';
+import { getSingleUnittest } from '@act/unittest';
 import { 
   getEnvValues, 
   delEnvValue,
   batchCopyEnvVales,
-} from '../../actions/env_value';
+} from '@act/env_value';
 
-import RequestSendTips from '../../classes/RequestSendTips';
-import AddEnvVarComponent from '../../components/env_var/add_env_var';
+import RequestSendTips from '@clazz/RequestSendTips';
+import AddEnvVarComponent from '@comp/env_var/add_env_var';
 
 const { Header, Content, Footer } = Layout;
-const { Text } = Typography;
+const { Text, Link } = Typography;
 
 let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
 
@@ -198,7 +199,7 @@ class EnvVar extends Component {
       return (
         <>
           <Header style={{ padding: 0 }}>
-            单侧环境变量配置
+            单侧环境变量配置 <Text type="secondary"><Link href={getWikiEnv()}>单测环境变量是什么</Link></Text>
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '单测' }, { title: '环境变量' }]} />

@@ -7,21 +7,22 @@ import {
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
 
-import { isStringEmpty, getdayjs } from '../../util';
-import { TABLE_ENV_VAR_FIELDS, UNAME } from '../../../config/db';
-import { ENV_LIST_ROUTE } from '../../../config/routers';
-import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '../../../config/redux';
-import { getEnvs } from '../../actions/env';
+import { isStringEmpty, getdayjs } from '@rutil/index';
+import RequestSendTips from '@clazz/RequestSendTips';
+import AddEnvVarComponent from '@comp/env_var/add_env_var';
+import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
+import { ENV_LIST_ROUTE } from '@conf/routers';
+import { getWikiEnv } from '@conf/url';
+import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
+import { getEnvs } from '@act/env';
 import { 
   getEnvValues, 
   delEnvValue,
   batchCopyEnvVales,
-} from '../../actions/env_value';
-import RequestSendTips from '../../classes/RequestSendTips';
-import AddEnvVarComponent from '../../components/env_var/add_env_var';
+} from '@act/env_value';
 
 const { Header, Content, Footer } = Layout;
-const { Text } = Typography;
+const { Text, Link } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -164,7 +165,7 @@ class EnvVar extends Component {
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
-            全局环境变量配置
+            全局环境变量配置 <Text type="secondary"><Link href={getWikiEnv()}>全局环境变量是什么</Link></Text>
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '全局' }, { title: '环境变量' }]} />
