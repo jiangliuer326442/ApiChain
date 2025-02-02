@@ -343,7 +343,7 @@ class StepExpressionBuilderBox extends Component {
                                     <Select.Option value={ UNITTEST_STEP_PATH_VARIABLE }>uri param</Select.Option>
                                     <Select.Option value={ UNITTEST_STEP_BODY }>body</Select.Option>
                                     <Select.Option value={ UNITTEST_STEP_PARAM }>param</Select.Option>
-                                    <Select.Option value={ UNITTEST_STEP_RESPONSE }>responseContnet</Select.Option>
+                                    <Select.Option value={ UNITTEST_STEP_RESPONSE }>responseContent</Select.Option>
                                     <Select.Option value={ UNITTEST_STEP_RESPONSE_HEADER }>responseHeader</Select.Option>
                                     <Select.Option value={ UNITTEST_STEP_RESPONSE_COOKIE }>responseCookie</Select.Option>
                                 </Select>

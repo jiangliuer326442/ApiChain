@@ -79,6 +79,18 @@
 
 这些参数都是必填的，age 字段类型是数字，其他都是字符串，返回的header 中包含 jwt，我们用来登录的令牌。点击保存。
 
+### 根据昵称获取用户头像
+
+![image-20250201182024358](C:\Users\admin.DESKTOP-A4HMTGM\AppData\Roaming\Typora\typora-user-images\image-20250201182024358.png)
+
+接口地址 `user/avatar/`，路径变量如下：
+
+nickname：Mustafa
+
+点击发送请求，可以看到uri变成 user/avatar/{{nickname}}，实际上，这只是一个规范，你可以根据{{nickname}}实际的位置重新调整。接口返回是一张图片，可以将这个返回图片的接口保存到迭代文档中。
+
+![image-20250201182444480](C:\Users\admin.DESKTOP-A4HMTGM\AppData\Roaming\Typora\typora-user-images\image-20250201182444480.png)
+
 ### 获取登录用户信息
 
 从迭代文档中找到刚刚新增的接口，点击发送按钮。

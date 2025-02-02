@@ -1,4 +1,4 @@
-<img src="https://gitee.com/onlinetool/mypostman/raw/master/assets/icons/256x256.png" />
+![image-20250201163316510](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250201163316510.png)
 
 ApiChain是一款基于版本迭代和项目视角的文档生成和接口自动化测试软件，完成从若干项目创建迭代，针对迭代涉及的接口进行api调用、给迭代涉及接口生成api文档并分享，对迭代内的接口编写可自动化执行的测试用例。迭代完成代码合并上线时，将迭代内接口和自动化测试用例合并到项目中，并对项目进行回归测试的完整流程。相比于postman这样的外来品，ApiChain 更“懂”你。
 
@@ -29,7 +29,8 @@ linux 平台：[ApiChain_v1.0.11_linux.zip](https://gitcode.com/fanghailiang2016
 
 mac 平台：[ApiChain_v1.0.11_macos.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.0.11/ApiChain_v1.0.11_macos.zip)
 
-mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开
+mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开。
+另外，由于linux和mac平台的包大小超过gitee允许的最大附件大小（100M），故提供外站（gitcode.com）的下载地址。
 
 ## 简介
 
