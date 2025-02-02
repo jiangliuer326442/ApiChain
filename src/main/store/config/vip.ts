@@ -86,6 +86,9 @@ export function setExpireTime(expireTime : number) {
 
 export function genDecryptString(base64Str : string) : string {
     let line = decrypt(base64Str);
+    if (isStringEmpty(line)) {
+        return "";
+    }
     let lineArr = line.split(":");
     let productName = lineArr[0];
     let productDays = lineArr[1];
@@ -135,12 +138,16 @@ export function genEncryptString(productName : string, payMethod : string) : str
 
 //解密
 function decrypt(base64Str : string) : string {
-    let encryptedText = Buffer.from(base64Str, 'base64');
-    genKeyIv();
-    let decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+    try {
+        let encryptedText = Buffer.from(base64Str, 'base64');
+        genKeyIv();
+        let decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+        let decrypted = decipher.update(encryptedText);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        return decrypted.toString();
+    } catch (e) {
+        return "";
+    }
 }
 
 //加密

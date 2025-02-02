@@ -1,7 +1,7 @@
 import fse from 'fs-extra';
 import { dialog } from 'electron';
 import log from 'electron-log';
-import { setLang } from '../../lang/i18n';
+import { langTrans, setLang } from '../../lang/i18n';
 import { uuidExists, getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { isVip, getExpireTime, getBuyTimes, giftVip } from '../store/config/vip';
@@ -20,8 +20,15 @@ export async function getInitParams() : Promise<string[]> {
     let packageJson = JSON.parse(content);
     let lang = await osLocale();
 
+    if (process.env.NODE_ENV === 'development') {
+        lang = 'en-AU';
+    }
+    let userLang = lang.split("-")[0];
+    let userCountry = lang.split("-")[1];
+    setLang(userCountry, userLang);
+
     if (!uuidExists()) {
-        dialog.showErrorBox("未找到 id_rsa.pub 文件", "请通过 ssh-keygen -t RSA 命令生成该文件，用于标记您在团队内的身份");
+        dialog.showErrorBox(langTrans("lack sshkey title"), langTrans("lack sshkey content"));
         process.exit(1);
     }
 
@@ -30,12 +37,12 @@ export async function getInitParams() : Promise<string[]> {
         giftVip(3);
     }
 
-    let result = doGetInitParams(packageJson, lang, firstLauch);
+    let result = doGetInitParams(packageJson, userLang, userCountry, firstLauch);
     log.info("getInitParams finished, cost time: " + (Date.now() - _btime));
     return result;
 }
 
-function doGetInitParams(packageJson : any, lang : string, firstLauch : boolean) : string[] {
+function doGetInitParams(packageJson : any, userLang : string, userCountry : string, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
@@ -45,9 +52,6 @@ function doGetInitParams(packageJson : any, lang : string, firstLauch : boolean)
     let html = resolveHtmlPath('index.html');
     let appVersion = packageJson.version;
     let appName = packageJson.name;
-    let userLang = lang.split("-")[0];
-    let userCountry = lang.split("-")[1];
-    setLang(userCountry, userLang);
 
     return [
         "$$" + base64Encode("uuid=" + uuid),

@@ -15,6 +15,7 @@
     "outDir": ".erb/dll",
     "baseUrl": "src",
     "paths": {
+      "@lang/*": ["lang/*"],
       "@conf/*": ["config/*"],
       "@rutil/*": ["renderer/util/*"],
       "@act/*": ["renderer/actions/*"],

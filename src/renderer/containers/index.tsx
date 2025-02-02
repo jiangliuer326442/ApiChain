@@ -3,6 +3,24 @@ import { Provider } from 'react-redux';
 import { HashRouter, Route, Switch } from 'react-router-dom';
 import { Layout } from "antd";
 
+import { setLang } from '@lang/i18n';
+import {
+    USERCOUNTRY,
+    USERLANG,
+} from '@conf/storage';
+import { getStartParams, isStringEmpty } from '@rutil/index';
+
+let argsObject = getStartParams();
+let userCountry = argsObject.userCountry;
+let userLang = argsObject.userLang;
+
+if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
+    userCountry = sessionStorage.getItem(USERCOUNTRY);
+    userLang = sessionStorage.getItem(USERLANG);
+}
+
+setLang(userCountry, userLang);
+
 import configureStore from '@store/configureStore';
 import { 
     ENV_LIST_ROUTE, 
@@ -96,7 +114,7 @@ class MyRouter extends Component {
                                     <Route path={ UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE } component={UnittestExecutorListPage} />
                                     <Route path={ UNITTEST_STEP_ADD_ROUTE } component={UnittestStepPage} />
                                     <Route path={ UNITTEST_STEP_EDIT_ROUTE } component={UnittestStepPage} />
-                                    <Route path= { VIP_ITERATOR_LIST_ROUTE } component={VipFunctionPage} />
+                                    <Route path={ VIP_ITERATOR_LIST_ROUTE } component={VipFunctionPage} />
                                     <Route path={ ITERATOR_ADD_REQUEST_ROUTE } component={RequestToSaveContainerPage} />
                                     <Route path={ ENVVAR_GLOBAL_LIST_ROUTE } component={EnvVarGlobalPage} />
                                     <Route path={ ENVVAR_ITERATOR_LIST_ROUTE } component={EnvVarIteratorPage} />
