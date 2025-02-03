@@ -22,6 +22,7 @@ import {
   cleanJson
 } from '@rutil/json';
 import { ENV_VALUE_API_HOST } from "@conf/envKeys";
+import { getWikiSendRequest } from '@conf/url';
 import { 
   TABLE_REQUEST_HISTORY_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
@@ -103,7 +104,7 @@ let project_request_param = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let project_request_path_variable = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
 const { Header, Content, Footer } = Layout;
-const { Text } = Typography;
+const { Text, Link } = Typography;
 const { TextArea } = Input;
 
 class RequestSendContainer extends Component {
@@ -732,7 +733,7 @@ class RequestSendContainer extends Component {
     return (
         <Layout>
             <Header style={{ padding: 0 }}>
-                发送网络请求
+                发送网络请求 <Text type="secondary"><Link href={ getWikiSendRequest() }>如何发送网络请求？</Link></Text>
             </Header>
             <Content style={{ padding: '0 16px' }}>
               <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '请求' }, { title: '发送' }]} />

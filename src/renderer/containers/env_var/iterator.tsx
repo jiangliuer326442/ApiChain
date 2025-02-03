@@ -10,6 +10,7 @@ import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/ico
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import RequestSendTips from '@clazz/RequestSendTips';
 import AddEnvVarComponent from '@comp/env_var/add_env_var';
+import { getWikiEnv } from '@conf/url';
 import { 
   TABLE_ENV_VAR_FIELDS, 
   TABLE_VERSION_ITERATION_FIELDS,
@@ -36,7 +37,7 @@ import {
 } from '@act/version_iterator';
 
 const { Header, Content, Footer } = Layout;
-const { Text } = Typography;
+const { Text, Link } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -232,7 +233,7 @@ class EnvVar extends Component {
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
-            迭代环境变量配置
+            迭代环境变量配置 <Text type="secondary"><Link href={getWikiEnv()}>迭代环境变量是什么</Link></Text>
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '迭代' }, { title: '环境变量' }]} />

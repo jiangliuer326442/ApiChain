@@ -14,6 +14,7 @@ import {
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { isStringEmpty, getdayjs } from '@rutil/index';
+import { langFormat, langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
@@ -66,7 +67,7 @@ class PayModel extends Component {
         window.electron.ipcRenderer.on(ChannelsVipStr, async (action, result, myuid, expireTime, buyTimes) => {
             if (action !== ChannelsVipDoCkCodeStr) return;
             if (!result) {
-                message.error("核销码填写错误，核销失败");
+                message.error(langTrans("member checkout error"));
                 return;
             }
             this.props.dispatch({
@@ -86,7 +87,7 @@ class PayModel extends Component {
                 ckCode: "",
                 lodingCkCode: false,
             });
-            message.success("核销成功，尊敬的会员，您的 vip 截止日期为：" + getdayjs(expireTime).format("YYYY-MM-DD"));
+            message.success(langFormat("member checkout success", {"date": getdayjs(expireTime).format("YYYY-MM-DD")}));
         });
     }
 
@@ -173,56 +174,75 @@ class PayModel extends Component {
     render() : ReactNode {
         let payTools = "";
         if (this.state.payMethod === 'wxpay') {
-            payTools = "微信";
+            payTools = langTrans("member topup equipment e1");
         } else if (this.state.payMethod === 'alipay') {
-            payTools = "支付宝";
+            payTools = langTrans("member topup equipment e2");
         } else if (this.state.payMethod === 'dollerpay') {
-            payTools = "浏览器";
+            payTools = langTrans("member topup equipment e3");
         }
         return (
             <>
                 <Modal
-                    title="您还不是会员，无法使用会员功能"
+                    title={langTrans("member topup title")}
                     open={this.props.showPay}
                     onOk={this.payDone}
                     onCancel={this.canelPay}
-                    width={350}
+                    width={500}
                     footer={[
                         <Button key="back" onClick={this.canelPay}>
-                            取消支付
+                            {langTrans("member topup btn cancel")}
                         </Button>,
                         <Button key="submit" type="primary" onClick={this.payDone}>
-                            支付完成
+                            {langTrans("member topup btn finish")}
                         </Button>
                     ]}
                 >
                     <Flex gap="small" vertical>
                         <Form>
-                            <Form.Item label="购买时长">
+                            <Form.Item label={langTrans("member topup time")}>
+                                {
+                                this.props.userCountry === 'CN' ? 
                                 <Radio.Group onChange={this.setProductName} value={this.state.productName}>
-                                    <Radio value={this.props.buyTimes === 0 ? "product12" : (this.props.buyTimes === 1 ? "product13" : "product9") } >1 个月</Radio>
-                                    <Radio value="product10">1 年</Radio>
-                                    <Radio value="product11">永久</Radio>
+                                    <Radio value={this.props.buyTimes === 0 ? "product12" : (this.props.buyTimes === 1 ? "product13" : "product9") } >{langTrans("member topup time t1")}</Radio>
+                                    <Radio value="product10">{langTrans("member topup time t2")}</Radio>
+                                    <Radio value="product11">{langTrans("member topup time t3")}</Radio>
                                 </Radio.Group>
+                                : 
+                                <Radio.Group onChange={this.setProductName} value={this.state.productName}>
+                                    <Radio value="product9">{langTrans("member topup time t1")}</Radio>
+                                    <Radio value="product10">{langTrans("member topup time t2")}</Radio>
+                                    <Radio value="product11">{langTrans("member topup time t3")}</Radio>
+                                </Radio.Group>
+                                }
                             </Form.Item>
-                            <Form.Item label="支付方式">
+                            <Form.Item label={langTrans("member topup paymethod")}>
+                                {
+                                this.props.userCountry === 'CN' ? 
                                 <Radio.Group onChange={this.setPayMethod} value={this.state.payMethod}>
-                                    <Radio value="wxpay">微信</Radio>
-                                    <Radio value="alipay">支付宝</Radio>
-                                    {this.props.userCountry === 'CN' ? null : <Radio value="dollerpay">加密货币</Radio>}
+                                    <Radio value="wxpay">{langTrans("member topup paymethod p1")}</Radio>
+                                    <Radio value="alipay">{langTrans("member topup paymethod p2")}</Radio>
                                 </Radio.Group>
+                                : 
+                                <Radio.Group onChange={this.setPayMethod} value={this.state.payMethod}>
+                                    <Radio value="dollerpay">{langTrans("member topup paymethod p3")}</Radio>
+                                </Radio.Group>
+                                }
                             </Form.Item>
                         </Form>
                         {this.state.showPayQrCode ? 
                         <>
-                            <p>共需支付 { this.state.money }{this.state.payMethod === 'dollerpay' ? ' 美元 ' : ' 元 '}，使用 { payTools } 扫描以下二维码</p>
+                            <p>{langFormat("member topup paycontent", {
+                                "money": this.state.money,
+                                "unit": this.state.payMethod === 'dollerpay' ? '$' : '￥',
+                                "equipment": payTools
+                            })}</p>
                             <img src={ this.state.qrcode } />
                         </>
                         : null}
                     </Flex>
                 </Modal>
                 <Modal
-                    title="填写您手机上展示的核销码，进行核销"
+                    title={langTrans("member checkout title")}
                     open={this.state.showPayWriteOff}
                     confirmLoading={this.state.lodingCkCode}
                     onOk={this.payCheck}
@@ -230,16 +250,16 @@ class PayModel extends Component {
                     width={350}
                     footer={[
                         <Button key="back" onClick={this.canelCkCode}>
-                            未支付
+                            {langTrans("member checkout btn cancel")}
                         </Button>,
                         <Button key="submit" type="primary" loading={this.state.lodingCkCode} onClick={this.payCheck}>
-                            核销支付
+                            {langTrans("member checkout btn finish")}
                         </Button>
                     ]}
                 >
                     <Flex gap="small" vertical>
                         <Form>
-                            <Form.Item label="核销码">
+                            <Form.Item label={langTrans("member checkout form")}>
                                 <TextArea value={ this.state.ckCode } autoSize={{ minRows: 6 }}                                  onChange={(e) => {
                                     let content = e.target.value;
                                     this.setState({ ckCode: content });
@@ -248,7 +268,7 @@ class PayModel extends Component {
                         </Form>
                         {this.state.showPayQrCode ? 
                         <>
-                            <p>可扫以下二维码查询您的核销码</p>
+                            <p>{langTrans("member checkout paycontent")}</p>
                             <img src={ this.state.qrcode } />
                         </>
                         : null}

@@ -7,21 +7,23 @@ import {
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
 
-import { isStringEmpty, getdayjs } from '../../util';
-import { TABLE_ENV_VAR_FIELDS, UNAME } from '../../../config/db';
-import { ENV_LIST_ROUTE } from '../../../config/routers';
-import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '../../../config/redux';
-import { getEnvs } from '../../actions/env';
+import { isStringEmpty, getdayjs } from '@rutil/index';
+import RequestSendTips from '@clazz/RequestSendTips';
+import AddEnvVarComponent from '@comp/env_var/add_env_var';
+import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
+import { ENV_LIST_ROUTE } from '@conf/routers';
+import { getWikiEnv } from '@conf/url';
+import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
+import { getEnvs } from '@act/env';
 import { 
   getEnvValues, 
   delEnvValue,
   batchCopyEnvVales,
-} from '../../actions/env_value';
-import RequestSendTips from '../../classes/RequestSendTips';
-import AddEnvVarComponent from '../../components/env_var/add_env_var';
+} from '@act/env_value';
+import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
-const { Text } = Typography;
+const { Text, Link } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -35,7 +37,7 @@ class EnvVar extends Component {
       this.state = {
         listColumn: [
           {
-            title: '参数名称',
+            title: langTrans("envvar global table1"),
             dataIndex: pname,
             width: 100,
             render: (value) => {
@@ -45,7 +47,7 @@ class EnvVar extends Component {
             }
           },
           {
-            title: '参数值',
+            title: langTrans("envvar global table2"),
             dataIndex: pvar,
             render: (value) => {
               return (
@@ -54,24 +56,24 @@ class EnvVar extends Component {
             }
           },
           {
-            title: '备注',
+            title: langTrans("envvar global table3"),
             dataIndex: premark,
             width: 150,
           },
           {
-            title: '创建人',
+            title: langTrans("envvar global table4"),
             dataIndex: UNAME,
             width: 100,
             ellipsis: true,
           },
           {
-              title: '创建时间',
+              title: langTrans("envvar global table5"),
               dataIndex: env_var_ctime,
               width: 120,
               render: (time) => { return getdayjs(time).format("YYYY-MM-DD") },
           },
           {
-            title: '操作',
+            title: langTrans("envvar global table6"),
             key: 'operater',
             width: 100,
             render: (_, record) => {
@@ -80,15 +82,15 @@ class EnvVar extends Component {
                   <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
                   {(record['allow_del'] === false ) ? null :
                   <Popconfirm
-                    title="环境变量"
-                    description="确定删除该环境变量吗？"
+                    title={langTrans("envvar global del title")}
+                    description={langTrans("envvar global del desc")}
                     onConfirm={e => {
                         delEnvValue("", (this.state.env ? this.state.env : this.props.env), "", "", record, ()=>{
                           getEnvValues("", (this.state.env ? this.state.env : this.props.env), "", "", "", this.props.dispatch, env_vars=>{});
                         });
                     }}
-                    okText="删除"
-                    cancelText="取消"
+                    okText={langTrans("envvar global del sure")}
+                    cancelText={langTrans("envvar global del cancel")}
                   >
                     <Button danger type="link" icon={<DeleteOutlined />} />
                   </Popconfirm>}
@@ -164,13 +166,13 @@ class EnvVar extends Component {
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
-            全局环境变量配置
+            {langTrans("envvar global title")} <Text type="secondary"><Link href={getWikiEnv()}>{langTrans("envvar global doc")}</Link></Text>
           </Header>
           <Content style={{ padding: '0 16px' }}>
-            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '全局' }, { title: '环境变量' }]} />
+            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar global bread1") }, { title: langTrans("envvar global bread2") }]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">
-                  <Form.Item label="选择环境">
+                  <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
                         value={ this.state.env ? this.state.env : this.props.env }
@@ -184,7 +186,7 @@ class EnvVar extends Component {
                       <Button type="link" href={"#" + ENV_LIST_ROUTE}>添加服务器环境</Button>
                       }
                   </Form.Item>
-                  <Form.Item style={{paddingBottom: 20}} label="参数">
+                  <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar select tip2")}>
                       <AutoComplete 
                           allowClear={{ clearIcon: <CloseSquareFilled /> }} 
                           options={this.state.pkeys} 
@@ -197,7 +199,7 @@ class EnvVar extends Component {
                           <Input />
                       </AutoComplete>
                   </Form.Item>
-                  <Form.Item label="拷贝到环境">
+                  <Form.Item label={langTrans("envvar select tip3")}>
                     <Select
                         onChange={ async value => {
                           if (this.state.copiedKeys.length === 0) return;
@@ -217,7 +219,7 @@ class EnvVar extends Component {
                     />
                   </Form.Item>
                 </Form>
-              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>添加环境变量</Button>
+              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
               <AddEnvVarComponent tips={this.state.tips} />
             </Flex>
             <Table 

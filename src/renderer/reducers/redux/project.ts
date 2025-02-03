@@ -1,16 +1,17 @@
-import { getdayjs, mixedSort } from '../../util';
+import { getdayjs, mixedSort } from '@rutil/index';
 
-import { UNAME } from '../../../config/db';
+import { UNAME } from '@conf/db';
 
 import { 
   SHOW_ADD_PRJ_MODEL,
   SHOW_EDIT_PRJ_MODEL,
   GET_PRJS
-} from '../../../config/redux';
+} from '@conf/redux';
 
 import { 
   TABLE_MICRO_SERVICE_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
+import { langTrans } from '@lang/i18n';
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 let prj_ctime = TABLE_MICRO_SERVICE_FIELDS.FIELD_CTIME;
@@ -18,19 +19,19 @@ let prj_ctime = TABLE_MICRO_SERVICE_FIELDS.FIELD_CTIME;
 export default function (state = {
     projectListColumn: [
         {
-            title: '项目标识',
+            title: langTrans("prj table1"),
             dataIndex: prj_label,
         },
         {
-            title: '备注',
+            title: langTrans("prj table2"),
             dataIndex: prj_remark,
         },
         {
-            title: '创建人',
+            title: langTrans("prj table3"),
             dataIndex: UNAME,
         },
         {
-              title: '创建时间',
+              title: langTrans("prj table4"),
               dataIndex: prj_ctime,
               render: (time) => { return getdayjs(time).format("YYYY-MM-DD")},
         },

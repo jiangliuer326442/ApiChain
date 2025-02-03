@@ -8,6 +8,7 @@ import {
     Collapse, 
     Select, 
     Tooltip, 
+    Typography,
     Popconfirm, 
     InputNumber, 
     Form, 
@@ -33,6 +34,7 @@ import {
     TABLE_PROJECT_REQUEST_FIELDS, 
     TABLE_ENV_VAR_FIELDS 
 } from '@conf/db';
+import { getWikiProject } from '@conf/url';
 import { 
     ENV_VALUE_API_HOST 
 } from '@conf/envKeys';
@@ -84,6 +86,7 @@ import {
 } from '@act/project_request';
 
 const { Header, Content, Footer } = Layout;
+const { Text, Link } = Typography;
 
 type FieldType = {
     folder?: string,
@@ -451,7 +454,7 @@ class RequestListProject extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    项目接口列表
+                    项目接口列表 <Text type="secondary"><Link href={getWikiProject()}>迭代的接口和单测如何合并到项目？</Link></Text>
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[

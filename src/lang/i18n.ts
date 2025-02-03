@@ -24,6 +24,7 @@ export function setLang(userCountry : string, userLang : string) {
   } else {
     data = enUsLang;
   }
+  console.log("setLang", userCountry, userLang, data);
 }
 
 export function getLang() : string {
@@ -31,8 +32,23 @@ export function getLang() : string {
 }
 
 export function langTrans(key : string) {
+  if (key === "nav request") {
+    console.log("langTrans", data);
+  }
   if (key in data) {
     return data[key];
+  } else {
+    return "";
+  }
+}
+
+export function langFormat(key : string, format : any) {
+  if (key in data) {
+    let content = data[key];
+    for (let _key in format) {
+      content = content.replace(`{{${_key}}}`, format[_key]);
+    }
+    return content;
   } else {
     return "";
   }

@@ -7,9 +7,10 @@ import {
     message
 } from "antd";
 
-import { isStringEmpty } from '../../util';
-import { SHOW_ADD_PRJ_MODEL } from '../../../config/redux';
-import { getPrjs, addPrj } from '../../actions/project';
+import { isStringEmpty } from '@rutil/index';
+import { SHOW_ADD_PRJ_MODEL } from '@conf/redux';
+import { getPrjs, addPrj } from '@act/project';
+import { langTrans } from '@lang/i18n';
 
 class AddPrjComponent extends Component {
 
@@ -40,12 +41,12 @@ class AddPrjComponent extends Component {
         const remarkValue = this.state.remarkValue.trim();
 
         if (isStringEmpty(prjValue)) {
-            message.error('请输入项目标识');
+            message.error(langTrans("prj add check1"));
             return;
         }
 
         if (isStringEmpty(remarkValue)) {
-            message.error('请输入项目备注');
+            message.error(langTrans("prj add check2"));
             return;
         }
 
@@ -85,7 +86,7 @@ class AddPrjComponent extends Component {
     render() : ReactNode {
         return (
             <Modal
-                title={this.state.actionType === "create" ? "新增项目" : "编辑项目"}
+                title={this.state.actionType === "create" ? langTrans("prj add title") : langTrans("prj edit title")}
                 open={this.props.open}
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
@@ -96,10 +97,10 @@ class AddPrjComponent extends Component {
                 layout="vertical"
                 >
                     <Form.Item>
-                        <Input placeholder="项目标识" value={this.state.prjValue} onChange={ event=>this.setState({prjValue : event.target.value}) } readOnly={ this.state.actionType === "edit" } />
+                        <Input placeholder={langTrans("prj add form1")} value={this.state.prjValue} onChange={ event=>this.setState({prjValue : event.target.value}) } readOnly={ this.state.actionType === "edit" } />
                     </Form.Item>
                     <Form.Item>
-                        <Input placeholder="备注" value={this.state.remarkValue} onChange={ event=>this.setState({remarkValue : event.target.value}) } />
+                        <Input placeholder={langTrans("prj add form2")} value={this.state.remarkValue} onChange={ event=>this.setState({remarkValue : event.target.value}) } />
                     </Form.Item>
                 </Form>
             </Modal>

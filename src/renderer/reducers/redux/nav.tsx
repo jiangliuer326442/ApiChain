@@ -7,19 +7,19 @@ import {
   FlagOutlined,
 } from '@ant-design/icons';
 
-import { mixedSort } from '../../util';
+import { mixedSort } from '@rutil/index';
 
 import {
   NETWORK,
   SETTINGS,
   ITERATOR,
   PROJECT,
-} from '../../../config/global_config';
+} from '@conf/global_config';
 
 import { 
   TABLE_VERSION_ITERATION_FIELDS,
   TABLE_MICRO_SERVICE_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 
 import {
   ENV_LIST_ROUTE,
@@ -28,13 +28,14 @@ import {
   INTERNET_REQUEST,
   REQUEST_HISTORY,
   ENVVAR_GLOBAL_LIST_ROUTE,
-} from '../../../config/routers';
+} from '@conf/routers';
 
 import { 
   GET_VERSION_ITERATORS,
   SET_NAV_COLLAPSED,
   GET_PRJS
-} from '../../../config/redux';
+} from '@conf/redux';
+import { langTrans } from '@lang/i18n';
 
 let version_iterator_openFlg = TABLE_VERSION_ITERATION_FIELDS.FIELD_OPENFLG;
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
@@ -48,13 +49,13 @@ export default function (state = {
       {
         key: NETWORK,
         icon: <OneToOneOutlined />,
-        label: '请求',
+        label: langTrans("nav request"),
         children:[
           {
             key: INTERNET_REQUEST,
             label: (
               <a href={ "#" + INTERNET_REQUEST } rel="noopener noreferrer">
-                发送请求
+                {langTrans("nav request send")}
               </a >
             )
           },
@@ -62,7 +63,7 @@ export default function (state = {
             key: REQUEST_HISTORY,
             label: (
               <a href={ "#" + REQUEST_HISTORY } rel="noopener noreferrer">
-                请求记录
+                {langTrans("nav request log")}
               </a >
             )
           }
@@ -71,27 +72,27 @@ export default function (state = {
       {
         key: ITERATOR,
         icon: <LineChartOutlined />,
-        label: '迭代',
+        label: langTrans("nav iterator"),
         children: [
         ]
       },
       {
         key: PROJECT,
         icon: <FlagOutlined />,
-        label: '项目',
+        label: langTrans("nav project"),
         children: [
         ]
       },
       {
         key: SETTINGS,
         icon: <SettingOutlined />,
-        label: '设置',
+        label: langTrans("nav setting"),
         children: [
           {
             key: VERSION_ITERATOR_LIST_ROUTE,
             label:(
               <a href={ "#" + VERSION_ITERATOR_LIST_ROUTE } rel="noopener noreferrer">
-                版本迭代
+                {langTrans("nav setting iterator")}
               </a>
             )
           },
@@ -99,7 +100,7 @@ export default function (state = {
             key: ENVVAR_GLOBAL_LIST_ROUTE,
             label: (
               <a href={ "#" + ENVVAR_GLOBAL_LIST_ROUTE } rel="noopener noreferrer">
-                全局环境变量
+                {langTrans("nav setting envvar")}
               </a >
             )
           },
@@ -107,7 +108,7 @@ export default function (state = {
             key: PROJECT_LIST_ROUTE,
             label: (
               <a href={ "#" + PROJECT_LIST_ROUTE } rel="noopener noreferrer">
-                项目
+                {langTrans("nav setting project")}
               </a >
             )
           },
@@ -115,7 +116,7 @@ export default function (state = {
             key: ENV_LIST_ROUTE,
             label: (
               <a href={ "#" + ENV_LIST_ROUTE } rel="noopener noreferrer">
-                开发环境
+                {langTrans("nav setting env")}
               </a >
             )
           },
@@ -153,19 +154,19 @@ export default function (state = {
           children: [
             {
               key: ITERATOR + "_" + versionIterator[version_iterator_uuid] + "_envvar",
-              label: <a href={"#/iterator_envvars/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">迭代环境变量</a >
+              label: <a href={"#/iterator_envvars/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator envvar")}</a >
             },
             {
               key: ITERATOR + "_" + versionIterator[version_iterator_uuid] + "_doc",
-              label: <a href={"#/version_iterator_requests/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">文档</a >
+              label: <a href={"#/version_iterator_requests/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator doc")}</a >
             },
             {
               key: ITERATOR + "_" + versionIterator[version_iterator_uuid] + "_unittest",
-              label: <a href={"#/version_iterator_tests/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">单测</a >
+              label: <a href={"#/version_iterator_tests/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator unittest")}</a >
             },
             {
               key: ITERATOR + "_" + versionIterator[version_iterator_uuid] + "_vip",
-              label: <a href={"#/version_iterator_vip/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">会员</a >
+              label: <a href={"#/version_iterator_vip/" + versionIterator[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator member")}</a >
             }
           ],
         });
@@ -197,15 +198,15 @@ export default function (state = {
           children: [
             {
               key: prj[prj_label] + "_envvar",
-              label: <a href={"#/prj_envvars/" + prj[prj_label] } rel="noopener noreferrer">项目环境变量</a >
+              label: <a href={"#/prj_envvars/" + prj[prj_label] } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
             },
             {
               key: prj[prj_label] + "_doc",
-              label: <a href={"#/project_requests/" + prj[prj_label] } rel="noopener noreferrer">文档</a >
+              label: <a href={"#/project_requests/" + prj[prj_label] } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
             },
             {
               key: prj[prj_label] + "_unittest",
-              label: <a href={"#/project_tests/" + prj[prj_label] } rel="noopener noreferrer">单测</a >
+              label: <a href={"#/project_tests/" + prj[prj_label] } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
             }
           ]
         });

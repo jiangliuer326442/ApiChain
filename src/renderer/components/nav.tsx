@@ -3,13 +3,7 @@ import { connect } from 'react-redux';
 import { Layout, Menu, Flex } from "antd";
 import Dexie from 'dexie';
 
-import { setLang } from '../../lang/i18n';
-import { getStartParams, isStringEmpty } from '@rutil/index';
 import { DB_NAME } from '@conf/db';
-import {
-  USERCOUNTRY,
-  USERLANG,
-} from '@conf/storage';
 import { SET_NAV_COLLAPSED } from '@conf/redux';
 import { getVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
@@ -20,18 +14,6 @@ class Nav extends Component {
 
     constructor(props) {
         super(props);
-
-        let argsObject = getStartParams();
-        console.log("argsObject", argsObject);
-        let userCountry = argsObject.userCountry;
-        let userLang = argsObject.userLang;
-
-        if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
-          userCountry = sessionStorage.getItem(USERCOUNTRY);
-          userLang = sessionStorage.getItem(USERLANG);
-        }
-
-        setLang(userCountry, userLang);
 
         if(window.db === undefined) {
             window.db = new Dexie(DB_NAME);

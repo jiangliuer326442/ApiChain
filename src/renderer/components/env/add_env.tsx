@@ -7,9 +7,10 @@ import {
     message
 } from "antd";
 
-import { isStringEmpty } from '../../util';
-import { SHOW_ADD_ENV_MODEL } from '../../../config/redux';
-import { getEnvs, addEnv } from '../../actions/env';
+import { isStringEmpty } from '@rutil/index';
+import { SHOW_ADD_ENV_MODEL } from '@conf/redux';
+import { getEnvs, addEnv } from '@act/env';
+import { langTrans } from '@lang/i18n';
 
 class AddEnvComponent extends Component {
 
@@ -41,12 +42,12 @@ class AddEnvComponent extends Component {
         const remarkValue = this.state.remarkValue.trim();
 
         if (isStringEmpty(envValue)) {
-            message.error('请输入环境标识');
+            message.error(langTrans("env add check1"));
             return;
         }
 
         if (isStringEmpty(remarkValue)) {
-            message.error('请输入备注');
+            message.error(langTrans("env add check2"));
             return;
         }
 
@@ -87,7 +88,7 @@ class AddEnvComponent extends Component {
     render() : ReactNode {
         return (
             <Modal
-                title={this.state.actionType === "create" ? "添加服务器环境" : "编辑服务器环境"}
+                title={this.state.actionType === "create" ? langTrans("env add title") : langTrans("env edit title")}
                 open={this.props.open}
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
@@ -98,10 +99,10 @@ class AddEnvComponent extends Component {
                 layout="vertical"
                 >
                     <Form.Item>
-                        <Input placeholder="环境标识" value={this.state.envValue} onChange={ event=>this.setState({envValue : event.target.value}) } readOnly={ this.state.actionType === "edit" } />
+                        <Input placeholder={langTrans("env add form1")} value={this.state.envValue} onChange={ event=>this.setState({envValue : event.target.value}) } readOnly={ this.state.actionType === "edit" } />
                     </Form.Item>
                     <Form.Item>
-                        <Input placeholder="备注" value={this.state.remarkValue} onChange={ event=>this.setState({remarkValue : event.target.value}) } />
+                        <Input placeholder={langTrans("env add form2")} value={this.state.remarkValue} onChange={ event=>this.setState({remarkValue : event.target.value}) } />
                     </Form.Item>
                 </Form>
             </Modal>

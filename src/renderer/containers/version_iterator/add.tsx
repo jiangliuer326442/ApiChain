@@ -6,20 +6,21 @@ import {
 } from "antd";
 
 import "./less/add.less";
-import { isStringEmpty, getdayjs } from "../../util";
+import MarkdownEditor from '@comp/markdown/edit';
+import { isStringEmpty, getdayjs } from "@rutil/index";
 import { 
     PROJECT_LIST_ROUTE, 
     VERSION_ITERATOR_LIST_ROUTE 
-} from "../../../config/routers";
-import { TABLE_VERSION_ITERATION_FIELDS, UNAME } from '../../../config/db';
-import { getPrjs } from '../../actions/project';
+} from "@conf/routers";
+import { TABLE_VERSION_ITERATION_FIELDS, UNAME } from '@conf/db';
+import { getPrjs } from '@act/project';
 import { 
     getVersionIterator,
     addVersionIterator,
     editVersionIterator,
     getVersionIterators
-} from '../../actions/version_iterator';
-import MarkdownEditor from '../../components/markdown/edit';
+} from '@act/version_iterator';
+import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 
@@ -83,13 +84,13 @@ class VersionIteratorAdd extends Component {
     render() : ReactNode {
         return (
         <Layout>
-            <Header style={{ padding: 0 }}>版本迭代</Header>
+            <Header style={{ padding: 0 }}>{langTrans("iterator title")}</Header>
             <Content style={{ padding: '0 16px' }}>
                 <Flex justify="space-between" align="center">
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
-                        { title: '设置' }, 
-                        { title: <a href={"#" + VERSION_ITERATOR_LIST_ROUTE }> 迭代管理</a> },
-                        { title: isStringEmpty(this.state.uuid) ? '新增迭代' : '编辑迭代'  }, 
+                        { title: langTrans("iterator bread1") }, 
+                        { title: <a href={"#" + VERSION_ITERATOR_LIST_ROUTE }> {langTrans("iterator bread2")}</a> },
+                        { title: isStringEmpty(this.state.uuid) ? langTrans("iterator add title") : langTrans("iterator edit title")  }, 
                     ]} />
                 </Flex>
                 <div
@@ -111,23 +112,23 @@ class VersionIteratorAdd extends Component {
                         disabled={this.state.version_iteration[version_iterator_openflg] === 0}
                     >
                         <Form.Item<FieldType>
-                            label="迭代名称"
+                            label={langTrans("iterator add form1")}
                             name="title"
-                            rules={[{ required: true, message: '请输入迭代名称' }]}
+                            rules={[{ required: true, message: langTrans("iterator add check1") }]}
                         >
                             <Input />
                         </Form.Item>
 
                         <Form.Item<FieldType> 
                             name="projects" 
-                            label="使用微服务" 
-                            rules={[{ required: true, message: '选择迭代涉及的项目' }]}>
+                            label={langTrans("iterator add form2")}
+                            rules={[{ required: true, message: langTrans("iterator add check2") }]}>
                             {this.props.prjs.length > 0 ? 
                             <Select
                                 mode="multiple"
                                 allowClear
                                 style={{ width: '100%' }}
-                                placeholder="选择使用到的微服务"
+                                placeholder={langTrans("iterator add check3")}
                                 options={this.props.prjs} />
                             :
                             <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>创建微服务</Button>
@@ -135,7 +136,7 @@ class VersionIteratorAdd extends Component {
                         </Form.Item>
 
                         <Form.Item<FieldType>
-                            label="迭代说明"
+                            label={langTrans("iterator add form3")}
                             name="content"
                         >
                             <MarkdownEditor content={this.state.content} cb={content => this.setState({content}) } />
@@ -144,25 +145,25 @@ class VersionIteratorAdd extends Component {
                         {!isStringEmpty(this.state.uuid) ? 
                         <Descriptions title="">
                             { this.state.version_iteration[version_iterator_openflg] === 0 ?
-                            <Descriptions.Item label="关闭时间">{ getdayjs(this.state.version_iteration[version_iterator_close_time]).format("YYYY-MM-DD") }</Descriptions.Item>
+                            <Descriptions.Item label={langTrans("iterator add form4")}>{ getdayjs(this.state.version_iteration[version_iterator_close_time]).format("YYYY-MM-DD") }</Descriptions.Item>
                             : null }
                             
-                            <Descriptions.Item label="创建人">{ this.state.version_iteration[UNAME] }</Descriptions.Item>
-                            <Descriptions.Item label="创建时间">{ getdayjs(this.state.version_iteration[version_iterator_ctime]).format("YYYY-MM-DD") }</Descriptions.Item>
+                            <Descriptions.Item label={langTrans("iterator add form5")}>{ this.state.version_iteration[UNAME] }</Descriptions.Item>
+                            <Descriptions.Item label={langTrans("iterator add form6")}>{ getdayjs(this.state.version_iteration[version_iterator_ctime]).format("YYYY-MM-DD") }</Descriptions.Item>
                         </Descriptions>
                         : null}
 
                         {isStringEmpty(this.state.uuid) ? 
                         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                             <Button type="primary" htmlType="submit">
-                                新增
+                                {langTrans("iterator add btn")}
                             </Button>
                         </Form.Item>
                          : 
                         ( this.state.version_iteration[version_iterator_openflg] === 1 ? 
                             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                 <Button type="primary" htmlType="submit">
-                                    修改
+                                {langTrans("iterator edit btn")}
                                 </Button>
                             </Form.Item>
                         : null )

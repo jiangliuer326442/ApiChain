@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { 
     Breadcrumb, Layout, Flex, Dropdown,
     Popconfirm, Table, Space, Button, 
-    Select, Form, message
+    Select, Form, message, Typography
 } from "antd";
 import type { MenuProps } from 'antd';
 import { 
@@ -20,6 +20,7 @@ import {
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     UNAME, TABLE_UNITTEST_STEPS_NAME,
 } from '@conf/db';
+import { getWikiUnittest } from '@conf/url';
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
@@ -48,6 +49,7 @@ import PayModel from '@comp/topup';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
 
+const { Text, Link } = Typography;
 const { Header, Content, Footer } = Layout;
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
@@ -402,7 +404,7 @@ class UnittestListVersion extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    迭代单测列表
+                    迭代单测列表 <Text type="secondary"><Link href={getWikiUnittest()}>如何给迭代接口编写单测？</Link></Text>
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <AddUnittestComponent refreshCb={() => getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch)} />

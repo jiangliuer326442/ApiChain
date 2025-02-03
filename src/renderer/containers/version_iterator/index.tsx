@@ -11,13 +11,14 @@ import {
   Flex, Button, Table, Popconfirm,
 } from "antd";
 
-import { VERSION_ITERATOR_ADD_ROUTE } from "../../../config/routers";
-import { TABLE_VERSION_ITERATION_FIELDS, TABLE_MICRO_SERVICE_FIELDS } from '../../../config/db';
+import VersionIteratorSwitch from '@comp/version_iterator/switch';
+import { VERSION_ITERATOR_ADD_ROUTE } from "@conf/routers";
+import { TABLE_VERSION_ITERATION_FIELDS, TABLE_MICRO_SERVICE_FIELDS } from '@conf/db';
 import { 
   getVersionIterators, 
   delVersionIterator 
-} from "../../actions/version_iterator";
-import VersionIteratorSwitch from '../../components/version_iterator/switch';
+} from "@act/version_iterator";
+import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 
@@ -36,11 +37,11 @@ class VersionIterator extends Component {
       this.state = {
         listColumn: [
           {
-              title: '迭代名称',
+              title: langTrans("iterator table1"),
               dataIndex: version_iterator_title,
           },
           {
-            title: '关联项目',
+            title: langTrans("iterator table2"),
             dataIndex: version_iterator_prjects,
             width: 200,
             render: (projects) => {
@@ -51,7 +52,7 @@ class VersionIterator extends Component {
             },
           },
           {
-            title: '迭代状态',
+            title: langTrans("iterator table3"),
             dataIndex: version_iterator_openflg,
             width: 90,
             render: (status, row) => {
@@ -59,7 +60,7 @@ class VersionIterator extends Component {
             },
           },
           {
-            title: '操作',
+            title: langTrans("iterator table4"),
             key: 'operater',
             width: 100,
             render: (_, record) => {
@@ -68,15 +69,15 @@ class VersionIterator extends Component {
                   <Button type="link" icon={record[version_iterator_openflg] === 0 ? <EyeOutlined /> : <EditOutlined />} href={"#/version_iterator/" + record[version_iterator_uuid]} />
                   { record[version_iterator_openflg] === 1 ? 
                   <Popconfirm
-                  title="删除迭代"
-                  description="删除迭代将导致该迭代下的接口作废，确定删除吗？"
+                  title={langTrans("iterator del title")}
+                  description={langTrans("iterator del desc")}
                   onConfirm={e => {
                       delVersionIterator(record, ()=>{
                           getVersionIterators(this.props.dispatch);
                       });
                   }}
-                  okText="删除"
-                  cancelText="取消"
+                  okText={langTrans("iterator del sure")}
+                  cancelText={langTrans("iterator del cancel")}
                 >
                   <Button danger type="link" icon={<DeleteOutlined />} />
                 </Popconfirm>
@@ -99,12 +100,12 @@ class VersionIterator extends Component {
         return (
           <Layout>
             <Header style={{ padding: 0 }}>
-              版本迭代
+              {langTrans("iterator title")}
             </Header>
             <Content style={{ padding: '0 16px' }}>
                 <Flex justify="space-between" align="center">
-                    <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '设置' }, { title: '迭代管理' }]} />
-                    <Button  style={{ margin: '16px 0' }} type="primary" href={"#" + VERSION_ITERATOR_ADD_ROUTE}>新增迭代</Button>
+                    <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("iterator bread1") }, { title: langTrans("iterator bread2") }]} />
+                    <Button  style={{ margin: '16px 0' }} type="primary" href={"#" + VERSION_ITERATOR_ADD_ROUTE}>{langTrans("iterator add")}</Button>
                 </Flex>
                 <Table dataSource={this.props.listDatas} columns={this.state.listColumn} />
             </Content>

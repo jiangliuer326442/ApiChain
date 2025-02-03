@@ -7,23 +7,25 @@ import {
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
 
-import { isStringEmpty, getdayjs } from '../../util';
-import { TABLE_ENV_VAR_FIELDS, TABLE_MICRO_SERVICE_FIELDS, UNAME } from '../../../config/db';
-import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
-import { ENV_LIST_ROUTE } from '../../../config/routers';
-import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '../../../config/redux';
-import { getEnvs } from '../../actions/env';
+import { isStringEmpty, getdayjs } from '@rutil/index';
+import { TABLE_ENV_VAR_FIELDS, TABLE_MICRO_SERVICE_FIELDS, UNAME } from '@conf/db';
+import { ENV_VALUE_API_HOST } from '@conf/envKeys';
+import { ENV_LIST_ROUTE } from '@conf/routers';
+import { getWikiEnv } from '@conf/url';
+import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
+import { getEnvs } from '@act/env';
 import { 
   getEnvValues, 
   addEnvValues,
   delEnvValue,
   batchCopyEnvVales,
-} from '../../actions/env_value';
-import RequestSendTips from '../../classes/RequestSendTips';
-import AddEnvVarComponent from '../../components/env_var/add_env_var';
+} from '@act/env_value';
+import RequestSendTips from '@clazz/RequestSendTips';
+import AddEnvVarComponent from '@comp/env_var/add_env_var';
+import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
-const { Text } = Typography;
+const { Link, Text } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -40,7 +42,7 @@ class EnvVar extends Component {
     this.state = {
       listColumn: [
         {
-          title: '参数名称',
+          title: langTrans("envvar prj table1"),
           dataIndex: pname,
           width: 100,
           render: (value) => {
@@ -50,7 +52,7 @@ class EnvVar extends Component {
           }
         },
         {
-          title: '参数值',
+          title: langTrans("envvar prj table2"),
           dataIndex: pvar,
           width: 205,
           render: (value) => {
@@ -60,24 +62,24 @@ class EnvVar extends Component {
           }
         },
         {
-          title: '备注',
+          title: langTrans("envvar prj table3"),
           dataIndex: premark,
           width: 150,
         },
         {
-          title: '创建人',
+          title: langTrans("envvar prj table4"),
           dataIndex: UNAME,
           width: 100,
           ellipsis: true,
         },
         {
-            title: '创建时间',
+            title: langTrans("envvar prj table5"),
             dataIndex: env_var_ctime,
             width: 120,
             render: (time) => { return getdayjs(time).format("YYYY-MM-DD") },
         },
         {
-          title: '操作',
+          title: langTrans("envvar prj table6"),
           key: 'operater',
           width: 100,
           render: (_, record) => {
@@ -86,15 +88,15 @@ class EnvVar extends Component {
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
                 {(record['allow_del'] === false ) ? null : 
                 <Popconfirm
-                  title="环境变量"
-                  description="确定删除该环境变量吗？"
+                  title={langTrans("envvar prj del title")}
+                  description={langTrans("envvar prj del desc")}
                   onConfirm={e => {
                       delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", "", record, ()=>{
                         getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", "", "", this.props.dispatch, env_vars=>{});
                       });
                   }}
-                  okText="删除"
-                  cancelText="取消"
+                  okText={langTrans("envvar prj del sure")}
+                  cancelText={langTrans("envvar prj del cancel")}
                 >
                   <Button danger type="link" icon={<DeleteOutlined />} />
                 </Popconfirm>}
@@ -192,16 +194,16 @@ class EnvVar extends Component {
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
-            项目环境变量配置
+            {langTrans("envvar prj title")} <Text type="secondary"><Link href={getWikiEnv()}>{langTrans("envvar prj doc")}</Link></Text>
           </Header>
           <Content style={{ padding: '0 16px' }}>
-            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '项目' }, { title: '环境变量' }]} />
+            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar prj bread1") }, { title: langTrans("envvar prj bread2") }]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">
-                  <Form.Item label="项目">
+                  <Form.Item label={langTrans("envvar prj bread1")}>
                       {this.props.prjs.find(row => row[prj_label] === this.state.prj) ? this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark] : ""}
                   </Form.Item>
-                  <Form.Item label="选择环境">
+                  <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
                         value={ this.state.env ? this.state.env : this.props.env }
@@ -215,7 +217,7 @@ class EnvVar extends Component {
                       <Button type="link" href={"#" + ENV_LIST_ROUTE}>添加服务器环境</Button>
                       }
                   </Form.Item>
-                  <Form.Item style={{paddingBottom: 20}} label="参数">
+                  <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar select tip2")}>
                       <AutoComplete 
                           allowClear={{ clearIcon: <CloseSquareFilled /> }} 
                           options={this.state.pkeys} 
@@ -228,7 +230,7 @@ class EnvVar extends Component {
                           <Input />
                       </AutoComplete>
                   </Form.Item>
-                  <Form.Item label="拷贝到环境">
+                  <Form.Item label={langTrans("envvar select tip3")}>
                     <Select
                         onChange={ async value => {
                           if (this.state.copiedKeys.length === 0) return;
@@ -248,7 +250,7 @@ class EnvVar extends Component {
                     />
                   </Form.Item>
               </Form>
-              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>添加环境变量</Button>
+              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
               <AddEnvVarComponent tips={this.state.tips} />
             </Flex>
             <Table 

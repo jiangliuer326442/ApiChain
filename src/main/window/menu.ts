@@ -6,6 +6,7 @@ import { getWindow } from './main';
 import { exportDb } from '../store/db/export';
 import { importDb } from '../store/db/import';
 import { trunkDb } from '../store/db/trunk';
+import { langTrans } from '../../lang/i18n';
 
 export default class MenuBuilder {
 
@@ -28,10 +29,10 @@ export default class MenuBuilder {
   buildDefaultTemplate() {
     const templateDefault = [
       {
-        label: '页面',
+        label: langTrans("menu page"),
         submenu: [
           {
-            label: '刷新当前页面',
+            label: langTrans("menu page refresh"),
             click: () => {
               getWindow().webContents.reload();  
             },
@@ -39,22 +40,22 @@ export default class MenuBuilder {
         ]
       },
       {
-        label: '数据',
+        label: langTrans("menu db"),
         submenu: [
           {
-            label: '备份数据库',
+            label: langTrans("menu db backup"),
             click : () => {
               exportDb(getWindow());
             },
           },
           {
-            label: '还原数据库',
+            label: langTrans("menu db recovery"),
             click: () => {
               importDb(getWindow());
             },
           },
           {
-            label: '清除缓存',
+            label: langTrans("menu db clean"),
             click: () => {
               trunkDb(getWindow());  
             },
@@ -62,10 +63,10 @@ export default class MenuBuilder {
         ]
       },
       {
-        label: '帮助',
+        label: langTrans("menu help"),
         submenu: [
           {
-            label: '开发者模式',
+            label: langTrans("menu help debug"),
             click: () => {
               getWindow().webContents.toggleDevTools();
             },

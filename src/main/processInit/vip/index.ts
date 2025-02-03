@@ -41,10 +41,6 @@ export default function (){
                 money = "14";
             } else if (productName === "product11") {
                 money = "28";
-            } else if (productName === "product12") {
-                money = "1";
-            } else if (productName === "product13") {
-                money = "1";
             }
         } else {
             if (productName === "product9") {
