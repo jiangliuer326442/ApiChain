@@ -6,7 +6,8 @@ import {
     getVersionIterators, 
     openVersionIterator,
     closeVersionIterator 
-} from '../../actions/version_iterator';
+} from '@act/version_iterator';
+import { langTrans } from '@lang/i18n';
 
 class MySwitch extends Component {
 
@@ -33,8 +34,8 @@ class MySwitch extends Component {
     render() : ReactNode {
         return (this.state.defaultChecked ?
             <Popconfirm
-                title="关闭迭代"
-                description="关闭迭代后无法更新该迭代下的 api，确定关闭吗？"
+                title={langTrans("iterator close title")}
+                description={langTrans("iterator close desc")}
                 onConfirm={e => {
                     this.onChange(false);
                 }}
@@ -45,8 +46,8 @@ class MySwitch extends Component {
                     e?.stopPropagation();
                 }}
                 disabled={!this.state.defaultChecked}
-                okText="关闭"
-                cancelText="取消"
+                okText={langTrans("iterator close sure")}
+                cancelText={langTrans("iterator close cancel")}
             >
                 <Switch value={this.state.defaultChecked} />
             </Popconfirm>

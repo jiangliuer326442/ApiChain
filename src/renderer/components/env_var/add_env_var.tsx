@@ -6,6 +6,7 @@ import { isStringEmpty } from '../../util';
 import { SHOW_ADD_PROPERTY_MODEL } from '../../../config/redux';
 import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
 import { addEnvValues, getEnvValues } from '../../actions/env_value';
+import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
@@ -45,7 +46,7 @@ class AddEnvVarComponent extends Component {
         }
 
         if (isStringEmpty(pname)) {
-            message.error('请输入参数名称');
+            message.error(langTrans("envvar global add check1"));
             return;
         }
 
@@ -105,7 +106,7 @@ class AddEnvVarComponent extends Component {
     render() : ReactNode {
         return (
             <Modal
-                title={this.state.actionType === "create" ? "添加环境变量" : "编辑环境变量"}
+                title={this.state.actionType === "create" ? langTrans("envvar global add title") : langTrans("envvar global edit title")}
                 open={this.props.open}
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
@@ -114,18 +115,18 @@ class AddEnvVarComponent extends Component {
             >
                <Form layout="vertical">
                     <Form.Item>
-                        <Input allowClear placeholder="参数名称" disabled={ this.state.actionType === "edit" } 
+                        <Input allowClear placeholder={langTrans("envvar global add form1")} disabled={ this.state.actionType === "edit" } 
                             value={this.state.pname} onChange={ event=>this.setState({pname : event.target.value}) } />
                     </Form.Item>
                     <Form.Item>
                         <TextArea allowClear rows={ 3 }
-                            placeholder="参数值" 
+                            placeholder={langTrans("envvar global add form2")} 
                             value={this.state.pvalue} 
                             onChange={ e=>this.setState({pvalue : e.target.value}) } />
                     </Form.Item>
                     <Form.Item>
                         <TextArea allowClear 
-                            placeholder="备注" 
+                            placeholder={langTrans("envvar global add form3")}
                             value={this.state.premark} 
                             onChange={ e=>this.setState({premark : e.target.value}) } />
                     </Form.Item>

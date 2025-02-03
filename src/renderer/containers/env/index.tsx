@@ -8,10 +8,11 @@ import {
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 
-import { TABLE_ENV_FIELDS } from '../../../config/db';
-import { getEnvs, delEnv } from '../../actions/env';
-import { SHOW_ADD_ENV_MODEL, SHOW_EDIT_ENV_MODEL } from '../../../config/redux';
-import AddEnvComponent from '../../components/env/add_env';
+import { TABLE_ENV_FIELDS } from '@conf/db';
+import { SHOW_ADD_ENV_MODEL, SHOW_EDIT_ENV_MODEL } from '@conf/redux';
+import AddEnvComponent from '@comp/env/add_env';
+import { langTrans } from '@lang/i18n';
+import { getEnvs, delEnv } from '@act/env';
 
 const { Header, Content, Footer } = Layout;
 
@@ -35,22 +36,22 @@ class Env extends Component {
   setListColumn = () => {
     let listColumn = cloneDeep(this.props.listColumn);
     listColumn.push({
-      title: '操作',
+      title: langTrans("env table5"),
       key: 'operater',
       render: (_, record) => {
         return (
           <Space size="middle">
             <Button type="link" icon={<EditOutlined />} onClick={()=>this.editEnvClick(record)} />
             <Popconfirm
-              title="删除服务器环境"
-              description="确定删除该服务器环境吗？"
+              title={langTrans("env del title")}
+              description={langTrans("env del desc")}
               onConfirm={e => {
                   delEnv(record, ()=>{
                     getEnvs(this.props.dispatch);
                   });
               }}
-              okText="删除"
-              cancelText="取消"
+              okText={langTrans("env del sure")}
+              cancelText={langTrans("env del cancel")}
             >
               <Button danger type="link" icon={<DeleteOutlined />} />
             </Popconfirm>
@@ -81,12 +82,12 @@ class Env extends Component {
     return (
       <Layout>
         <Header style={{ padding: 0 }}>
-          开发环境配置
+          {langTrans("env title")}
         </Header>
         <Content style={{ padding: '0 16px' }}>
             <Flex justify="space-between" align="center">
-                <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '设置' }, { title: '开发环境' }]} />
-                <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addEnvClick}>新增环境</Button>
+                <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("env bread2") }]} />
+                <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addEnvClick}>{langTrans("env add")}</Button>
                 <AddEnvComponent />
             </Flex>
             <Table dataSource={this.props.listDatas} columns={this.state.listColumn} />

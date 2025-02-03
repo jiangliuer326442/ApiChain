@@ -1,31 +1,32 @@
-import { getdayjs } from '../../util';
+import { getdayjs } from '@rutil/index';
 
-import { UNAME } from '../../../config/db';
+import { UNAME } from '@conf/db';
 import { 
   SHOW_ADD_ENV_MODEL,
   SHOW_EDIT_ENV_MODEL,
   GET_ENVS
-} from '../../../config/redux';
+} from '@conf/redux';
+import { langTrans } from '@lang/i18n';
 
 export default function (state = {
     envListColumn: [
         {
-            title: '环境标识',
+            title: langTrans("env table1"),
             dataIndex: 'label',
             key: 'label',
           },
           {
-            title: '备注',
+            title: langTrans("env table2"),
             dataIndex: 'remark',
             key: 'remark',
           },
           {
-            title: '创建人',
+            title: langTrans("env table3"),
             dataIndex: UNAME,
             key: UNAME,
           },
           {
-              title: '创建时间',
+              title: langTrans("env table4"),
               dataIndex: 'create_time',
               key: 'create_time',
               render: (time) => { return getdayjs(time).format("YYYY-MM-DD") },

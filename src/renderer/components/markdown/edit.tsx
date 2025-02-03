@@ -3,7 +3,8 @@ import ReactMde, { ReactMdeTypes } from 'react-mde';
 import * as Showdown from 'showdown';
 import 'react-mde/lib/styles/css/react-mde-all.css';
 
-import { isStringEmpty } from '../../util';
+import { isStringEmpty } from '@rutil/index';
+import { langTrans } from '@lang/i18n';
 
 export default class extends Component {
 
@@ -14,7 +15,7 @@ export default class extends Component {
 
         this.state = {
             mdeState: {
-                markdown: isStringEmpty(content) ? '在这里可以使用markdown语法记录下这个迭代的注意事项、表结构变更、配置中心配置、定时任务等\n\n## 注意事项\n\n## 接口变更记录\n\n## 数据库变更\n\n## 配置中心变更\n\n## 定时任务变更\n\n' : content,
+                markdown: isStringEmpty(content) ? langTrans("iterator md content") : content,
             }
         }
 

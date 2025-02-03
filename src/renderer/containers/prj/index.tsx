@@ -14,18 +14,19 @@ import {
   TABLE_ENV_NAME, TABLE_ENV_FIELDS,
   TABLE_ENV_KEY_NAME, TABLE_ENV_KEY_FIELDS,
   TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 import {
   ChannelsDbStr,
   ChannelsDbProjectExportStr,
   ChannelsDbProjectExportResultStr,
   ChannelsDbProjectImportStr,
   ChannelsDbProjectImportResultStr,
-} from '../../../config/channel';
-import { getUser } from '../../actions/user';
-import { getPrjs, delPrj } from '../../actions/project';
-import { SHOW_ADD_PRJ_MODEL, SHOW_EDIT_PRJ_MODEL } from '../../../config/redux';
-import AddPrjComponent from '../../components/prj/add_prj';
+} from '@conf/channel';
+import { SHOW_ADD_PRJ_MODEL, SHOW_EDIT_PRJ_MODEL } from '@conf/redux';
+import AddPrjComponent from '@comp/prj/add_prj';
+import { getUser } from '@act/user';
+import { getPrjs, delPrj } from '@act/project';
+import { langTrans } from '@lang/i18n';
 
 var _ = require('lodash');
 
@@ -290,22 +291,22 @@ class Project extends Component {
     setListColumn = () => {
       let listColumn = _.cloneDeep(this.props.listColumn);
       listColumn.push({
-        title: '操作',
+        title: langTrans("prj table5"),
         key: 'operater',
         render: (_, record) => {
           return (
             <Space size="middle">
               <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPrjClick(record)} />
               <Popconfirm
-                title="删除微服务"
-                description="确定删除该微服务吗？"
+                title={langTrans("prj del title")}
+                description={langTrans("prj del desc")}
                 onConfirm={e => {
                     delPrj(record, ()=>{
                       getPrjs(this.props.dispatch);
                     });
                 }}
-                okText="删除"
-                cancelText="取消"
+                okText={langTrans("prj del sure")}
+                cancelText={langTrans("prj del cancel")}
               >
                 <Button danger type="link" icon={<DeleteOutlined />} />
               </Popconfirm>
@@ -340,22 +341,22 @@ class Project extends Component {
       return (
         <>
           <Header style={{ padding: 0 }}>
-            项目配置
+            {langTrans("prj title")}
           </Header>
           <Content style={{ margin: '0 16px' }}>
             <AddPrjComponent />
-            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '设置' }, { title: '微服务' }]} />
+            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("prj bread1") }, { title: langTrans("prj bread2") }]} />
             <Flex vertical>
               <Flex justify="space-between" align="center">
                 <Flex>
                   <Button onClick={this.exportProjectDocs} color="primary">
-                    导出选中项目到文档
+                    {langTrans("prj export")}
                   </Button>
                   <Button type="link" onClick={this.importProjectDocs}>
-                    从文档导入
+                  {langTrans("prj import")}
                   </Button>
                 </Flex>
-                <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPrjClick}>添加微服务</Button>
+                <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPrjClick}>{langTrans("prj add")}</Button>
               </Flex>
               <Table 
                 rowSelection={{selectedRowKeys: this.state.selectedProjects, onChange: this.setSelectedProjects}}
