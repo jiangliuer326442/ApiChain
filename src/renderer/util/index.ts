@@ -25,6 +25,13 @@ export function paramToString(obj) {
   return ret;
 }
 
+export function substr(str : any, length : number) {
+  if (str != null && str.length > length) {
+    return str.substring(0, length) + "...";
+  }
+  return str;
+}
+
 export function paramToLines(params : Array<any>, length : number) {
   let ret = "";
   for (let key in params) {

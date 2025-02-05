@@ -26,7 +26,8 @@ import {
 import { 
   getdayjs,
   isStringEmpty,
-  getStartParams
+  getStartParams,
+  substr
 } from '@rutil/index';
 import { addUser, getUser, setUserName as ac_setUserName, } from '@act/user';
 import registerMessageHook from '@act/message';
@@ -171,7 +172,7 @@ class Home extends Component {
             {this.props.vipFlg ? 
             <>
               {langTrans("member welcome")}
-              <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
+              <Text editable={{onChange: this.setUserName}}>{substr(this.state.user[db_field_uname], 15)}</Text>
               {langTrans("welcome") + langFormat("member expired", {"date": getdayjs(this.props.expireTime).format("YYYY-MM-DD")})}
               <Button type='link' onClick={() => this.setState({showPay: true})}>{langTrans("member renew")}</Button>
             </> 

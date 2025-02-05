@@ -178,7 +178,7 @@ class EnvVar extends Component {
           }
           if(!hasApiHost) {
             addEnvValues(prj, env, "", "", 
-              ENV_VALUE_API_HOST, "", "接口域名及前缀", this.props.device, ()=>{
+              ENV_VALUE_API_HOST, "", langTrans("envvar prj api"), this.props.device, ()=>{
               getEnvValues(prj, env, "", "", "", this.props.dispatch, env_vars => {});
             });
           }
@@ -214,7 +214,7 @@ class EnvVar extends Component {
                         })}
                       />
                       :
-                      <Button type="link" href={"#" + ENV_LIST_ROUTE}>添加服务器环境</Button>
+                      <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("envvar prj add env")}</Button>
                       }
                   </Form.Item>
                   <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar select tip2")}>

@@ -4,6 +4,9 @@ import fs from 'fs-extra';
 import * as Showdown from 'showdown';
 
 import {
+    substr
+} from '../../../renderer/util/index';
+import {
     setAccess,
     getAccess
 } from '../../store/config/doc';
@@ -355,10 +358,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                     markdownContent += "**uri 参数：**\n";
                     Object.keys(pathVariable).map(_pathVariableKey => {
                         let _pathVariableObj = pathVariable[_pathVariableKey];
-                        let _value = _pathVariableObj[TABLE_FIELD_VALUE];
-                        if(_value != null && _value.length > 50) {
-                            _value = _value.substring(0, 50) + "...";
-                        }
+                        let _value = substr(_pathVariableObj[TABLE_FIELD_VALUE], 50);
                         let _level = _pathVariableObj[TABLE_FIELD_LEVEL];
                         for (let i=0; i< _level - 1; i ++) {
                             markdownContent += "  ";
@@ -373,10 +373,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                     markdownContent += "**param：**\n";
                     Object.keys(param).map(_paramKey => {
                         let _paramObj = param[_paramKey];
-                        let _value = _paramObj[TABLE_FIELD_VALUE];
-                        if(_value != null && _value.length > 50) {
-                            _value = _value.substring(0, 50) + "...";
-                        }
+                        let _value = substr(_paramObj[TABLE_FIELD_VALUE], 50);
                         let _level = _paramObj[TABLE_FIELD_LEVEL];
                         for (let i=0; i< _level - 1; i ++) {
                             markdownContent += "  ";
@@ -391,10 +388,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                     markdownContent += "**Header：**\n";
                     Object.keys(header).map(_headerKey => {
                         let _headerObj = header[_headerKey];
-                        let _value = _headerObj[TABLE_FIELD_VALUE];
-                        if(_value != null && _value.length > 50) {
-                            _value = _value.substring(0, 50) + "...";
-                        }
+                        let _value = substr(_headerObj[TABLE_FIELD_VALUE], 50);
                         let _level = _headerObj[TABLE_FIELD_LEVEL];
                         for (let i=0; i< _level - 1; i ++) {
                             markdownContent += "  ";
@@ -412,10 +406,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                     bodyList.map(_bodyItem => {
                         let _value = "";
                         if (_bodyItem[TABLE_FIELD_TYPE] === "File") {
-                            _value = _bodyItem[TABLE_FIELD_VALUE].name;
-                            if(_value != null && _value.length > 35) {
-                                _value = _value.substring(0, 35) + "...";
-                            }
+                            _value = substr(_bodyItem[TABLE_FIELD_VALUE].name, 35);
                         } else {
                             _value = _bodyItem[TABLE_FIELD_VALUE];
                         }
@@ -435,10 +426,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                     markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
                     markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     responseHeadList.map(_responseHeadItem => {
-                        let _value = _responseHeadItem[TABLE_FIELD_VALUE];
-                        if(_value != null && _value.length > 35) {
-                            _value = _value.substring(0, 35) + "...";
-                        }
+                        let _value = substr(_responseHeadItem[TABLE_FIELD_VALUE], 35);
                         markdownContent += "| " + _responseHeadItem[TABLE_FIELD_NAME] + " | " + _responseHeadItem[TABLE_FIELD_TYPE] + " | " + _responseHeadItem[TABLE_FIELD_REMARK] + " | " + _value + " |\n";
                     })
                     markdownContent += "\n";
@@ -449,10 +437,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 if (responseCookieList.length > 0) {
                     markdownContent += "**响应Cookie：**\n";
                     responseCookieList.map(_responseCookieItem => {
-                        let _value = _responseCookieItem[TABLE_FIELD_VALUE];
-                        if(_value != null && _value.length > 50) {
-                            _value = _value.substring(0, 50) + "...";
-                        }
+                        let _value = substr(_responseCookieItem[TABLE_FIELD_VALUE], 50);
                         let _level = _responseCookieItem[TABLE_FIELD_LEVEL];
                         for (let i=0; i< _level - 1; i ++) {
                             markdownContent += "  ";
@@ -468,10 +453,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 if (_request[iteration_request_jsonFlg] && responseList.length > 0) {
                     markdownContent += "**" + langTrans("doc response content") + "：**\n";
                     responseList.map(_responseItem => {
-                        let _value = _responseItem[TABLE_FIELD_VALUE];
-                        if(_value != null && _value.length > 50) {
-                            _value = _value.substring(0, 50) + "...";
-                        }
+                        let _value = substr(_responseItem[TABLE_FIELD_VALUE], 50);
                         let _level = _responseItem[TABLE_FIELD_LEVEL];
                         for (let i=0; i< _level - 1; i ++) {
                             markdownContent += "  ";
@@ -492,7 +474,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
     
                     if (_request[iteration_request_htmlFlg]) {
                         markdownContent += "```html\n";
-                        markdownContent += _request[iteration_response_demo].substring(0, 100) + "\n";
+                        markdownContent += substr(_request[iteration_response_demo], 100) + "\n";
                         markdownContent += "```\n";
                     }
     
