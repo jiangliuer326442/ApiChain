@@ -25,6 +25,7 @@ import { getEnvs } from '@act/env';
 import { getVarsByKey } from '@act/env_value';
 import { getVersionIterator } from '@act/version_iterator';
 import { getVersionIteratorRequestsByProject } from '@act/version_iterator_requests';
+import { langTrans } from '@lang/i18n';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 
@@ -132,12 +133,12 @@ class IteratorDoc extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    迭代文档
+                    {langTrans("doc btn1")}
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
-                        { title: '迭代' }, 
-                        { title: '文档' }
+                        { title: langTrans("doc bread1") }, 
+                        { title: langTrans("doc bread2") }
                     ]} />
                     {this.state.errorCode === 1000 ? 
                     <MarkdownView showNav={ true } content={ this.state.md } show={ true } />
@@ -152,7 +153,7 @@ class IteratorDoc extends Component {
                     {'electron' in window ? 
                     <FloatButton.Group
                         trigger="click"
-                        description="导出文档"
+                        description={langTrans("doc btn2")}
                         shape="square"
                         type="primary"
                         style={{ right: 96 }}

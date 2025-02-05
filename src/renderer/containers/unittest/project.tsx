@@ -11,11 +11,13 @@ import {
   Button,
   Select,
   Form,
+  Typography,
   message,
 } from 'antd';
 import type { MenuProps } from 'antd';
 import { EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 
+import { langTrans } from '@lang/i18n';
 import {
   TABLE_UNITTEST_FIELDS,
   TABLE_UNITTEST_STEPS_FIELDS,
@@ -28,6 +30,7 @@ import {
 } from '@conf/unittest';
 import { SHOW_EDIT_UNITTEST_MODEL } from '@conf/redux';
 import { UNITTEST_ENV } from '@conf/storage';
+import { getWikiProject } from '@conf/url';
 import { getdayjs, isStringEmpty } from '@rutil/index';
 import { getEnvs } from '@act/env';
 import {
@@ -41,6 +44,7 @@ import AddUnittestComponent from '@comp/unittest/add_unittest';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 
 const { Header, Content, Footer } = Layout;
+const { Text, Link } = Typography;
 
 const unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 const unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
@@ -68,40 +72,40 @@ class UnittestListVersion extends Component {
       executeFlg: true,
       column: [
         {
-          title: '测试用例',
+          title: langTrans("prj unittest table field1"),
           dataIndex: unittest_title,
           render: (title) => {
             return title;
           },
         },
         {
-          title: '执行结果',
+          title: langTrans("prj unittest table field2"),
           dataIndex: unittest_report_result,
           render: (result, record) => {
             //整体
             if (record[unittest_folder] !== undefined) {
               if (result === undefined) {
-                return <span style={{ color: 'yellow' }}>未执行</span>;
+                return <span style={{ color: 'yellow' }}>{langTrans("prj unittest status1")}</span>;
               } else if (result === UNITTEST_RESULT_SUCCESS) {
-                return <span style={{ color: 'green' }}>成功</span>;
+                return <span style={{ color: 'green' }}>{langTrans("prj unittest status2")}</span>;
               } else if (result === UNITTEST_RESULT_FAILURE) {
-                return <span style={{ color: 'red' }}>失败</span>;
+                return <span style={{ color: 'red' }}>{langTrans("prj unittest status3")}</span>;
               } else {
-                return <span style={{ color: 'yellow' }}>未知</span>;
+                return <span style={{ color: 'yellow' }}>{langTrans("prj unittest status4")}</span>;
               }
             } else {
               if (result === undefined) {
-                return <span style={{ color: 'yellow' }}>未执行</span>;
+                return <span style={{ color: 'yellow' }}>{langTrans("prj unittest status1")}</span>;
               } else if (result) {
-                return <span style={{ color: 'green' }}>成功</span>;
+                return <span style={{ color: 'green' }}>{langTrans("prj unittest status2")}</span>;
               } else {
-                return <span style={{ color: 'red' }}>失败</span>;
+                return <span style={{ color: 'red' }}>{langTrans("prj unittest status3")}</span>;
               }
             }
           },
         },
         {
-          title: '消耗时间',
+          title: langTrans("prj unittest table field3"),
           dataIndex: unittest_report_cost_time,
           render: (cost_time, record) => {
             const result = record[unittest_report_result];
@@ -113,18 +117,18 @@ class UnittestListVersion extends Component {
           },
         },
         {
-          title: '创建人',
+          title: langTrans("prj unittest table field4"),
           dataIndex: UNAME,
         },
         {
-          title: '创建时间',
+          title: langTrans("prj unittest table field5"),
           dataIndex: unittest_ctime,
           render: (time) => {
             return getdayjs(time).format('YYYY-MM-DD');
           },
         },
         {
-          title: '操作',
+          title: langTrans("prj unittest table field6"),
           dataIndex: 'operater',
           render: (_, record) => {
             const iteratorId = record[unittest_iterator];
@@ -142,7 +146,7 @@ class UnittestListVersion extends Component {
                       this.state.project
                     }
                   >
-                    环境变量
+                    {langTrans("prj unittest act1")}
                   </Button>
                   {record.result !== undefined ? (
                     <Button
@@ -154,7 +158,7 @@ class UnittestListVersion extends Component {
                         unittestUuid
                       }
                     >
-                      执行记录
+                      {langTrans("prj unittest act2")}
                     </Button>
                   ) : null}
                   <Dropdown menu={this.getMore(record)}>
@@ -200,7 +204,7 @@ class UnittestListVersion extends Component {
                         });
                       }}
                     >
-                      继续执行
+                      {langTrans("prj unittest act3")}
                     </Button>
                   ) : null}
                 </Space>
@@ -271,7 +275,7 @@ class UnittestListVersion extends Component {
                 icon={<EditOutlined />}
                 onClick={() => this.editUnitTestClick(record)}
               >
-                编辑
+                {langTrans("prj unittest act4")}
               </Button>
             ),
           },
@@ -280,8 +284,8 @@ class UnittestListVersion extends Component {
             danger: true,
             label: (
               <Popconfirm
-                title="删除测试用例"
-                description="确定删除该测试用例吗？"
+                title={langTrans("prj unittest del title")}
+                description={langTrans("prj unittest del desc")}
                 onConfirm={(e) => {
                   this.undoExportUnitTestClick(record, () => {
                     getProjectUnitTests(
@@ -292,11 +296,11 @@ class UnittestListVersion extends Component {
                     );
                   });
                 }}
-                okText="删除"
-                cancelText="取消"
+                okText={langTrans("prj unittest del sure")}
+                cancelText={langTrans("prj unittest del cancel")}
               >
                 <Button danger type="link" icon={<DeleteOutlined />}>
-                  删除
+                {langTrans("prj unittest act5")}
                 </Button>
               </Popconfirm>
             ),
@@ -350,7 +354,7 @@ class UnittestListVersion extends Component {
   render(): ReactNode {
     return (
       <Layout>
-        <Header style={{ padding: 0 }}>项目单测列表</Header>
+        <Header style={{ padding: 0 }}>{langTrans("prj unittest title")} <Text type="secondary"><Link href={getWikiProject()}>{langTrans("prj unittest link")}</Link></Text></Header>
         <Content style={{ padding: '0 16px' }}>
           <AddUnittestComponent
             refreshCb={() =>
@@ -364,7 +368,7 @@ class UnittestListVersion extends Component {
           />
           <Breadcrumb
             style={{ margin: '16px 0' }}
-            items={[{ title: '项目' }, { title: '单测列表' }]}
+            items={[{ title: langTrans("prj unittest bread1") }, { title: langTrans("prj unittest bread2") }]}
           />
           <PayModel
             showPay={this.state.showPay}
@@ -376,7 +380,7 @@ class UnittestListVersion extends Component {
             style={{ marginBottom: 16 }}
           >
             <Form layout="inline">
-              <Form.Item label="选择环境">
+              <Form.Item label={langTrans("prj unittest operator1")}>
                 <Select
                   value={this.state.env}
                   onChange={this.setEnvironmentChange}
@@ -386,7 +390,7 @@ class UnittestListVersion extends Component {
                   })}
                 />
               </Form.Item>
-              <Form.Item label="选择文件夹">
+              <Form.Item label={langTrans("prj unittest operator2")}>
                   <Select allowClear
                       value={ this.state.folder }
                       onChange={this.setFolderChange}
@@ -436,7 +440,7 @@ class UnittestListVersion extends Component {
                     }
                   }}
                 >
-                  执行用例
+                  {langTrans("prj unittest btn")}
                 </Button>
               </Form.Item>
             </Form>

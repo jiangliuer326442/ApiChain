@@ -40,6 +40,7 @@ import {
     TABLE_FIELD_LEVEL,
     prettyJson, isInnerKey
 } from '../../../renderer/util/json';
+import { langTrans } from '../../../lang/i18n';
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
@@ -320,7 +321,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
             if (selectedEnvVar.length == 0) continue;
             markdownContent += _env[env_remark] + "：" + selectedEnvVar[0][envvar_param_var] + "\n\n" ;
         }
-        markdownContent += "mock服务器" + "：" + "http://" + ip + ":" + GLobalPort + "/mockserver/" + iterationUUID + "/" + _prj + "/" + "\n\n" ;
+        markdownContent += langTrans("doc mockserver") + "：" + "http://" + ip + ":" + GLobalPort + "/mockserver/" + iterationUUID + "/" + _prj + "/" + "\n\n" ;
         markdownContent += "\n";
     
         Object.keys(formattedRequests[_prj]).map(_fold => {
@@ -362,7 +363,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                         for (let i=0; i< _level - 1; i ++) {
                             markdownContent += "  ";
                         }
-                        markdownContent += "- " + _pathVariableKey + "（" + _pathVariableObj[TABLE_FIELD_TYPE] + " - " + _pathVariableObj[TABLE_FIELD_REMARK] + " - " + (_pathVariableObj[TABLE_FIELD_NECESSARY] == 1 ? "必填": "非必填") + " - " + _value + "）\n";
+                        markdownContent += "- " + _pathVariableKey + "（" + _pathVariableObj[TABLE_FIELD_TYPE] + " - " + _pathVariableObj[TABLE_FIELD_REMARK] + " - " + (_pathVariableObj[TABLE_FIELD_NECESSARY] == 1 ? langTrans("doc necessary"): langTrans("doc unnecessary")) + " - " + _value + "）\n";
                     });
                     markdownContent += "\n";
                 }
@@ -380,7 +381,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                         for (let i=0; i< _level - 1; i ++) {
                             markdownContent += "  ";
                         }
-                        markdownContent += "- " + _paramKey + "（" + _paramObj[TABLE_FIELD_TYPE] + " - " + _paramObj[TABLE_FIELD_REMARK] + " - " + (_paramObj[TABLE_FIELD_NECESSARY] == 1 ? "必填": "非必填") + " - " + _value + "）\n";
+                        markdownContent += "- " + _paramKey + "（" + _paramObj[TABLE_FIELD_TYPE] + " - " + _paramObj[TABLE_FIELD_REMARK] + " - " + (_paramObj[TABLE_FIELD_NECESSARY] == 1 ? langTrans("doc necessary"): langTrans("doc unnecessary")) + " - " + _value + "）\n";
                     });
                     markdownContent += "\n";
                 }
@@ -398,7 +399,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                         for (let i=0; i< _level - 1; i ++) {
                             markdownContent += "  ";
                         }
-                        markdownContent += "- " + _headerKey + "（" + _headerObj[TABLE_FIELD_TYPE] + " - " + _headerObj[TABLE_FIELD_REMARK] + " - " + (_headerObj[TABLE_FIELD_NECESSARY] == 1 ? "必填": "非必填") + " - " + _value + "）\n";
+                        markdownContent += "- " + _headerKey + "（" + _headerObj[TABLE_FIELD_TYPE] + " - " + _headerObj[TABLE_FIELD_REMARK] + " - " + (_headerObj[TABLE_FIELD_NECESSARY] == 1 ? langTrans("doc necessary"): langTrans("doc unnecessary")) + " - " + _value + "）\n";
                     });
                     markdownContent += "\n";
                 }
@@ -422,7 +423,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                         for (let i = 0; i< _level - 1; i ++) {
                             markdownContent += "  ";
                         }
-                        markdownContent += "- " + _bodyItem[TABLE_FIELD_NAME] + "（" + _bodyItem[TABLE_FIELD_TYPE] + " - " + _bodyItem[TABLE_FIELD_REMARK] + " - " + (_bodyItem[TABLE_FIELD_NECESSARY] == 1 ? "必填": "非必填") + " - " + _value + "）\n";
+                        markdownContent += "- " + _bodyItem[TABLE_FIELD_NAME] + "（" + _bodyItem[TABLE_FIELD_TYPE] + " - " + _bodyItem[TABLE_FIELD_REMARK] + " - " + (_bodyItem[TABLE_FIELD_NECESSARY] == 1 ? langTrans("doc necessary"): langTrans("doc unnecessary")) + " - " + _value + "）\n";
                     })
                     markdownContent += "\n";
                 }
@@ -465,7 +466,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 iteratorObjectToArr(responseList, _request[iteration_response_content], 1);
     
                 if (_request[iteration_request_jsonFlg] && responseList.length > 0) {
-                    markdownContent += "**响应Content：**\n";
+                    markdownContent += "**" + langTrans("doc response content") + "：**\n";
                     responseList.map(_responseItem => {
                         let _value = _responseItem[TABLE_FIELD_VALUE];
                         if(_value != null && _value.length > 50) {
@@ -482,7 +483,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 }
     
                 if (_request[iteration_request_jsonFlg] || _request[iteration_request_htmlFlg] || _request[iteration_request_picFlg] || _request[iteration_request_fileFlg]) {
-                    markdownContent += "响应示例：\n\n";
+                    markdownContent += langTrans("doc response demo") + "：\n\n";
                     if (_request[iteration_request_jsonFlg]) {
                         markdownContent += "```json\n";
                         markdownContent += prettyJson(JSON.parse(_request[iteration_response_demo])) + "\n";

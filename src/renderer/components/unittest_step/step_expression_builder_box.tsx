@@ -45,6 +45,7 @@ import {
 import { 
     getIterationUnitTests
 } from '@act/unittest';
+import { langTrans } from '@lang/i18n';
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
@@ -115,7 +116,7 @@ class StepExpressionBuilderBox extends Component {
         if (prevState.prjSelect.length === 0 && !isStringEmpty(nextProps.project)) {
             let prjSelect = [];
             let item = {};
-            item.label = "当前项目";
+            item.label = langTrans("expression builder project");
             item.value = UNITTEST_STEP_PROJECT_CURRENT;
             prjSelect.push(item);
             for (let prjItem of nextProps.prjs) {
@@ -132,7 +133,7 @@ class StepExpressionBuilderBox extends Component {
         if (prevState.stepsSelect.length === 0 && prevState.loadeadFlg) {
             let stepsSelect = [];
             let item = {};
-            item.label = "当前步骤";
+            item.label = langTrans("expression builder step");
             item.value = UNITTEST_STEP_CURRENT;
             stepsSelect.push(item);
             let steps = nextProps.unittest[nextProps.iteratorId].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children;
@@ -301,7 +302,7 @@ class StepExpressionBuilderBox extends Component {
                     addonAfter={<Button disabled={!this.props.enableFlag} onClick={()=>this.setState({openFlg: true})} type='text' icon={<CalculatorOutlined />} />} 
                     value={this.state.cbContent} readOnly />
                 <Modal
-                    title="表达式生成器"
+                    title={langTrans("expression builder title")}
                     open={this.state.openFlg}
                     onOk={this.handleModalConfirm}
                     onCancel={this.handleModalCancel}
@@ -312,15 +313,15 @@ class StepExpressionBuilderBox extends Component {
                             <Select 
                                 disabled={!this.props.enableFlag}
                                 style={{width: 445}}
-                                placeholder="数据源类型"
+                                placeholder={langTrans("expression builder datasource")}
                                 value={ this.state.dataSourceType }
                                 onChange={value => {
                                     this.setState({dataSourceType: value, responseTips: [], assertPrev: this.state.initializeAssertPrev, dataSource: {}});
                                     this.paramTips.setDataSourceType(value);
                                 }}
                             >
-                                <Select.Option value={ UNITTEST_DATASOURCE_TYPE_REF }>步骤参数/返回值</Select.Option>
-                                <Select.Option value={ UNITTEST_DATASOURCE_TYPE_ENV }>环境变量/固定值</Select.Option>
+                                <Select.Option value={ UNITTEST_DATASOURCE_TYPE_REF }>{langTrans("expression builder datasource select1")}</Select.Option>
+                                <Select.Option value={ UNITTEST_DATASOURCE_TYPE_ENV }>{langTrans("expression builder datasource select2")}</Select.Option>
                             </Select>
                         </Form.Item>
                         {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_REF ? 
@@ -362,7 +363,7 @@ class StepExpressionBuilderBox extends Component {
                         : null}
                         <Form.Item>
                             <AutoComplete 
-                                placeholder="字段表达式"
+                                placeholder={langTrans("expression builder syntax")}
                                 disabled={!this.props.enableFlag}
                                 style={{width: 445}}
                                 allowClear 
@@ -374,7 +375,7 @@ class StepExpressionBuilderBox extends Component {
                             />
                         </Form.Item>
                         <Form.Item
-                                label="响应示例"
+                                label={langTrans("expression builder demo")}
                             >
                             <JsonView 
                                 src={cleanJson(this.state.dataSource)}   

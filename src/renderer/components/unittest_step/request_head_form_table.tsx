@@ -18,6 +18,7 @@ import {
     TABLE_FIELD_REMARK,
     parseJsonToChildren,
 } from '../../util/json';
+import { langTrans } from '@lang/i18n';
 
 class RequestHeadFormTable extends Component {
 
@@ -52,22 +53,22 @@ class RequestHeadFormTable extends Component {
             object: props.object,
             columns: [
                 {
-                    title: '参数名',
+                    title: langTrans("network table1"),
                     dataIndex: TABLE_FIELD_NAME,
                 },
                 {
-                    title: '参数类型',
+                    title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
                 },
                 {
-                    title: '备注',
+                    title: langTrans("network table3"),
                     dataIndex: TABLE_FIELD_REMARK,
                     render: (remark : any, row : any) => {
                         return remark;
                     }
                 },
                 {
-                    title: '数据',
+                    title: langTrans("network table4"),
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (data, row) => {
                         let key = row[TABLE_FIELD_NAME];

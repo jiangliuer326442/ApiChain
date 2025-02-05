@@ -58,6 +58,7 @@ import {
     batchMoveIteratorRequest,
     batchSetProjectRequestFold,
 } from '@act/version_iterator_requests';
+import { langFormat, langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 
@@ -103,7 +104,7 @@ class RequestListVersion extends Component {
             requestsJsxDividered: {},
             listColumn: [
                 {
-                    title: '接口地址',
+                    title: langTrans("prj doc table field1"),
                     dataIndex: iteration_request_uri,
                     width: 150,
                     render: (uri) => { 
@@ -117,12 +118,12 @@ class RequestListVersion extends Component {
                     }
                 },
                 {
-                    title: '接口说明',
+                    title: langTrans("prj doc table field2"),
                     dataIndex: iteration_request_title,
                     width: 150,
                 },
                 {
-                    title: '排序',
+                    title: langTrans("prj doc table field3"),
                     dataIndex: iteration_request_sort,
                     width: 50,
                     render: (sort, record) => {
@@ -137,7 +138,7 @@ class RequestListVersion extends Component {
                     }
                 },
                 {
-                    title: '操作',
+                    title: langTrans("prj doc table field4"),
                     key: 'operater',
                     width: 50,
                     render: (_, record) => {
@@ -145,10 +146,10 @@ class RequestListVersion extends Component {
                         let sendRequestUrl = "#/internet_request_send_by_api/" + this.state.iteratorId + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
                         return (
                             <Space size="middle">
-                                <Tooltip title="发送">
+                                <Tooltip title={langTrans("prj doc table act1")}>
                                     <Button type="link" icon={<SendOutlined />} href={ sendRequestUrl } />
                                 </Tooltip>
-                                <Tooltip title="详情">
+                                <Tooltip title={langTrans("prj doc table act2")}>
                                     <Button type="link" icon={<EyeOutlined />} href={ docDetailUrl } />
                                 </Tooltip>
                                 { this.state.versionIteration[version_iterator_openflg] === 1 ? 
@@ -207,15 +208,15 @@ class RequestListVersion extends Component {
                 key: "1",
                 danger: true,
                 label: <Popconfirm
-                    title="删除api"
-                    description="确定删除该 api 吗？"
+                    title={langTrans("prj doc del title")}
+                    description={langTrans("prj doc del desc")}
                     onConfirm={e => {
                         delVersionIteratorRequest(record, ()=>{
                             this.onFinish({});
                         });
                     }}
-                    okText="确定"
-                    cancelText="取消"
+                    okText={langTrans("prj doc del sure")}
+                    cancelText={langTrans("prj doc del cancel")}
                 >
                     <Button danger type="link" icon={<DeleteOutlined />} />
                 </Popconfirm>,
@@ -295,33 +296,33 @@ class RequestListVersion extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    迭代接口列表
+                    {langTrans("version doc title")}
                 </Header>
                 {this.state.formReadyFlg ?
                 <Content style={{ padding: '0 16px', width: "calc(100% - 16px)" }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
-                        { title: '迭代' }, 
-                        { title: '接口列表' }
+                        { title: langTrans("version doc bread1") }, 
+                        { title: langTrans("version doc bread2") }
                     ]} />
-                    <Descriptions column={2} title="迭代信息" items={ [
+                    <Descriptions column={2} title={langTrans("version doc desc title")} items={ [
                         {
                             key: version_iterator_title,
-                            label: '迭代名称',
+                            label: langTrans("version doc desc1"),
                             children: this.state.versionIteration[version_iterator_title],
                         },
                         {
                             key: version_iterator_openflg,
-                            label: '迭代状态',
-                            children: this.state.versionIteration[version_iterator_openflg] === 1 ? "进行中" : "已结束",
+                            label: langTrans("version doc desc2"),
+                            children: this.state.versionIteration[version_iterator_openflg] === 1 ? langTrans("version doc status1") : langTrans("version doc status2"),
                         },
                         {
                             key: UNAME,
-                            label: '创建人',
+                            label: langTrans("version doc desc3"),
                             children: this.state.versionIteration[UNAME],
                         },
                         {
                             key: version_iterator_ctime,
-                            label: '创建时间',
+                            label: langTrans("version doc desc4"),
                             children: getdayjs(this.state.versionIteration[version_iterator_ctime]).format("YYYY-MM-DD"),
                         },
                         ] } />
@@ -332,15 +333,15 @@ class RequestListVersion extends Component {
                             initialValues={ { prj: this.state.prj } }
                             autoComplete="off"
                         >
-                            <Form.Item<FieldType> style={{paddingBottom: 20}} label="接口地址" name="uri" rules={[{ required: false }]}>
+                            <Form.Item<FieldType> style={{paddingBottom: 20}} label={langTrans("prj doc operator1")} name="uri" rules={[{ required: false }]}>
                                 <Input />
                             </Form.Item>
 
-                            <Form.Item<FieldType> label="接口说明" name="title" rules={[{ required: false }]}>
+                            <Form.Item<FieldType> label={langTrans("prj doc operator2")} name="title" rules={[{ required: false }]}>
                                 <Input />
                             </Form.Item>
 
-                            <Form.Item<FieldType> label="选择项目" name="prj" rules={[{ required:  false }]}>
+                            <Form.Item<FieldType> label={langTrans("version doc operator1")} name="prj" rules={[{ required:  false }]}>
                                 <Select
                                     style={{ width: 180 }}
                                     options={this.state.versionIteration[version_iterator_prjs].map(item => {
@@ -352,7 +353,7 @@ class RequestListVersion extends Component {
                                 />
                             </Form.Item>                           
 
-                            <Form.Item<FieldType> label="选择文件夹" name="folder" rules={[{ required:  false }]}>
+                            <Form.Item<FieldType> label={langTrans("version doc operator2")} name="folder" rules={[{ required:  false }]}>
                                 <Select
                                     style={{ width: 180 }}
                                     options={ this.state.folders[this.state.prj] }
@@ -361,7 +362,7 @@ class RequestListVersion extends Component {
 
                             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                 <Button htmlType="submit">
-                                    搜索
+                                    {langTrans("prj doc btn")}
                                 </Button>
                             </Form.Item>
                         </Form>
@@ -379,7 +380,7 @@ class RequestListVersion extends Component {
                                 }}
                                 >
                                 <Button type="primary" href={'#/interator_add_request/' + this.state.iteratorId} size="large">
-                                    新增接口
+                                    {langTrans("version doc btn2")}
                                 </Button>
                             </ConfigProvider>
 
@@ -396,7 +397,7 @@ class RequestListVersion extends Component {
                                 }}
                                 >
                                 <Button type="primary" href={'#/internet_request_send_by_iterator/' + this.state.iteratorId} size="large">
-                                    发起请求
+                                    {langTrans("version doc btn1")}
                                 </Button>
                             </ConfigProvider>
 
@@ -406,10 +407,12 @@ class RequestListVersion extends Component {
                         (this.props.prjs.length > 0 && this.props.prjs.find(row => row[prj_label] === prj) ? 
                             <div key={prj}>
                                 <Divider orientation="left">
-                                    <p>{ "项目：" + (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "") }</p >
+                                    <p>{langFormat("version doc project", {
+                                        name: (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "")
+                                    })}</p >
                                 </Divider>
                                 <Form layout="inline" style={{marginBottom: 16}}>
-                                    <Form.Item label="移动到迭代">
+                                    <Form.Item label={langTrans("version doc operator3")}>
                                         <Select
                                             style={{minWidth: 130}}
                                             onChange={ value => {
@@ -425,7 +428,7 @@ class RequestListVersion extends Component {
                                             options={ this.state.requestsJsxDividered[prj]['__iterators'] }
                                         />
                                     </Form.Item>
-                                    <Form.Item label="移动到文件夹">
+                                    <Form.Item label={langTrans("version doc operator4")}>
                                         <Select
                                             style={{minWidth: 130}}
                                             onChange={ async value => {
@@ -461,7 +464,7 @@ class RequestListVersion extends Component {
                         : null)
                     ))}
                     <Flex>
-                        <Divider>迭代说明</Divider>
+                        <Divider>{langTrans("version doc md title")}</Divider>
                     </Flex>
                     <MarkdownView 
                         showNav={ true } 
@@ -470,7 +473,7 @@ class RequestListVersion extends Component {
                         />
                     <FloatButton 
                         icon={<FileTextOutlined />}
-                        description="迭代文档"
+                        description={langTrans("doc btn1")}
                         shape="square"
                         style={{right: 24, width: 60}}
                         onClick={() => window.location.href = "#/version_iterator_doc/" + this.state.iteratorId} />

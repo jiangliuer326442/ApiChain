@@ -24,7 +24,6 @@ export function setLang(userCountry : string, userLang : string) {
   } else {
     data = enUsLang;
   }
-  console.log("setLang", userCountry, userLang, data);
 }
 
 export function getLang() : string {

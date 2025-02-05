@@ -28,6 +28,7 @@ import {
 } from '@conf/db';
 import PayModel from '@comp/topup';
 import { getUser } from '@act/user';
+import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -52,10 +53,10 @@ class Vip extends Component {
             list: [],
             showPay: false,
             columns: [{
-                title: "服务名",
+                title: langTrans("member mock table1"),
                 dataIndex: "serviceName",
             },{
-                title: "mock 地址",
+                title: langTrans("member mock table2"),
                 dataIndex: "mockUrl",
             }],
             ip: "",
@@ -107,14 +108,14 @@ class Vip extends Component {
                 mockServers,
                 list: [{
                     "key": VipTagDoc,
-                    "title": "迭代文档",
-                    "description_unchecked": "分享一个网页，让前端&测试随时看到你迭代文档的最新改动",
-                    "description_checked": <Text copyable={{text: docUrl}}>迭代文档 url 点击复制后可用浏览器打开</Text>
+                    "title": langTrans("member func1 title") ,
+                    "description_unchecked": langTrans("member func1 desc"),
+                    "description_checked": <Text copyable={{text: docUrl}}>{langTrans("member func1 desc2")}</Text>
                 },{
                     "key": VipTagMockServer,
-                    "title": "mock服务器",
-                    "description_unchecked": "接口先行，让前端先调用你的 mock 接口，返回 mock 数据",
-                    "description_checked": "前端可调用你下面这个迭代的 mock url 地址，返回 mock 数据"
+                    "title": langTrans("member func2 title"),
+                    "description_unchecked": langTrans("member func2 desc"),
+                    "description_checked": langTrans("member func2 desc2")
                 }],
             })
         })
@@ -174,7 +175,7 @@ class Vip extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    会员功能 
+                    {langTrans("member title")} 
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
@@ -190,7 +191,7 @@ class Vip extends Component {
                             </>
                         </List.Item>
                     )} />
-                    <Divider>mock 服务器地址</Divider>
+                    <Divider>{langTrans("member mock title")}</Divider>
                     <Table columns={this.state.columns} dataSource={ this.state.mockServers } pagination={ false } />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>

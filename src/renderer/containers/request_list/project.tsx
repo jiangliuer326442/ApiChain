@@ -84,6 +84,7 @@ import {
     setProjectRequestSort,
     batchSetProjectRequestFold,
 } from '@act/project_request';
+import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 const { Text, Link } = Typography;
@@ -113,7 +114,7 @@ class RequestListProject extends Component {
             requestsJsxDividered: {},
             listColumn: [
                 {
-                    title: '接口地址',
+                    title: langTrans("prj doc table field1"),
                     dataIndex: project_request_uri,
                     render: (uri) => { 
                         if (uri.length > 50) {
@@ -124,11 +125,11 @@ class RequestListProject extends Component {
                     }
                 },
                 {
-                    title: '接口说明',
+                    title: langTrans("prj doc table field2"),
                     dataIndex: project_request_title,
                 },
                 {
-                    title: '排序',
+                    title: langTrans("prj doc table field3"),
                     dataIndex: project_request_sort,
                     render: (sort, record) => {
                         let prj = record[project_request_prj];
@@ -142,17 +143,17 @@ class RequestListProject extends Component {
                     }
                 },
                 {
-                    title: '操作',
+                    title: langTrans("prj doc table field4"),
                     key: 'operater',
                     render: (_, record) => {
                         let sendRequestUrl = "#/internet_request_send_by_api/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
                         let docDetailUrl = "#/version_iterator_request/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
                         return (
                             <Space size="middle">
-                                <Tooltip title="发送">
+                                <Tooltip title={langTrans("prj doc table act1")}>
                                     <Button type="link" icon={<SendOutlined />} href={ sendRequestUrl } />
                                 </Tooltip>
-                                <Tooltip title="详情">
+                                <Tooltip title={langTrans("prj doc table act2")}>
                                     <Button type="link" icon={<EyeOutlined />} href={ docDetailUrl } />
                                 </Tooltip>
                                 <Dropdown menu={this.getMore(record)}>
@@ -279,7 +280,7 @@ class RequestListProject extends Component {
             }
             return true;
         } else {
-            message.error("不支持的 postman 文件版本");
+            message.error(langTrans("prj doc postman1"));
             return false;
         }
     }
@@ -325,7 +326,7 @@ class RequestListProject extends Component {
                 foldJsx.children = (
                 <Flex vertical>
                     <Form layout="inline" style={{marginBottom: 16}}>
-                        <Form.Item label="移动到文件夹">
+                        <Form.Item label={langTrans("prj doc operator3")}>
                             <Select
                                 style={{minWidth: 130}}
                                 onChange={ value => {
@@ -432,8 +433,8 @@ class RequestListProject extends Component {
             danger: true,
             label: 
             <Popconfirm
-                title="删除api"
-                description="确定删除该 api 吗？"
+                title={langTrans("prj doc del title")}
+                description={langTrans("prj doc del desc")}
                 onConfirm={e => {
                     delProjectRequest(record, ()=>{
                         this.onFinish({
@@ -442,8 +443,8 @@ class RequestListProject extends Component {
                         });
                     });
                 }}
-                okText="确定"
-                cancelText="取消"
+                okText={langTrans("prj doc del sure")}
+                cancelText={langTrans("prj doc del cancel")}
             >
                 <Button danger type="link" icon={<DeleteOutlined />} />
             </Popconfirm>,
@@ -454,12 +455,12 @@ class RequestListProject extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    项目接口列表 <Text type="secondary"><Link href={getWikiProject()}>迭代的接口和单测如何合并到项目？</Link></Text>
+                    {langTrans("prj doc title")} <Text type="secondary"><Link href={getWikiProject()}>{langTrans("prj doc link")}</Link></Text>
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
-                        { title: '项目' }, 
-                        { title: '接口列表' }
+                        { title: langTrans("prj doc bread1") }, 
+                        { title: langTrans("prj doc bread2") }
                     ]} />
                     <Flex vertical gap="middle">
                         <Flex justify="flex-start" align="center" gap="middle">
@@ -469,7 +470,7 @@ class RequestListProject extends Component {
                                 initialValues={ {} }
                                 autoComplete="off"
                             >
-                                <Form.Item<FieldType> style={{paddingBottom: 20}} label="接口地址" name="uri" rules={[{ required: false }]}>
+                                <Form.Item<FieldType> style={{paddingBottom: 20}} label={langTrans("prj doc operator1")} name="uri" rules={[{ required: false }]}>
                                     <AutoComplete 
                                         allowClear={{ clearIcon: <CloseSquareFilled /> }} 
                                         options={this.state.optionsUri} 
@@ -481,7 +482,7 @@ class RequestListProject extends Component {
                                     </AutoComplete>
                                 </Form.Item>
 
-                                <Form.Item<FieldType> label="接口说明" name="title" rules={[{ required: false }]}>
+                                <Form.Item<FieldType> label={langTrans("prj doc operator2")} name="title" rules={[{ required: false }]}>
                                     <AutoComplete 
                                         allowClear={{ clearIcon: <CloseSquareFilled /> }} 
                                         options={this.state.optionsTitle} 
@@ -495,7 +496,7 @@ class RequestListProject extends Component {
 
                                 <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                     <Button type="primary" htmlType="submit">
-                                        搜索
+                                        {langTrans("prj doc btn")}
                                     </Button>
                                 </Form.Item>
 
@@ -515,11 +516,11 @@ class RequestListProject extends Component {
                                         let postmanContent = response.postmanContent;
                                         let result = await this.parsePostman(replaceHost, JSON.parse(postmanContent as string));
                                         if (result) {
-                                            message.success("导入 postman 成功");
+                                            message.success(langTrans("prj doc postman2"));
                                             this.onFinish({});
                                         }
                                     }}>
-                                        从 PostMan 导入
+                                        {langTrans("prj doc import")}
                                     </Button>
                                 </Form.Item>
                             </Form>

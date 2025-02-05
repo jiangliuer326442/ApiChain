@@ -18,6 +18,7 @@ import {
     addProjectUnitTestFolder,
     getProjectUnitTestFolders, 
 } from '@act/unittest_folders';
+import { langTrans } from '@lang/i18n';
 
 class AddUnittestComponent extends Component {
 
@@ -53,12 +54,12 @@ class AddUnittestComponent extends Component {
         const selectedFolder = this.state.selectedFolder;
 
         if (isStringEmpty(unitTestTitle)) {
-            message.error('请输入测试用例名称');
+            message.error(langTrans("unittest add check1"));
             return;
         }
 
         if (selectedFolder === null) {
-            message.error('请选择测试用例所属文件夹');
+            message.error(langTrans("unittest add check2"));
             return;
         }
 
@@ -142,7 +143,7 @@ class AddUnittestComponent extends Component {
     render() : ReactNode {
         return (
             <Modal
-                title={this.state.actionType === "create" ? "添加单元测试" : "编辑单元测试"}
+                title={this.state.actionType === "create" ? langTrans("unittest add title") : langTrans("unittest edit title")}
                 open={this.props.open}
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
@@ -151,11 +152,11 @@ class AddUnittestComponent extends Component {
             >
                 <Form layout="vertical">
                     <Form.Item>
-                        <Input placeholder="测试用例名称" value={this.state.unitTestTitle} onChange={ event=>this.setState({unitTestTitle : event.target.value}) } />
+                        <Input placeholder={langTrans("unittest add form1")} value={this.state.unitTestTitle} onChange={ event=>this.setState({unitTestTitle : event.target.value}) } />
                     </Form.Item>
                     <Form.Item>
                         <Select
-                            placeholder="所属文件夹"
+                            placeholder={langTrans("unittest add form2")}
                             style={{minWidth: 130}}
                             value={ this.state.selectedFolder }
                             onChange={ value => this.setState({selectedFolder: value}) }
@@ -164,7 +165,7 @@ class AddUnittestComponent extends Component {
                                     {menu}
                                     <Divider style={{ margin: '8px 0' }} />
                                     <Input
-                                        placeholder="回车新建文件夹"
+                                        placeholder={langTrans("unittest add act1")}
                                         onChange={e => { this.setState({ folderName: e.target.value }) }}
                                         value={ this.state.folderName }
                                         onKeyDown={e => {

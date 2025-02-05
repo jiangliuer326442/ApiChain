@@ -36,6 +36,7 @@ import RequestParamFormTable from "@comp/unittest_step/request_param_form_table"
 import RequestHeadFormTable from "@comp/unittest_step/request_head_form_table";
 import RequestBodyFormTable from "@comp/unittest_step/request_body_form_table";
 import StepExpressionBuilderBox from "@comp/unittest_step/step_expression_builder_box";
+import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 
@@ -361,7 +362,7 @@ class UnittestStepContainer extends Component {
         return [
             {
                 key: 'uri',
-                label: '路径变量',
+                label: langTrans("network tab1"),
                 children: <RequestPathVariableFormTable 
                       object={this.state.formRequestPathVariableData} 
                       tips={this.state.paramTips} 
@@ -382,7 +383,7 @@ class UnittestStepContainer extends Component {
             },
             {
               key: 'params',
-              label: '参数',
+              label: langTrans("network tab2"),
               children: <RequestParamFormTable 
                     object={this.state.formRequestParamData} 
                     tips={this.state.paramTips} 
@@ -403,7 +404,7 @@ class UnittestStepContainer extends Component {
             },
             {
               key: 'headers',
-              label: '头部',
+              label: langTrans("network tab3"),
               children: <RequestHeadFormTable 
                     object={this.state.formRequestHeadData} 
                     tips={this.state.paramTips} 
@@ -424,7 +425,7 @@ class UnittestStepContainer extends Component {
             },
             {
               key: 'body',
-              label: '主体',
+              label: langTrans("network tab4"),
               children: <RequestBodyFormTable 
                     object={this.state.formRequestBodyData} 
                     tips={this.state.paramTips} 
@@ -448,40 +449,40 @@ class UnittestStepContainer extends Component {
 
     onFinish = (values) => {
         if (isStringEmpty(this.state.uri)) {
-            message.error("请根据项目选择接口");
+            message.error(langTrans("step add check1"));
             return;
         }
         if (isStringEmpty(this.state.title)) {
-            message.error("需要填写步骤名称");
+            message.error(langTrans("step add check2"));
             return;
         }
         if (this.state.sort <= 0) {
-            message.error("步骤顺序填写错误");
+            message.error(langTrans("step add check3"));
             return;
         }
         if (this.state.waitSeconds < 0) {
-            message.error("延时时间错误");
+            message.error(langTrans("step add check4"));
             return;
         }
         let assertLength = this.state.assertLength;
         for (let i = 0; i < assertLength; i++) {
             if (isStringEmpty(this.state.assertTitle[i])) {
-                message.error("请填写返回断言说明");
+                message.error(langTrans("step add check5"));
                 return;
             }
 
             if (isStringEmpty(this.state.assertPrev[i])) {
-                message.error("请填写需要校验返回值的字段");
+                message.error(langTrans("step add check6"));
                 return;
             }
 
             if (isStringEmpty(this.state.assertOperator[i])) {
-                message.error("请选择断言字段比较方式");
+                message.error(langTrans("step add check7"));
                 return;
             }
 
             if (isStringEmpty(this.state.assertAfter[i])) {
-                message.error("请填写校验字段比对的目标值");
+                message.error(langTrans("step add check8"));
                 return;
             }
         }
@@ -513,12 +514,12 @@ class UnittestStepContainer extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    迭代单测执行步骤
+                    {langTrans("step add title")}
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: <a href={ '#/version_iterator_tests/' + this.state.iteratorId }>{ this.state.unitTest[unittest_title] }</a > }, 
-                        { title: isStringEmpty(this.state.unitTestStepUuid) ? '添加步骤' : '编辑步骤' }
+                        { title: isStringEmpty(this.state.unitTestStepUuid) ? langTrans("step bread add") : langTrans("step bread edit") }
                     ]} />
                     <div
                         style={{
@@ -532,7 +533,7 @@ class UnittestStepContainer extends Component {
                             autoComplete="off"
                         >
                             <Form.Item
-                                label="选择接口"
+                                label={langTrans("step add form1")}
                             >
                                 <Space size="middle" wrap>
                                     <Select
@@ -552,13 +553,13 @@ class UnittestStepContainer extends Component {
                                 </Space>
                             </Form.Item>
                             <Form.Item
-                                label="步骤名称"
+                                label={langTrans("step add form2")}
                             >
                                 <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} />
                             </Form.Item>
 
                             <Form.Item
-                                label="触发方式"
+                                label={langTrans("step add form3")}
                             >
                                 <Space size="middle" wrap>
                                     <Select
@@ -566,15 +567,15 @@ class UnittestStepContainer extends Component {
                                         style={{ width: 174 }}
                                         onChange={ value => this.setState({continueEnable: value}) }
                                     >
-                                        <Select.Option value="2">等待执行</Select.Option>
-                                        <Select.Option value="1">自动执行</Select.Option>
-                                        <Select.Option value="0">手动执行</Select.Option>
+                                        <Select.Option value="2">{langTrans("step add triggle1")}</Select.Option>
+                                        <Select.Option value="1">{langTrans("step add triggle2")}</Select.Option>
+                                        <Select.Option value="0">{langTrans("step add triggle3")}</Select.Option>
                                     </Select>
-                                    {this.state.continueEnable === "2" ? <InputNumber addonBefore="等待" addonAfter="秒执行" min={1} value={this.state.waitSeconds} onChange={waitSeconds=>this.setState({waitSeconds})} /> : null}
+                                    {this.state.continueEnable === "2" ? <InputNumber addonBefore={langTrans("step add triggle4")} addonAfter={langTrans("step add triggle5")} min={1} value={this.state.waitSeconds} onChange={waitSeconds=>this.setState({waitSeconds})} /> : null}
                                 </Space>
                             </Form.Item>
                             <Form.Item
-                                label="步骤排序"
+                                label={langTrans("step add form4")}
                             >
                                 <InputNumber value={this.state.sort} onChange={sort=>this.setState({sort})} />
                             </Form.Item>
@@ -586,18 +587,18 @@ class UnittestStepContainer extends Component {
                                 <Divider>
                                     <Space size={"middle"}>
                                         <Button shape="circle" onClick={this.addAssert} icon={<PlusOutlined />} />
-                                        返回断言
+                                        {langTrans("step add assert title")}
                                         <Button shape="circle" onClick={this.subAssert} icon={<MinusOutlined />} />
                                     </Space>
                                 </Divider>
                                 {Array.from({ length: this.state.assertLength }, (_, i) => (
                                 <Form.Item key={i}
-                                    label={"返回断言" + (i+1)}
+                                    label={langTrans("step add assert title") + (i+1)}
                                     style={{marginTop: 24}}
                                 >
                                     <Space wrap>
                                         <Input 
-                                            placeholder='对返回值校验的说明'
+                                            placeholder={langTrans("step add assert tip1")}
                                             style={{width: 500}}
                                             value={this.state.assertTitle[i]} onChange={event => {
                                                 let assertTitle = cloneDeep(this.state.assertTitle);
@@ -669,7 +670,7 @@ class UnittestStepContainer extends Component {
                              : null}
                             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                 <Button type="primary" htmlType="submit">
-                                    {isStringEmpty(this.state.unitTestStepUuid) ? "添加步骤" : "编辑步骤"}
+                                    {isStringEmpty(this.state.unitTestStepUuid) ? langTrans("step btn add") : langTrans("step btn edit")}
                                 </Button>
                             </Form.Item>
                         </Form>

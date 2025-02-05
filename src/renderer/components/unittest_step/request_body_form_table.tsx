@@ -12,6 +12,7 @@ import {
     buildJsonString,
 } from '@rutil/json';
 import { getType, isNumeric } from '@rutil/index';
+import { langTrans } from '@lang/i18n';
 
 class RequestBodyFormTable extends Component {
 
@@ -65,22 +66,22 @@ class RequestBodyFormTable extends Component {
             object: props.object,
             columns: [
                 {
-                    title: '参数名',
+                    title: langTrans("network table1"),
                     dataIndex: TABLE_FIELD_NAME,
                 },
                 {
-                    title: '参数类型',
+                    title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
                 },
                 {
-                    title: '备注',
+                    title: langTrans("network table3"),
                     dataIndex: TABLE_FIELD_REMARK,
                     render: (remark : any, row : any) => {
                         return remark;
                     }
                 },
                 {
-                    title: '数据',
+                    title: langTrans("network table4"),
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (data, row) => {
                         let key = row.key;

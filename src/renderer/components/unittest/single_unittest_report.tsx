@@ -6,12 +6,12 @@ import { Descriptions, Typography } from "antd";
 import type { DescriptionsProps } from 'antd';
 import { cloneDeep } from 'lodash';
 
-import { getdayjs, isStringEmpty } from '../../util';
+import { getdayjs, isStringEmpty } from '@rutil/index';
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST
 } from '../../../config/global_config';
-import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
+import { ENV_VALUE_API_HOST } from '@conf/envKeys';
 import {
     TABLE_UNITTEST_FIELDS,
     TABLE_ENV_FIELDS,
@@ -23,17 +23,18 @@ import {
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_ENV_VAR_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 
 import {
     getSingleUnittest,
     getSingleExecutorReport,
     getSingleExecutorStep,
     getUnitTestStepAsserts,
-} from '../../actions/unittest';
+} from '@act/unittest';
 import {
     getEnvValues
-} from '../../actions/env_value';
+} from '@act/env_value';
+import { langFormat, langTrans } from '@lang/i18n';
 
 const { Text } = Typography;
 
@@ -141,32 +142,32 @@ class SingleUnitTestReport extends Component {
         return [
             {
                 key: '1',
-                label: '测试用例',
+                label: langTrans("unittest report desc1"),
                 children: this.state.selectedUnitTest[unittest_title],
             },
             {
                 key: '2',
-                label: '运行环境',
+                label: langTrans("unittest report desc2"),
                 children: selectedEnv[env_remark],
             },
             {
                 key: '3',
-                label: '执行结果',
-                children: this.state.recentUnitTestReport[unittest_report_result] === "success" ? <span style={{color:"green"}}>成功</span> : (this.state.recentUnitTestReport[unittest_report_result] === "failure" ? <span style={{color:"red"}}>失败</span> : <span style={{color:"yellow"}}>未知</span>),
+                label: langTrans("unittest report desc3"),
+                children: this.state.recentUnitTestReport[unittest_report_result] === "success" ? <span style={{color:"green"}}>{langTrans("unittest report success")}</span> : (this.state.recentUnitTestReport[unittest_report_result] === "failure" ? <span style={{color:"red"}}>{langTrans("unittest report fail")}</span> : <span style={{color:"yellow"}}>{langTrans("prj unittest status4")}</span>),
             },
             {
                 key: '4',
-                label: '接口耗时',
-                children: this.state.recentUnitTestReport[unittest_report_cost_time] + "毫秒",
+                label: langTrans("unittest report desc4"),
+                children: this.state.recentUnitTestReport[unittest_report_cost_time] + langTrans("prj unittest costtime"),
             },
             {
                 key: '5',
-                label: '错误信息',
+                label: langTrans("unittest report desc5"),
                 children: this.state.recentUnitTestReport[unittest_report_result] ? "--" : this.state.recentUnitTestReport[unittest_report_failure_reason],
             },
             {
                 key: '6',
-                label: '执行时间',
+                label: langTrans("unittest report desc6"),
                 children: getdayjs(this.state.recentUnitTestReport[unittest_report_ctime]).format("YYYY-MM-DD HH:mm:ss"),
             },
         ];
@@ -248,17 +249,17 @@ class SingleUnitTestReport extends Component {
     render() : ReactNode {
         return (this.state.openFlg ? 
             <>
-                <Descriptions title="最近一次测试用例执行结果：" items={this.getDescriptions()} />
+                <Descriptions title={langTrans("unittest report title")} items={this.getDescriptions()} />
                 {this.state.recentStepResult.map((item, index) => {
                     const items: DescriptionsProps['items'] = [
                         {
                             key: '1',
-                            label: '请求地址',
+                            label: langTrans("unittest report step field1"),
                             children: <Text copyable={{text: item.url}}><Link to={"/internet_request_send_by_history/" + item.historyId}>{ item.url }</Link></Text>,
                         },
                         {
                             key: '2',
-                            label: '流入',
+                            label: langTrans("unittest report step field2"),
                             children: <JsonView 
                                 src={item.input}   
                                 name="response"
@@ -273,7 +274,7 @@ class SingleUnitTestReport extends Component {
                         },
                         {
                             key: '3',
-                            label: '流出',
+                            label: langTrans("unittest report step field3"),
                             children: <JsonView 
                                 src={item.output}   
                                 name="response"
@@ -288,13 +289,13 @@ class SingleUnitTestReport extends Component {
                         },
                         {
                             key: '4',
-                            label: '结果',
-                            children: item.assertResult ? <span style={{color:"green"}}>成功</span> : <span style={{color:"red"}}>失败</span>,
+                            label: langTrans("unittest report step field4"),
+                            children: item.assertResult ? <span style={{color:"green"}}>{langTrans("unittest report success")}</span> : <span style={{color:"red"}}>{langTrans("unittest report fail")}</span>,
                         },
                         {
                             key: '5',
-                            label: '耗时',
-                            children: item.assertResult ? item.costTime + " 毫秒" : " -- ",
+                            label: langTrans("unittest report step field5"),
+                            children: item.assertResult ? item.costTime + " " + langTrans("prj unittest costtime") : " -- ",
                         },
                     ];
                     for (let _index in item.assertArr) {
@@ -306,21 +307,24 @@ class SingleUnitTestReport extends Component {
                         let _indexNumber = Number(_index) + 1;
                         items.push({
                             key : 50 + _index,
-                            label: "断言" + _indexNumber + "：",
+                            label: langTrans("unittest report step field6") + _indexNumber + "：",
                             children: "[" + item.assertArr[_index][unittest_step_assert_operator] + "] " + item.assertArr[_index][unittest_step_assert_title],
                         });
                         items.push({
                             key : 51 + _index,
-                            label: "操作符👈：",
+                            label: langTrans("unittest report step field7"),
                             children: item.assertArr[_index][unittest_step_assert_left] + " -> " + item.assertLeftArr[_index],
                         });
                         items.push({
                             key : 52 + _index,
-                            label: "操作符👉：",
+                            label: langTrans("unittest report step field8"),
                             children: item.assertArr[_index][unittest_step_assert_right] + " -> " + item.assertRightArr[_index] 
                         });
                     }
-                    return (<Descriptions key={item.key} column={1}  title={"步骤 " + item.sort + " ：" + item.title} items={items} />)
+                    return (<Descriptions key={item.key} column={1}  title={langFormat("unittest report step title", {
+                        sort: item.sort,
+                        title: item.title,
+                    })} items={items} />)
                 })}
             </>
         : null)
