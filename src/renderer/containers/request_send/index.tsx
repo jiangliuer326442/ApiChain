@@ -19,7 +19,9 @@ import {
 import {
   TABLE_FIELD_TYPE,
   TABLE_FIELD_VALUE,
-  cleanJson
+  cleanJson,
+  retShortJsonContent,
+  shortJsonContent
 } from '@rutil/json';
 import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { getWikiSendRequest } from '@conf/url';
@@ -69,6 +71,7 @@ import RequestSendBody from "@comp/request_send/body_form";
 import RequestSendHead from "@comp/request_send/head_form";
 import RequestSendParam from "@comp/request_send/request_param";
 import RequestSendPathVariable from "@comp/request_send/request_path_variable";
+import { langFormat, langTrans } from '@lang/i18n';
 
 let request_history_env = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ENV_LABEL;
 let request_history_micro_service = TABLE_REQUEST_HISTORY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -581,7 +584,7 @@ class RequestSendContainer extends Component {
       content = "[!返回了一个文件]";
     } else if ((headers['content-type'] && headers['content-type'].toString().indexOf(CONTENT_TYPE_JSON) >= 0) || isJsonString(JSON.stringify(data))) {
       isResponseJson = true;
-      content = JSON.stringify(data);
+      content = JSON.stringify(retShortJsonContent(data));
     } else {
       content = data;
     }
@@ -698,17 +701,17 @@ class RequestSendContainer extends Component {
     return [
       {
         key: 'uri',
-        label: '路径变量',
+        label: langTrans("network tab1"),
         children: <RequestSendPathVariable obj={ this.calculatePathVariableData(this.state.requestPathVariableData) } tips={this.state.envKeys} cb={this.setRequestPathVariableData} />,
       },
       {
         key: 'params',
-        label: '参数',
+        label: langTrans("network tab2"),
         children: <RequestSendParam obj={ this.calculateFormParamsData(this.state.requestParamData) } tips={this.state.envKeys} cb={this.setRequestParamData} />,
       },
       {
         key: 'headers',
-        label: '头部',
+        label: langTrans("network tab3"),
         children: <RequestSendHead 
           obj={ this.calculateFormHeadData(this.state.requestHeadData) } 
           tips={this.state.envKeys} 
@@ -717,7 +720,7 @@ class RequestSendContainer extends Component {
       },
       {
         key: 'body',
-        label: '主体',
+        label: langTrans("network tab4"),
         children: <RequestSendBody 
           obj={ this.calculateFormBodyData(this.state.requestBodyData, this.state.requestFileData) } 
           file={ this.state.requestFileData }
@@ -733,10 +736,10 @@ class RequestSendContainer extends Component {
     return (
         <Layout>
             <Header style={{ padding: 0 }}>
-                发送网络请求 <Text type="secondary"><Link href={ getWikiSendRequest() }>如何发送网络请求？</Link></Text>
+                {langTrans("request title")} <Text type="secondary"><Link href={ getWikiSendRequest() }>{langTrans("request link")}</Link></Text>
             </Header>
             <Content style={{ padding: '0 16px' }}>
-              <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '请求' }, { title: '发送' }]} />
+              <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("request bread1") }, { title: langTrans("request bread2") }]} />
               <Flex vertical gap="middle">
                 <Flex justify="space-between" align="center">
                   {this.state.showFlg ? 
@@ -747,7 +750,7 @@ class RequestSendContainer extends Component {
                       disabled={this.state.id === 0}
                       href={ isStringEmpty(this.state.iteratorId) ? "#/history_request_to_interator/" + this.state.id : "#/request_to_interator/" + this.state.iteratorId + "/" + this.state.id}
                       style={ { background: "#3b3b3b", color: "rgba(255, 255, 255, 0.5)"} }
-                  >保存</Button>
+                  >{langTrans("request btn1")}</Button>
                 </Flex>
                 <Flex>
                     <Select 
@@ -777,17 +780,17 @@ class RequestSendContainer extends Component {
                       style={{borderRadius: 0}} 
                       disabled={!this.state.requestEnable || this.state.sendingFlg}
                       onClick={ this.sendRequest }
-                    >{this.state.sendingFlg ? "请求中" : "发送请求"}</Button>
+                    >{this.state.sendingFlg ? langTrans("request btn3") : langTrans("request btn2")}</Button>
                 </Flex>
                 { this.state.showFlg ? <Tabs activeKey={ this.state.defaultTabKey } items={ this.getNavs() } onChange={key => this.setState({defaultTabKey: key})} /> : null }
-                <Divider orientation="left">响应 
-                {this.state.statusCode > 0 ? 
-                (this.state.statusCode == 200 ? 
-                  <Text style={{ color: 'green' }}>（耗时 { this.state.costTime } 毫秒）</Text>
+                <Divider orientation="left">{langTrans("request response title")} 
+                  {this.state.statusCode > 0 ? 
+                  (this.state.statusCode == 200 ? 
+                  <Text style={{ color: 'green' }}>{langFormat("request response costtime", {costtime: this.state.costTime})}</Text>
                   :
                   <Text style={{ color: 'red' }}> {this.state.statusCode + " " + this.state.alertMessage} </Text>
-                )
-                : null}
+                  )
+                  : null}
                 </Divider>
                 {this.state.responseHeader != null && Object.keys(this.state.responseHeader).length > 0 ?
                 <Descriptions column={1} title="header" items={this.getHeaders()} />

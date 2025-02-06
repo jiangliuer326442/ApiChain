@@ -13,6 +13,7 @@ import {
     CONTENT_TYPE_FORMDATA,
     CONTENT_TYPE_JSON,
 } from "../../../config/contentType"
+import { langTrans } from '@lang/i18n';
 
 class RequestSendHead extends Component {
 
@@ -102,8 +103,8 @@ class RequestSendHead extends Component {
             <Flex vertical gap="small">
                 <Flex>
                     <Flex><div style={{width: 20}}></div></Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>键</Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>值</Flex>
+                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field1")}</Flex>
+                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field2")}</Flex>
                 </Flex>
                 {Array.from({ length: this.state.rows+1 }, (row, i) => (
                     ( i === 0 ? 
@@ -155,7 +156,7 @@ class RequestSendHead extends Component {
                                 <AutoComplete allowClear
                                     style={{width: "100%"}}
                                     onSearch={text => this.setOptions(text, i)}
-                                    placeholder="输入 {{ 可引用环境变量参数"
+                                    placeholder={langTrans("request field tip1")}
                                     onChange={data => this.setValue(data, i)}
                                     onSelect={data => this.setSelectedValue(data, i)}
                                     options={ this.state.data[i] && this.state.data[i]['options'] ? this.state.data[i]['options'] : [] }

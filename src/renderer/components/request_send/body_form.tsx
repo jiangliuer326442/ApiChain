@@ -13,6 +13,7 @@ import {
 } from '../../../config/contentType';
 import { INPUTTYPE_TEXT, INPUTTYPE_FILE } from '../../../config/global_config';
 import { prettyJson } from '../../util/json';
+import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
@@ -174,8 +175,8 @@ class RequestSendBody extends Component {
             (<Flex vertical gap="small">
                 <Flex>
                     <Flex><div style={{width: 20}}></div></Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>键</Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>值</Flex>
+                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field1")}</Flex>
+                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field2")}</Flex>
                 </Flex>
                 {Array.from({ length: this.state.rows+1 }, (_, i) => (
                 <Flex key={i}>
@@ -201,7 +202,7 @@ class RequestSendBody extends Component {
                             allowClear
                             style={{width: "100%"}}
                             onSearch={text => this.setOptions(text, i)}
-                            placeholder="输入 {{ 可引用环境变量参数"
+                            placeholder={langTrans("request field tip1")}
                             onChange={data => this.setValue(data, i)}
                             onSelect={data => this.setSelectedValue(data, i)}
                             options={ this.state.data[i] && this.state.data[i]['options'] ? this.state.data[i]['options'] : [] }

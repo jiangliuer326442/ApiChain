@@ -13,6 +13,7 @@ import {
 import { getEnvs } from '../../actions/env';
 import { getVersionIterator } from '../../actions/version_iterator';
 import { isStringEmpty } from '../../util';
+import { langTrans } from '@lang/i18n';
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
@@ -63,11 +64,11 @@ class PrjEnvSelect extends Component {
         return (
             <Form layout="inline">
                 {!isStringEmpty(this.state.iteratorId) ? 
-                <Form.Item label="当前迭代">
+                <Form.Item label={langTrans("request select1")}>
                     { this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_title] }
                 </Form.Item>
                 : null}
-                <Form.Item label="选择项目">
+                <Form.Item label={langTrans("request select2")}>
                     {this.props.prjs.length > 0 ? 
                     <Select
                     value={ this.state.prj }
@@ -80,10 +81,10 @@ class PrjEnvSelect extends Component {
                     })}
                     />
                     : 
-                    <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>创建微服务</Button>
+                    <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>{langTrans("prj add")}</Button>
                     }
                 </Form.Item>
-                <Form.Item label="选择环境">
+                <Form.Item label={langTrans("request select3")}>
                     {this.props.envs.length > 0 ?
                     <Select
                     value={ this.state.env }
@@ -94,7 +95,7 @@ class PrjEnvSelect extends Component {
                     })}
                     />
                     :
-                    <Button type="link" href={"#" + ENV_LIST_ROUTE}>添加服务器环境</Button>
+                    <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("env add")}</Button>
                     }
                 </Form.Item>
             </Form>

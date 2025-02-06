@@ -12,12 +12,14 @@ import {
     getNowdayjs,
     getdayjs,
     isStringEmpty, 
-} from '../../util';
+} from '@rutil/index';
 import { 
     TABLE_REQUEST_HISTORY_FIELDS,
-} from '../../../config/db';
-import { getRequestHistorys } from "../../actions/request_history";
-import SelectPrjEnvComponent from "../../components/env_var/select_prj_env";
+} from '@conf/db';
+import { getRequestHistorys } from "@act/request_history";
+import SelectPrjEnvComponent from "@comp/env_var/select_prj_env";
+import { langTrans } from '@lang/i18n';
+import { REQUEST_METHOD_GET } from '@conf/global_config';
 
 const { Header, Content, Footer } = Layout;
 const { RangePicker } = DatePicker;
@@ -33,6 +35,7 @@ let id = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ID;
 let method = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_METHOD;
 let uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
 let body = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_BODY;
+let param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let response = TABLE_REQUEST_HISTORY_FIELDS.FIELD_RESPONSE_CONTENT;
 let jsonFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
 let htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
@@ -91,7 +94,7 @@ class RequestHistoryContainer extends Component {
     listColumn = () => {
         return [
             {
-                title: '地址',
+                title: langTrans("log field1"),
                 dataIndex: "url",
                 width: 240,
                 render: (_, record) => { 
@@ -101,25 +104,40 @@ class RequestHistoryContainer extends Component {
                 },
             },
             {
-                title: '数据',
+                title: langTrans("log field2"),
                 dataIndex: "datas",
                 width: 240,
                 render: (_, record) => {
-                    return <JsonView 
-                        src={record[body]}   
-                        name="response"
-                        theme={ "bright" }
-                        collapsed={false}  
-                        indentWidth={4}  
-                        iconStyle="triangle"
-                        enableClipboard={true}
-                        displayObjectSize={false}
-                        displayDataTypes={false}
-                        collapseStringsAfterLength={40}  />;
+                    let _method = record[method];
+                    if (_method === REQUEST_METHOD_GET) {
+                        return <JsonView 
+                            src={record[param]}   
+                            name="response"
+                            theme={ "bright" }
+                            collapsed={false}  
+                            indentWidth={4}  
+                            iconStyle="triangle"
+                            enableClipboard={true}
+                            displayObjectSize={false}
+                            displayDataTypes={false}
+                            collapseStringsAfterLength={40}  />;
+                    } else {
+                        return <JsonView 
+                            src={record[body]}   
+                            name="response"
+                            theme={ "bright" }
+                            collapsed={false}  
+                            indentWidth={4}  
+                            iconStyle="triangle"
+                            enableClipboard={true}
+                            displayObjectSize={false}
+                            displayDataTypes={false}
+                            collapseStringsAfterLength={40}  />;
+                    }
                 },
             },
             {
-                title: '响应',
+                title: langTrans("log field3"),
                 dataIndex: response,
                 render: (content, record) => {
                     if (record[jsonFlg]) {
@@ -149,13 +167,13 @@ class RequestHistoryContainer extends Component {
                 },
             },
             {
-                  title: '时间',
+                  title: langTrans("log field4"),
                   witdh: 60,
                   dataIndex: ctime,
                   render: (time) => { return getdayjs(time).format("MM-DD HH:mm")},
             },
             {
-                title: '操作',
+                title: langTrans("log field5"),
                 key: 'operater',
                 width: 40,
                 render: (_, record) => {
@@ -173,10 +191,10 @@ class RequestHistoryContainer extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    网络请求记录
+                    {langTrans("log title")}
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
-                    <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '请求' }, { title: '历史' }]}></Breadcrumb>
+                    <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("log bread1") }, { title: langTrans("log bread2") }]}></Breadcrumb>
                     <Flex vertical gap="middle">
                         <Flex justify="space-between" align="center">
                             <SelectPrjEnvComponent prj={ this.state.prj ? this.state.prj : this.props.prj } env={ this.state.env ? this.state.env : this.props.env } cb={this.getEnvValueData} />
@@ -184,7 +202,7 @@ class RequestHistoryContainer extends Component {
                         <Flex>
                             <Form layout='inline' onFinish={ this.onFinish } autoComplete="off">
                                 <Form.Item<FieldType>
-                                    label="接口 uri"
+                                    label={langTrans("log select1")}
                                     name="uri"
                                     rules={[{ required: false }]}
                                 >
@@ -203,7 +221,7 @@ class RequestHistoryContainer extends Component {
                                 <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                     <Space>
                                         <Button type="primary" htmlType="submit">
-                                            搜索
+                                            {langTrans("log btn")}
                                         </Button>
                                     </Space>
                                 </Form.Item>
