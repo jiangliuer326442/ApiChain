@@ -15,7 +15,8 @@ import {
 } from '@rutil/json';
 
 import { getJsonFragment } from '@act/request_save';
-import { isStringEmpty, isJsonString } from '@rutil/index';
+import { isStringEmpty, isJsonString, substr } from '@rutil/index';
+import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
@@ -28,15 +29,15 @@ class JsonSaveResponseTableContainer extends Component {
             object: props.object,
             columns: [
                 {
-                    title: '参数名',
+                    title: langTrans("network table1"),
                     dataIndex: TABLE_FIELD_NAME,
                 },
                 {
-                    title: '参数类型',
+                    title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
                 },
                 {
-                    title: '备注',
+                    title: langTrans("network table3"),
                     dataIndex: TABLE_FIELD_REMARK,
                     render: (remark : any, row : any) => {
                         let key = row.key;
@@ -56,14 +57,10 @@ class JsonSaveResponseTableContainer extends Component {
                     }
                 },
                 {
-                    title: '示例',
+                    title: langTrans("network table6"),
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (demoRaw : any, row : any) => {
-                        let demo = cloneDeep(demoRaw);
-                        if(demo != null && demo.length > 50) {
-                            return demo.substring(0, 50) + "...";
-                        }
-                        return demo;
+                        return substr(cloneDeep(demoRaw), 50);
                     }
                 },
             ],

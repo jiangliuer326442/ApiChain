@@ -33,8 +33,8 @@ export const VipTagMockServer = "vip.tag.mock";
 export const DataTypeJsonObject = "JsonString";
 
 export const dataTypeSelect = [
-    {label: "字符串", value: "String"},
-    {label: "布尔型", value: "Boolean"},
-    {label: "数字", value: "Number"},
-    {label: "json字符串", value: DataTypeJsonObject},
+    "String",
+    "Boolean",
+    "Number",
+    DataTypeJsonObject
 ];

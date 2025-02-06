@@ -64,6 +64,7 @@ import JsonSaveHeaderTableContainer from "@comp/request_save/json_save_table_hea
 import JsonSaveResponseHeaderTableContainer from "@comp/request_save/json_save_table_response_header";
 import JsonSaveResponseCookieTableContainer from "@comp/request_save/json_save_table_response_cookie";
 import JsonSaveResponseTableComponent from "@comp/request_save/json_save_table_response";
+import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
@@ -494,29 +495,29 @@ class RequestSaveContainer extends Component {
 
     handleSave = async () => {
         if (isStringEmpty(this.state.title)){
-            message.error("接口说明必填");
+            message.error(langTrans("request save check1"));
             return;
         }
         if (isStringEmpty(this.state.prj)){
-            message.error("请选择涉及的项目");
+            message.error(langTrans("request save check2"));
             return;
         }
         //新增接口时的校验
         if (isStringEmpty(this.props.match.params.historyId)) {
             if (isStringEmpty(this.state.iteratorId)) {
-                message.error("只能在迭代中直接新增 api ");
+                message.error(langTrans("request save check3"));
                 return;
             }
             if (isStringEmpty(this.state.requestUri)) {
-                message.error("请填写接口 uri");
+                message.error(langTrans("request save check4"));
                 return;
             }
             if (this.state.requestUri.substring(0, 1) === "/") {
-                message.error("接口 uri 不能以 / 开头");
+                message.error(langTrans("request save check5"));
                 return;
             }
             if (isStringEmpty(this.state.responseDemo)) {
-                message.error("请填写接口预返回的 json 报文示例");
+                message.error(langTrans("request save check6"));
                 return;
             }
         }
@@ -551,7 +552,7 @@ class RequestSaveContainer extends Component {
                 this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile,
                 this.props.device
             );
-            message.success("新增成功");
+            message.success(langTrans("request save result1"));
             this.props.history.push("#/version_iterator_request/" + this.state.iteratorId + "/" + this.state.prj + "/" + this.state.requestMethod + "/" + encode(this.state.requestUri));
         } else {
             //编辑
@@ -567,7 +568,7 @@ class RequestSaveContainer extends Component {
                     this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile, 
                     this.props.device
                 );
-                message.success("保存成功");
+                message.success(langTrans("request save result2"));
                 this.props.history.push("/project_requests/" + this.state.prj);
             } else {
                 //编辑迭代接口
@@ -581,7 +582,7 @@ class RequestSaveContainer extends Component {
                     this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile,
                     this.props.device
                 );
-                message.success("保存成功");
+                message.success(langTrans("request save result2"));
                 this.props.history.push("/version_iterator_requests/" + this.state.iteratorId);
             }
         }
@@ -629,7 +630,7 @@ class RequestSaveContainer extends Component {
         return [
             {
                 key: 'uris',
-                label: '路径参数',
+                label: langTrans("network tab1"),
                 children: <JsonSavePathVariTableContainer 
                     readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
                     object={this.state.formRequestPathVariableData} 
@@ -637,7 +638,7 @@ class RequestSaveContainer extends Component {
             },
             {
                 key: 'params',
-                label: '参数',
+                label: langTrans("network tab2"),
                 children: <JsonSaveParamTableContainer 
                     readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
                     object={this.state.formRequestParamData} 
@@ -645,7 +646,7 @@ class RequestSaveContainer extends Component {
             },
             {
                 key: 'headers',
-                label: '头部',
+                label: langTrans("network tab3"),
                 children: <JsonSaveHeaderTableContainer 
                     readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
                     contentType={ this.state.contentType }
@@ -654,7 +655,7 @@ class RequestSaveContainer extends Component {
             },
             {
                 key: 'body',
-                label: '主体',
+                label: langTrans("network tab4"),
                 children: <JsonSaveBodyTableContainer 
                     readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
                     contentType={ this.state.contentType }
@@ -709,24 +710,24 @@ class RequestSaveContainer extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    保存到迭代
+                    {langTrans("request save title")}
                 </Header>
                 {this.state.showFlg ? 
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
-                        { title: '请求' }, 
-                        { title: '保存' }
+                        { title: langTrans("request save bread1") }, 
+                        { title: langTrans("request save bread2") }
                     ]} />
                     <Flex vertical gap="middle">
                         <Flex justify="space-between" align="center">
                             <Descriptions items={ [
                             {
                                 key: 'prj',
-                                label: '项目',
+                                label: langTrans("request save select1"),
                                 children: isStringEmpty(this.props.match.params.historyId) ? 
                                 <Select
                                     value={this.state.prj}
-                                    placeholder="选择项目"
+                                    placeholder={langTrans("request save tip1")}
                                     style={{ width: 174 }}
                                     options={ this.state.prjsSelectector }
                                     onChange={ this.handleRequestProject }
@@ -736,7 +737,7 @@ class RequestSaveContainer extends Component {
                             },
                             {
                                 key: isStringEmpty(this.state.iteratorId) ? 'env' : 'iterator',
-                                label: isStringEmpty(this.state.iteratorId) ? '环境' : '迭代',
+                                label: isStringEmpty(this.state.iteratorId) ? langTrans("request save select2") : langTrans("request save select3"),
                                 children: isStringEmpty(this.state.iteratorId) ? 
                                 (this.props.envs.find(row => row[env_label] === this.state.env) ? this.props.envs.find(row => row[env_label] === this.state.env)[env_remark] : "") 
                                 : 
@@ -746,16 +747,16 @@ class RequestSaveContainer extends Component {
                         </Flex>
                         <Flex justify="flex-start" align="center" gap="middle">
                             <Form layout="inline">
-                                <Form.Item label="标题">
-                                    <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} placeholder='接口说明' />
+                                <Form.Item label={langTrans("request save select4")}>
+                                    <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} placeholder={langTrans("request save desc")} />
                                 </Form.Item>
 
                                 {isStringEmpty(this.state.iteratorId) ? 
-                                <Form.Item label="选择需求迭代">
+                                <Form.Item label={langTrans("request save select6")}>
                                     <Select
                                         showSearch
                                         allowClear
-                                        placeholder="选择需求迭代版本"
+                                        placeholder={langTrans("request save tip6")}
                                         optionFilterProp="label"
                                         style={{minWidth: 160}}
                                         onChange={this.handleSetVersionIterator}
@@ -765,14 +766,14 @@ class RequestSaveContainer extends Component {
                                             <>
                                             {menu}
                                             <Divider style={{ margin: '8px 0' }} />
-                                            <Button type="link" onClick={this.handleCreateIterator}>新建需求迭代</Button>
+                                            <Button type="link" onClick={this.handleCreateIterator}>{langTrans("request save tip62")}</Button>
                                             </>
                                         )}
                                         options={this.state.versionIteratorsSelector}
                                     />
                                 </Form.Item>
                                 : null }
-                                <Form.Item label="选择文件夹">
+                                <Form.Item label={langTrans("request save select5")}>
                                     <Select
                                         style={{minWidth: 130}}
                                         value={ this.state.selectedFolder }
@@ -782,7 +783,7 @@ class RequestSaveContainer extends Component {
                                                 {menu}
                                                 <Divider style={{ margin: '8px 0' }} />
                                                 <Input
-                                                    placeholder="回车新建文件夹"
+                                                    placeholder={langTrans("request save tip5")}
                                                     onChange={e => { this.setState({ folderName: e.target.value }) }}
                                                     value={ this.state.folderName }
                                                     onKeyDown={e => {
@@ -821,13 +822,13 @@ class RequestSaveContainer extends Component {
                                 type="primary" 
                                 style={{borderRadius: 0}} 
                                 onClick={ this.handleSave }
-                                >保存</Button>
+                                >{langTrans("request save btn")}</Button>
                         </Flex>
-                        <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
+                        <TextArea placeholder={langTrans("request save desc")} value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
                         {this.state.formResponseHeadData != null && Object.keys(this.state.formResponseHeadData).length > 0 ? 
                         <>
-                            <Divider orientation="left">响应Header</Divider>
+                            <Divider orientation="left">{langTrans("request save response header")}</Divider>
                             <Flex>
                                 <JsonSaveResponseHeaderTableContainer 
                                     readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
@@ -838,7 +839,7 @@ class RequestSaveContainer extends Component {
                         : null }
                         {this.state.formResponseCookieData != null && Object.keys(this.state.formResponseCookieData).length > 0 ? 
                         <>
-                            <Divider orientation="left">响应Cookie</Divider>
+                            <Divider orientation="left">{langTrans("request save response cookie")}</Divider>
                             <Flex>
                                 <JsonSaveResponseCookieTableContainer 
                                     readOnly={ !isStringEmpty(this.props.match.params.historyId) } 
@@ -847,7 +848,7 @@ class RequestSaveContainer extends Component {
                             </Flex>
                         </>
                         : null }
-                        <Divider orientation="left">响应Content</Divider>
+                        <Divider orientation="left">{langTrans("request save response content")}</Divider>
                         <Flex>
                             {this.state.isResponseJson ? 
                             <JsonSaveResponseTableComponent 

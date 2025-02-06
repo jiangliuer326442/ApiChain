@@ -422,8 +422,8 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 let responseHeadList = [];
                 iteratorObjectToArr(responseHeadList, _request[iteration_response_head], 1);
                 if (responseHeadList.length > 0) {
-                    markdownContent += "**响应Head：**\n";
-                    markdownContent += "| 参数名       | 参数类型 | 备注 | 示例 |\n";
+                    markdownContent += "**" + langTrans("request save response header") + "：**\n";
+                    markdownContent += "| " + langTrans("network table1") + "       | " + langTrans("network table2") + " | " + langTrans("network table3") + " | " + langTrans("network table6") + " |\n";
                     markdownContent += "| ------------ | -------- | ---- | ----------------------- |\n";
                     responseHeadList.map(_responseHeadItem => {
                         let _value = substr(_responseHeadItem[TABLE_FIELD_VALUE], 35);
@@ -435,7 +435,7 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
                 let responseCookieList = [];
                 iteratorObjectToArr(responseCookieList, _request[iteration_response_cookie], 1);
                 if (responseCookieList.length > 0) {
-                    markdownContent += "**响应Cookie：**\n";
+                    markdownContent += "**" + langTrans("request save response cookie") + "：**\n";
                     responseCookieList.map(_responseCookieItem => {
                         let _value = substr(_responseCookieItem[TABLE_FIELD_VALUE], 50);
                         let _level = _responseCookieItem[TABLE_FIELD_LEVEL];

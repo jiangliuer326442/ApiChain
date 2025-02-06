@@ -36,6 +36,7 @@ import {
 } from '@act/version_iterator_folders';
 import { editVersionIteratorRequest, getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { editProjectRequest, getProjectRequest } from '@act/project_request';
+import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
@@ -299,14 +300,14 @@ class RequestSaveContainer extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    { isStringEmpty(this.state.versionIterator) ? "项目接口详情" : "迭代接口详情" }
+                    { isStringEmpty(this.state.versionIterator) ? langTrans("request detail title2") : langTrans("request detail title") }
                 </Header>
                 {this.state.showFlg ? 
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
-                        { title: (isStringEmpty(this.state.versionIterator) ? "项目" : "迭代" ) }, 
-                        { title: 'api' }, 
-                        { title: '明细' }
+                        { title: (isStringEmpty(this.state.versionIterator) ? langTrans("request detail bread4") : langTrans("request detail bread1") ) }, 
+                        { title: langTrans("request detail bread2") }, 
+                        { title: langTrans("request detail bread3") }
                     ]} />
                     <Flex vertical gap="middle">
                         <Flex align="center">
@@ -315,31 +316,31 @@ class RequestSaveContainer extends Component {
                                 items={ [
                                 {
                                     key: 'iterator',
-                                    label: '迭代',
+                                    label: langTrans("request detail desc1"),
                                     children: this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.versionIterator) ? this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.versionIterator)[version_iterator_name] : "不属于任何迭代",
                                 },
                                 {
                                     key: 'prj',
-                                    label: '项目',
+                                    label: langTrans("request detail desc2"),
                                     children: this.props.prjs.find(row => row[prj_label] === this.state.prj) ? this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark] : "",
                                 },
                                 {
                                     key: UNAME,
-                                    label: '创建人',
+                                    label: langTrans("request detail desc3"),
                                     children: this.state.cname,
                                 },
                                 {
                                     key: iteration_request_iteration_ctime,
-                                    label: '创建时间',
+                                    label: langTrans("request detail desc4"),
                                     children: getdayjs(this.state.ctime).format("YYYY-MM-DD"),
                                 },
                                 ] } />
                         </Flex>
                         <Form layout="inline">
-                            <Form.Item label="标题">
-                                <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} placeholder='接口说明' />
+                            <Form.Item label={langTrans("request save select4")}>
+                                <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} placeholder={langTrans("prj doc table field2")} />
                             </Form.Item>
-                            <Form.Item label="选择文件夹">
+                            <Form.Item label={langTrans("request save select5")}>
                                 <Select
                                     style={{minWidth: 130}}
                                     value={ this.state.selectedFolder }
@@ -349,7 +350,7 @@ class RequestSaveContainer extends Component {
                                             {menu}
                                             <Divider style={{ margin: '8px 0' }} />
                                             <Input
-                                                placeholder="回车新建文件夹"
+                                                placeholder={langTrans("request save tip5")}
                                                 onChange={e => { this.setState({ folderName: e.target.value }) }}
                                                 value={ this.state.folderName }
                                                 onKeyDown={e => {
@@ -385,13 +386,13 @@ class RequestSaveContainer extends Component {
                                 type="primary" 
                                 onClick={ this.handleSave }
                                 style={{borderRadius: 0}} 
-                                >编辑</Button>
+                                >{langTrans("request save btn")}</Button>
                         </Flex>
-                        <TextArea placeholder="接口说明" value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
+                        <TextArea placeholder={langTrans("request save desc")} value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
                         {this.state.formResponseHeadData != null && Object.keys(this.state.formResponseHeadData).length > 0 ? 
                         <>
-                            <Divider orientation="left">响应Head</Divider>
+                            <Divider orientation="left">{langTrans("request save response header")}</Divider>
                             <Flex>
                                 <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseHeadData} cb={obj=>this.setState({formResponseHeadData: obj})} />
                             </Flex>
@@ -399,7 +400,7 @@ class RequestSaveContainer extends Component {
                         : null }
                         {this.state.formResponseCookieData != null && Object.keys(this.state.formResponseCookieData).length > 0 ? 
                         <>
-                            <Divider orientation="left">响应Cookie</Divider>
+                            <Divider orientation="left">{langTrans("request save response cookie")}</Divider>
                             <Flex>
                                 <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseCookieData} cb={obj=>this.setState({formResponseCookieData: obj})} />
                             </Flex>
@@ -407,13 +408,13 @@ class RequestSaveContainer extends Component {
                         : null }
                         {this.state.isResponseJson ? 
                         <>
-                            <Divider orientation="left">响应Content</Divider>
+                            <Divider orientation="left">{langTrans("request save response content")}</Divider>
                             <Flex>
                                 <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseData} cb={obj=>this.setState({formResponseData: obj})} />
                             </Flex>
                         </>
                         : null}
-                        <Divider orientation="left">响应示例</Divider>
+                        <Divider orientation="left">{langTrans("doc response demo")}</Divider>
                         <Flex style={ {
                             minHeight: 136,
                             overflowY: this.state.isResponsePic ? "auto":"scroll",

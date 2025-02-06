@@ -25,6 +25,7 @@ import {
     DataTypeJsonObject,
 } from '@conf/global_config';
 import { isStringEmpty, isJsonString } from '@rutil/index';
+import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
@@ -42,11 +43,11 @@ class JsonSaveBodyTableContainer extends Component {
             jsonStr: JSON.stringify(props.object),
             columns: [
                 {
-                    title: '参数名',
+                    title: langTrans("network table1"),
                     dataIndex: TABLE_FIELD_NAME,
                 },
                 {
-                    title: '参数类型',
+                    title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
                     render: (dtype : any, row : any) => {
                         if (dtype === "Array" || dtype === "Object") {
@@ -57,13 +58,13 @@ class JsonSaveBodyTableContainer extends Component {
                                 value={ dtype }
                                 style={{ width: 170 }}
                                 onChange={ value => this.handleSetDataType(key, value) }
-                                options={ dataTypeSelect }
+                                options={ dataTypeSelect.map(_v => ({label: langTrans("datatype " + _v), value: _v})) }
                             />
                         }
                     }
                 },
                 {
-                    title: '必填',
+                    title: langTrans("network table5"),
                     dataIndex: TABLE_FIELD_NECESSARY,
                     render: (necessary : number|undefined, row : any) => {
                         let key = row.key;
@@ -71,7 +72,7 @@ class JsonSaveBodyTableContainer extends Component {
                     }
                 },
                 {
-                    title: '备注',
+                    title: langTrans("network table3"),
                     dataIndex: TABLE_FIELD_REMARK,
                     render: (remark : any, row : any) => {
                         let key = row.key;
@@ -91,7 +92,7 @@ class JsonSaveBodyTableContainer extends Component {
                     }
                 },
                 {
-                    title: '示例',
+                    title: langTrans("network table6"),
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (demoRaw : any, row : any) => {
                         let type = row[TABLE_FIELD_TYPE];
@@ -142,7 +143,7 @@ class JsonSaveBodyTableContainer extends Component {
 
         if (!this.props.readOnly) {
             this.state.columns.unshift(                {
-                title: '操作',
+                title: langTrans("log field5"),
                 dataIndex: 'operator',
                 render: (_, row : any) => {
                     return <Button onClick={ () => this.handleDelKey(row.key) } icon={<MinusOutlined />} />

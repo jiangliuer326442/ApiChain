@@ -13,6 +13,7 @@ import {
     parseJsonToChildren,
     parseJsonToTable,
 } from '../../util/json';
+import { langTrans } from '@lang/i18n';
 
 class JsonSavePathVariableTableContainer extends Component {
 
@@ -25,15 +26,15 @@ class JsonSavePathVariableTableContainer extends Component {
             object: props.object,
             columns: [
                 {
-                    title: '参数名',
+                    title: langTrans("network table1"),
                     dataIndex: TABLE_FIELD_NAME,
                 },
                 {
-                    title: '参数类型',
+                    title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
                 },
                 {
-                    title: '必填',
+                    title: langTrans("network table5"),
                     dataIndex: TABLE_FIELD_NECESSARY,
                     render: (necessary : number|undefined, row : any) => {
                         let key = row.key;
@@ -41,7 +42,7 @@ class JsonSavePathVariableTableContainer extends Component {
                     }
                 },
                 {
-                    title: '备注',
+                    title: langTrans("network table3"),
                     dataIndex: TABLE_FIELD_REMARK,
                     render: (remark : any, row : any) => {
                         let key = row.key;
@@ -53,7 +54,7 @@ class JsonSavePathVariableTableContainer extends Component {
                     }
                 },
                 {
-                    title: '示例',
+                    title: langTrans("network table6"),
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (demoRaw : any, row : any) => {
                         let key = row.key;
@@ -75,7 +76,7 @@ class JsonSavePathVariableTableContainer extends Component {
 
         if (!this.props.readOnly) {
             this.state.columns.unshift(                {
-                title: '操作',
+                title: langTrans("log field5"),
                 dataIndex: 'operator',
                 render: (_, row : any) => {
                     return <Button onClick={ () => this.handleDelKey(row.key) } icon={<MinusOutlined />} />

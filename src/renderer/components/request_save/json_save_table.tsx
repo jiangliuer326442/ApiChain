@@ -20,6 +20,7 @@ import {
 
 import { getJsonFragment } from '@act/request_save';
 import { isJsonString } from '@rutil/index';
+import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
@@ -31,11 +32,11 @@ class JsonSaveTableContainer extends Component {
             object: props.object,
             columns: [
                 {
-                    title: '参数名',
+                    title: langTrans("network table1"),
                     dataIndex: TABLE_FIELD_NAME,
                 },
                 {
-                    title: '参数类型',
+                    title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
                     render: (dtype : any, row : any) => {
                         if (dtype === "Array" || dtype === "Object") {
@@ -46,13 +47,13 @@ class JsonSaveTableContainer extends Component {
                                 value={ dtype }
                                 style={{ width: 170 }}
                                 onChange={ value => this.handleSetDataType(key, value) }
-                                options={ dataTypeSelect }
+                                options={ dataTypeSelect.map(_v => ({label: langTrans("datatype " + _v), value: _v})) }
                             />
                         }
                     }
                 },
                 {
-                    title: '必填',
+                    title: langTrans("network table5"),
                     dataIndex: TABLE_FIELD_NECESSARY,
                     render: (necessary : number|undefined, row : any) => {
                         let key = row.key;
@@ -60,7 +61,7 @@ class JsonSaveTableContainer extends Component {
                     }
                 },
                 {
-                    title: '备注',
+                    title: langTrans("network table3"),
                     dataIndex: TABLE_FIELD_REMARK,
                     render: (remark : any, row : any) => {
                         let key = row.key;
@@ -77,7 +78,7 @@ class JsonSaveTableContainer extends Component {
                     }
                 },
                 {
-                    title: '示例',
+                    title: langTrans("network table6"),
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (demoRaw : any, row : any) => {
                         let key = row.key;
