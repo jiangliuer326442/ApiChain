@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Checkbox, Typography, Layout, Card, notification, Space, Button } from "antd";
 
 import { 
-  DownloadDemoDatabase,
+  getDemoDatabaseFile,
   DownloadDemoPostMan,
   getProjectUrl,
   getWikiUrl,
@@ -194,7 +194,7 @@ class Home extends Component {
               <Title level={3}>下载并导入我们的示例demo数据</Title>
               <ul>
                 <li>
-                点击<Link href={ DownloadDemoDatabase }>这里</Link>下载示例数据库
+                点击<Link href={ getDemoDatabaseFile() }>这里</Link>下载示例数据库
                 </li>
                 <li>
                   点击顶部菜单-数据-还原数据库，选择下载的示例数据库文件
@@ -265,7 +265,7 @@ class Home extends Component {
               <Title level={3}>下載並導入我們的示例 demo 數據</Title>
               <ul>
                 <li>
-                點擊<Link href={ DownloadDemoDatabase }>這裡</Link>下載示例數據庫。
+                點擊<Link href={ getDemoDatabaseFile() }>這裡</Link>下載示例數據庫。
                 </li>
                 <li>
                 點擊頂部選單-數據-還原數據庫，選擇下載的範例數據庫文件
@@ -335,7 +335,7 @@ class Home extends Component {
               <Title level={3}>Download and import our sample demo data</Title>
               <ul>
                 <li>
-                Click <Link href={ DownloadDemoDatabase }>here</Link> to download the sample database.
+                Click <Link href={ getDemoDatabaseFile() }>here</Link> to download the sample database.
                 </li>
                 <li>
                 Click on the top menu - Data - Restore Database, then select the downloaded sample database file.

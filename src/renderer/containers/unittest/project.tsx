@@ -412,7 +412,7 @@ class UnittestListVersion extends Component {
                       return;
                     }
                     if (isStringEmpty(this.state.env)) {
-                      message.error('需要选择服务器环境');
+                      message.error(langTrans("unittest env check"));
                       return;
                     }
                     localStorage.setItem(UNITTEST_ENV, this.state.env);

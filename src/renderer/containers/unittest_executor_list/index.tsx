@@ -13,6 +13,7 @@ import SingleUnitTestReport from '../../components/unittest/single_unittest_repo
 import {
     getExecutorReports
 } from '../../actions/unittest';
+import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 
@@ -36,54 +37,54 @@ class UnittestExecutorList extends Component {
         this.state = {
             column: [
                 {
-                    title: '运行环境',
+                    title: langTrans("unittest log tab1"),
                     dataIndex: unittest_report_env,
                 },
                 {
-                    title: '执行结果',
+                    title: langTrans("unittest log tab2"),
                     dataIndex: unittest_report_result,
                     render: (result) => {
                         if (result === "success") {
-                            return <span style={{color:"green"}}>成功</span>;
+                            return <span style={{color:"green"}}>{langTrans("prj unittest status2")}</span>;
                         } else if (result === "failure") {
-                            return <span style={{color:"red"}}>失败</span>;
+                            return <span style={{color:"red"}}>{langTrans("prj unittest status3")}</span>;
                         } else {
-                            return <span style={{color:"yellow"}}>未知</span>;
+                            return <span style={{color:"yellow"}}>{langTrans("prj unittest status4")}</span>;
                         }
                     }
                 },
                 {
-                    title: '接口耗时',
+                    title: langTrans("unittest log tab3"),
                     dataIndex: unittest_report_cost_time,
                     render: (cost_time, record) => {
                         let result = record[unittest_report_result];
                         if (result === "success") {
-                            return cost_time + "毫秒";
+                            return cost_time + " " + langTrans("prj unittest costtime");
                         } else {
                             return "--";
                         }
                     }
                 },
                 {
-                    title: '错误信息',
+                    title: langTrans("unittest log tab4"),
                     dataIndex: unittest_report_failure_reason,
                 },
                 {
-                    title: '执行时间',
+                    title: langTrans("unittest log tab5"),
                     dataIndex: unittest_report_ctime,
                     render: (time) => { 
                         return getdayjs(time).format("YYYY-MM-DD HH:mm:ss") 
                     },
                 },
                 {
-                    title: '操作',
+                    title: langTrans("unittest log tab6"),
                     dataIndex: 'operater',
                     render: (_, record) => {         
                         return <Button type='link' onClick={()=>{
                             let batchUuid = record[unittest_report_batch];
                             this.setState({ batchUuid });
                         }}>
-                            查看明细
+                            {langTrans("unittest log act1")}
                         </Button>
                     }
                 }
@@ -111,10 +112,10 @@ class UnittestExecutorList extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    单测执行记录
+                    {langTrans("unittest log title")}
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
-                    <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: '单测' }, { title: '历史' }]} />
+                    <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("unittest log bread1") }, { title: langTrans("unittest log bread2") }]} />
                     <SingleUnitTestReport 
                         iteratorId={ this.state.iteratorId }
                         unittestUuid={ this.state.unitTestId }

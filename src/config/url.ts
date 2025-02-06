@@ -72,6 +72,14 @@ export function getWikiProject() {
     }
 }
 
+export function getDemoDatabaseFile() {
+    if (getLang() === 'zh-CN' || getLang() === 'zh-TW') {
+        return STATIC_URL + "demo_database_zh.json";
+    } else {
+        return STATIC_URL + "demo_database_en.json";
+    }
+}
+
 const HOST_PAY = "http://pay.fanghailiang.cn/pay/";
 
 const STATIC_URL = "http://cdn.fanghailiang.cn/";
@@ -79,7 +87,5 @@ const STATIC_URL = "http://cdn.fanghailiang.cn/";
 export const PayJumpUrl = HOST_PAY + "jump/";
 
 export const PayQueryUrl = HOST_PAY + "query/";
-
-export const DownloadDemoDatabase = STATIC_URL + "demo_database.json";
 
 export const DownloadDemoPostMan = STATIC_URL + "demo_postman.json";

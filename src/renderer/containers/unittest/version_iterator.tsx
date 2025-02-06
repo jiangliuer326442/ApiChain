@@ -362,7 +362,7 @@ class UnittestListVersion extends Component {
     undoExportUnitTestClick = (record) => {
         let unittestId = record[unittest_uuid];
         copyFromProjectToIterator(unittestId, ()=>{
-            message.success("已成功从项目删除该单测");
+            message.success(langTrans("unittest export revoke success"));
             getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
         });
     }
@@ -371,7 +371,7 @@ class UnittestListVersion extends Component {
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
         copyFromIteratorToProject(iteratorId, unittestId, this.props.device, ()=>{
-            message.success("导出单测到项目成功");
+            message.success(langTrans("unittest export success"));
             getIterationUnitTests(iteratorId, this.state.folder, this.state.env, this.props.dispatch);
         });
     }
@@ -464,7 +464,7 @@ class UnittestListVersion extends Component {
                                             return;
                                         }
                                         if (isStringEmpty(this.state.env)) {
-                                            message.error("需要选择服务器环境");
+                                            message.error(langTrans("unittest env check"));
                                             return;
                                         }
 

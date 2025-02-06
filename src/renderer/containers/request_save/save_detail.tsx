@@ -275,22 +275,22 @@ class RequestSaveContainer extends Component {
         return [
             {
                 key: 'uri',
-                label: '路径变量',
+                label: langTrans("network tab1"),
                 children: <JsonSaveTableComponent readOnly={true} object={this.state.formRequestPathVariableData} cb={obj=>this.setState({formRequestPathVariableData: obj})} />,
             },
             {
                 key: 'params',
-                label: '参数',
+                label: langTrans("network tab2"),
                 children: <JsonSaveTableComponent readOnly={true} object={this.state.formRequestParamData} cb={obj=>this.setState({formRequestParamData: obj})} />,
             },
             {
                 key: 'headers',
-                label: '头部',
+                label: langTrans("network tab3"),
                 children: <JsonSaveTableComponent readOnly={true} object={this.state.formRequestHeadData} cb={obj=>this.setState({formRequestHeadData: obj})} />,
             },
             {
                 key: 'body',
-                label: '主体',
+                label: langTrans("network tab4"),
                 children: <JsonSaveTableComponent readOnly={true} object={this.state.formRequestBodyData} cb={obj=>this.setState({formRequestBodyData: obj})} />,
             },
         ];
