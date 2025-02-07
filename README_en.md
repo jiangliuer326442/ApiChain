@@ -1,33 +1,33 @@
-![image-20250201163316510](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250201163316510.png)
+![image-20250207082013980](doc/images/en/image-20250207082013980.png)
 
-ApiChain是一款基于版本迭代和项目视角的文档生成和接口自动化测试软件，完成从若干项目创建迭代，针对迭代涉及的接口进行api调用、给迭代涉及接口生成api文档并分享，对迭代内的接口编写可自动化执行的测试用例。迭代完成代码合并上线时，将迭代内接口和自动化测试用例合并到项目中，并对项目进行回归测试的完整流程。相比于postman这样的外来品，ApiChain 更“懂”你。
+ApiChain is a documentation generation and API automation testing software based on version iteration and project perspectives. It completes the process from creating iterations across several projects, performing API calls on interfaces involved in iterations, generating API documentation for these interfaces and sharing it, to writing automatically executable test cases for the interfaces within iterations. When code is merged and launched after an iteration, ApiChain merges the interfaces and automated test cases of the iteration into the project and conducts comprehensive regression testing. Compared with tools like Postman, ApiChain understands your needs better.
 
-ApiChain拥有如下特色：
+Features of ApiChain include:
 
-1. 接口测试发送网络请求，支持Uri路径参数、发送json报文，提交数据可以来源于全局、项目、迭代环境变量，也支持通过内置函数生成各种类型的随机不重复数据，包括 uuid、当前时间、不重复邮箱等，可以拿到接口请求返回的header、cookie等信息，基于这些信息编写迭代完整、进行自动化接口测试等；
-2. 迭代文档可导出html、markdown格式，也可以生成内网链接实时共享；
-3. 自动化测试对项目和迭代内涉及的接口采用链式调用，起始数据源为固定值、环境变量、内置函数生成的随机数据经过层层的链式调用，将返回json报文、返回header、返回cookie以及前面步骤使用的数据作为下一个接口调用的输入数据源，制作出可无限重复执行的测试用例，在每个步骤断言该步骤是否达成了预期效果；
-4. 自动化测试支持对json转的string类型的数据进行自动构造；
-5. 自动化测试步骤之间可选择手动执行下一步、等待固定时间自动执行下一步等，也可针对项目和迭代选择多个测试用例依次执行，进行项目的回归测试；
-6. 纯内网，无需连接互联网，既保证高性能，也确保安全性。
+1. **API Testing**: Supports sending network requests with URI path parameters and JSON payloads. The data submitted can come from global, project, or iteration environment variables, and supports generating various types of non-repeating random data through built-in functions, such as UUIDs, current time, unique emails, etc. It also retrieves header, cookie, and other information returned by interface requests, allowing for comprehensive iteration and automated interface testing based on this data.
+2. **Documentation Export**: Iteration documents can be exported in HTML and Markdown formats or shared in real-time via intranet links.
+3. **Automated Testing with Chain Calls**: Interfaces involved in projects and iterations are tested using chained calls. Starting from fixed values, environment variables, or randomly generated data by built-in functions, each step uses the returned JSON, headers, cookies, and previous step's data as input for the next call, creating infinitely repeatable test cases that assert whether each step meets expected outcomes.
+4. **Automatic Construction of Data**: Automated testing supports automatic construction of string type data converted from JSON.
+5. **Execution Control Between Test Steps**: Users can choose to manually execute the next step, wait for a fixed period before automatically executing the next step, or sequentially execute multiple test cases for projects and iterations to perform regression testing.
+6. **Intranet Usage**: Operates entirely within the intranet without requiring internet connection, ensuring high performance and security.
 
-🔥🔥🔥如果你也认可Ta更“懂”你，不妨 [点击这里给个star](https://gitee.com/onlinetool/mypostman) 支持一下呗 (*￣︶￣)💋💋💋
+🔥🔥🔥 If you agree that ApiChain understands your needs better, why not [click here to give it a star](https://github.com/jiangliuer326442/ApiChain) and show some support? (*￣︶￣)💋💋💋
 
-## 软件下载
+### Software Download
 
-v1.0.11:
+v1.2.1:
 
-    1. 支持JsonString类型参数的自动化测试
-    2. 自动化测试可以多选执行
-    3. 自动化测试支持等待一定时间后执行
-    4. 强化从postMan导入接口到ApiChain项目
-    5. 支持环境变量在不同服务器环境间选择拷贝
+    1. Support for JsonString Type Parameter Automated Testing
+    2. Automated Testing Can Be Multi-Selected for Execution
+    3. Automated Testing Supports Execution After Waiting for a Certain Period
+    4. Enhanced Import of Interfaces from Postman to ApiChain Projects
+    5. Supports Selecting and Copying Environment Variables Between Different Server Environments
 
-windows 平台：[ApiChain_v1.0.11_windows.zip](https://gitee.com/onlinetool/mypostman/releases/download/v1.0.11/ApiChain_v1.0.11_windows.zip)
+windows 平台：[ApiChain_v1.2.1_windows.zip](https://gitee.com/onlinetool/mypostman/releases/download/v1.2.1/ApiChain_v1.2.1_windows.zip)
 
-linux 平台：[ApiChain_v1.0.11_linux.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.0.11/ApiChain_v1.0.11_linux.zip)
+linux 平台：[ApiChain_v1.2.1_linux.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.2.1/ApiChain_v1.2.1_linux.zip)
 
-mac 平台：[ApiChain_v1.0.11_macos.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.0.11/ApiChain_v1.0.11_macos.zip)
+mac 平台：[ApiChain_v1.2.1_macos.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.2.1/ApiChain_v1.2.1_macos.zip)
 
 mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开。
 另外，由于linux和mac平台的包大小超过gitee允许的最大附件大小（100M），故提供外站（gitcode.com）的下载地址。
@@ -37,71 +37,71 @@ mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --
 * 在版本迭代中按照项目、文件夹管理我们的接口，并生成接口文档
 
 
-![image-20250129184724573](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129184724573.png)
+![image-20250129184724573](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129184724573.png)
 
 - 发送网络请求
 
   发送网络请求，支持路径变量，数据可以使用迭代、全局、项目范围的环境变量，以及内置函数生成的随机不重复数据，返回数据包括了cookie、header信息等，同时能够跟踪302跳转拿到所有跳转路径的全部header、cookie信息。
 
-![image-20250129184912567](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129184912567.png)
+![image-20250129184912567](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129184912567.png)
 
 * 接口详情页
 
   可以查看我们接口的入参和返回示例、接口说明、字段含义说明等，包括了返回的header、cookie等信息的文档说明。
 
-![image-20250129185653338](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129185653338.png)
+![image-20250129185653338](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129185653338.png)
 
-![image-20250129185726301](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129185726301.png)
+![image-20250129185726301](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129185726301.png)
 
-![image-20250129185800680](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129185800680.png)
+![image-20250129185800680](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129185800680.png)
 
 * 接口文档页
 
   以迭代为单位，生成接口文档，可以标注一些这个迭代的注意事项，可导出分享，也可直接通过浏览器共享页面。
 
   mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。
-  
-  ![image-20250129185948052](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129185948052.png)
-  
-  ![image-20250129190011909](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190011909.png)
-  
-  ![image-20250129190037820](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190037820.png)
+
+  ![image-20250129185948052](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129185948052.png)
+
+  ![image-20250129190011909](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190011909.png)
+
+  ![image-20250129190037820](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190037820.png)
 
 * 迭代、项目单测页
 
   把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。
 
   若某个测试用例执行失败，可以点击请求地址跳转到发送请求的页面，可以重复发送单测的请求，用来复现并调试bug。
-  
+
   可以选择多个测试用例依次执行，进行迭代和整个项目的回归测试。
 
-![image-20250129190341901](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190341901.png)
+![image-20250129190341901](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190341901.png)
 
-![image-20250129190609901](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190609901.png)
+![image-20250129190609901](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190609901.png)
 
-![image-20250129190630661](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190630661.png)
+![image-20250129190630661](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190630661.png)
 
-![image-20250129190652605](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190652605.png)
+![image-20250129190652605](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190652605.png)
 
-![image-20250129190715834](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190715834.png)
+![image-20250129190715834](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190715834.png)
 
 * 填写单测参数
 
   我们迭代编写单测入参和断言支持大量常用的情景输入，如引起前面步骤的数据，读取项目环境变量数据等，变量支持随机字符串（uuid）、随机整数、当前时间，甚至使用 **eval** 函数自定义您对数据的处理逻辑。这样设计出来的单测，只要接口未做变更，未来无需修改可反复执行。用于迭代的测试以及项目回归测试。
 
-![image-20250129190825705](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190825705.png)
+![image-20250129190825705](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190825705.png)
 
 - 项目接口管理 & 单测列表页
 
   迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。
 
-![image-20250129190929161](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129190929161.png)
+![image-20250129190929161](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129190929161.png)
 
-![image-20250129191002128](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129191002128.png)
+![image-20250129191002128](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129191002128.png)
 
 项目的每个单测用例，都可以有自己的环境变量，这些环境变量属于这个单测一系列步骤的共享数据。
 
-![image-20250129191024256](https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20250129191024256.png)
+![image-20250129191024256](D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20250129191024256.png)
 
 ## 相关术语
 
@@ -182,30 +182,35 @@ v1.0.9:
 
 v1.0.8:
 
-  1. 支持将本次迭代部分接口因功能不上线移动到另一个迭代中
-  2. 支持选择部分环境变量拷贝到另一个开发环境
-  3. 支持将部分项目导出到另一个用户电脑，实现项目接口的共享
-  4. 将原有收费功能价格调整为1元
+    1. 支持将本次迭代部分接口因功能不上线移动到另一个迭代中
+    2. 支持选择部分环境变量拷贝到另一个开发环境
+    3. 支持将部分项目导出到另一个用户电脑，实现项目接口的共享
+    4. 将原有收费功能价格调整为1元
 
 v1.0.7:
-  1. 单测链支持引用前面步骤cookie作为入参
-  2. 网络请求和单测统计接口耗时
-  3. 支持将迭代的单测导出到项目用于项目回归测试
+
+    1. 单测链支持引用前面步骤cookie作为入参
+    2. 网络请求和单测统计接口耗时
+    3. 支持将迭代的单测导出到项目用于项目回归测试
 
 v1.0.6:
-  1. 修复历史记录无法使用迭代环境变量的问题
+
+    1. 修复历史记录无法使用迭代环境变量的问题
 
 v1.0.5:
-  1. 完善发送网络请求和迭代单元测试相关功能，支持从迭代到项目的可复用单元测试
+
+    1. 完善发送网络请求和迭代单元测试相关功能，支持从迭代到项目的可复用单元测试
 
 v0.0.5:
-  1. 增加VIP充值和mock服务器功能
+
+    1. 增加VIP充值和mock服务器功能
 
 v0.0.4
-  1. 迭代支持接口先行方式添加 api
-  2. header 支持 application/json，multipart/form-data 两种方式的 api
-  3. 迭代自动化测试支持手动和自动两种触发方式
-  4. 其他 bug 修复和界面调整
+
+    1. 迭代支持接口先行方式添加 api
+    2. header 支持 application/json，multipart/form-data 两种方式的 api
+    3. 迭代自动化测试支持手动和自动两种触发方式
+    4. 其他 bug 修复和界面调整
 
 ## 从源码编译
 
@@ -241,8 +246,8 @@ yarn package
 
 您对软件有任何批评建议，可以加我微信沟通，二维码如下：
 
-<img src="https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240619222612484.png" width="50%" />
+<img src="D:/documents/codes/nodejs/electron-learn/doc/images/zh/image-20240619222612484.png" width="50%" />
 
 如果觉得帮到了你，可以不吝打赏一个鸡腿哦，打赏二维码如下：
 
-<img src="https://gitee.com/onlinetool/mypostman/raw/master/doc/images/image-20240619222828912.png" width="50%" />
+<img src="doc/images/zh/image-20240619222828912.png" width="50%" />
