@@ -1,6 +1,7 @@
 {
     "lack sshkey title": "未找到 id_rsa.pub 文件",
     "lack sshkey content": "请通过 ssh-keygen -t RSA 命令生成该文件，用于标记您在团队内的身份",
+    "db load success": "数据库还原成功!",
     "menu page": "页面",
     "menu page refresh": "刷新当前页面",
     "menu db": "数据",
@@ -422,6 +423,14 @@
     "unittest log tab5": "执行时间",
     "unittest log tab6": "操作",
     "unittest log act1": "查看明细",
+    "envvar unittest title": "单侧环境变量配置",
+    "envvar unittest link": "单测环境变量是什么",
+    "envvar unittest bread1": "单测",
+    "envvar unittest bread2": "环境变量",
+    "envvar unittest del title": "单测环境变量",
+    "envvar unittest del desc": "确定删除该单测环境变量吗？",
+    "envvar unittest del sure": "删除",
+    "envvar unittest del cancel": "取消",
     "welcome": "你好，ApiChain 陪你度过崭新的一天",
     "greeting": "你好，{{name}}！"
 }

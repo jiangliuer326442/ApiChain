@@ -1,6 +1,7 @@
 {
     "lack sshkey title": "id_rsa.pub file not found",
     "lack sshkey content": "Please use the ssh-keygen -t RSA command to generate this file to mark your identity in the team",
+    "db load success": "Database load successful!",
     "menu page": "Page",
     "menu page refresh": "Refresh Current Page",
     "menu db": "Data",
@@ -422,6 +423,14 @@
     "unittest log tab5": "Execution Time",
     "unittest log tab6": "Actions",
     "unittest log act1": "View Details",
+    "envvar unittest title": "Configuration of Unit Test Environment Variables",    
+    "envvar unittest link": "What are Unit Test Environment Variables",    
+    "envvar unittest bread1": "Unit Test",    
+    "envvar unittest bread2": "Environment Variables",
+    "envvar unittest del title": "Unit Test Environment Variable",    
+    "envvar unittest del desc": "Are you sure you want to delete this unit test environment variable?",    
+    "envvar unittest del sure": "Delete",
+    "envvar unittest del cancel": "Cancel",
     "welcome": "Hello, ApiChain is here to spend a brand new day with you.",
     "greeting": "Hello, {{name}}!"
 }

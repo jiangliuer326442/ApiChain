@@ -39,6 +39,7 @@ import { getPrjs } from '@act/project';
 import { getEnvs } from '@act/env';
 import { getVersionIterator } from '@act/version_iterator';
 import { getVersionIteratorRequestsByProject } from '@act/version_iterator_requests';
+import { langTrans } from '@lang/i18n';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -106,8 +107,7 @@ export default function(dispatch, cb) : void {
                     if (!err) {
                       IDBExportImport.importFromJsonString(idbDatabase, jsonString, function(err) {
                         if (!err) {
-                          alert("数据库还原成功!");
-                        //   window.electron.ipcRenderer.sendMessage(ChannelsDbStr, ChannelsDbImportSuccessStr);
+                          alert(langTrans("db load success"));
                         }
                       });
                     }
