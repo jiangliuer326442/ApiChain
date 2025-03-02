@@ -1,6 +1,7 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Input, Divider, Select } from "antd";
+import { DeleteOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 import { decode } from 'base-64';
 import JsonView from 'react-json-view';
@@ -32,7 +33,8 @@ import { getPrjs } from '@act/project';
 import { addJsonFragement } from '@act/request_save';
 import { 
     addVersionIteratorFolder,
-    getVersionIteratorFolders 
+    getVersionIteratorFolders,
+    delVersionIteratorFolder,
 } from '@act/version_iterator_folders';
 import { editVersionIteratorRequest, getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { editProjectRequest, getProjectRequest } from '@act/project_request';
@@ -342,9 +344,24 @@ class RequestSaveContainer extends Component {
                             </Form.Item>
                             <Form.Item label={langTrans("request save select5")}>
                                 <Select
-                                    style={{minWidth: 130}}
+                                    showSearch
+                                    style={{minWidth: 150}}
                                     value={ this.state.selectedFolder }
                                     onChange={ value => this.setState({selectedFolder: value}) }
+                                    optionRender={(option) => (
+                                        <div className="custom-option">
+                                          <span>{option.label} </span>
+                                          <DeleteOutlined
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              delVersionIteratorFolder(this.state.versionIterator, this.state.prj, option.value, async () => {
+                                                let folders = await getVersionIteratorFolders(this.state.versionIterator, this.state.prj);
+                                                this.setState({folders, selectedFolder: ""})
+                                              });
+                                            }}
+                                          />
+                                        </div>
+                                    )}
                                     dropdownRender={(menu) => (
                                         <>
                                             {menu}

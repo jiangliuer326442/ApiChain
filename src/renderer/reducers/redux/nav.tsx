@@ -36,8 +36,6 @@ import {
   GET_PRJS
 } from '@conf/redux';
 import { langTrans } from '@lang/i18n';
-
-let version_iterator_openFlg = TABLE_VERSION_ITERATION_FIELDS.FIELD_OPENFLG;
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
@@ -147,7 +145,6 @@ export default function (state = {
       mixedSort(versionIterators, version_iterator_title);
 
       for( let versionIterator of versionIterators) {
-        if (versionIterator[version_iterator_openFlg] === 0) continue;
         selectedVersionIteratorNav.children.push({
           key: ITERATOR + "_" + versionIterator[version_iterator_uuid],
           label: versionIterator[version_iterator_title],

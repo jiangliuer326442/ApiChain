@@ -104,7 +104,7 @@ class UnittestStepContainer extends Component {
         let requestHead = {};
         let requestBody = {};
 
-        let prjsSelectector = this.props.projects.map(_prj => ({label: _prj[prj_remark], value: _prj[prj_label]}));
+        let prjsSelectector = this.props.projects.map(_prj => ({label: _prj[prj_remark], value: _prj[prj_label] + "$$" + _prj[prj_remark]}));
 
         if (this.props.unittest[iteratorId]) {
             for (let unitTest of this.props.unittest[iteratorId]) {
@@ -316,7 +316,8 @@ class UnittestStepContainer extends Component {
         return method + "$$" + uri;
     }
 
-    handleRequestProject = prj => {
+    handleRequestProject = originPrj => {
+        let prj = originPrj.split("$$")[0];
         this.setState( {urisSelector : [], prj, uri: ""} );
         this.initPrj(this.state.iteratorId, prj, this.props.dispatch);
     }
@@ -537,6 +538,7 @@ class UnittestStepContainer extends Component {
                             >
                                 <Space size="middle" wrap>
                                     <Select
+                                        showSearch={ true }
                                         disabled={!isStringEmpty(this.state.unitTestStepUuid)}
                                         value={this.state.prj}
                                         style={{ width: 174 }}
@@ -689,7 +691,6 @@ function mapStateToProps (state) {
     return {
         device : state.device,
         unittest: state.unittest.list,
-        versionIterators : state['version_iterator'].list,
         projects: state.prj.list,
     }
 }

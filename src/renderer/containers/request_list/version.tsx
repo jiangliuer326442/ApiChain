@@ -41,6 +41,9 @@ import {
     TABLE_MICRO_SERVICE_FIELDS,
     UNAME,
 } from '@conf/db';
+import {
+    ITERATOR
+} from '@conf/storage';
 import { 
     getdayjs, 
     isStringEmpty 
@@ -175,6 +178,7 @@ class RequestListVersion extends Component {
         if (this.state.iteratorId !== iteratorId) {
             let versionIteration = await getVersionIterator(iteratorId);
             this.setState( { iteratorId, versionIteration }, () => this.onFinish({}) );
+            localStorage.setItem(ITERATOR, iteratorId);
         }
     }
 
@@ -184,6 +188,7 @@ class RequestListVersion extends Component {
         }
         this.onFinish({});
         getVersionIterator(this.state.iteratorId).then(versionIteration => this.setState( { versionIteration, formReadyFlg : true } ));
+        localStorage.setItem(ITERATOR, this.state.iteratorId);
     }
 
     setApiSort = async (prj : string, method : string, uri : string, sort : number) => {
@@ -414,11 +419,15 @@ class RequestListVersion extends Component {
                                 <Form layout="inline" style={{marginBottom: 16}}>
                                     <Form.Item label={langTrans("version doc operator3")}>
                                         <Select
+                                            allowClear
                                             style={{minWidth: 130}}
                                             onChange={ value => {
+                                                if (isStringEmpty(value)) {
+                                                    return;
+                                                }
                                                 batchMoveIteratorRequest(this.state.iteratorId, prj, this.state.movedRequests, value, () => {
                                                     this.state.movedRequests = [];
-                                                    message.success("移动迭代成功");
+                                                    message.success(langTrans("request act1"));
                                                     this.onFinish({
                                                         prj: this.state.prj,
                                                         folder: this.state.folder,
@@ -444,7 +453,7 @@ class RequestListVersion extends Component {
                                                     {menu}
                                                     <Divider style={{ margin: '8px 0' }} />
                                                     <Input
-                                                        placeholder="回车新建文件夹"
+                                                        placeholder={langTrans("request act2")}
                                                         onKeyDown={e => {
                                                             if (e.key === 'Enter') {
                                                                 this.handleCreateFolder(e.target.value);

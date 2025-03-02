@@ -431,6 +431,18 @@
     "envvar unittest del desc": "Are you sure you want to delete this unit test environment variable?",    
     "envvar unittest del sure": "Delete",
     "envvar unittest del cancel": "Cancel",
+    "search global prj": "Select a project",
+    "search global keywords": "Enter the interface address or interface name to search",
+    "search global button": "Search",
+    "request act1": "Move iteration successful",
+    "request act2": "Press Enter to create a new folder",
+    "prj doc table field5": "Project",
+    "quick link title": "Quick Access",
+    "quick link1": "Iteration Information",
+    "quick link2": "Iteration Document",
+    "quick link3": "Send Request",
+    "quick link4": "Click to Enter",
+    "quick link5": "Iterative Unit Testin",
     "welcome": "Hello, ApiChain is here to spend a brand new day with you.",
     "greeting": "Hello, {{name}}!"
 }

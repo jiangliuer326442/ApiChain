@@ -431,6 +431,18 @@
     "envvar unittest del desc": "確定要刪除該單測環境變數嗎？",    
     "envvar unittest del sure": "刪除",    
     "envvar unittest del cancel": "取消",
+    "search global prj": "選擇一個專案",
+    "search global keywords": "輸入介面地址或介面名稱進行搜尋",
+    "search global button": "搜尋",
+    "request act1": "移動迭代成功",
+    "request act2": "按Enter鍵新建文件夾",
+    "prj doc table field5": "專案",
+    "quick link title": "快捷操作入口",
+    "quick link1": "迭代資訊",
+    "quick link2": "迭代文檔",
+    "quick link3": "發送請求",
+    "quick link4": "點擊跳轉",
+    "quick link5": "迭代單測",
     "welcome": "你好，ApiChain 陪你度過嶄新的一天。",
     "greeting": "你好，{{name}}！"
 }

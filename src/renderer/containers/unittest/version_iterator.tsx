@@ -261,7 +261,7 @@ class UnittestListVersion extends Component {
     }
 
     setMovedIteratos = async () => {
-        let versionIterators = (await getOpenVersionIterators())
+        let versionIterators = (await getOpenVersionIterators(this.props.dispatch))
         .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
         .map(item => {
             return {value: item[version_iterator_uuid], label: item[version_iterator_title]}

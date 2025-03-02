@@ -2,11 +2,11 @@ import {
     SHOW_ADD_VERSION_ITERATOR_MODEL,
     SHOW_EDIT_VERSION_ITERATOR_MODEL,
     GET_VERSION_ITERATORS
-} from '../../../config/redux';
+} from '@conf/redux';
 
 import { 
     TABLE_VERSION_ITERATION_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 

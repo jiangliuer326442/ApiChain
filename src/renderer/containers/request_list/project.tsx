@@ -18,7 +18,7 @@ import {
     AutoComplete, 
     Space, 
     Button,
-    Dropdown
+    Dropdown,
 } from "antd";
 import { 
     EyeOutlined, 
@@ -470,9 +470,11 @@ class RequestListProject extends Component {
                                 initialValues={ {} }
                                 autoComplete="off"
                             >
+
                                 <Form.Item<FieldType> style={{paddingBottom: 20}} label={langTrans("prj doc operator1")} name="uri" rules={[{ required: false }]}>
                                     <AutoComplete 
                                         allowClear={{ clearIcon: <CloseSquareFilled /> }} 
+                                        style={{width: 600}}
                                         options={this.state.optionsUri} 
                                         filterOption={(inputValue, option) =>
                                             option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1

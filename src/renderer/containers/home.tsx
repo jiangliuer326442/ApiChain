@@ -1,6 +1,26 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Checkbox, Typography, Layout, Card, notification, Space, Button } from "antd";
+import { encode } from 'base-64';
+import { 
+  Table,
+  Flex,
+  Checkbox, 
+  Select, 
+  Input,
+  Tooltip, 
+  Typography, 
+  Layout, 
+  Card,
+  notification, 
+  Space, 
+  Row,
+  Col,
+  Button
+} from "antd";
+import { 
+  EyeOutlined, 
+  SendOutlined, 
+} from '@ant-design/icons';
 
 import { 
   getDemoDatabaseFile,
@@ -11,7 +31,7 @@ import {
   getWikiWeatherReportUrl,
   getWikiUserRegisterUrl,
 } from '@conf/url';
-import { IS_AUTO_UPGRADE } from '@conf/storage';
+import { IS_AUTO_UPGRADE, ITERATOR } from '@conf/storage';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import {
   ChannelsAutoUpgradeStr, 
@@ -21,7 +41,13 @@ import {
 } from '@conf/channel';
 import {
   TABLE_USER_NAME,
-  TABLE_USER_FIELDS
+  TABLE_VERSION_ITERATION_REQUEST_NAME,
+  TABLE_USER_FIELDS,
+  TABLE_PROJECT_REQUEST_NAME,
+  TABLE_MICRO_SERVICE_FIELDS,
+  TABLE_VERSION_ITERATION_FIELDS,
+  TABLE_PROJECT_REQUEST_FIELDS,
+  TABLE_VERSION_ITERATION_REQUEST_FIELDS,
 } from '@conf/db';
 import { 
   getdayjs,
@@ -30,18 +56,38 @@ import {
   substr
 } from '@rutil/index';
 import { addUser, getUser, setUserName as ac_setUserName, } from '@act/user';
+import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import registerMessageHook from '@act/message';
 import PayModel from '@comp/topup';
 import { getLang, langFormat, langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
-
 const { Title, Paragraph, Text, Link } = Typography;
 
 const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
 let user_country = TABLE_USER_FIELDS.FIELD_COUNTRY;
 let user_lang = TABLE_USER_FIELDS.FIELD_LANG;
 let user_ip = TABLE_USER_FIELDS.FIELD_IP;
+
+let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
+let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
+
+let iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
+
+let project_request_project = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
+let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
+let project_request_title = TABLE_PROJECT_REQUEST_FIELDS.FIELD_TITLE;
+let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
+let project_request_desc = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DESC;
+let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
+
+let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
+let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
+let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
+let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
+let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
+let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 
 class Home extends Component {
 
@@ -55,6 +101,59 @@ class Home extends Component {
       },
       showPay: false,
       checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
+      searchPrj: "",
+      searchKeywords: "",
+      searchResult: [],
+      listColumn: [
+        {
+          title: langTrans("prj doc table field5"),
+          dataIndex: "project",
+          render: (_prj) => { 
+            return this.props.projects.find(row => row[prj_label] === _prj)[prj_remark];
+          }
+        },
+        {
+            title: langTrans("prj doc table field1"),
+            dataIndex: "uri",
+            render: (uri) => { 
+                if (uri.length > 50) {
+                    return <Tooltip title={ uri } placement='right'>{ "..." + uri.substring(uri.length - 50, uri.length) }</Tooltip>;
+                } else {
+                    return uri;
+                }
+            }
+        },
+        {
+            title: langTrans("prj doc table field2"),
+            dataIndex: "title",
+        },
+        {
+            title: langTrans("prj doc table field4"),
+            key: 'operater',
+            render: (_, record) => {
+              let sendRequestUrl;
+              let docDetailUrl;
+              if (isStringEmpty(record['iterator'])) {
+                sendRequestUrl = "#/internet_request_send_by_api/" + record.project + "/" + record.method + "/" + encode(record.uri);
+                docDetailUrl = "#/version_iterator_request/" + record.project + "/" + record.method + "/" + encode(record.uri);
+              } else {
+                docDetailUrl = "#/version_iterator_request/" + record.iterator + "/" + record.project + "/" + record.method + "/" + encode(record.uri);
+                sendRequestUrl = "#/internet_request_send_by_api/" + record.iterator + "/" + record.project + "/" + record.method + "/" + encode(record.uri);
+              }
+              return (
+                <Space size="middle">
+                    <Tooltip title={langTrans("prj doc table act1")}>
+                        <Button type="link" icon={<SendOutlined />} href={ sendRequestUrl } />
+                    </Tooltip>
+                    <Tooltip title={langTrans("prj doc table act2")}>
+                        <Button type="link" icon={<EyeOutlined />} href={ docDetailUrl } />
+                    </Tooltip>
+                </Space>
+              );
+            },
+        }
+      ],
+      iterator: localStorage.getItem(ITERATOR),
     }
   }
 
@@ -152,6 +251,110 @@ class Home extends Component {
     notification.destroy();
   }
 
+  handleSearchProject = originPrj => {
+    if (isStringEmpty(originPrj)) {
+      this.setState( {searchPrj : ""} );
+    } else {
+      let prj = originPrj.split("$$")[0];
+      this.setState( {searchPrj : prj} );
+    }
+ }
+
+ handleSearch = async () => {
+  let version_iteration_requests = [];
+  let project_requests = [];
+  let iterators;
+  let uriSet = new Set();
+  if (isStringEmpty(this.state.searchPrj)) {
+    iterators = this.props.versionIterators;
+  } else {
+    iterators = await getOpenVersionIteratorsByPrj(this.state.searchPrj);
+  }
+  if (iterators.length > 0) {
+    for(let _iteraotr of iterators) {
+      let _iteratorUuid = _iteraotr[iterator_uuid];
+      let _temp_arr = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+        .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
+        .equals([ 0, _iteratorUuid ])
+        .filter(row => {
+          if (row[iteration_request_title].indexOf(this.state.searchKeywords) >= 0) {
+              return true;
+          }
+          if (
+            !isStringEmpty(row[iteration_request_desc]) 
+              && 
+            row[iteration_request_desc].indexOf(this.state.searchKeywords) >= 0
+          ) {
+            return true;
+          }
+          if (row[iteration_request_uri].indexOf(this.state.searchKeywords) >= 0) {
+            return true;
+          }
+          return false;
+        })
+        .toArray();
+      version_iteration_requests = version_iteration_requests.concat(_temp_arr);
+    }
+  }
+  let prjLabels = [];
+  if (isStringEmpty(this.state.searchPrj)) {
+    for (let _project of this.props.projects) {
+      let _projectLabel = _project[prj_label];
+      prjLabels.push(_projectLabel);
+    }
+  } else {
+    prjLabels.push(this.state.searchPrj);
+  }
+  for (let _prjLable of prjLabels) {
+    let _temp_arr = await window.db[TABLE_PROJECT_REQUEST_NAME]
+    .where([ project_request_delFlg, project_request_project ])
+    .equals([ 0, _prjLable ])
+    .filter(row => {
+      if (row[project_request_title].indexOf(this.state.searchKeywords) >= 0) {
+        return true;
+      }
+      if (!isStringEmpty(row[project_request_desc]) && row[project_request_desc].indexOf(this.state.searchKeywords) >= 0) {
+        return true;
+      }
+      if (row[project_request_uri].indexOf(this.state.searchKeywords) >= 0) {
+        return true;
+      }
+      return false;
+    })
+    .reverse()
+    .toArray();
+    project_requests = project_requests.concat(_temp_arr);
+  }
+  let result = [];
+  for (let _version_iterator_request of version_iteration_requests) {
+    let _url = _version_iterator_request[iteration_request_uri];
+    uriSet.add(_url);
+    let item = {};
+    item.method = _version_iterator_request[iteration_request_method];
+    item.title = _version_iterator_request[iteration_request_title];
+    item.project = _version_iterator_request[iteration_request_project];
+    item.uri = _url;
+    item.iterator = _version_iterator_request[iteration_request_iteration_uuid];
+    item.key = item.method + "$$" + item.uri;
+    result.push(item);
+  }
+  for (let _project_request of project_requests) {
+    let _url = _project_request[project_request_uri];
+    if (uriSet.has(_url)) {
+      continue;
+    }
+    let item = {};
+    item.method = _project_request[project_request_method];
+    item.title = _project_request[project_request_title];
+    item.project = _project_request[project_request_project];
+    item.uri = _url;
+    item.iterator = "";
+    item.key = item.method + "$$" + item.uri;
+    result.push(item);
+  }
+  this.setState({searchResult: result});
+ }
+
   renderBtn() : ReactNode {
     return (
       <Space>
@@ -185,6 +388,79 @@ class Home extends Component {
           </Header>
           <Content style={{ padding: '0 16px'}}>
             <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
+            <Flex vertical>
+              {isStringEmpty(this.state.iterator) ? null :
+              <>      
+                <h1>{langTrans("quick link title")}</h1>      
+                <Row gutter={16}>        
+                  <Col span={6}>          
+                    <Card title={langTrans("quick link3")} bordered={false}>            
+                      <Button type="primary" onClick={()=> this.props.history.push("/internet_request_send_by_iterator/" + this.state.iterator)} block>{ langTrans("quick link4") }</Button>          
+                    </Card>        
+                  </Col>     
+                  <Col span={6}>          
+                    <Card title={langTrans("quick link2")} bordered={false}>            
+                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator_requests/" + this.state.iterator)} block>{ langTrans("quick link4") }</Button>          
+                    </Card>
+                  </Col>  
+                  <Col span={6}>          
+                    <Card title={langTrans("quick link5")} bordered={false}>            
+                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator_tests/" + this.state.iterator)} block>{ langTrans("quick link4") }</Button>          
+                    </Card>
+                  </Col>
+                  <Col span={6}>          
+                    <Card title={langTrans("quick link1")} bordered={false}>            
+                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator/" + this.state.iterator)} block>{ langTrans("quick link4") }</Button>          
+                    </Card>
+                  </Col>  
+                </Row>    
+              </>
+              }
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
+                <Flex style={{ width: '60%', height: '40px' }} justify="center" align="center">
+                  <Select
+                    showSearch
+                    allowClear
+                    size='large'
+                    style={{ height: '100%', width: 260 }} 
+                    placeholder={ langTrans("search global prj") }
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={this.props.projects.map(_prj => ({label: _prj[prj_remark], value: _prj[prj_label] + "$$" + _prj[prj_remark]}))}
+                    onChange={ this.handleSearchProject }
+                  />
+                  <Input 
+                    size='large' 
+                    allowClear
+                    style={{ width: '100%', height: '100%' }} 
+                    onChange={ event => {
+                      if (isStringEmpty(event.target.value)) {
+                        this.setState({searchResult: []});
+                      }
+                      this.setState({searchKeywords: event.target.value})
+                    }}
+                    placeholder={ langTrans("search global keywords") }
+                    onPressEnter={e => this.handleSearch()} />
+                  <Button 
+                    size='large' 
+                    type="primary" 
+                    disabled={isStringEmpty(this.state.searchKeywords)}
+                    onClick={ this.handleSearch }
+                    style={{borderRadius: 0}} 
+                  >
+                    { langTrans("search global button") }
+                  </Button>
+                </Flex>
+              </div>
+              {this.state.searchResult.length > 0 ? 
+              <Table 
+                dataSource={ this.state.searchResult } 
+                columns={this.state.listColumn} 
+              />
+              : null}
+            </Flex>
             {getLang() === 'zh-CN' ? 
             <Typography>
               <Title>不会使用？跟着示例慢慢学</Title>
@@ -428,6 +704,8 @@ function mapStateToProps (state) {
     appName: state.device.appName,
     vipFlg: state.device.vipFlg,
     expireTime: state.device.expireTime,
+    projects: state.prj.list,
+    versionIterators : state['version_iterator'].list,
   }
 }
 

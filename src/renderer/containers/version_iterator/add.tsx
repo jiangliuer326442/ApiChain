@@ -18,7 +18,6 @@ import {
     getVersionIterator,
     addVersionIterator,
     editVersionIterator,
-    getVersionIterators
 } from '@act/version_iterator';
 import { langTrans } from '@lang/i18n';
 
@@ -70,12 +69,10 @@ class VersionIteratorAdd extends Component {
         let title = values.title.trim();
         if(isStringEmpty(this.state.uuid)) {
             addVersionIterator(title, this.state.content, values.projects, this.props.device, ()=>{
-                getVersionIterators(this.props.dispatch);
                 window.location.href = "index.html#" + VERSION_ITERATOR_LIST_ROUTE;
             });
         } else {
             editVersionIterator(this.state.uuid, title, this.state.content, values.projects, ()=>{
-                getVersionIterators(this.props.dispatch);
                 window.location.href = "index.html#" + VERSION_ITERATOR_LIST_ROUTE;
             });
         }

@@ -584,7 +584,7 @@ class RequestSendContainer extends Component {
       content = "[!返回了一个文件]";
     } else if ((headers['content-type'] && headers['content-type'].toString().indexOf(CONTENT_TYPE_JSON) >= 0) || isJsonString(JSON.stringify(data))) {
       isResponseJson = true;
-      content = JSON.stringify(retShortJsonContent(data));
+      content = JSON.stringify(data);
     } else {
       content = data;
     }

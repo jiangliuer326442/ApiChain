@@ -15,6 +15,7 @@ import VersionIteratorSwitch from '@comp/version_iterator/switch';
 import { VERSION_ITERATOR_ADD_ROUTE } from "@conf/routers";
 import { TABLE_VERSION_ITERATION_FIELDS, TABLE_MICRO_SERVICE_FIELDS } from '@conf/db';
 import { 
+  getOpenVersionIterators,
   getVersionIterators, 
   delVersionIterator 
 } from "@act/version_iterator";
@@ -56,7 +57,10 @@ class VersionIterator extends Component {
             dataIndex: version_iterator_openflg,
             width: 90,
             render: (status, row) => {
-              return <VersionIteratorSwitch defaultChecked={status} uuid={row[version_iterator_uuid]} />
+              return <VersionIteratorSwitch defaultChecked={status} uuid={row[version_iterator_uuid]} cb={async ()=>{
+                getOpenVersionIterators(this.props.dispatch);
+                this.setState({listDatas: await getVersionIterators()});
+              }} />
             },
           },
           {
@@ -72,8 +76,8 @@ class VersionIterator extends Component {
                   title={langTrans("iterator del title")}
                   description={langTrans("iterator del desc")}
                   onConfirm={e => {
-                      delVersionIterator(record, ()=>{
-                          getVersionIterators(this.props.dispatch);
+                      delVersionIterator(record, async ()=>{
+                        this.setState({listDatas: await getVersionIterators()});
                       });
                   }}
                   okText={langTrans("iterator del sure")}
@@ -88,12 +92,13 @@ class VersionIterator extends Component {
               )
             },
           }
-      ]
+        ],
+        listDatas: [],
       }
     }
 
-    componentDidMount(): void {
-      getVersionIterators(this.props.dispatch);
+    async componentDidMount() {
+      this.setState({listDatas: await getVersionIterators()});
     }
 
     render() : ReactNode {
@@ -107,7 +112,7 @@ class VersionIterator extends Component {
                     <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("iterator bread1") }, { title: langTrans("iterator bread2") }]} />
                     <Button  style={{ margin: '16px 0' }} type="primary" href={"#" + VERSION_ITERATOR_ADD_ROUTE}>{langTrans("iterator add")}</Button>
                 </Flex>
-                <Table dataSource={this.props.listDatas} columns={this.state.listColumn} />
+                <Table dataSource={this.state.listDatas} columns={this.state.listColumn} />
             </Content>
             <Footer style={{ textAlign: 'center' }}>
             ApiChain ©{new Date().getFullYear()} Created by 方海亮
@@ -119,7 +124,6 @@ class VersionIterator extends Component {
 
 function mapStateToProps (state) {
     return {
-      listDatas: state.version_iterator.list,
       projects: state.prj.list,
     }
 }

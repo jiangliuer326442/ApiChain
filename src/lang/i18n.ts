@@ -31,9 +31,6 @@ export function getLang() : string {
 }
 
 export function langTrans(key : string) {
-  if (key === "nav request") {
-    console.log("langTrans", data);
-  }
   if (key in data) {
     return data[key];
   } else {

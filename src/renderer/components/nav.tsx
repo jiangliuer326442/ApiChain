@@ -5,7 +5,7 @@ import Dexie from 'dexie';
 
 import { DB_NAME } from '@conf/db';
 import { SET_NAV_COLLAPSED } from '@conf/redux';
-import { getVersionIterators } from "@act/version_iterator";
+import { getOpenVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
 
 const { Sider } = Layout;
@@ -50,7 +50,7 @@ class Nav extends Component {
 
     cb = () => {
       getPrjs(this.props.dispatch);
-      getVersionIterators(this.props.dispatch);
+      getOpenVersionIterators(this.props.dispatch);
       this.state.initNavFlg = true;
     }
 

@@ -2,8 +2,7 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Popconfirm, Switch } from 'antd';
 
-import { 
-    getVersionIterators, 
+import {
     openVersionIterator,
     closeVersionIterator 
 } from '@act/version_iterator';
@@ -22,11 +21,11 @@ class MySwitch extends Component {
         this.setState({defaultChecked: checked});
         if (checked) {
             openVersionIterator(this.props.uuid, ()=>{
-                getVersionIterators(this.props.dispatch); 
+                this.props.cb();
             });
         } else {
             closeVersionIterator(this.props.uuid, ()=>{
-                getVersionIterators(this.props.dispatch); 
+                this.props.cb();
             });
         }
     };

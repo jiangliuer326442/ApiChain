@@ -1,7 +1,6 @@
 import { ipcMain, IpcMainEvent } from 'electron';
 import axios from 'axios';
 import fs from 'fs-extra';
-import log from 'electron-log';
 
 import { 
     ChannelsAxioBreidgeStr, 
@@ -42,7 +41,9 @@ export default function() {
             for(let _key in response.headers) {
                 if (_key === "date" || _key === "connection" || _key === "transfer-encoding" 
                 || _key === "cache-control" || _key === "last-modified" || _key === "server" 
-                || _key === "vary" || _key === "set-cookie") {
+                || _key === "vary" || _key === "set-cookie" || _key === "access-control-allow-credentials"
+                || _key === "access-control-allow-headers" || _key === "access-control-allow-methods"
+                || _key === "access-control-allow-origin" || _key === "access-control-max-age") {
                     delete response.headers[_key];
                 }
             }

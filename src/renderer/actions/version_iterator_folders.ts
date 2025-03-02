@@ -2,8 +2,8 @@ import {
     TABLE_VERSION_ITERATION_FOLD_NAME, TABLE_VERSION_ITERATION_FOLD_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_NAME, TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_NAME, TABLE_PROJECT_REQUEST_FIELDS,
-} from '../../config/db';
-import { isStringEmpty } from '../util';
+} from '@conf/db';
+import { isStringEmpty } from '@rutil/index';
 let version_iteration_folder_uuid = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_ITERATOR_UUID;
 let version_iteration_folder_project = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_PROJECT;
 let version_iteration_folder_name = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_FOLD_NAME;
@@ -63,18 +63,39 @@ export async function delVersionIteratorFolder(version_iterator : string, projec
 
 export async function getVersionIteratorFolders(version_iterator : string, project : string) {
 
+    let folders = new Set<String>();
+
+    let project_folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
+    .where([version_iteration_folder_delFlg, version_iteration_folder_uuid, version_iteration_folder_project])
+    .equals([0, "", project])
+    .toArray();
+    for (let project_folder of project_folders) {
+        let folderName = project_folder[version_iteration_folder_name];
+        if (folders.has(folderName) || isStringEmpty(folderName)){
+            continue;
+        }
+        folders.add(folderName);
+    }
+    if (!isStringEmpty(version_iterator)) {
+        let version_iteration_folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
+        .where([version_iteration_folder_delFlg, version_iteration_folder_uuid, version_iteration_folder_project])
+        .equals([0, version_iterator, project])
+        .toArray();
+        for (let version_iteration_folder of version_iteration_folders) {
+            let folderName = version_iteration_folder[version_iteration_folder_name];
+            if (folders.has(folderName) || isStringEmpty(folderName)){
+                continue;
+            }
+            folders.add(folderName);
+        }
+    }
+
     let result = [];
 
-    let version_iteration_folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
-    .where([version_iteration_folder_delFlg, version_iteration_folder_uuid, version_iteration_folder_project])
-    .equals([0, version_iterator, project])
-    .reverse()
-    .toArray();
-
-    for (let version_iteration_folder of version_iteration_folders) {
+    for (let folder of folders) {
         let item = {};
-        item.label = "/" + version_iteration_folder[version_iteration_folder_name];
-        item.value = version_iteration_folder[version_iteration_folder_name];
+        item.label = "/" + folder;
+        item.value = folder;
         result.push(item);
     }
 

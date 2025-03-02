@@ -14,6 +14,7 @@ import { getEnvs } from '../../actions/env';
 import { getVersionIterator } from '../../actions/version_iterator';
 import { isStringEmpty } from '../../util';
 import { langTrans } from '@lang/i18n';
+import { isEmpty } from 'lodash';
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
@@ -46,10 +47,15 @@ class PrjEnvSelect extends Component {
         }
     }
 
-    setProjectChange = (value: string) => {
-        this.setState({prj: value});
-        if (!isStringEmpty(value)) {
-            this.props.cb(value, this.state.env !== "" ? this.state.env : this.state.env);
+    setProjectChange = (rawValue: string) => {
+        if (isEmpty(rawValue)) {
+            this.setState({prj: ""});
+            return;
+        }
+        let prj = rawValue.split("$$")[0];
+        this.setState({prj});
+        if (!isStringEmpty(prj)) {
+            this.props.cb(prj, this.state.env !== "" ? this.state.env : this.state.env);
         }
     }
   
@@ -71,14 +77,19 @@ class PrjEnvSelect extends Component {
                 <Form.Item label={langTrans("request select2")}>
                     {this.props.prjs.length > 0 ? 
                     <Select
-                    value={ this.state.prj }
-                    onChange={this.setProjectChange}
-                    style={{ width: 170 }}
-                    options={this.state.versionIteration[version_iterator_prjs] ? this.state.versionIteration[version_iterator_prjs].map(item => {
-                        return {value: item, label: this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : ""}
-                    }) : this.props.prjs.map(item => {
-                        return {value: item.label, label: item.remark}
-                    })}
+                        showSearch
+                        allowClear
+                        value={ isStringEmpty(this.state.prj) ? "" : (
+                            this.state.prj + "$$" + (this.props.prjs.find(row => row[prj_label] === this.state.prj) ? this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark] : "")
+                        ) }
+                        onChange={this.setProjectChange}
+                        style={{ width: 170 }}
+                        options={this.state.versionIteration[version_iterator_prjs] ? this.state.versionIteration[version_iterator_prjs].map(item => {
+                            let label = this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : "";
+                            return {value: item + "$$" + label, label }
+                        }) : this.props.prjs.map(item => {
+                            return {value: item.label + "$$" + item.remark , label: item.remark}
+                        })}
                     />
                     : 
                     <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>{langTrans("prj add")}</Button>

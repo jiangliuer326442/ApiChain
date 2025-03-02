@@ -24,7 +24,7 @@ let version_iterator_ctime = TABLE_VERSION_ITERATION_FIELDS.FIELD_CTIME;
 let version_iterator_close_time = TABLE_VERSION_ITERATION_FIELDS.FIELD_CLOSE_TIME;
 let version_iterator_delFlg = TABLE_VERSION_ITERATION_FIELDS.FIELD_DELFLG;
 
-export async function getVersionIterators(dispatch) {
+export async function getVersionIterators() {
     let users = await getUsers();
 
     let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
@@ -33,21 +33,24 @@ export async function getVersionIterators(dispatch) {
     .toArray();
 
     versionIterators.forEach(item => {
+        item.key = item[version_iterator_uuid];
         item[UNAME] = users.get(item[version_iterator_cuid]);
     });
 
-    dispatch({
-        type: GET_VERSION_ITERATORS,
-        versionIterators
-    });
+    return versionIterators;
 }
 
-export async function getOpenVersionIterators() {
+export async function getOpenVersionIterators(dispatch) {
     let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
     .where([version_iterator_openFlg, version_iterator_delFlg])
     .equals([1, 0])
     .reverse()
     .toArray();
+
+    dispatch({
+        type: GET_VERSION_ITERATORS,
+        versionIterators
+    });
 
     return versionIterators;
 }
