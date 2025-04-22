@@ -1,11 +1,11 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Input, Divider, Select } from "antd";
-import { DeleteOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 import { decode } from 'base-64';
 import JsonView from 'react-json-view';
 
+import { langTrans } from '@lang/i18n';
 import {
     isStringEmpty, getdayjs
 } from '@rutil/index';
@@ -29,16 +29,14 @@ import {
     REQUEST_METHOD_POST,
 } from '@conf/global_config';
 import JsonSaveTableComponent from "@comp/request_save/json_save_table";
+import FolderSelector from "@comp/request_save/folder";
 import { getPrjs } from '@act/project';
 import { addJsonFragement } from '@act/request_save';
 import { 
-    addVersionIteratorFolder,
-    getVersionIteratorFolders,
-    delVersionIteratorFolder,
+    getVersionIteratorFolders
 } from '@act/version_iterator_folders';
 import { editVersionIteratorRequest, getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { editProjectRequest, getProjectRequest } from '@act/project_request';
-import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
@@ -113,7 +111,6 @@ class RequestSaveContainer extends Component {
             showFlg : false,
             versionIterator: props.match.params.iteratorId ? props.match.params.iteratorId : "",
             selectedFolder: "",
-            folderName: "",
             cname: "",
             ctime: 0,
             folders: [],
@@ -185,14 +182,6 @@ class RequestSaveContainer extends Component {
             let folders = await getVersionIteratorFolders(value, this.state.prj, folders => this.setState({folders}));
             this.setState({folders})
         }
-    }
-
-    handleCreateFolder = () => {
-        addVersionIteratorFolder(this.state.versionIterator, this.state.prj, this.state.folderName, this.props.device, async () => {
-            this.setState({folderName: ""});
-            let folders = await getVersionIteratorFolders(this.state.versionIterator, this.state.prj);
-            this.setState({folders})
-        });
     }
 
     handleSave = async () => {
@@ -342,46 +331,17 @@ class RequestSaveContainer extends Component {
                             <Form.Item label={langTrans("request save select4")}>
                                 <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} placeholder={langTrans("prj doc table field2")} />
                             </Form.Item>
-                            <Form.Item label={langTrans("request save select5")}>
-                                <Select
-                                    showSearch
-                                    style={{minWidth: 150}}
-                                    value={ this.state.selectedFolder }
-                                    onChange={ value => this.setState({selectedFolder: value}) }
-                                    optionRender={(option) => (
-                                        <div className="custom-option">
-                                          <span>{option.label} </span>
-                                          <DeleteOutlined
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              delVersionIteratorFolder(this.state.versionIterator, this.state.prj, option.value, async () => {
-                                                let folders = await getVersionIteratorFolders(this.state.versionIterator, this.state.prj);
-                                                this.setState({folders, selectedFolder: ""})
-                                              });
-                                            }}
-                                          />
-                                        </div>
-                                    )}
-                                    dropdownRender={(menu) => (
-                                        <>
-                                            {menu}
-                                            <Divider style={{ margin: '8px 0' }} />
-                                            <Input
-                                                placeholder={langTrans("request save tip5")}
-                                                onChange={e => { this.setState({ folderName: e.target.value }) }}
-                                                value={ this.state.folderName }
-                                                onKeyDown={e => {
-                                                    if (e.key === 'Enter') {
-                                                        this.handleCreateFolder();
-                                                    }
-                                                    e.stopPropagation()
-                                                }}
-                                            />
-                                        </>
-                                    )}
-                                    options={ this.state.folders }
-                                />
-                            </Form.Item>
+                            <FolderSelector 
+                                versionIterator={ this.state.versionIterator }
+                                prj={ this.state.prj }
+                                value={ this.state.selectedFolder }
+                                setValue={ value => this.setState({selectedFolder: value}) }
+                                refreshFolders={ async () => {
+                                    let folders = await getVersionIteratorFolders(this.state.versionIterator, this.state.prj);
+                                    this.setState({folders, selectedFolder: ""})
+                                }}
+                                folders={ this.state.folders }
+                            />
                         </Form>
                         <Flex>
                             <Select 

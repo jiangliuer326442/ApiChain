@@ -51,16 +51,15 @@ import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
 import { getRequestHistory } from '@act/request_history';
 import { addJsonFragement } from '@act/request_save';
-import { 
-    addVersionIteratorFolder,
+import {
     getVersionIteratorFolders 
 } from '@act/version_iterator_folders';
 import { addProjectRequest } from '@act/project_request';
 import { addVersionIteratorRequest } from '@act/version_iterator_requests';
+import FolderSelector from "@comp/request_save/folder";
 import JsonSaveParamTableContainer from "@comp/request_save/json_save_table_param";
 import JsonSavePathVariTableContainer from "@comp/request_save/json_save_table_path_variable";
 import JsonSaveBodyTableContainer from "@comp/request_save/json_save_table_body";
-import JsonSaveHeaderTableContainer from "@comp/request_save/json_save_table_header";
 import JsonSaveResponseHeaderTableContainer from "@comp/request_save/json_save_table_response_header";
 import JsonSaveResponseCookieTableContainer from "@comp/request_save/json_save_table_response_cookie";
 import JsonSaveResponseTableComponent from "@comp/request_save/json_save_table_response";
@@ -173,7 +172,6 @@ class RequestSaveContainer extends Component {
             iteratorId,
             prjsSelectector,
             selectedFolder: "",
-            folderName: "",
             versionIteratorsSelector: [],
             folders: [],
             contentType: "",
@@ -486,13 +484,6 @@ class RequestSaveContainer extends Component {
         this.setState({folders, iteratorId : value})
     }
 
-    handleCreateFolder = () => {
-        addVersionIteratorFolder(this.state.iteratorId, this.state.prj, this.state.folderName, this.props.device, async ()=>{
-            let folders = await getVersionIteratorFolders(this.state.iteratorId, this.state.prj);
-            this.setState({folders, folderName: ""})
-        });
-    }
-
     handleSave = async () => {
         if (isStringEmpty(this.state.title)){
             message.error(langTrans("request save check1"));
@@ -773,31 +764,17 @@ class RequestSaveContainer extends Component {
                                     />
                                 </Form.Item>
                                 : null }
-                                <Form.Item label={langTrans("request save select5")}>
-                                    <Select
-                                        style={{minWidth: 130}}
-                                        value={ this.state.selectedFolder }
-                                        onChange={ value => this.setState({selectedFolder: value}) }
-                                        dropdownRender={(menu) => (
-                                            <>
-                                                {menu}
-                                                <Divider style={{ margin: '8px 0' }} />
-                                                <Input
-                                                    placeholder={langTrans("request save tip5")}
-                                                    onChange={e => { this.setState({ folderName: e.target.value }) }}
-                                                    value={ this.state.folderName }
-                                                    onKeyDown={e => {
-                                                        if (e.key === 'Enter') {
-                                                            this.handleCreateFolder();
-                                                        }
-                                                        e.stopPropagation()
-                                                    }}
-                                                />
-                                            </>
-                                        )}
-                                        options={ this.state.folders }
-                                    />
-                                </Form.Item>
+                                <FolderSelector 
+                                    versionIterator={ this.state.iteratorId }
+                                    prj={ this.state.prj }
+                                    value={ this.state.selectedFolder }
+                                    setValue={ value => this.setState({selectedFolder: value}) }
+                                    refreshFolders={ async () => {
+                                        let folders = await getVersionIteratorFolders(this.state.iteratorId, this.state.prj);
+                                        this.setState({folders, selectedFolder: ""})
+                                    }}
+                                    folders={ this.state.folders }
+                                />
                             </Form>
                         </Flex>
                         <Flex>
