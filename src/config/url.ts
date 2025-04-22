@@ -80,7 +80,7 @@ export function getDemoDatabaseFile() {
     }
 }
 
-const HOST_PAY = "http://pay.fanghailiang.cn/pay/";
+const HOST_PAY = "https://pay.apichain.app/pay/";
 
 const STATIC_URL = "http://cdn.fanghailiang.cn/";
 

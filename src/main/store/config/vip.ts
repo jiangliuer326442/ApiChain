@@ -125,12 +125,8 @@ export function genEncryptString(productName : string, payMethod : string) : str
     let cache = getCache("");
     cache.set(VIP_LATEST_TRADE, outTradeNo);
     cache.set(VIP_LATEST_PRODUCT, productName);
-
-    let encryptString = encrypt(productName + ":" + payMethod + ":" + outTradeNo + ":" + param);
-    
-    let myKey = key.toString("hex");
-    let myIv = iv.toString("hex");
-    let data = myKey + "||" + myIv + "||" + encryptString;
+    let encryptString = productName + ":" + payMethod + ":" + outTradeNo + ":" + param;
+    let data = encryptString;
     const buffer = Buffer.from(data);
     let ret = buffer.toString('base64');
     return ret;
