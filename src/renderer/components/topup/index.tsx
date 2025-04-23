@@ -260,10 +260,12 @@ class PayModel extends Component {
                     <Flex gap="small" vertical>
                         <Form>
                             <Form.Item label={langTrans("member checkout form")}>
-                                <TextArea value={ this.state.ckCode } autoSize={{ minRows: 6 }}                                  onChange={(e) => {
-                                    let content = e.target.value;
-                                    this.setState({ ckCode: content });
-                                }} />
+                                <TextArea value={ this.state.ckCode } autoSize={{ minRows: 6 }}                                  
+                                    onChange={(e) => {
+                                        let content = e.target.value;
+                                        this.setState({ ckCode: content });
+                                    }} 
+                                />
                             </Form.Item>
                         </Form>
                         {this.state.showPayQrCode ? 
@@ -286,4 +288,4 @@ function mapStateToProps (state) {
     }
   }
   
-  export default connect(mapStateToProps)(PayModel);
+export default connect(mapStateToProps)(PayModel);

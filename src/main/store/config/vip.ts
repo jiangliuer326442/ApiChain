@@ -19,9 +19,6 @@ const VIP_BUY_TIMES = TABLE_NAME + ".buy.times";
 //会员过期时间
 const VIP_END_TIME = TABLE_NAME + ".endTime";
 
-let key : any = null;
-let iv : any = null;
-
 export function getOutTradeNo() : string {
     let cache = getCache("");
     let latestTradeNo = cache.get(VIP_LATEST_TRADE) as string;

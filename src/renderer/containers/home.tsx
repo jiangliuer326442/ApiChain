@@ -59,6 +59,7 @@ import { addUser, getUser, setUserName as ac_setUserName, } from '@act/user';
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import registerMessageHook from '@act/message';
 import PayModel from '@comp/topup';
+import TeamModel from '@comp/team';
 import { getLang, langFormat, langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
@@ -100,6 +101,7 @@ class Home extends Component {
         "register_time": 0,
       },
       showPay: false,
+      showTeam: true,
       checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
       searchPrj: "",
       searchKeywords: "",
@@ -168,6 +170,7 @@ class Home extends Component {
     }
     if('electron' in window) {
       let argsObject = getStartParams();
+      console.log("argsObject", argsObject);
       let uuid = argsObject.uuid;
       let uname = argsObject.uname;
       let ip = argsObject.ip;
@@ -388,6 +391,7 @@ class Home extends Component {
           </Header>
           <Content style={{ padding: '0 16px'}}>
             <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
+            <TeamModel showTeam={this.state.showTeam} cb={showTeam => this.setState({showTeam})} />
             <Flex vertical>
               {isStringEmpty(this.state.iterator) ? null :
               <>      

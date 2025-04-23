@@ -5,6 +5,7 @@ import { langTrans, setLang } from '../../lang/i18n';
 import { uuidExists, getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { isVip, getExpireTime, getBuyTimes, giftVip } from '../store/config/vip';
+import { getClientType, getClientHost, getTeamId } from '../store/config/team'
 import { osLocale } from '../third_party/os-locale';
 import { 
     getIpV4,
@@ -52,6 +53,9 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
     let html = resolveHtmlPath('index.html');
     let appVersion = packageJson.version;
     let appName = packageJson.name;
+    let clientType = getClientType();
+    let clientHost = getClientHost();
+    let teamId = getTeamId();
 
     return [
         "$$" + base64Encode("uuid=" + uuid),
@@ -66,5 +70,8 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
         "$$" + base64Encode("userLang=" + userLang),
         "$$" + base64Encode("userCountry=" + userCountry),
         "$$" + base64Encode("firstLauch=" + firstLauch),
+        "$$" + base64Encode("clientType=" + clientType),
+        "$$" + base64Encode("clientHost=" + clientHost),
+        "$$" + base64Encode("teamId=" + teamId),
     ];
 }
