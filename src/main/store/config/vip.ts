@@ -1,8 +1,8 @@
-import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 import getCache from './index';
-import { getUuid, getSalt } from './user';
+import { getUuid } from './user';
+import { base64Decode, base64Encode } from '../../util/util'
 import { isStringEmpty } from '../../../renderer/util';
 
 export const TABLE_NAME = "vip.status";
@@ -85,7 +85,7 @@ export function setExpireTime(expireTime : number) {
 }
 
 export function genDecryptString(base64Str : string) : string {
-    let line = decrypt(base64Str);
+    let line = base64Decode(base64Str);
     if (isStringEmpty(line)) {
         return "";
     }
@@ -126,43 +126,6 @@ export function genEncryptString(productName : string, payMethod : string) : str
     cache.set(VIP_LATEST_TRADE, outTradeNo);
     cache.set(VIP_LATEST_PRODUCT, productName);
     let encryptString = productName + ":" + payMethod + ":" + outTradeNo + ":" + param;
-    let data = encryptString;
-    const buffer = Buffer.from(data);
-    let ret = buffer.toString('base64');
-    return ret;
-}
-
-//解密
-function decrypt(base64Str : string) : string {
-    try {
-        let encryptedText = Buffer.from(base64Str, 'base64');
-        genKeyIv();
-        let decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
-        let decrypted = decipher.update(encryptedText);
-        decrypted = Buffer.concat([decrypted, decipher.final()]);
-        return decrypted.toString();
-    } catch (e) {
-        return "";
-    }
-}
-
-//加密
-function encrypt(content : string) : string {
-    genKeyIv();
-    let cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
-    let encrypted = cipher.update(content);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    let result = encrypted.toString("hex");
-    return result;
-
-}
-
-function genKeyIv() {
-    if (key === null && iv === null) {
-        let uid = getUuid();
-        let salt = getSalt();
-    
-        key = crypto.scryptSync(uid, salt, 32);
-        iv = crypto.scryptSync(salt, uid, 16);  
-    }
+    let data = base64Encode(encryptString)
+    return data;
 }
