@@ -2,16 +2,14 @@ import { app } from 'electron';
 import path from 'path';
 import fse from 'fs-extra';
 
-import { md5 } from '../../util/util';
+import { md5, readPublicKey } from '../../util/util';
 
 let cache_uid = "";
 let cache_salt = "";
 let cache_uname = "";
 
-let publicKeyPath = path.join(app.getPath("home"), '.ssh', 'id_rsa.pub');
 let privateKeyPath = path.join(app.getPath("home"), '.ssh', 'id_rsa');
 
-let publicKeyContent = "";
 let privateKeyContent = "";
 
 export function getUuid() : string {
@@ -47,19 +45,6 @@ export function getSalt() : string {
     }
 
     return cache_salt;
-}
-
-export function uuidExists() : boolean {
-    return fse.pathExistsSync(publicKeyPath);
-}
-
-function readPublicKey() {
-    if (publicKeyContent === "") {
-        let uuid = (fse.readFileSync(publicKeyPath)).toString();
-        publicKeyContent = uuid;
-    }
-
-    return publicKeyContent;
 }
 
 function readPrivateKey() {

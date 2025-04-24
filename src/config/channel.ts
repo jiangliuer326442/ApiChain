@@ -135,4 +135,10 @@ export type ChannelsTeam = 'pipeline_team';
 
 export const ChannelsTeamStr = 'pipeline_team';
 
+export const ChannelsTeamTestHostStr = 'pipeline_test_host';
+
+export const ChannelsTeamTestHostResultStr = 'pipeline_test_host_result';
+
 export const ChannelsTeamSetInfoStr = 'pipeline_set_team_info';
+
+export const ChannelsTeamSetInfoResultStr = 'pipeline_set_team_info_result';

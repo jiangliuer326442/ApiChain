@@ -3,6 +3,7 @@ import MarkdownInitFunc from './markdown';
 import PostManInitFunc from './postman';
 import UpdaterInitFunc from './updater';
 import VipInitFunc from './vip';
+import TeamInitFunc from './team';
 import MockServerInitFunc from './mockserver';
 import NetworkSendInitFunc from './network';
 import dbInitFunc from './database';
@@ -13,6 +14,7 @@ export default function (mainWindow : BrowserWindow){
     PostManInitFunc();
     UpdaterInitFunc();
     VipInitFunc();
+    TeamInitFunc();
     MockServerInitFunc(mainWindow);
     NetworkSendInitFunc();
 }

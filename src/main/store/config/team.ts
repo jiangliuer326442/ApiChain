@@ -40,6 +40,11 @@ export function getTeamId() : string {
     return clientTeam;
 }
 
+export function setClientHost(clientHost : string) {
+    let cache = getCache("");
+    cache.set(TEAM_CLIENT_HOST, clientHost);
+}
+
 export function setClientInfo(clientType : string, clientHost : string, teamId : string) {
     let cache = getCache("");
     cache.set(TEAM_CLIENT_TYPE, clientType);

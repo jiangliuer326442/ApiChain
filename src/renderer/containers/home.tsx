@@ -100,8 +100,10 @@ class Home extends Component {
         "uname": "",
         "register_time": 0,
       },
+      clientType: "",
+      clientHost: "",
       showPay: false,
-      showTeam: true,
+      showTeam: false,
       checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
       searchPrj: "",
       searchKeywords: "",
@@ -204,6 +206,9 @@ class Home extends Component {
 
       this.setState({ 
         user,
+        clientType: argsObject.clientType,
+        clientHost: argsObject.clientHost,
+        showTeam: true,
       });
 
       this.updateOnLoad();
@@ -391,7 +396,13 @@ class Home extends Component {
           </Header>
           <Content style={{ padding: '0 16px'}}>
             <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
-            <TeamModel showTeam={this.state.showTeam} cb={showTeam => this.setState({showTeam})} />
+            {this.state.showTeam ? 
+            <TeamModel 
+              clientType={this.state.clientType} 
+              clientHost={this.state.clientHost}
+              showTeam={this.state.showTeam} 
+              cb={showTeam => this.setState({showTeam})} /> 
+            : null}
             <Flex vertical>
               {isStringEmpty(this.state.iterator) ? null :
               <>      
