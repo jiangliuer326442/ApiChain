@@ -8,6 +8,10 @@ import {
   APPVERSION, 
   VIP_FLG, 
   EXPIRE_TIME, 
+  CLIENT_TYPE,
+  CLIENT_HOST,
+  TEAM_SERVER_VALID,
+  TEAM_ID,
 } from '@conf/storage';
 
 import { SET_DEVICE_INFO } from '@conf/redux';
@@ -22,6 +26,10 @@ export default function (state = {
   userLang: "",
   vipFlg: false,
   expireTime: 0,
+  clientType: "single",
+  clientHost: "",
+  teamServerValid: false,
+  teamId: "",
   buyTimes: 0,
 }, action : any) {
   if(action.type === SET_DEVICE_INFO) {
@@ -71,6 +79,26 @@ export default function (state = {
         sessionStorage.setItem(HTML, action.html);
         newState.html = action.html;
       }
+
+      if (action.clientType !== undefined) {
+        sessionStorage.setItem(CLIENT_TYPE, action.clientType);
+        newState.clientType = action.clientType;
+      }
+
+      if (action.clientHost !== undefined) {
+        sessionStorage.setItem(CLIENT_HOST, action.clientHost);
+        newState.clientHost = action.clientHost;
+      }
+
+      if (action.teamServerValid !== undefined) {
+        sessionStorage.setItem(TEAM_SERVER_VALID, action.teamServerValid ? "1" : "0");
+        newState.teamServerValid = action.teamServerValid;
+      }
+
+      if (action.teamId !== undefined) {
+        sessionStorage.setItem(TEAM_ID, action.teamId);
+        newState.teamId = action.teamId;
+      }
       
       return Object.assign({}, state, newState);
   }else if(state.uuid === "") {
@@ -84,6 +112,10 @@ export default function (state = {
     if (state.expireTime < Date.now()) {
       state.vipFlg = false
     }
+    state.clientType = isStringEmpty(sessionStorage.getItem(CLIENT_TYPE)) ? "single" : sessionStorage.getItem(CLIENT_TYPE) as string;
+    state.clientHost = isStringEmpty(sessionStorage.getItem(CLIENT_HOST)) ? "" : sessionStorage.getItem(CLIENT_HOST) as string;
+    state.teamServerValid = isStringEmpty(sessionStorage.getItem(TEAM_SERVER_VALID)) ? false : (sessionStorage.getItem(TEAM_SERVER_VALID) === "1" ? true : false);
+    state.teamId = isStringEmpty(sessionStorage.getItem(TEAM_ID)) ? "" : sessionStorage.getItem(TEAM_ID) as string;
   }
   return state;
 }

@@ -100,8 +100,6 @@ class Home extends Component {
         "uname": "",
         "register_time": 0,
       },
-      clientType: "",
-      clientHost: "",
       showPay: false,
       showTeam: false,
       checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
@@ -197,6 +195,10 @@ class Home extends Component {
         vipFlg : argsObject.vipFlg === "true" ? true : false, 
         expireTime : parseInt(argsObject.expireTime),
         buyTimes : parseInt(argsObject.buyTimes),
+        clientType: argsObject.clientType,
+        clientHost: argsObject.clientHost,
+        teamServerValid: argsObject.teamServerValid === "true" ? true : false, 
+        teamId: argsObject.teamId,
         html : argsObject.html,
         appName : argsObject.appName,
         appVersion : argsObject.appVersion,
@@ -206,8 +208,6 @@ class Home extends Component {
 
       this.setState({ 
         user,
-        clientType: argsObject.clientType,
-        clientHost: argsObject.clientHost,
         showTeam: true,
       });
 
@@ -398,8 +398,6 @@ class Home extends Component {
             <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
             {this.state.showTeam ? 
             <TeamModel 
-              clientType={this.state.clientType} 
-              clientHost={this.state.clientHost}
               showTeam={this.state.showTeam} 
               cb={showTeam => this.setState({showTeam})} /> 
             : null}

@@ -28,12 +28,13 @@ class TeamModel extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            clientType: props.clientType,
-            clientHost: props.clientHost,
+            clientType: "",
+            clientHost: "",
             clientHostValid: false,
             teamType: "create",
             teamName: "",
             teamId: "",
+            teams: [],
         }
     }
 
@@ -47,7 +48,13 @@ class TeamModel extends Component {
         }
         let usersStr = usersList.join(",")
         if (this.state.teamType === "create") {
-            this.setTeamInfoPromise(this.props.uid, uname, null, this.state.teamName, usersStr)
+            this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr)
+            .then(response => message.info(response.teamId))
+            .catch(err => {
+                message.error(err.message);
+            })
+        } else if (this.state.teamType === "join") {
+            this.setTeamInfoPromise(uname, this.state.teamId, null, usersStr)
             .then(response => message.info(response.teamId))
             .catch(err => {
                 message.error(err.message);
@@ -73,7 +80,7 @@ class TeamModel extends Component {
         this.setState({teamType: e.target.value});
     };
 
-    setTeamInfoPromise = (uid, uname, teamId, teamName, users) => {
+    setTeamInfoPromise = (uname, teamId, teamName, users) => {
         return new Promise((resolve, reject) => {
 
             let addTeamSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, errorMessage, retTeamId) => {
@@ -87,34 +94,42 @@ class TeamModel extends Component {
                 }
             });
 
-            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, this.state.teamType, uid, uname, teamId, teamName, users);
+            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, this.state.teamType, uname, teamId, teamName, users);
         })
     }
 
     ckHostPromise = () => {
         return new Promise((resolve, reject) => {
     
-            let testHostSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, result) => {
+            let testHostSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, result, teams) => {
                 if (action === ChannelsTeamTestHostResultStr) {
                     testHostSendListener();
                     if (result == 1) {
-                        resolve({})
+                        resolve({teams})
                     } else {
                         reject({})
                     }
                 }
             });
+
+            let _clientHost = isStringEmpty(this.state.clientHost) ? this.props.clientHost : this.state.clientHost;
     
-            if (!isStringEmpty(this.state.clientHost)) {
-                window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamTestHostStr, this.state.clientHost);
+            if (!isStringEmpty(_clientHost)) {
+                window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamTestHostStr, _clientHost);
             }
         });
     }
 
     ckHostClick = async () => {
         this.ckHostPromise()
-        .then(()=>{
-            this.setState({clientHostValid: true});
+        .then((response) => {
+            this.setState({
+                clientHostValid: true,
+                teams: response.teams.map(item => ({
+                    value: item.id,
+                    label: item.name
+                }))
+            });
         })
         .catch(err => {
             message.error("服务器地址连接失败");
@@ -134,18 +149,18 @@ class TeamModel extends Component {
                         取消
                     </Button>,
                     <Button key="submit" disabled={isStringEmpty(this.state.teamName) && isStringEmpty(this.state.teamId)} onClick={this.commitTeam} type="primary">
-                        确定
+                        {this.state.teamType == "create" ? "创建" : "加入"}
                     </Button>
                 ]}
             >
                 <Form>
                     <Form.Item label={"当前版本"}>
-                        <Radio.Group onChange={this.setClientType} value={this.state.clientType}>
+                        <Radio.Group onChange={this.setClientType} value={isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType}>
                             <Radio value="single">单机版</Radio>
                             <Radio value="team">联网版</Radio>
                         </Radio.Group>
                     </Form.Item>
-                    {this.state.clientType === "team" ? 
+                    {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
                     <>
                         <Form.Item label={
                                 <Tooltip title="服务器地址:http://127.0.0.1:8000，仅供测试，无法确保数据不被删除，真实使用，请私有化部署服务端。私有化部署服务端教程：http://www.baidu.com/">
@@ -154,7 +169,12 @@ class TeamModel extends Component {
                             }
                         >
                             <Input.Group compact style={{ display: 'flex' }}>
-                                <Input value={ this.state.clientHost } onChange={ event=>this.setState({clientHost : event.target.value}) } />
+                                <Input value={ isStringEmpty(this.state.clientHost) ? this.props.clientHost : this.state.clientHost } onChange={ event=> {
+                                    this.setState({
+                                        clientHost : event.target.value,
+                                        clientHostValid: false
+                                    })
+                                } } />
                                 <Button onClick={this.ckHostClick}>检测</Button>
                             </Input.Group>
                         </Form.Item>
@@ -173,7 +193,7 @@ class TeamModel extends Component {
                             : null}
                             {this.state.teamType === "join" ? 
                             <Form.Item label={"选择团队"}>
-                                <Select />
+                                <Select options={this.state.teams} defaultValue={this.props.teamId} onChange={_teamId => this.setState({teamId: _teamId})} />
                             </Form.Item>
                             : null}
                             
@@ -191,6 +211,9 @@ class TeamModel extends Component {
 function mapStateToProps (state) {
     return {
       uid: state.device.uuid,
+      clientType: state.device.clientType,
+      clientHost: state.device.clientHost,
+      teamId: state.device.teamId,
     }
 }
 

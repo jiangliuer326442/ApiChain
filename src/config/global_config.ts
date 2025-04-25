@@ -14,6 +14,12 @@ export const UNITTEST = "nav.unittest";
 
 export const CONTENT_TYPE = "Content-Type";
 
+export const SYS_LANG = "Sys-Lang";
+
+export const SYS_COUNTRY = "Sys-Country";
+
+export const SYS_UID = "Sys-Uid";
+
 export const INPUTTYPE_TEXT = "text";
 
 export const INPUTTYPE_FILE = "file";

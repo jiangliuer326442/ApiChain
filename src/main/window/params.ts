@@ -6,6 +6,7 @@ import { getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { isVip, getExpireTime, getBuyTimes, giftVip } from '../store/config/vip';
 import { getClientType, getClientHost, getTeamId } from '../store/config/team'
+import { pingHost } from '../util/teamUtil';
 import { osLocale } from '../third_party/os-locale';
 import { 
     getIpV4,
@@ -21,6 +22,7 @@ export async function getInitParams() : Promise<string[]> {
     let content = (await fse.readFile(packageJsonPath)).toString();
     let packageJson = JSON.parse(content);
     let lang = await osLocale();
+    let teamServerValid = await pingHost(null);
 
     // if (process.env.NODE_ENV === 'development') {
     //     lang = 'en-AU';
@@ -39,12 +41,12 @@ export async function getInitParams() : Promise<string[]> {
         giftVip(3);
     }
 
-    let result = doGetInitParams(packageJson, userLang, userCountry, firstLauch);
+    let result = doGetInitParams(packageJson, userLang, userCountry, teamServerValid, firstLauch);
     log.info("getInitParams finished, cost time: " + (Date.now() - _btime));
     return result;
 }
 
-function doGetInitParams(packageJson : any, userLang : string, userCountry : string, firstLauch : boolean) : string[] {
+function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamServerValid : boolean, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
@@ -63,6 +65,7 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
         "$$" + base64Encode("uname=" + uname),
         "$$" + base64Encode("ip=" + ip),
         "$$" + base64Encode("vipFlg=" + vipFlg),
+        "$$" + base64Encode("teamServerValid=" + teamServerValid),
         "$$" + base64Encode("expireTime=" + expireTime),
         "$$" + base64Encode("buyTimes=" + buyTimes),
         "$$" + base64Encode("html=" + html),

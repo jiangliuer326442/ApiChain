@@ -1,10 +1,12 @@
 import { ipcMain } from 'electron';
 
-import { osLocale } from '../../third_party/os-locale';
-import { 
-    doRequest,
+import {
     readPublicKey,
 } from '../../util/util';
+import { 
+    postRequest,
+    pingHost
+} from '../../util/teamUtil'
 import { 
     ChannelsTeamStr, 
     ChannelsTeamSetInfoStr, 
@@ -13,80 +15,75 @@ import {
     ChannelsTeamTestHostResultStr,
 } from '../../../config/channel';
 import {
-    PING_URL,
     TEAM_CREATE_URL,
     TEAM_JOIN_URL,
+    TEAM_LIST_URL,
 } from '../../../config/team';
-import { 
-    getClientHost,
+import {
     setClientHost,
     setClientInfo
 } from '../../store/config/team';
 import { isStringEmpty } from '../../../renderer/util';
 
 export default async function (){
-
-    let lang = await osLocale();
-    let userLang = lang.split("-")[0];
-    let userCountry = lang.split("-")[1];
-
     ipcMain.on(ChannelsTeamStr, async (event, action, clientHost) => {
 
         if (action !== ChannelsTeamTestHostStr) return;
 
-        let url = clientHost + PING_URL;
-        let result = await doRequest("get", url, {}, {}, null, new Map());
-
-        let response = result[1];
-
-        if (response?.status === 200) {
-            if (response.data.status === 1) {
-                setClientHost(clientHost);
-                event.reply(ChannelsTeamStr, ChannelsTeamTestHostResultStr, 1);
+        let result = await pingHost(clientHost);
+        if (result) {
+            setClientHost(clientHost);
+            let teamListResult = await postRequest(TEAM_LIST_URL, {})
+            let errorMessage = teamListResult[0];
+            let teamList = teamListResult[1];
+            if (isStringEmpty(errorMessage)) {
+                event.reply(
+                    ChannelsTeamStr, 
+                    ChannelsTeamTestHostResultStr, 
+                    1,
+                    teamList
+                );
                 return;
             }
         }
+        event.reply(ChannelsTeamStr, ChannelsTeamTestHostResultStr, 0, []);
 
-        event.reply(ChannelsTeamStr, ChannelsTeamTestHostResultStr, 0);
     })
 
-    ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uid, uname, teamId, teamName, users) => {
+    ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, users) => {
 
         if (action !== ChannelsTeamSetInfoStr) return;
 
         let publicKeyContent = readPublicKey();
 
-        let clientHost = getClientHost();
-
         let responseTeamId = "";
         let errorMessage = "";
 
         if (teamType === "create") {
-            let url = clientHost + TEAM_CREATE_URL;
 
-            let result = await doRequest("post", url, {
-                "Sys-Lang": userLang,
-                "Sys-Country": userCountry,
-            }, {
-                "uid": uid,
+            let result = await postRequest(TEAM_CREATE_URL, {
                 "uname": uname,
                 "publicKey": publicKeyContent,
                 "teamName": teamName,
                 "users": users,
-            }, null, new Map());
+            })
 
-            let response = result[1];
-            errorMessage = result[2];
-            if (response?.status !== 200) {
-                errorMessage = response?.statusText;
-            }
-            if (isStringEmpty(errorMessage)) {
-                if (response.data.status === 1) {
-                    responseTeamId = response.data.data;
-                } else {
-                    errorMessage = response.data.message;
-                }
-            }
+            errorMessage = result[0];
+            responseTeamId = result[1];
+        } else {
+            let result = await postRequest(TEAM_JOIN_URL, {
+                "uname": uname,
+                "publicKey": publicKeyContent,
+                "teamId": teamId,
+                "users": users,
+            })
+
+            errorMessage = result[0];
+            responseTeamId = result[1];
+        }
+
+        if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
+            setClientInfo("team", responseTeamId)
         }
 
         event.reply(ChannelsTeamStr, ChannelsTeamSetInfoResultStr, errorMessage, responseTeamId);

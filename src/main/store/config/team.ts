@@ -45,9 +45,8 @@ export function setClientHost(clientHost : string) {
     cache.set(TEAM_CLIENT_HOST, clientHost);
 }
 
-export function setClientInfo(clientType : string, clientHost : string, teamId : string) {
+export function setClientInfo(clientType : string, teamId : string) {
     let cache = getCache("");
     cache.set(TEAM_CLIENT_TYPE, clientType);
-    cache.set(TEAM_CLIENT_HOST, clientHost);
     cache.set(TEAM_CLIENT_TEAMID, teamId);
 }

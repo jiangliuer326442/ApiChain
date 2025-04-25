@@ -8,6 +8,14 @@ export const BUY_TIMES = "device.buytimes";
 
 export const VIP_FLG = "device.vip.flg";
 
+export const CLIENT_TYPE = "team.client.type";
+
+export const CLIENT_HOST = "team.client.host";
+
+export const TEAM_SERVER_VALID = "team.server.valid";
+
+export const TEAM_ID = "team.client.id";
+
 export const EXPIRE_TIME = "device.expire.time";
 
 export const APPNAME = "app.name";
