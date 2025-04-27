@@ -30,8 +30,8 @@ export default async function (){
 
         if (action !== ChannelsTeamTestHostStr) return;
 
-        let result = await pingHost(clientHost);
-        if (result) {
+        let errorMessage = await pingHost(clientHost);
+        if (isStringEmpty(errorMessage)) {
             setClientHost(clientHost);
             let teamListResult = await postRequest(TEAM_LIST_URL, {})
             let errorMessage = teamListResult[0];
@@ -40,13 +40,14 @@ export default async function (){
                 event.reply(
                     ChannelsTeamStr, 
                     ChannelsTeamTestHostResultStr, 
-                    1,
+                    "",
                     teamList
                 );
                 return;
             }
+        } else {
+            event.reply(ChannelsTeamStr, ChannelsTeamTestHostResultStr, errorMessage, []);
         }
-        event.reply(ChannelsTeamStr, ChannelsTeamTestHostResultStr, 0, []);
 
     })
 

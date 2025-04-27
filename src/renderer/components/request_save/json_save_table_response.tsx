@@ -45,7 +45,7 @@ class JsonSaveResponseTableContainer extends Component {
                         let obj : any = {};
                         for (let _key of keyArr) {
                             if (Object.keys(obj).length === 0){
-                                obj = this.state.object[_key];
+                                obj = props.object[_key];
                             } else {
                                 obj = obj[_key];
                             }

@@ -35,14 +35,21 @@ export function resolveHtmlPath(htmlFileName: string) {
   return url.href;
 }
 
-export function getPackageJson() : string {
-  let retPath ;
-  if (app.isPackaged) {
-    retPath = path.join(__dirname, '../../package.json')
-  } else {
-    retPath = path.join(__dirname, '../../../release/app/package.json')
+let packageJson = "";
+export async function getPackageJson() {
+  if (packageJson === "") {
+    let retPath ;
+    if (app.isPackaged) {
+      retPath = path.join(__dirname, '../../package.json')
+    } else {
+      retPath = path.join(__dirname, '../../../release/app/package.json')
+    }
+
+    let content = (await fs.readFile(retPath)).toString();
+    packageJson = JSON.parse(content);
   }
-  return retPath;
+
+  return packageJson;
 }
 
 export function getAssetPath(...paths: string[]): string {

@@ -1,5 +1,6 @@
 {
     "lack sshkey title": "id_rsa.pub file not found",
+    "low server version": "Server version {{serverVersion}} is lower than the required minimum server version {{minServerVersion}}",
     "lack sshkey content": "Please use the ssh-keygen -t RSA command to generate this file to mark your identity in the team",
     "db load success": "Database load successful!",
     "menu page": "Page",

@@ -46,7 +46,7 @@ import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
 import { getEnvs } from '@act/env';
 import { getPrjs } from '@act/project';
 import { getEnvValues } from '@act/env_value';
-import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
+import { getVersionIterators, getOpenVersionIteratorsByPrj } from "@act/version_iterator";
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
 import { getRequestHistory } from '@act/request_history';
@@ -58,6 +58,7 @@ import { addProjectRequest } from '@act/project_request';
 import { addVersionIteratorRequest } from '@act/version_iterator_requests';
 import FolderSelector from "@comp/request_save/folder";
 import JsonSaveParamTableContainer from "@comp/request_save/json_save_table_param";
+import JsonSaveHeaderTableContainer from "@comp/request_save/json_save_table_header";
 import JsonSavePathVariTableContainer from "@comp/request_save/json_save_table_path_variable";
 import JsonSaveBodyTableContainer from "@comp/request_save/json_save_table_body";
 import JsonSaveResponseHeaderTableContainer from "@comp/request_save/json_save_table_response_header";
@@ -132,14 +133,6 @@ class RequestSaveContainer extends Component {
         super(props);
 
         let iteratorId = props.match.params.versionIteratorId;
-        let prjsSelectector = [];
-        if (!isStringEmpty(iteratorId)) {
-            let prjs = this.props.versionIterators.find(row => row[version_iterator_uuid] === iteratorId)[version_iterator_prjs]
-            for(let prj of prjs) {
-                let prjRemark = this.props.prjs.find(row => row[prj_label] === prj)[prj_remark];
-                prjsSelectector.push({label: prjRemark, value: prj});
-            }
-        }
 
         this.state = {
             prj : null,
@@ -170,11 +163,12 @@ class RequestSaveContainer extends Component {
             stopFlg : true,
             showFlg : false,
             iteratorId,
-            prjsSelectector,
+            prjsSelectector: [],
             selectedFolder: "",
             versionIteratorsSelector: [],
             folders: [],
             contentType: "",
+            versionIterators: [],
         }
     }
 
@@ -185,6 +179,17 @@ class RequestSaveContainer extends Component {
         if(this.props.prjs.length === 0) {
             getPrjs(this.props.dispatch);
         }
+        getVersionIterators().then(iterators => {
+            let prjsSelectector = [];
+            if (!isStringEmpty(this.state.iteratorId)) {
+                let prjs = iterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_prjs]
+                for(let prj of prjs) {
+                    let prjRemark = this.props.prjs.find(row => row[prj_label] === prj)[prj_remark];
+                    prjsSelectector.push({label: prjRemark, value: prj});
+                }
+            }
+            this.setState({versionIterators: iterators, prjsSelectector})
+        })
 
         if (!isStringEmpty(this.props.match.params.historyId)) {
             let historyId = Number(this.props.match.params.historyId);
@@ -732,7 +737,7 @@ class RequestSaveContainer extends Component {
                                 children: isStringEmpty(this.state.iteratorId) ? 
                                 (this.props.envs.find(row => row[env_label] === this.state.env) ? this.props.envs.find(row => row[env_label] === this.state.env)[env_remark] : "") 
                                 : 
-                                (this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_name]),
+                                (this.state.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId) ? this.state.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_name] : ""),
                             }
                             ] } />
                         </Flex>
@@ -879,7 +884,6 @@ function mapStateToProps (state) {
     return {
         envs: state.env.list,
         prjs: state.prj.list, 
-        versionIterators: state['version_iterator'].list,
         device : state.device,
     }
 }

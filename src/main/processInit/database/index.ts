@@ -40,9 +40,7 @@ export default function (mainWindow : BrowserWindow) {
 
     ipcMain.on(ChannelsDbStr, async (event, action, selectedProjects : Array<string>, jsonString : string) => {
         if(action === ChannelsDbProjectExportStr) {
-            let packageJsonFilePath = getPackageJson();
-            let content = await fs.readFile(packageJsonFilePath);
-            let packageJson = JSON.parse(content.toString());
+            let packageJson = await getPackageJson();
             let appName = packageJson.name;
         
             let joinProjectName = "_" + selectedProjects.length + "project";

@@ -16,6 +16,8 @@ export const CONTENT_TYPE = "Content-Type";
 
 export const SYS_LANG = "Sys-Lang";
 
+export const SYS_CLIENT_VERSION = "Client-Version";
+
 export const SYS_COUNTRY = "Sys-Country";
 
 export const SYS_UID = "Sys-Uid";

@@ -1,6 +1,7 @@
 {
   "name": "ApiChainDebug",
   "version": "1.2.3",
+  "minServerVersion": "1.2.3",
   "description": "接口文档与单元测试工具",
   "keywords": [
     "postman",

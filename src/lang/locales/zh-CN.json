@@ -1,5 +1,6 @@
 {
     "lack sshkey title": "未找到 id_rsa.pub 文件",
+    "low server version": "服务端版本 {{serverVersion}} 低于要求的最低服务端版本 {{minServerVersion}}",
     "lack sshkey content": "请通过 ssh-keygen -t RSA 命令生成该文件，用于标记您在团队内的身份",
     "db load success": "数据库还原成功!",
     "menu page": "页面",

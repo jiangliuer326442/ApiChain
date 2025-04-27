@@ -1,4 +1,3 @@
-import fse from 'fs-extra';
 import { dialog } from 'electron';
 import log from 'electron-log';
 import { langTrans, setLang } from '../../lang/i18n';
@@ -15,14 +14,12 @@ import {
     base64Encode,
     uuidExists,
 } from '../util/util';
+import { isStringEmpty } from '../../renderer/util';
 
 export async function getInitParams() : Promise<string[]> {
     let _btime = Date.now();
-    let packageJsonPath = getPackageJson();
-    let content = (await fse.readFile(packageJsonPath)).toString();
-    let packageJson = JSON.parse(content);
+    let packageJson = await getPackageJson();
     let lang = await osLocale();
-    let teamServerValid = await pingHost(null);
 
     // if (process.env.NODE_ENV === 'development') {
     //     lang = 'en-AU';
@@ -30,6 +27,8 @@ export async function getInitParams() : Promise<string[]> {
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
     setLang(userCountry, userLang);
+
+    let teamServerErrorMessage = await pingHost(null);
 
     if (!uuidExists()) {
         dialog.showErrorBox(langTrans("lack sshkey title"), langTrans("lack sshkey content"));
@@ -41,12 +40,12 @@ export async function getInitParams() : Promise<string[]> {
         giftVip(3);
     }
 
-    let result = doGetInitParams(packageJson, userLang, userCountry, teamServerValid, firstLauch);
+    let result = doGetInitParams(packageJson, userLang, userCountry, teamServerErrorMessage, firstLauch);
     log.info("getInitParams finished, cost time: " + (Date.now() - _btime));
     return result;
 }
 
-function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamServerValid : boolean, firstLauch : boolean) : string[] {
+function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamServerErrorMessage : boolean, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
@@ -59,13 +58,15 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
     let clientType = getClientType();
     let clientHost = getClientHost();
     let teamId = getTeamId();
+    if (!isStringEmpty(teamServerErrorMessage)) {
+        clientType = "single";
+    }
 
     return [
         "$$" + base64Encode("uuid=" + uuid),
         "$$" + base64Encode("uname=" + uname),
         "$$" + base64Encode("ip=" + ip),
         "$$" + base64Encode("vipFlg=" + vipFlg),
-        "$$" + base64Encode("teamServerValid=" + teamServerValid),
         "$$" + base64Encode("expireTime=" + expireTime),
         "$$" + base64Encode("buyTimes=" + buyTimes),
         "$$" + base64Encode("html=" + html),

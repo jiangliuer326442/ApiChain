@@ -1,11 +1,14 @@
+import semver from 'semver';
+
 import { osLocale } from '../third_party/os-locale';
-import { doRequest } from './util'
+import { doRequest, getPackageJson } from './util'
 import { isStringEmpty } from '../../renderer/util';
 import {
     CONTENT_TYPE_URLENCODE
 } from '../../config/contentType';
 import {
     CONTENT_TYPE,
+    SYS_CLIENT_VERSION,
     SYS_LANG,
     SYS_COUNTRY,
     SYS_UID,
@@ -19,39 +22,45 @@ import {
 import { 
     getUuid
 } from '../store/config/user'
+import { langFormat } from '../../lang/i18n';
 
 export async function pingHost(clientHost : string|null) {
     if (clientHost === null) {
         clientHost = getClientHost();
     }
-    if (isStringEmpty(clientHost)) {
-        return false;
-    }
-    let url = clientHost + PING_URL;
-    let result = await doRequest("get", url, {}, {}, null, new Map());
-
-    let response = result[1];
-
-    if (response?.status === 200) {
-        if (response.data.status === 1) {
-            return true;
+    let packageJson = await getPackageJson();
+    let result = await postRequest2(clientHost, PING_URL, {});
+    let errorMessage = result[0];
+    let serverVersion = result[1];
+    if (isStringEmpty(errorMessage)) {
+        let minServerVersion = packageJson.minServerVersion;
+        if (semver.lt(serverVersion, minServerVersion)) {
+            return langFormat("low server version", {
+                "serverVersion": serverVersion,
+                "minServerVersion": minServerVersion,
+            });
         }
     }
-    return false;
+
+    return errorMessage;
 }
 
 export async function postRequest(urlPrefix : string, postData : object) {
-
     let clientHost = getClientHost();
+    return await postRequest2(clientHost, urlPrefix, postData);
+}
 
+async function postRequest2(clientHost : string, urlPrefix : string, postData : object) {
     let lang = await osLocale();
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
+    let packageJson = await getPackageJson();
     
     let headData : any = {}
     headData[CONTENT_TYPE] = CONTENT_TYPE_URLENCODE;
     headData[SYS_LANG] = userLang;
     headData[SYS_COUNTRY] = userCountry;
+    headData[SYS_CLIENT_VERSION] = packageJson.version;
     headData[SYS_UID] = getUuid();
 
     let url = clientHost + urlPrefix;

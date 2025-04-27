@@ -18,9 +18,7 @@ import { getNowdayjs } from '../../../renderer/util';
 import { getPackageJson } from '../../util/util';
 
 export async function exportDb(mainWindow: BrowserWindow) {
-    let packageJsonFilePath = getPackageJson();
-    let content = await fs.readFile(packageJsonFilePath);
-    let packageJson = JSON.parse(content.toString());
+    let packageJson = await getPackageJson();
     let appName = packageJson.name;
 
     dialog.showSaveDialog({

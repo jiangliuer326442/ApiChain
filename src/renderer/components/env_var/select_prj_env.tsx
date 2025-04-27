@@ -5,16 +5,15 @@ import { connect } from 'react-redux';
 import { 
     PROJECT_LIST_ROUTE,
     ENV_LIST_ROUTE,
-} from "../../../config/routers";
+} from "@conf/routers";
 import { 
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
-} from '../../../config/db';
-import { getEnvs } from '../../actions/env';
-import { getVersionIterator } from '../../actions/version_iterator';
-import { isStringEmpty } from '../../util';
+} from '@conf/db';
+import { getEnvs } from '@act/env';
+import { getVersionIterators, getVersionIterator } from "@act/version_iterator";
+import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
-import { isEmpty } from 'lodash';
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
@@ -31,7 +30,8 @@ class PrjEnvSelect extends Component {
           prj: props.prj,
           env: props.env,
           iteratorId: props.iteratorId,
-          versionIteration: {}
+          versionIteration: {},
+          versionIterators: [],
         }
     }
 
@@ -45,10 +45,11 @@ class PrjEnvSelect extends Component {
         if (!isStringEmpty(this.state.iteratorId)) {
             getVersionIterator(this.state.iteratorId).then(versionIteration => this.setState( { versionIteration } ));
         }
+        getVersionIterators().then(iterators => this.setState({versionIterators: iterators}))
     }
 
     setProjectChange = (rawValue: string) => {
-        if (isEmpty(rawValue)) {
+        if (isStringEmpty(rawValue)) {
             this.setState({prj: ""});
             return;
         }
@@ -71,7 +72,7 @@ class PrjEnvSelect extends Component {
             <Form layout="inline">
                 {!isStringEmpty(this.state.iteratorId) ? 
                 <Form.Item label={langTrans("request select1")}>
-                    { this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_title] }
+                    { this.state.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId) ? this.state.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_title]:"" }
                 </Form.Item>
                 : null}
                 <Form.Item label={langTrans("request select2")}>
@@ -118,7 +119,6 @@ function mapStateToProps (state) {
     return {
         envs: state.env.list,
         prjs: state.prj.list,
-        versionIterators: state['version_iterator'].list,
     }
 }
 

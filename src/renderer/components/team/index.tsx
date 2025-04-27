@@ -109,13 +109,13 @@ class TeamModel extends Component {
     ckHostPromise = () => {
         return new Promise((resolve, reject) => {
     
-            let testHostSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, result, teams) => {
+            let testHostSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, errorMessage, teams) => {
                 if (action === ChannelsTeamTestHostResultStr) {
                     testHostSendListener();
-                    if (result == 1) {
+                    if (isStringEmpty(errorMessage)) {
                         resolve({teams})
                     } else {
-                        reject({})
+                        reject({errorMessage})
                     }
                 }
             });
@@ -140,7 +140,7 @@ class TeamModel extends Component {
             });
         })
         .catch(err => {
-            message.error("服务器地址连接失败");
+            message.error(err.errorMessage);
         })
     }
 
