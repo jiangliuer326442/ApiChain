@@ -12,6 +12,7 @@ import {
 import { RadioChangeEvent } from 'antd/lib';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
+import IDBExportImport from 'indexeddb-export-import';
 
 import { getUser, getUsers } from '@act/user';
 import {
@@ -38,28 +39,35 @@ class TeamModel extends Component {
         }
     }
 
-    commitTeam = async () => {
-        let user = await getUser(this.props.uid);
-        let uname = user.uname;
-        let users = await getUsers();
-        let usersList = []
-        for (const [_uid, _uname] of users) {
-            usersList.push(_uid + "$$" + _uname);
-        }
-        let usersStr = usersList.join(",")
-        if (this.state.teamType === "create") {
-            this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr)
-            .then(response => message.info(response.teamId))
-            .catch(err => {
-                message.error(err.message);
-            })
-        } else if (this.state.teamType === "join") {
-            this.setTeamInfoPromise(uname, this.state.teamId, null, usersStr)
-            .then(response => message.info(response.teamId))
-            .catch(err => {
-                message.error(err.message);
-            })
-        }
+    commitTeam = () => {
+        const idbDatabase = window.db.backendDB();
+        IDBExportImport.exportToJsonString(idbDatabase, async (err, dbJson) => {
+            if (err) {
+                message.error("数据库导出失败")
+            } else {
+                let user = await getUser(this.props.uid);
+                let uname = user.uname;
+                let users = await getUsers();
+                let usersList = []
+                for (const [_uid, _uname] of users) {
+                    usersList.push(_uid + "$$" + _uname);
+                }
+                let usersStr = usersList.join(",")
+                if (this.state.teamType === "create") {
+                    this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr, dbJson)
+                    .then(response => message.info(response.teamId))
+                    .catch(err => {
+                        message.error(err.message);
+                    })
+                } else if (this.state.teamType === "join") {
+                    this.setTeamInfoPromise(uname, this.state.teamId, null, usersStr, dbJson)
+                    .then(response => message.info(response.teamId))
+                    .catch(err => {
+                        message.error(err.message);
+                    })
+                }
+            }
+        });
     }
 
     canelTeam = () => {
@@ -80,7 +88,7 @@ class TeamModel extends Component {
         this.setState({teamType: e.target.value});
     };
 
-    setTeamInfoPromise = (uname, teamId, teamName, users) => {
+    setTeamInfoPromise = (uname, teamId, teamName, users, dbJson) => {
         return new Promise((resolve, reject) => {
 
             let addTeamSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, errorMessage, retTeamId) => {
@@ -94,7 +102,7 @@ class TeamModel extends Component {
                 }
             });
 
-            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, this.state.teamType, uname, teamId, teamName, users);
+            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, this.state.teamType, uname, teamId, teamName, users, dbJson);
         })
     }
 

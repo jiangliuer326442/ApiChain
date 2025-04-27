@@ -50,7 +50,7 @@ export default async function (){
 
     })
 
-    ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, users) => {
+    ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, users, dbJson) => {
 
         if (action !== ChannelsTeamSetInfoStr) return;
 
@@ -66,6 +66,7 @@ export default async function (){
                 "publicKey": publicKeyContent,
                 "teamName": teamName,
                 "users": users,
+                "dbJson": dbJson,
             })
 
             errorMessage = result[0];
@@ -76,6 +77,7 @@ export default async function (){
                 "publicKey": publicKeyContent,
                 "teamId": teamId,
                 "users": users,
+                "dbJson": dbJson,
             })
 
             errorMessage = result[0];
