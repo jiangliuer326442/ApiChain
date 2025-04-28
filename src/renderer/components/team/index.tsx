@@ -36,10 +36,14 @@ class TeamModel extends Component {
             teamName: "",
             teamId: "",
             teams: [],
+            networkIng: false,
         }
     }
 
     commitTeam = () => {
+        if (this.state.networkIng) {
+            return;
+        }
         const idbDatabase = window.db.backendDB();
         IDBExportImport.exportToJsonString(idbDatabase, async (err, dbJson) => {
             if (err) {
@@ -54,16 +58,24 @@ class TeamModel extends Component {
                 }
                 let usersStr = usersList.join(",")
                 if (this.state.teamType === "create") {
+                    this.setState({networkIng: true});
                     this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr, dbJson)
                     .then(response => message.info(response.teamId))
                     .catch(err => {
                         message.error(err.message);
                     })
+                    .finally(() => {
+                        this.setState({networkIng: false});
+                    })
                 } else if (this.state.teamType === "join") {
+                    this.setState({networkIng: true});
                     this.setTeamInfoPromise(uname, this.state.teamId, null, usersStr, dbJson)
                     .then(response => message.info(response.teamId))
                     .catch(err => {
                         message.error(err.message);
+                    })
+                    .finally(() => {
+                        this.setState({networkIng: false});
                     })
                 }
             }
@@ -156,7 +168,7 @@ class TeamModel extends Component {
                     <Button key="back" onClick={this.canelTeam}>
                         取消
                     </Button>,
-                    <Button key="submit" disabled={isStringEmpty(this.state.teamName) && isStringEmpty(this.state.teamId)} onClick={this.commitTeam} type="primary">
+                    <Button key="submit" disabled={(isStringEmpty(this.state.teamName) && isStringEmpty(this.state.teamId)) || this.state.networkIng} onClick={this.commitTeam} type="primary">
                         {this.state.teamType == "create" ? "创建" : "加入"}
                     </Button>
                 ]}

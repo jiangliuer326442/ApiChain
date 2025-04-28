@@ -28,6 +28,9 @@ export async function pingHost(clientHost : string|null) {
     if (clientHost === null) {
         clientHost = getClientHost();
     }
+    if (isStringEmpty(clientHost)) {
+        return "error";
+    }
     let packageJson = await getPackageJson();
     let result = await postRequest2(clientHost, PING_URL, {});
     let errorMessage = result[0];
@@ -69,10 +72,31 @@ async function postRequest2(clientHost : string, urlPrefix : string, postData : 
 
     let response = result[1];
     let errorMessage = result[2];
-    let data = null;
-    if (response?.status !== 200) {
-        errorMessage = response?.statusText;
+    if (response != null) {
+        if ('headers' in response) {
+            if (response?.status !== 200) {
+                errorMessage = response?.statusText;
+            }
+        } else {
+            errorMessage = response[2];
+            response = response[1];
+            if (response != null) {
+                if ('headers' in response) {
+                    if (response?.status !== 200) {
+                        errorMessage = response?.statusText;
+                    }
+                } else {
+                    response = response[1];
+                    if (response?.status !== 200) {
+                        errorMessage = response?.statusText;
+                    }
+                }
+            }
+        }
     }
+
+
+    let data = null;
     if (isStringEmpty(errorMessage)) {
         if (response.data.status === 1) {
             data = response.data.data;
