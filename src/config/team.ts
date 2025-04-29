@@ -5,3 +5,5 @@ export const TEAM_CREATE_URL = "/team/register";
 export const TEAM_JOIN_URL = "/team/join";
 
 export const TEAM_LIST_URL = "/team/teams";
+
+export const TEAM_QUERY_NAME = "/team/getTeamName";

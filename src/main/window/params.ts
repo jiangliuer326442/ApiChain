@@ -5,7 +5,8 @@ import { getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { isVip, getExpireTime, getBuyTimes, giftVip } from '../store/config/vip';
 import { getClientType, getClientHost, getTeamId } from '../store/config/team'
-import { pingHost } from '../util/teamUtil';
+import { pingHost, postRequest } from '../util/teamUtil';
+import { TEAM_QUERY_NAME } from '../../config/team'
 import { osLocale } from '../third_party/os-locale';
 import { 
     getIpV4,
@@ -29,6 +30,12 @@ export async function getInitParams() : Promise<string[]> {
     setLang(userCountry, userLang);
 
     let teamServerErrorMessage = await pingHost(null);
+    let teamId = getTeamId();
+    let teamName = "";
+    if (isStringEmpty(teamServerErrorMessage)) {
+        let ret = await postRequest(TEAM_QUERY_NAME, {teamId: teamId})
+        teamName = ret[1];
+    }
 
     if (!uuidExists()) {
         dialog.showErrorBox(langTrans("lack sshkey title"), langTrans("lack sshkey content"));
@@ -40,12 +47,12 @@ export async function getInitParams() : Promise<string[]> {
         giftVip(3);
     }
 
-    let result = doGetInitParams(packageJson, userLang, userCountry, teamServerErrorMessage, firstLauch);
+    let result = doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
     log.info("getInitParams finished, cost time: " + (Date.now() - _btime));
     return result;
 }
 
-function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamServerErrorMessage : boolean, firstLauch : boolean) : string[] {
+function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
@@ -58,7 +65,7 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
     let clientType = getClientType();
     let clientHost = getClientHost();
     let teamId = getTeamId();
-    if (!isStringEmpty(teamServerErrorMessage)) {
+    if (isStringEmpty(teamName)) {
         clientType = "single";
     }
 
@@ -76,6 +83,7 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
         "$$" + base64Encode("userCountry=" + userCountry),
         "$$" + base64Encode("firstLauch=" + firstLauch),
         "$$" + base64Encode("clientType=" + clientType),
+        "$$" + base64Encode("teamName=" + teamName),
         "$$" + base64Encode("clientHost=" + clientHost),
         "$$" + base64Encode("teamId=" + teamId),
     ];

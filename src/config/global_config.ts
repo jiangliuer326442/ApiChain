@@ -26,7 +26,7 @@ export const INPUTTYPE_TEXT = "text";
 
 export const INPUTTYPE_FILE = "file";
 
-export const WINDOW_WIDTH = 1124;
+export const WINDOW_WIDTH = 1224;
 
 export const WINDOW_HEIGHT = 738;
 

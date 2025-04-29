@@ -18,6 +18,7 @@ import {
     TEAM_CREATE_URL,
     TEAM_JOIN_URL,
     TEAM_LIST_URL,
+    TEAM_QUERY_NAME,
 } from '../../../config/team';
 import {
     setClientHost,
@@ -85,10 +86,13 @@ export default async function (){
             responseTeamId = result[1];
         }
 
+        let _teamName = "";
         if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
             setClientInfo("team", responseTeamId)
+            let ret = await postRequest(TEAM_QUERY_NAME, {teamId: responseTeamId})
+            _teamName = ret[1];
         }
 
-        event.reply(ChannelsTeamStr, ChannelsTeamSetInfoResultStr, errorMessage, responseTeamId);
+        event.reply(ChannelsTeamStr, ChannelsTeamSetInfoResultStr, errorMessage, responseTeamId, _teamName);
     });
 }

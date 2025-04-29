@@ -10,7 +10,7 @@ import {
   EXPIRE_TIME, 
   CLIENT_TYPE,
   CLIENT_HOST,
-  TEAM_SERVER_VALID,
+  TEAM_NAME,
   TEAM_ID,
 } from '@conf/storage';
 
@@ -28,7 +28,7 @@ export default function (state = {
   expireTime: 0,
   clientType: "single",
   clientHost: "",
-  teamServerValid: false,
+  teamName: "",
   teamId: "",
   buyTimes: 0,
 }, action : any) {
@@ -90,9 +90,9 @@ export default function (state = {
         newState.clientHost = action.clientHost;
       }
 
-      if (action.teamServerValid !== undefined) {
-        sessionStorage.setItem(TEAM_SERVER_VALID, action.teamServerValid ? "1" : "0");
-        newState.teamServerValid = action.teamServerValid;
+      if (action.teamName !== undefined) {
+        sessionStorage.setItem(TEAM_NAME, action.teamName);
+        newState.teamName = action.teamName;
       }
 
       if (action.teamId !== undefined) {
@@ -114,7 +114,7 @@ export default function (state = {
     }
     state.clientType = isStringEmpty(sessionStorage.getItem(CLIENT_TYPE)) ? "single" : sessionStorage.getItem(CLIENT_TYPE) as string;
     state.clientHost = isStringEmpty(sessionStorage.getItem(CLIENT_HOST)) ? "" : sessionStorage.getItem(CLIENT_HOST) as string;
-    state.teamServerValid = isStringEmpty(sessionStorage.getItem(TEAM_SERVER_VALID)) ? false : (sessionStorage.getItem(TEAM_SERVER_VALID) === "1" ? true : false);
+    state.teamName = isStringEmpty(sessionStorage.getItem(TEAM_NAME)) ? "" : sessionStorage.getItem(TEAM_NAME) as string;
     state.teamId = isStringEmpty(sessionStorage.getItem(TEAM_ID)) ? "" : sessionStorage.getItem(TEAM_ID) as string;
   }
   return state;

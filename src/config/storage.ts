@@ -12,7 +12,7 @@ export const CLIENT_TYPE = "team.client.type";
 
 export const CLIENT_HOST = "team.client.host";
 
-export const TEAM_SERVER_VALID = "team.server.valid";
+export const TEAM_NAME = "team.client.name";
 
 export const TEAM_ID = "team.client.id";
 

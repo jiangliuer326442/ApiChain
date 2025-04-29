@@ -22,7 +22,9 @@ import {
     ChannelsTeamSetInfoStr,
     ChannelsTeamSetInfoResultStr,
 } from '@conf/channel';
+import { SET_DEVICE_INFO } from '@conf/redux';
 import { isStringEmpty } from '@rutil/index';
+import { langTrans } from '@lang/i18n';
 
 class TeamModel extends Component {
 
@@ -32,7 +34,7 @@ class TeamModel extends Component {
             clientType: "",
             clientHost: "",
             clientHostValid: false,
-            teamType: "create",
+            teamType: this.props.teamType,
             teamName: "",
             teamId: "",
             teams: [],
@@ -60,7 +62,7 @@ class TeamModel extends Component {
                 if (this.state.teamType === "create") {
                     this.setState({networkIng: true});
                     this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr, dbJson)
-                    .then(response => message.info(response.teamId))
+                    .then(response => this.handleResponse(response))
                     .catch(err => {
                         message.error(err.message);
                     })
@@ -70,7 +72,7 @@ class TeamModel extends Component {
                 } else if (this.state.teamType === "join") {
                     this.setState({networkIng: true});
                     this.setTeamInfoPromise(uname, this.state.teamId, null, usersStr, dbJson)
-                    .then(response => message.info(response.teamId))
+                    .then(response => this.handleResponse(response))
                     .catch(err => {
                         message.error(err.message);
                     })
@@ -82,13 +84,18 @@ class TeamModel extends Component {
         });
     }
 
-    canelTeam = () => {
-        this.setState({
-            clientType: "",
-            clientHost: "",
-            teamName: "",
-            teamId: "",
+    handleResponse = (response) => {
+        this.props.dispatch({
+            type : SET_DEVICE_INFO,
+            clientType: this.state.clientType,
+            clientHost: this.state.clientHost,
+            teamName: response.teamName, 
+            teamId: response.teamId,
         });
+        this.canelTeam();
+    }
+
+    canelTeam = () => {
         this.props.cb(false);
     }
 
@@ -103,11 +110,11 @@ class TeamModel extends Component {
     setTeamInfoPromise = (uname, teamId, teamName, users, dbJson) => {
         return new Promise((resolve, reject) => {
 
-            let addTeamSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, errorMessage, retTeamId) => {
+            let addTeamSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, errorMessage, retTeamId, retTeamName) => {
                 if (action === ChannelsTeamSetInfoResultStr) {
                     addTeamSendListener();
                     if (isStringEmpty(errorMessage)) {
-                        resolve({teamId: retTeamId})
+                        resolve({teamId: retTeamId, teamName: retTeamName})
                     } else {
                         reject({message: errorMessage})
                     }
@@ -159,32 +166,32 @@ class TeamModel extends Component {
     render() : ReactNode {
         return (
             <Modal
-                title="客户端类型设置"
+                title={langTrans("team topup title")}
                 open={this.props.showTeam}
                 onOk={this.commitTeam}
                 onCancel={this.canelTeam}
-                width={400}
+                width={500}
                 footer={[
                     <Button key="back" onClick={this.canelTeam}>
-                        取消
+                        {langTrans("team topup btn3")}
                     </Button>,
                     <Button key="submit" disabled={(isStringEmpty(this.state.teamName) && isStringEmpty(this.state.teamId)) || this.state.networkIng} onClick={this.commitTeam} type="primary">
-                        {this.state.teamType == "create" ? "创建" : "加入"}
+                        {this.state.teamType == "create" ? langTrans("team topup btn1") : langTrans("team topup btn2")}
                     </Button>
                 ]}
             >
                 <Form>
-                    <Form.Item label={"当前版本"}>
+                    <Form.Item label={langTrans("team topup form1")}>
                         <Radio.Group onChange={this.setClientType} value={isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType}>
-                            <Radio value="single">单机版</Radio>
-                            <Radio value="team">联网版</Radio>
+                            <Radio value="single">{langTrans("team topup form1 select1")}</Radio>
+                            <Radio value="team">{langTrans("team topup form1 select2")}</Radio>
                         </Radio.Group>
                     </Form.Item>
                     {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
                     <>
                         <Form.Item label={
-                                <Tooltip title="服务器地址:http://127.0.0.1:8000，仅供测试，无法确保数据不被删除，真实使用，请私有化部署服务端。私有化部署服务端教程：http://www.baidu.com/">
-                                    <span>服务器</span>
+                                <Tooltip title={langTrans("team topup form2 tip1")}>
+                                    <span>{langTrans("team topup form2")}</span>
                                 </Tooltip>
                             }
                         >
@@ -195,24 +202,24 @@ class TeamModel extends Component {
                                         clientHostValid: false
                                     })
                                 } } />
-                                <Button onClick={this.ckHostClick}>检测</Button>
+                                <Button onClick={this.ckHostClick}>{langTrans("team topup form2 btn1")}</Button>
                             </Input.Group>
                         </Form.Item>
                         {this.state.clientHostValid ? 
                         <>
-                            <Form.Item label={"团队"}>
+                            <Form.Item label={langTrans("team topup form3")}>
                                 <Radio.Group onChange={this.setTeamType} value={this.state.teamType}>
-                                    <Radio value="create">创建团队</Radio>
-                                    <Radio value="join">加入团队</Radio>
+                                    <Radio value="create">{langTrans("team topup form3 radio1")}</Radio>
+                                    <Radio value="join">{langTrans("team topup form3 radio2")}</Radio>
                                 </Radio.Group>
                             </Form.Item>
                             {this.state.teamType === "create" ? 
-                            <Form.Item label={"团队名称"}>
+                            <Form.Item label={langTrans("team topup form4")}>
                                 <Input value={ this.state.teamName } onChange={ event=>this.setState({teamName : event.target.value}) } />
                             </Form.Item>
                             : null}
                             {this.state.teamType === "join" ? 
-                            <Form.Item label={"选择团队"}>
+                            <Form.Item label={langTrans("team topup form5")}>
                                 <Select options={this.state.teams} defaultValue={this.props.teamId} onChange={_teamId => this.setState({teamId: _teamId})} />
                             </Form.Item>
                             : null}

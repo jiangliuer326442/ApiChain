@@ -2,6 +2,7 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { encode } from 'base-64';
 import { 
+  Breadcrumb,
   Table,
   Flex,
   Checkbox, 
@@ -102,6 +103,7 @@ class Home extends Component {
       },
       showPay: false,
       showTeam: false,
+      teamType: "create",
       checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
       searchPrj: "",
       searchKeywords: "",
@@ -197,7 +199,7 @@ class Home extends Component {
         buyTimes : parseInt(argsObject.buyTimes),
         clientType: argsObject.clientType,
         clientHost: argsObject.clientHost,
-        teamServerValid: argsObject.teamServerValid === "true" ? true : false, 
+        teamName: argsObject.teamName, 
         teamId: argsObject.teamId,
         html : argsObject.html,
         appName : argsObject.appName,
@@ -208,7 +210,7 @@ class Home extends Component {
 
       this.setState({ 
         user,
-        showTeam: true,
+        showTeam: argsObject.clientType === "single",
       });
 
       this.updateOnLoad();
@@ -399,12 +401,45 @@ class Home extends Component {
             {this.state.showTeam ? 
             <TeamModel 
               showTeam={this.state.showTeam} 
+              teamType={this.state.teamType}
               cb={showTeam => this.setState({showTeam})} /> 
             : null}
+            <Breadcrumb
+              style={{ margin: '16px 0' }}
+              items={ this.props.clientType === "single" ? [
+                {
+                  title: langTrans("team topup form1 select1"),
+                  onClick: e => {
+                    this.setState({showTeam: true})
+                  }
+                }
+              ] :  [
+                {
+                  title: langTrans("team topup form1 select2"),
+                  onClick: e => {
+                    this.setState({
+                      showTeam: true,
+                      teamType: "create",
+                    })
+                  }
+                }, 
+                { 
+                  title: this.props.teamName,
+                  onClick: e => {
+                    this.setState({
+                      showTeam: true,
+                      teamType: "join",
+                    })
+                  }
+                }
+              ]}
+            />
             <Flex vertical>
               {isStringEmpty(this.state.iterator) ? null :
               <>      
-                <h1>{langTrans("quick link title")}</h1>      
+                <Title level={1}>
+                  {langTrans("quick link title")}
+                </Title>      
                 <Row gutter={16}>        
                   <Col span={6}>          
                     <Card title={langTrans("quick link3")} bordered={false}>            
@@ -719,6 +754,8 @@ function mapStateToProps (state) {
     expireTime: state.device.expireTime,
     projects: state.prj.list,
     versionIterators : state['version_iterator'].list,
+    teamName: state.device.teamName,
+    clientType: state.device.clientType,
   }
 }
 
