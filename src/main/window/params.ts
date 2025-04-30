@@ -6,6 +6,7 @@ import { isFirstLauch } from '../store/config/first';
 import { isVip, getExpireTime, getBuyTimes, giftVip } from '../store/config/vip';
 import { getClientType, getClientHost, getTeamId } from '../store/config/team'
 import { pingHost, postRequest } from '../util/teamUtil';
+import { urlEncode } from '../../renderer/util';
 import { TEAM_QUERY_NAME } from '../../config/team'
 import { osLocale } from '../third_party/os-locale';
 import { 
@@ -34,7 +35,7 @@ export async function getInitParams() : Promise<string[]> {
     let teamName = "";
     if (isStringEmpty(teamServerErrorMessage)) {
         let ret = await postRequest(TEAM_QUERY_NAME, {teamId: teamId})
-        teamName = ret[1];
+        teamName = urlEncode(ret[1]);
     }
 
     if (!uuidExists()) {

@@ -54,7 +54,8 @@ import {
   getdayjs,
   isStringEmpty,
   getStartParams,
-  substr
+  substr,
+  urlDecode
 } from '@rutil/index';
 import { addUser, getUser, setUserName as ac_setUserName, } from '@act/user';
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
@@ -199,7 +200,7 @@ class Home extends Component {
         buyTimes : parseInt(argsObject.buyTimes),
         clientType: argsObject.clientType,
         clientHost: argsObject.clientHost,
-        teamName: argsObject.teamName, 
+        teamName: urlDecode(argsObject.teamName), 
         teamId: argsObject.teamId,
         html : argsObject.html,
         appName : argsObject.appName,

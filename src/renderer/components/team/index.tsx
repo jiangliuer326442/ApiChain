@@ -62,7 +62,7 @@ class TeamModel extends Component {
                 if (this.state.teamType === "create") {
                     this.setState({networkIng: true});
                     this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr, dbJson)
-                    .then(response => this.handleResponse(response))
+                    .then(async response => await this.handleResponse(response))
                     .catch(err => {
                         message.error(err.message);
                     })
@@ -72,7 +72,7 @@ class TeamModel extends Component {
                 } else if (this.state.teamType === "join") {
                     this.setState({networkIng: true});
                     this.setTeamInfoPromise(uname, this.state.teamId, null, usersStr, dbJson)
-                    .then(response => this.handleResponse(response))
+                    .then(async response => await this.handleResponse(response))
                     .catch(err => {
                         message.error(err.message);
                     })
@@ -84,7 +84,8 @@ class TeamModel extends Component {
         });
     }
 
-    handleResponse = (response) => {
+    handleResponse = async (response) => {
+        await this.updateAllRecords();
         this.props.dispatch({
             type : SET_DEVICE_INFO,
             clientType: this.state.clientType,
@@ -145,6 +146,27 @@ class TeamModel extends Component {
                 window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamTestHostStr, _clientHost);
             }
         });
+    }
+
+    // 更新所有表的所有记录
+    updateAllRecords = async () => {
+        // 获取所有表的名称
+        const tableNames = window.db.tables.map(table => table.name);
+    
+        for (const tableName of tableNames) {
+            const table = window.db.table(tableName);
+        
+            // 获取所有记录
+            const records = await table.toArray();
+        
+            // 更新每个记录
+            for (const record of records) {
+                record.upload_flg = 1;
+                await table.put(record);
+            }
+        
+            console.log(`Updated records in ${tableName}`);
+        }
     }
 
     ckHostClick = async () => {
