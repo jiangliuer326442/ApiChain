@@ -24,6 +24,7 @@ class PayModel extends Component {
         super(props);
         this.state = {
             showPayWriteOff: false,
+            showPayQrCode1: false,
             showPayQrCode: false,
             lodingCkCode: false,
             productName: "",
@@ -31,6 +32,7 @@ class PayModel extends Component {
             money: "",
             qrcode: "",
             ckCode: "",
+            cacheCkCodeUrl: "",
         };
     }
 
@@ -41,7 +43,7 @@ class PayModel extends Component {
             try {
                 const qrCodeDataURL = await qrcode.toDataURL(url);
                 this.setState({
-                    showPayQrCode: true,
+                    showPayQrCode1: true,
                     money,
                     qrcode: qrCodeDataURL,
                 });
@@ -85,7 +87,9 @@ class PayModel extends Component {
             });
             this.setState({
                 showPayWriteOff: false,
+                showPayQrCode1: false,
                 showPayQrCode: false,
+                cacheCkCodeUrl: "",
                 productName: "",
                 payMethod: "",
                 money: "",
@@ -95,11 +99,15 @@ class PayModel extends Component {
             });
             message.success(langFormat("member checkout success", {"date": getdayjs(expireTime).format("YYYY-MM-DD")}));
         });
+    }
 
-        if (!isStringEmpty(this.props.ckCodeUrl)) {
+    async componentDidUpdate(prevProps, prevState) {
+        if (!isStringEmpty(prevProps.ckCodeUrl) && prevProps.ckCodeUrl != prevState.cacheCkCodeUrl) {
+            let cacheCkCodeUrl = prevProps.ckCodeUrl;
             try {
-                const qrCodeDataURL = await qrcode.toDataURL(this.props.ckCodeUrl);
+                const qrCodeDataURL = await qrcode.toDataURL(cacheCkCodeUrl);
                 this.setState({
+                    cacheCkCodeUrl,
                     showPayQrCode: true,
                     qrcode: qrCodeDataURL,
                 });
@@ -134,6 +142,8 @@ class PayModel extends Component {
     canelPay = () => {
         this.setState({
             showPayQrCode: false,
+            showPayQrCode1: false,
+            cacheCkCodeUrl: "",
             productName: "",
             payMethod: "",
             money: "",
@@ -155,6 +165,8 @@ class PayModel extends Component {
             showPayWriteOff: true,
             showPay: false,
             showPayQrCode: false,
+            showPayQrCode1: false,
+            cacheCkCodeUrl: "",
             lodingCkCode: false,
             productName: "",
             payMethod: "",
@@ -180,6 +192,8 @@ class PayModel extends Component {
         this.setState({
             showPayWriteOff: false,
             showPayQrCode: false,
+            showPayQrCode1: false,
+            cacheCkCodeUrl: "",
             productName: "",
             payMethod: "",
             money: "",
@@ -248,7 +262,7 @@ class PayModel extends Component {
                                 }
                             </Form.Item>
                         </Form>
-                        {this.state.showPayQrCode ? 
+                        {this.state.showPayQrCode1 ? 
                         <>
                             <p>{langFormat("member topup paycontent", {
                                 "money": this.state.money,

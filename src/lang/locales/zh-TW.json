@@ -55,6 +55,7 @@
     "member checkout btn finish": "核銷支付",
     "member checkout error": "核銷碼填寫錯誤，核銷失敗",
     "member checkout success": "核銷成功，尊敬的會員，您的 VIP 截止日期為：{{date}}",
+    "member checkout tips": "您有一筆待核銷的會員購買記錄，點擊此處進行核銷",
     "env title": "開發環境配置",
     "env bread1": "設置",
     "env bread2": "開發環境",

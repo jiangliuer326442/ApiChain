@@ -388,7 +388,7 @@ class Home extends Component {
           <Content style={{ padding: '0 16px'}}>
 
             {this.props.showCkCode ? <Alert 
-              message="Warning Text" 
+              message={langTrans("member checkout tips")}
               type="warning" 
               closable 
               onClose={this.closeShowPay} 

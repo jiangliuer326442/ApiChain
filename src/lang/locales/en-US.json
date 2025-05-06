@@ -55,6 +55,7 @@
     "member checkout btn finish": "Verification Payment",
     "member checkout error": "Verification code entered incorrectly, verification failed",
     "member checkout success": "Verification successful, dear member, your VIP expiration date is: {{date}}",
+    "member checkout tips": "You have a pending membership purchase record to be verified. Click here to complete verification.",
     "env title": "Development Environment Configuration",
     "env bread1": "Settings",
     "env bread2": "Development Environment",
