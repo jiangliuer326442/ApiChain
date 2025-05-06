@@ -82,7 +82,7 @@ export function sendAjaxMessage(method : string, url : string, headData, postDat
  * @param dispatch 
  * @param cb 
  */
-export default function(dispatch, cb) : void {
+export default function() : void {
     if('electron' in window) {
 
         //备份数据库

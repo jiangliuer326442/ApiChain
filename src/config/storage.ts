@@ -8,6 +8,10 @@ export const BUY_TIMES = "device.buytimes";
 
 export const VIP_FLG = "device.vip.flg";
 
+export const CKCODE_FLG = "device.ckcode.flg";
+
+export const CKCODE_URL = "device.ckcode.url";
+
 export const CLIENT_TYPE = "team.client.type";
 
 export const CLIENT_HOST = "team.client.host";

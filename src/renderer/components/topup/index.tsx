@@ -34,7 +34,7 @@ class PayModel extends Component {
         };
     }
 
-    componentDidMount(): void {
+    async componentDidMount(): Promise<void> {
         //拿支付二维码生成结果
         window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, url) => {
             if (action !== ChannelsVipGenUrlStr) return;
@@ -52,6 +52,11 @@ class PayModel extends Component {
         //拿核销二维码
         window.electron.ipcRenderer.on(ChannelsVipStr, async (action, product, url) => {
             if (action !== ChannelsVipCkCodeStr) return;
+            this.props.dispatch({
+                type : SET_DEVICE_INFO,
+                showCkCode : true,
+                ckCodeUrl: url,
+            });
             try {
                 const qrCodeDataURL = await qrcode.toDataURL(url);
                 this.setState({
@@ -75,7 +80,8 @@ class PayModel extends Component {
                 vipFlg: true, 
                 uuid: myuid,
                 expireTime,
-                buyTimes
+                buyTimes,
+                showCkCode : false,
             });
             this.setState({
                 showPayWriteOff: false,
@@ -89,6 +95,18 @@ class PayModel extends Component {
             });
             message.success(langFormat("member checkout success", {"date": getdayjs(expireTime).format("YYYY-MM-DD")}));
         });
+
+        if (!isStringEmpty(this.props.ckCodeUrl)) {
+            try {
+                const qrCodeDataURL = await qrcode.toDataURL(this.props.ckCodeUrl);
+                this.setState({
+                    showPayQrCode: true,
+                    qrcode: qrCodeDataURL,
+                });
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+            }
+        }
     }
 
     setProductName = (e: RadioChangeEvent) => {
@@ -169,6 +187,7 @@ class PayModel extends Component {
             ckCode: "",
             lodingCkCode: false,
         });
+        this.props.cb(false);
     }
 
     render() : ReactNode {
@@ -243,7 +262,7 @@ class PayModel extends Component {
                 </Modal>
                 <Modal
                     title={langTrans("member checkout title")}
-                    open={this.state.showPayWriteOff}
+                    open={this.state.showPayWriteOff || this.props.showPayWriteOff}
                     confirmLoading={this.state.lodingCkCode}
                     onOk={this.payCheck}
                     onCancel={this.canelCkCode}

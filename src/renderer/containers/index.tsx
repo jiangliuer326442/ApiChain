@@ -1,6 +1,6 @@
 import { Component, ReactNode, Fragment } from 'react';
-import { Provider } from 'react-redux';
-import { HashRouter, Route, Switch } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { Route, Switch } from 'react-router-dom';
 import { Layout } from "antd";
 
 import { setLang } from '@lang/i18n';
@@ -8,11 +8,14 @@ import {
     USERCOUNTRY,
     USERLANG,
 } from '@conf/storage';
-import { getStartParams, isStringEmpty } from '@rutil/index';
+import { SET_DEVICE_INFO } from '@conf/redux';
+import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
 
 let argsObject = getStartParams();
+console.log("argsObject", argsObject);
 let userCountry = argsObject.userCountry;
 let userLang = argsObject.userLang;
+let uuid = argsObject.uuid;
 
 if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
     userCountry = sessionStorage.getItem(USERCOUNTRY);
@@ -21,7 +24,7 @@ if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
 
 setLang(userCountry, userLang);
 
-import configureStore from '@store/configureStore';
+
 import { 
     ENV_LIST_ROUTE, 
     PROJECT_LIST_ROUTE,
@@ -77,57 +80,79 @@ import UnittestExecutorListPage from "@contain/unittest_executor_list";
 import UnittestStepPage from "@contain/unittest_step";
 import VipFunctionPage from "@contain/vip";
 
-const store = configureStore({});
-
 class MyRouter extends Component {
+
+    constructor(props) {
+        super(props);
+
+        this.props.dispatch({
+            type : SET_DEVICE_INFO,
+            uuid : uuid,
+            vipFlg : argsObject.vipFlg === "true" ? true : false, 
+            showCkCode : argsObject.showCkCode === "true" ? true : false, 
+            ckCodeUrl : argsObject.ckCodeUrl,
+            expireTime : parseInt(argsObject.expireTime),
+            buyTimes : parseInt(argsObject.buyTimes),
+            clientType: argsObject.clientType,
+            clientHost: argsObject.clientHost,
+            teamName: urlDecode(argsObject.teamName), 
+            teamId: argsObject.teamId,
+            html : argsObject.html,
+            appName : argsObject.appName,
+            appVersion : argsObject.appVersion,
+            userCountry,
+            userLang,
+        });
+    }
 
     render(): ReactNode {
         return (
-            <Provider store={store}>
-                <HashRouter>
-                    <Fragment>
-                        <Layout style={{ minHeight: '100vh' }}>
-                            {'electron' in window ? <Nav /> : null}
-                            <Layout>
-                                <Switch>
-                                    <Route path={ ENV_LIST_ROUTE } component={EnvListPage} />
-                                    <Route path={ PROJECT_LIST_ROUTE } component={ProjectListPage} />
-                                    <Route path={ ENVVAR_PRJ_LIST_ROUTE } component={EnvVarPrjectPage} />
-                                    <Route path={ VERSION_ITERATOR_LIST_ROUTE } component={VersionIteratorPage} />
-                                    <Route path={ VERSION_ITERATOR_ADD_ROUTE } component={VersionIteratorAddPage}/>
-                                    <Route path={ VERSION_ITERATOR_DETAIL_ROUTE } component={VersionIteratorAddPage}/>
-                                    <Route path={ INTERNET_REQUEST } component={NetSendPage} />
-                                    <Route path={ INTERNET_REQUEST_BY_HISTORY_ROUTE } component={NetSendPage} />
-                                    <Route path={ INTERNET_REQUEST_BY_ITERATOR_ROUTE } component={NetSendPage} />
-                                    <Route path={ INTERNET_REQUEST_BY_ITERATOR_API_ROUTE } component={NetSendPage} />
-                                    <Route path={ INTERNET_REQUEST_BY_PRJ_API_ROUTE } component={NetSendPage} />
-                                    <Route path={ REQUEST_HISTORY } component={RequestHistoryPage} />
-                                    <Route path={ REQUEST_TO_ITERATOR_ROUTE } component={RequestToSaveContainerPage} />
-                                    <Route path={ REQUEST_ITERATOR_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
-                                    <Route path={ REQUEST_PROJECT_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
-                                    <Route path={ REQUEST_ITERATOR_LIST_ROUTE } component={VersionIteratorRequestListPage} />
-                                    <Route path={ VERSION_ITERATOR_DOC_ROUTE } component={VersionIteratorDocPage} />
-                                    <Route path={ REQUEST_PROJECT_LIST_ROUTE } component={ProjectRequestListPage} />
-                                    <Route path={ UNITTEST_ITERATOR_LIST_ROUTE } component={UnittestListVersionPage} />
-                                    <Route path={ UNITTEST_PROJECT_LIST_ROUTE } component={UnittestListProjectPage} />
-                                    <Route path={ HISTORY_REQUEST_TO_ITERATOR_ROUTE } component={RequestToSaveContainerPage} />
-                                    <Route path={ UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE } component={UnittestExecutorListPage} />
-                                    <Route path={ UNITTEST_STEP_ADD_ROUTE } component={UnittestStepPage} />
-                                    <Route path={ UNITTEST_STEP_EDIT_ROUTE } component={UnittestStepPage} />
-                                    <Route path={ VIP_ITERATOR_LIST_ROUTE } component={VipFunctionPage} />
-                                    <Route path={ ITERATOR_ADD_REQUEST_ROUTE } component={RequestToSaveContainerPage} />
-                                    <Route path={ ENVVAR_GLOBAL_LIST_ROUTE } component={EnvVarGlobalPage} />
-                                    <Route path={ ENVVAR_ITERATOR_LIST_ROUTE } component={EnvVarIteratorPage} />
-                                    <Route path={ ENVVAR_UNITTEST_LIST_ROUTE } component={EnvVarUnittestPage} />
-                                    <Route path={ WELCOME_ROUTE } component={HomePage} />
-                                </Switch>
-                            </Layout>
-                        </Layout>
-                    </Fragment>
-                </HashRouter>
-            </Provider>
+            <Fragment>
+                <Layout style={{ minHeight: '100vh' }}>
+                    {'electron' in window ? <Nav /> : null}
+                    <Layout>
+                        <Switch>
+                            <Route path={ ENV_LIST_ROUTE } component={EnvListPage} />
+                            <Route path={ PROJECT_LIST_ROUTE } component={ProjectListPage} />
+                            <Route path={ ENVVAR_PRJ_LIST_ROUTE } component={EnvVarPrjectPage} />
+                            <Route path={ VERSION_ITERATOR_LIST_ROUTE } component={VersionIteratorPage} />
+                            <Route path={ VERSION_ITERATOR_ADD_ROUTE } component={VersionIteratorAddPage}/>
+                            <Route path={ VERSION_ITERATOR_DETAIL_ROUTE } component={VersionIteratorAddPage}/>
+                            <Route path={ INTERNET_REQUEST } component={NetSendPage} />
+                            <Route path={ INTERNET_REQUEST_BY_HISTORY_ROUTE } component={NetSendPage} />
+                            <Route path={ INTERNET_REQUEST_BY_ITERATOR_ROUTE } component={NetSendPage} />
+                            <Route path={ INTERNET_REQUEST_BY_ITERATOR_API_ROUTE } component={NetSendPage} />
+                            <Route path={ INTERNET_REQUEST_BY_PRJ_API_ROUTE } component={NetSendPage} />
+                            <Route path={ REQUEST_HISTORY } component={RequestHistoryPage} />
+                            <Route path={ REQUEST_TO_ITERATOR_ROUTE } component={RequestToSaveContainerPage} />
+                            <Route path={ REQUEST_ITERATOR_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
+                            <Route path={ REQUEST_PROJECT_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
+                            <Route path={ REQUEST_ITERATOR_LIST_ROUTE } component={VersionIteratorRequestListPage} />
+                            <Route path={ VERSION_ITERATOR_DOC_ROUTE } component={VersionIteratorDocPage} />
+                            <Route path={ REQUEST_PROJECT_LIST_ROUTE } component={ProjectRequestListPage} />
+                            <Route path={ UNITTEST_ITERATOR_LIST_ROUTE } component={UnittestListVersionPage} />
+                            <Route path={ UNITTEST_PROJECT_LIST_ROUTE } component={UnittestListProjectPage} />
+                            <Route path={ HISTORY_REQUEST_TO_ITERATOR_ROUTE } component={RequestToSaveContainerPage} />
+                            <Route path={ UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE } component={UnittestExecutorListPage} />
+                            <Route path={ UNITTEST_STEP_ADD_ROUTE } component={UnittestStepPage} />
+                            <Route path={ UNITTEST_STEP_EDIT_ROUTE } component={UnittestStepPage} />
+                            <Route path={ VIP_ITERATOR_LIST_ROUTE } component={VipFunctionPage} />
+                            <Route path={ ITERATOR_ADD_REQUEST_ROUTE } component={RequestToSaveContainerPage} />
+                            <Route path={ ENVVAR_GLOBAL_LIST_ROUTE } component={EnvVarGlobalPage} />
+                            <Route path={ ENVVAR_ITERATOR_LIST_ROUTE } component={EnvVarIteratorPage} />
+                            <Route path={ ENVVAR_UNITTEST_LIST_ROUTE } component={EnvVarUnittestPage} />
+                            <Route path={ WELCOME_ROUTE } component={HomePage} />
+                        </Switch>
+                    </Layout>
+                </Layout>
+            </Fragment>
         );
     }
 }
+
+function mapStateToProps (state) {
+    return {
+    }
+}
   
-export default MyRouter;
+export default connect(mapStateToProps)(MyRouter);

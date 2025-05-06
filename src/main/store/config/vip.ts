@@ -4,6 +4,7 @@ import getCache from './index';
 import { getUuid } from './user';
 import { base64Decode, base64Encode } from '../../util/util'
 import { isStringEmpty } from '../../../renderer/util';
+import { PayJumpUrl, PayQueryUrl } from '../../../config/url';
 
 export const TABLE_NAME = "vip.status";
 
@@ -12,6 +13,9 @@ const VIP_LATEST_TRADE = TABLE_NAME + ".tradeNo";
 
 //最新的 商品
 const VIP_LATEST_PRODUCT = TABLE_NAME + ".product";
+
+//最新的 支付方式
+const VIP_LATEST_PAYMETHOD = TABLE_NAME + ".paymethod";
 
 //购买次数
 const VIP_BUY_TIMES = TABLE_NAME + ".buy.times";
@@ -35,6 +39,22 @@ export function getLatestProduct() : string {
         return "";
     }
     return latestProductNo;
+}
+
+export function getLatestPayMethod() : string {
+    let cache = getCache("");
+    let latestPayMethod = cache.get(VIP_LATEST_PAYMETHOD) as string;
+    if (latestPayMethod === null) {
+        return "";
+    }
+    return latestPayMethod;
+}
+
+export function isShowCkcode() {
+    let cache = getCache("");
+    let myOrderNo = cache.get(VIP_LATEST_TRADE);
+    let myProductName = cache.get(VIP_LATEST_PRODUCT);
+    return !isStringEmpty(myOrderNo) && !isStringEmpty(myProductName);
 }
 
 export function isVip() {
@@ -109,20 +129,41 @@ export function genDecryptString(base64Str : string) : string {
     if (myOrderNo !== orderNo) {
         return "";
     }
-    cache.delete(VIP_LATEST_TRADE);
-    cache.delete(VIP_LATEST_PRODUCT);
+    clearVipCacheFlg();
 
     return productDays;
 }
 
-export function genEncryptString(productName : string, payMethod : string) : string {
-    let outTradeNo = uuidv4() as string;
-    let param = getUuid();
+export function clearVipCacheFlg() {
+    let cache = getCache("");
+    cache.delete(VIP_LATEST_TRADE);
+    cache.delete(VIP_LATEST_PRODUCT);
+    cache.delete(VIP_LATEST_PAYMETHOD);
+}
 
+export function getCheckCodeUrl() {
+    let cache = getCache("");
+    let myOrderNo = cache.get(VIP_LATEST_TRADE);
+    let url = PayQueryUrl + myOrderNo;
+    return url;
+}
+
+export function genCheckCodeUrl(productName : string, payMethod : string) {
+    let outTradeNo = uuidv4() as string;
     let cache = getCache("");
     cache.set(VIP_LATEST_TRADE, outTradeNo);
     cache.set(VIP_LATEST_PRODUCT, productName);
+    cache.set(VIP_LATEST_PAYMETHOD, payMethod);
+
+    let url = genEncryptString(outTradeNo, productName, payMethod);
+    return url;
+}
+
+function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : string {
+    let param = getUuid();
+
     let encryptString = productName + ":" + payMethod + ":" + outTradeNo + ":" + param;
     let data = base64Encode(encryptString)
-    return data;
+    let url = PayJumpUrl + data;
+    return url;
 }

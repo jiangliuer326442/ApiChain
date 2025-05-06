@@ -2,6 +2,7 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { encode } from 'base-64';
 import { 
+  Alert,
   Breadcrumb,
   Table,
   Flex,
@@ -33,11 +34,12 @@ import {
   getWikiUserRegisterUrl,
 } from '@conf/url';
 import { IS_AUTO_UPGRADE, ITERATOR } from '@conf/storage';
-import { SET_DEVICE_INFO } from '@conf/redux';
 import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
   ChannelsAutoUpgradeNewVersionStr,
+  ChannelsVipStr,
+  ChannelsVipCloseCkCodeStr,
   ChannelsAutoUpgradeDownloadStr,
 } from '@conf/channel';
 import {
@@ -50,12 +52,12 @@ import {
   TABLE_PROJECT_REQUEST_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
 } from '@conf/db';
+import { SET_DEVICE_INFO } from '@conf/redux';
 import { 
   getdayjs,
   isStringEmpty,
-  getStartParams,
   substr,
-  urlDecode
+  getStartParams,
 } from '@rutil/index';
 import { addUser, getUser, setUserName as ac_setUserName, } from '@act/user';
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
@@ -92,6 +94,9 @@ let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQU
 let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 
+let argsObject = getStartParams();
+let uuid = argsObject.uuid;
+
 class Home extends Component {
 
   constructor(props) {
@@ -99,11 +104,12 @@ class Home extends Component {
     let checkAutoUpgrade = localStorage.getItem(IS_AUTO_UPGRADE);
     this.state = {
       user: {
-        "uname": "",
+        "uname": argsObject.uname,
         "register_time": 0,
       },
       showPay: false,
-      showTeam: false,
+      showPayWriteOff: false,
+      showTeam: this.props.clientType === "single",
       teamType: "create",
       checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
       searchPrj: "",
@@ -159,28 +165,23 @@ class Home extends Component {
         }
       ],
       iterator: localStorage.getItem(ITERATOR),
+      closeShowPay: false,
     }
   }
 
   async componentDidMount() {
-    if (!isStringEmpty(this.props.uid)) {
-      let user = await getUser(this.props.uid);
-      if (user !== null) {
-        this.setState({ 
-          user,
-        });
-      }
-    }
-    if('electron' in window) {
-      let argsObject = getStartParams();
-      console.log("argsObject", argsObject);
-      let uuid = argsObject.uuid;
+      this.updateOnLoad();
+      registerMessageHook();
+
       let uname = argsObject.uname;
       let ip = argsObject.ip;
-
       let userCountry = argsObject.userCountry;
       let userLang = argsObject.userLang;
-      let user = await getUser(uuid);
+
+      let user = null;
+      if (!isStringEmpty(uuid)) {
+          user = await getUser(uuid);
+      }
       if (user === null) {
           await addUser(uuid, uname, ip, userCountry, userLang);
           user = await getUser(uuid);
@@ -191,35 +192,22 @@ class Home extends Component {
           console.debug(user);
           await window.db[TABLE_USER_NAME].put(user);
       }
+      this.setState({user})
+  }
 
-      this.props.dispatch({
-        type : SET_DEVICE_INFO,
-        uuid : uuid,
-        vipFlg : argsObject.vipFlg === "true" ? true : false, 
-        expireTime : parseInt(argsObject.expireTime),
-        buyTimes : parseInt(argsObject.buyTimes),
-        clientType: argsObject.clientType,
-        clientHost: argsObject.clientHost,
-        teamName: urlDecode(argsObject.teamName), 
-        teamId: argsObject.teamId,
-        html : argsObject.html,
-        appName : argsObject.appName,
-        appVersion : argsObject.appVersion,
-        userCountry,
-        userLang,
-      });
-
-      this.setState({ 
-        user,
-        showTeam: argsObject.clientType === "single",
-      });
-
-      this.updateOnLoad();
-      registerMessageHook(this.props.dispatch, async (uid)=>{
-        let user = await getUser(uid);
-        this.setState({ user });
-      });
+  showCkCode = (e) => {
+    if (!this.state.closeShowPay) {
+      this.setState({showPayWriteOff: true})
     }
+  }
+
+  closeShowPay = (e) => {
+    window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCloseCkCodeStr);
+    this.props.dispatch({
+      type: SET_DEVICE_INFO,
+      showCkCode : false,
+  });
+    this.state.closeShowPay = true;
   }
 
   updateOnLoad = () => {
@@ -398,7 +386,21 @@ class Home extends Component {
             } 
           </Header>
           <Content style={{ padding: '0 16px'}}>
-            <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
+
+            {this.props.showCkCode ? <Alert 
+              message="Warning Text" 
+              type="warning" 
+              closable 
+              onClose={this.closeShowPay} 
+              onClick={this.showCkCode}
+            /> : null}
+
+            <PayModel 
+              showPay={this.state.showPay} 
+              showPayWriteOff={this.state.showPayWriteOff} 
+              ckCodeUrl={this.props.ckCodeUrl}
+              cb={showPay => this.setState({showPay, showPayWriteOff: showPay})} 
+              />
             {this.state.showTeam ? 
             <TeamModel 
               showTeam={this.state.showTeam} 
@@ -752,6 +754,8 @@ function mapStateToProps (state) {
     uid: state.device.uuid,
     appName: state.device.appName,
     vipFlg: state.device.vipFlg,
+    showCkCode: state.device.showCkCode,
+    ckCodeUrl: state.device.ckCodeUrl,
     expireTime: state.device.expireTime,
     projects: state.prj.list,
     versionIterators : state['version_iterator'].list,

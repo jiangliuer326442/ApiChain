@@ -50,7 +50,7 @@
     "member topup btn finish": "支付完成",
     "member checkout title": "填写您手机上展示的核销码，进行核销",
     "member checkout form": "核销码",
-    "member checkout paycontent": "可扫以下二维码查询您的核销码",
+    "member checkout paycontent": "可扫以下二维码查询您的核销码，若充值到账较慢，可关闭该页面之后核销",
     "member checkout btn cancel": "未支付",
     "member checkout btn finish": "核销支付",
     "member checkout error": "核销码填写错误，核销失败",

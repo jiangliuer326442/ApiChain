@@ -1,15 +1,15 @@
 import { ipcMain } from 'electron';
 
-import { PayJumpUrl, PayQueryUrl } from '../../../config/url';
+import { PayQueryUrl } from '../../../config/url';
 import { 
     ChannelsVipStr, 
     ChannelsVipGenUrlStr, 
     ChannelsVipCkCodeStr, 
-    ChannelsVipDoCkCodeStr 
+    ChannelsVipDoCkCodeStr,
+    ChannelsVipCloseCkCodeStr,
 } from '../../../config/channel';
 import { getUuid } from '../../store/config/user';
-import { 
-    genEncryptString, 
+import {
     getOutTradeNo, 
     isVip, 
     setExpireTime, 
@@ -17,6 +17,8 @@ import {
     getLatestProduct, 
     genDecryptString,
     incBuyTimes, 
+    clearVipCacheFlg,
+    genCheckCodeUrl,
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
 
@@ -56,8 +58,7 @@ export default function (){
             }
         }
 
-        let encryptString = genEncryptString(productName, payMethod);
-        let url = PayJumpUrl + encryptString
+        let url = genCheckCodeUrl(productName, payMethod);
         event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money, url);
     });
 
@@ -74,6 +75,12 @@ export default function (){
         let product = getLatestProduct();
 
         event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, product, url);
+    });
+
+    ipcMain.on(ChannelsVipStr, (event, action) => {
+        if (action !== ChannelsVipCloseCkCodeStr) return;
+
+        clearVipCacheFlg();
     });
 
     ipcMain.on(ChannelsVipStr, (event, action, ckCode) => {

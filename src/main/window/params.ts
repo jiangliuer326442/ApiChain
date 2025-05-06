@@ -3,7 +3,14 @@ import log from 'electron-log';
 import { langTrans, setLang } from '../../lang/i18n';
 import { getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
-import { isVip, getExpireTime, getBuyTimes, giftVip } from '../store/config/vip';
+import { 
+    isVip, 
+    isShowCkcode, 
+    getCheckCodeUrl, 
+    getExpireTime, 
+    getBuyTimes, 
+    giftVip 
+} from '../store/config/vip';
 import { getClientType, getClientHost, getTeamId } from '../store/config/team'
 import { pingHost, postRequest } from '../util/teamUtil';
 import { urlEncode } from '../../renderer/util';
@@ -58,6 +65,8 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
     let uname = getUname();
     let ip = getIpV4();
     let vipFlg = isVip();
+    let showCkCode = isShowCkcode();
+    let ckCodeUrl = "";
     let expireTime = getExpireTime();
     let buyTimes = getBuyTimes();
     let html = resolveHtmlPath('index.html');
@@ -69,12 +78,17 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
     if (isStringEmpty(teamName)) {
         clientType = "single";
     }
+    if (showCkCode) {
+        ckCodeUrl = getCheckCodeUrl();
+    }
 
     return [
         "$$" + base64Encode("uuid=" + uuid),
         "$$" + base64Encode("uname=" + uname),
         "$$" + base64Encode("ip=" + ip),
         "$$" + base64Encode("vipFlg=" + vipFlg),
+        "$$" + base64Encode("showCkCode=" + showCkCode),
+        "$$" + base64Encode("ckCodeUrl=" + ckCodeUrl),
         "$$" + base64Encode("expireTime=" + expireTime),
         "$$" + base64Encode("buyTimes=" + buyTimes),
         "$$" + base64Encode("html=" + html),

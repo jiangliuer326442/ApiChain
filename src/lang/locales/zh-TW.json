@@ -50,7 +50,7 @@
     "member topup btn finish": "支付完成",
     "member checkout title": "填寫您手機上展示的核銷碼，進行核銷",
     "member checkout form": "核銷碼",
-    "member checkout paycontent": "可掃以下二維碼查詢您的核銷碼",
+    "member checkout paycontent": "請掃描以下二維碼查詢您的核銷碼，若充值到賬較慢，可關閉該頁面之後再進行核銷。",
     "member checkout btn cancel": "未支付",
     "member checkout btn finish": "核銷支付",
     "member checkout error": "核銷碼填寫錯誤，核銷失敗",

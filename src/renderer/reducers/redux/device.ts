@@ -7,6 +7,8 @@ import {
   HTML, 
   APPVERSION, 
   VIP_FLG, 
+  CKCODE_FLG,
+  CKCODE_URL,
   EXPIRE_TIME, 
   CLIENT_TYPE,
   CLIENT_HOST,
@@ -25,6 +27,8 @@ export default function (state = {
   userCountry: "",
   userLang: "",
   vipFlg: false,
+  showCkCode: false,
+  ckCodeUrl: "",
   expireTime: 0,
   clientType: "single",
   clientHost: "",
@@ -43,6 +47,16 @@ export default function (state = {
       if (action.buyTimes !== undefined) {
         sessionStorage.setItem(BUY_TIMES, action.buyTimes);
         newState.buyTimes = action.buyTimes;
+      }
+
+      if (action.showCkCode !== undefined) {
+        sessionStorage.setItem(CKCODE_FLG, action.showCkCode ? "1" : "0");
+        newState.showCkCode = action.showCkCode;
+      }
+
+      if (action.ckCodeUrl !== undefined) {
+        sessionStorage.setItem(CKCODE_URL, action.ckCodeUrl);
+        newState.ckCodeUrl = action.ckCodeUrl;
       }
 
       if (action.vipFlg !== undefined) {
@@ -104,6 +118,8 @@ export default function (state = {
   }else if(state.uuid === "") {
     state.uuid = isStringEmpty(sessionStorage.getItem(UUID)) ? "" : sessionStorage.getItem(UUID) as string;
     state.vipFlg = isStringEmpty(sessionStorage.getItem(VIP_FLG)) ? false : (sessionStorage.getItem(VIP_FLG) === "1" ? true : false);
+    state.showCkCode = isStringEmpty(sessionStorage.getItem(CKCODE_FLG)) ? false : (sessionStorage.getItem(CKCODE_FLG) === "1" ? true : false);
+    state.ckCodeUrl = isStringEmpty(sessionStorage.getItem(CKCODE_URL)) ? "" : sessionStorage.getItem(CKCODE_URL) as string;
     state.expireTime = isStringEmpty(sessionStorage.getItem(EXPIRE_TIME)) ? 0 : Number(sessionStorage.getItem(EXPIRE_TIME));
     state.appName = isStringEmpty(sessionStorage.getItem(APPNAME)) ? "" : sessionStorage.getItem(APPNAME) as string;
     state.appVersion = isStringEmpty(sessionStorage.getItem(APPVERSION)) ? "" : sessionStorage.getItem(APPVERSION) as string;

@@ -117,11 +117,13 @@ export type ChannelsVip = 'pipeline_vip';
 
 export const ChannelsVipStr = 'pipeline_vip';
 
-export const ChannelsVipGenUrlStr = 'pipeline_postman_genurl';
+export const ChannelsVipGenUrlStr = 'pipeline_vip_genurl';
 
-export const ChannelsVipCkCodeStr = 'pipeline_postman_ckcode';
+export const ChannelsVipCkCodeStr = 'pipeline_vip_ckcode';
 
-export const ChannelsVipDoCkCodeStr = 'pipeline_postman_dock';
+export const ChannelsVipDoCkCodeStr = 'pipeline_vip_dock';
+
+export const ChannelsVipCloseCkCodeStr = 'pipeline_vip_closeck';
 
 export type ChannelsAxioBreidge = "axio_bridge";
 
