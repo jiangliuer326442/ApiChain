@@ -50,7 +50,7 @@
     "member topup btn finish": "Payment Completed",
     "member checkout title": "Enter the verification code displayed on your phone to proceed with the verification",
     "member checkout form": "Verification Code",
-    "member checkout paycontent": "You can scan the QR code below to check your verification code. If the recharge process is slower than expected, you can close the page and verify later.",
+    "member checkout paycontent": "You can scan the QR code below to check your verification code. If the recharge is delayed, you may close this page and verify later. For recharge issues, contact email fanghailiang2016@gmail.com or add WeChat mustafa3264.",
     "member checkout btn cancel": "Not Paid",
     "member checkout btn finish": "Verification Payment",
     "member checkout error": "Verification code entered incorrectly, verification failed",
