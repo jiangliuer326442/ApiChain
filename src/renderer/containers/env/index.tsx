@@ -24,7 +24,11 @@ class Env extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      listColumn: []
+      listColumn: [],
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
     }
   }
 
@@ -90,7 +94,11 @@ class Env extends Component {
                 <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addEnvClick}>{langTrans("env add")}</Button>
                 <AddEnvComponent />
             </Flex>
-            <Table dataSource={this.props.listDatas} columns={this.state.listColumn} />
+            <Table 
+              dataSource={this.props.listDatas} 
+              columns={this.state.listColumn} 
+              pagination={this.state.pagination}
+              onChange={ (pagination, filters, sorter) => this.setState({pagination})} />
         </Content>
         <Footer style={{ textAlign: 'center' }}>
         ApiChain ©{new Date().getFullYear()} Created by 方海亮
