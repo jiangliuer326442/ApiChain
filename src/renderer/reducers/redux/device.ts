@@ -16,6 +16,7 @@ import {
   TEAM_ID,
 } from '@conf/storage';
 
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { isStringEmpty } from '@rutil/index';
 
@@ -30,7 +31,7 @@ export default function (state = {
   showCkCode: false,
   ckCodeUrl: "",
   expireTime: 0,
-  clientType: "single",
+  clientType: CLIENT_TYPE_SINGLE,
   clientHost: "",
   teamName: "",
   teamId: "",
@@ -128,7 +129,7 @@ export default function (state = {
     if (state.expireTime < Date.now()) {
       state.vipFlg = false
     }
-    state.clientType = isStringEmpty(sessionStorage.getItem(CLIENT_TYPE)) ? "single" : sessionStorage.getItem(CLIENT_TYPE) as string;
+    state.clientType = isStringEmpty(sessionStorage.getItem(CLIENT_TYPE)) ? CLIENT_TYPE_SINGLE : sessionStorage.getItem(CLIENT_TYPE) as string;
     state.clientHost = isStringEmpty(sessionStorage.getItem(CLIENT_HOST)) ? "" : sessionStorage.getItem(CLIENT_HOST) as string;
     state.teamName = isStringEmpty(sessionStorage.getItem(TEAM_NAME)) ? "" : sessionStorage.getItem(TEAM_NAME) as string;
     state.teamId = isStringEmpty(sessionStorage.getItem(TEAM_ID)) ? "" : sessionStorage.getItem(TEAM_ID) as string;

@@ -14,7 +14,7 @@ import {
 import { getClientType, getClientHost, getTeamId } from '../store/config/team'
 import { pingHost, postRequest } from '../util/teamUtil';
 import { urlEncode } from '../../renderer/util';
-import { TEAM_QUERY_NAME } from '../../config/team'
+import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE } from '../../config/team'
 import { osLocale } from '../third_party/os-locale';
 import { 
     getIpV4,
@@ -41,7 +41,7 @@ export async function getInitParams() : Promise<string[]> {
     let teamId = getTeamId();
     let teamName = "";
     if (isStringEmpty(teamServerErrorMessage)) {
-        let ret = await postRequest(TEAM_QUERY_NAME, {teamId: teamId})
+        let ret = await postRequest(TEAM_QUERY_NAME, {})
         teamName = urlEncode(ret[1]);
     }
 
@@ -76,7 +76,7 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
     let clientHost = getClientHost();
     let teamId = getTeamId();
     if (isStringEmpty(teamName)) {
-        clientType = "single";
+        clientType = CLIENT_TYPE_SINGLE;
     }
     if (showCkCode) {
         ckCodeUrl = getCheckCodeUrl();

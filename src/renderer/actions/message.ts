@@ -32,6 +32,8 @@ import {
     ChannelsAxioBreidgeStr, 
     ChannelsAxioBreidgeSendStr, 
     ChannelsAxioBreidgeReplyStr,
+    ChannelsAxioTeanSendStr,
+    ChannelsAxioTeamReplyStr,
 } from '@conf/channel';
 
 import { getVarsByKey } from '@act/env_value';
@@ -43,6 +45,30 @@ import { langTrans } from '@lang/i18n';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
+
+/**
+ * 发送联网请求
+ * @param url 请求地址
+ * @param postData 主体数据
+ * @returns 
+ */
+export function sendTeamMessage(url : string, postData) {
+    return new Promise((resolve, reject) => {
+
+        let messageSendListener = window.electron.ipcRenderer.on(ChannelsAxioBreidgeStr, (action, originUrl, errorMessage, data) => {
+            if (action === ChannelsAxioTeamReplyStr) {
+                messageSendListener();
+                if (isStringEmpty(errorMessage)) {
+                    resolve(data);
+                } else {
+                    reject({errorMessage});
+                }
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioTeanSendStr, url, postData);
+    });
+}
 
 /**
  * 发送网络请求

@@ -22,6 +22,8 @@ export const SYS_COUNTRY = "Sys-Country";
 
 export const SYS_UID = "Sys-Uid";
 
+export const SYS_TEAM = "Sys-Team";
+
 export const INPUTTYPE_TEXT = "text";
 
 export const INPUTTYPE_FILE = "file";

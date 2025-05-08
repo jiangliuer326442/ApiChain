@@ -133,6 +133,10 @@ export const ChannelsAxioBreidgeSendStr = 'axio_bridge_send';
 
 export const ChannelsAxioBreidgeReplyStr = 'axio_bridge_reply';
 
+export const ChannelsAxioTeanSendStr = 'axio_team_send';
+
+export const ChannelsAxioTeamReplyStr = 'axio_team_reply';
+
 export type ChannelsTeam = 'pipeline_team';
 
 export const ChannelsTeamStr = 'pipeline_team';

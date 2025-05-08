@@ -10,6 +10,7 @@ import {
     CONTENT_TYPE,
     SYS_CLIENT_VERSION,
     SYS_LANG,
+    SYS_TEAM,
     SYS_COUNTRY,
     SYS_UID,
 } from '../../config/global_config'
@@ -17,6 +18,7 @@ import {
     PING_URL,
 } from '../../config/team'
 import { 
+    getTeamId,
     getClientHost
 } from '../store/config/team';
 import { 
@@ -65,6 +67,7 @@ async function postRequest2(clientHost : string, urlPrefix : string, postData : 
     headData[SYS_COUNTRY] = userCountry;
     headData[SYS_CLIENT_VERSION] = packageJson.version;
     headData[SYS_UID] = getUuid();
+    headData[SYS_TEAM] = getTeamId();
 
     let url = clientHost + urlPrefix;
 

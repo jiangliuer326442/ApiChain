@@ -1,4 +1,5 @@
 import { isStringEmpty } from '../../../renderer/util';
+import { CLIENT_TYPE_SINGLE } from '../../../config/team';
 
 import getCache from './index';
 
@@ -17,7 +18,7 @@ export function getClientType() : string {
     let cache = getCache("");
     let clientType = cache.get(TEAM_CLIENT_TYPE) as string;
     if (isStringEmpty(clientType)) {
-        return "single";
+        return CLIENT_TYPE_SINGLE;
     }
     return clientType;
 }

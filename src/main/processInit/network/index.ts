@@ -3,10 +3,13 @@ import { ipcMain, IpcMainEvent } from 'electron';
 import { 
     ChannelsAxioBreidgeStr, 
     ChannelsAxioBreidgeSendStr, 
-    ChannelsAxioBreidgeReplyStr 
+    ChannelsAxioBreidgeReplyStr,
+    ChannelsAxioTeanSendStr,
+    ChannelsAxioTeamReplyStr,
 } from '../../../config/channel';
 
 import { doRequest } from '../../util/util';
+import { postRequest } from '../../util/teamUtil';
 
 export default function() {
 
@@ -54,5 +57,15 @@ export default function() {
         }
 
         event.reply(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeReplyStr, url, targetUrl, response?.status, (etime - btime), errorMessage, Object.fromEntries(cookieMap), response?.headers, response?.data);
+    });
+
+    ipcMain.on(ChannelsAxioBreidgeStr, async (event : IpcMainEvent, action, url : string, postData) => {
+        if(action !== ChannelsAxioTeanSendStr) return;
+
+        let result = await postRequest(url, postData);
+        let errorMessage = result[0];
+        let response = result[1];
+
+        event.reply(ChannelsAxioBreidgeStr, ChannelsAxioTeamReplyStr, url, errorMessage, response);
     });
 }

@@ -52,6 +52,7 @@ import {
   TABLE_PROJECT_REQUEST_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
 } from '@conf/db';
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { 
   getdayjs,
@@ -109,7 +110,7 @@ class Home extends Component {
       },
       showPay: false,
       showPayWriteOff: false,
-      showTeam: this.props.clientType === "single",
+      showTeam: this.props.clientType === CLIENT_TYPE_SINGLE,
       teamType: "create",
       checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
       searchPrj: "",
@@ -409,7 +410,7 @@ class Home extends Component {
             : null}
             <Breadcrumb
               style={{ margin: '16px 0' }}
-              items={ this.props.clientType === "single" ? [
+              items={ this.props.clientType === CLIENT_TYPE_SINGLE ? [
                 {
                   title: langTrans("team topup form1 select1"),
                   onClick: e => {

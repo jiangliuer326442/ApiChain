@@ -12,7 +12,7 @@ import { TABLE_ENV_FIELDS } from '@conf/db';
 import { SHOW_ADD_ENV_MODEL, SHOW_EDIT_ENV_MODEL } from '@conf/redux';
 import AddEnvComponent from '@comp/env/add_env';
 import { langTrans } from '@lang/i18n';
-import { getEnvs, delEnv } from '@act/env';
+import { getEnvsByPage, delEnv } from '@act/env';
 
 const { Header, Content, Footer } = Layout;
 
@@ -25,6 +25,7 @@ class Env extends Component {
     super(props);
     this.state = {
       listColumn: [],
+      listDatas: [],
       pagination: {
         current: 1,
         pageSize: 10,
@@ -32,9 +33,11 @@ class Env extends Component {
     }
   }
 
-  componentDidMount(): void {
-    getEnvs(this.props.dispatch);
+  async componentDidMount(): Promise<void> {
     this.setListColumn();
+    let pagination = cloneDeep(this.state.pagination);
+    let datas = await getEnvsByPage(this.props.clientType, pagination);
+    this.setState({listDatas: datas, pagination});
   }
 
   setListColumn = () => {
@@ -50,8 +53,10 @@ class Env extends Component {
               title={langTrans("env del title")}
               description={langTrans("env del desc")}
               onConfirm={e => {
-                  delEnv(record, ()=>{
-                    getEnvs(this.props.dispatch);
+                  delEnv(record, async () => {
+                    let pagination = cloneDeep(this.state.pagination);
+                    let datas = await getEnvsByPage(this.props.clientType, pagination);
+                    this.setState({listDatas: datas, pagination});
                   });
               }}
               okText={langTrans("env del sure")}
@@ -95,10 +100,14 @@ class Env extends Component {
                 <AddEnvComponent />
             </Flex>
             <Table 
-              dataSource={this.props.listDatas} 
+              dataSource={this.state.listDatas} 
+              rowKey={(record) => record.label}
               columns={this.state.listColumn} 
               pagination={this.state.pagination}
-              onChange={ (pagination, filters, sorter) => this.setState({pagination})} />
+              onChange={ async (pagination, filters, sorter) => {
+                let datas = await getEnvsByPage(this.props.clientType, pagination);
+                this.setState({listDatas: datas, pagination});
+              }} />
         </Content>
         <Footer style={{ textAlign: 'center' }}>
         ApiChain ©{new Date().getFullYear()} Created by 方海亮
@@ -111,7 +120,7 @@ class Env extends Component {
 function mapStateToProps (state) {
     return {
         listColumn: state.env.envListColumn,
-        listDatas: state.env.list,
+        clientType: state.device.clientType,
     }
 }
 

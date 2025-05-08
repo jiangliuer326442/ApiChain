@@ -36,71 +36,6 @@ class PayModel extends Component {
         };
     }
 
-    async componentDidMount(): Promise<void> {
-        //拿支付二维码生成结果
-        window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, url) => {
-            if (action !== ChannelsVipGenUrlStr) return;
-            try {
-                const qrCodeDataURL = await qrcode.toDataURL(url);
-                this.setState({
-                    showPayQrCode1: true,
-                    money,
-                    qrcode: qrCodeDataURL,
-                });
-            } catch (error) {
-                console.error('Error generating QR code:', error);
-            }
-        });
-        //拿核销二维码
-        window.electron.ipcRenderer.on(ChannelsVipStr, async (action, product, url) => {
-            if (action !== ChannelsVipCkCodeStr) return;
-            this.props.dispatch({
-                type : SET_DEVICE_INFO,
-                showCkCode : true,
-                ckCodeUrl: url,
-            });
-            try {
-                const qrCodeDataURL = await qrcode.toDataURL(url);
-                this.setState({
-                    showPayQrCode: true,
-                    qrcode: qrCodeDataURL,
-                });
-            } catch (error) {
-                console.error('Error generating QR code:', error);
-            }
-        });
-
-        //进行核销操作
-        window.electron.ipcRenderer.on(ChannelsVipStr, async (action, result, myuid, expireTime, buyTimes) => {
-            if (action !== ChannelsVipDoCkCodeStr) return;
-            if (!result) {
-                message.error(langTrans("member checkout error"));
-                return;
-            }
-            this.props.dispatch({
-                type: SET_DEVICE_INFO,
-                vipFlg: true, 
-                uuid: myuid,
-                expireTime,
-                buyTimes,
-                showCkCode : false,
-            });
-            this.setState({
-                showPayWriteOff: false,
-                showPayQrCode1: false,
-                showPayQrCode: false,
-                cacheCkCodeUrl: "",
-                productName: "",
-                payMethod: "",
-                money: "",
-                qrcode: "",
-                ckCode: "",
-                lodingCkCode: false,
-            });
-            message.success(langFormat("member checkout success", {"date": getdayjs(expireTime).format("YYYY-MM-DD")}));
-        });
-    }
-
     async componentDidUpdate(prevProps, prevState) {
         if (!isStringEmpty(prevProps.ckCodeUrl) && prevProps.ckCodeUrl != prevState.cacheCkCodeUrl) {
             let cacheCkCodeUrl = prevProps.ckCodeUrl;
@@ -127,6 +62,7 @@ class PayModel extends Component {
         this.checkAndGenPayPng(null, e.target.value);
     };
 
+    //生成支付二维码
     checkAndGenPayPng = (productName : string | null, payMethod : string | null) => {
         if (productName === null) {
             productName = this.state.productName;
@@ -135,6 +71,22 @@ class PayModel extends Component {
             payMethod = this.state.payMethod;
         }
         if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
+            //拿支付二维码生成结果
+            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, url) => {
+                if (action !== ChannelsVipGenUrlStr) return;
+                listener();
+                try {
+                    const qrCodeDataURL = await qrcode.toDataURL(url);
+                    this.setState({
+                        showPayQrCode1: true,
+                        money,
+                        qrcode: qrCodeDataURL,
+                    });
+                } catch (error) {
+                    console.error('Error generating QR code:', error);
+                }
+            });
+
             window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipGenUrlStr, productName, payMethod);
         }
     }
@@ -159,6 +111,25 @@ class PayModel extends Component {
             message.error("请选择购买时长和支付方式");
             return;
         }
+        //拿核销二维码
+        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, product, url : string) => {
+            if (action !== ChannelsVipCkCodeStr) return;
+            listener();
+            this.props.dispatch({
+                type : SET_DEVICE_INFO,
+                showCkCode : true,
+                ckCodeUrl: url,
+            });
+            try {
+                const qrCodeDataURL = await qrcode.toDataURL(url);
+                this.setState({
+                    showPayQrCode: true,
+                    qrcode: qrCodeDataURL,
+                });
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+            }
+        });
         //发消息生成核销码
         window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCkCodeStr);
         this.setState({
@@ -184,6 +155,36 @@ class PayModel extends Component {
             return;
         }
         this.setState({lodingCkCode: true})
+        //进行核销操作
+        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, result, myuid, expireTime : number, buyTimes) => {
+            if (action !== ChannelsVipDoCkCodeStr) return;
+            listener();
+            if (!result) {
+                message.error(langTrans("member checkout error"));
+                return;
+            }
+            this.props.dispatch({
+                type: SET_DEVICE_INFO,
+                vipFlg: true, 
+                uuid: myuid,
+                expireTime,
+                buyTimes,
+                showCkCode : false,
+            });
+            this.setState({
+                showPayWriteOff: false,
+                showPayQrCode1: false,
+                showPayQrCode: false,
+                cacheCkCodeUrl: "",
+                productName: "",
+                payMethod: "",
+                money: "",
+                qrcode: "",
+                ckCode: "",
+                lodingCkCode: false,
+            });
+            message.success(langFormat("member checkout success", {"date": getdayjs(expireTime).format("YYYY-MM-DD")}));
+        });
         //发消息进行核销
         window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipDoCkCodeStr, ckCode);
     }

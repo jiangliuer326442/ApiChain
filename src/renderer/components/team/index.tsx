@@ -1,7 +1,7 @@
 import { 
     Button,
     Form,
-    Flex,
+    Spin,
     Input,
     message,
     Modal, 
@@ -23,6 +23,7 @@ import {
     ChannelsTeamSetInfoResultStr,
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
+import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 
@@ -85,13 +86,14 @@ class TeamModel extends Component {
     }
 
     handleResponse = async (response) => {
-        await this.updateAllRecords();
+        let teamId = response.teamId;
+        await this.updateAllRecords(teamId);
         this.props.dispatch({
             type : SET_DEVICE_INFO,
             clientType: this.state.clientType,
             clientHost: this.state.clientHost,
             teamName: response.teamName, 
-            teamId: response.teamId,
+            teamId,
         });
         this.canelTeam();
     }
@@ -149,7 +151,7 @@ class TeamModel extends Component {
     }
 
     // 更新所有表的所有记录
-    updateAllRecords = async () => {
+    updateAllRecords = async (teamId : string) => {
         // 获取所有表的名称
         const tableNames = window.db.tables.map(table => table.name);
     
@@ -162,6 +164,7 @@ class TeamModel extends Component {
             // 更新每个记录
             for (const record of records) {
                 record.upload_flg = 1;
+                record.team_id = teamId;
                 await table.put(record);
             }
         
@@ -186,7 +189,7 @@ class TeamModel extends Component {
     }
 
     render() : ReactNode {
-        return (
+        return (          
             <Modal
                 title={langTrans("team topup title")}
                 open={this.props.showTeam}
@@ -202,55 +205,57 @@ class TeamModel extends Component {
                     </Button>
                 ]}
             >
-                <Form>
-                    <Form.Item label={langTrans("team topup form1")}>
-                        <Radio.Group onChange={this.setClientType} value={isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType}>
-                            <Radio value="single">{langTrans("team topup form1 select1")}</Radio>
-                            <Radio value="team">{langTrans("team topup form1 select2")}</Radio>
-                        </Radio.Group>
-                    </Form.Item>
-                    {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
-                    <>
-                        <Form.Item label={
-                                <Tooltip title={langTrans("team topup form2 tip1")}>
-                                    <span>{langTrans("team topup form2")}</span>
-                                </Tooltip>
-                            }
-                        >
-                            <Input.Group compact style={{ display: 'flex' }}>
-                                <Input value={ isStringEmpty(this.state.clientHost) ? this.props.clientHost : this.state.clientHost } onChange={ event=> {
-                                    this.setState({
-                                        clientHost : event.target.value,
-                                        clientHostValid: false
-                                    })
-                                } } />
-                                <Button onClick={this.ckHostClick}>{langTrans("team topup form2 btn1")}</Button>
-                            </Input.Group>
+                <Spin spinning={this.state.networkIng}>
+                    <Form>
+                        <Form.Item label={langTrans("team topup form1")}>
+                            <Radio.Group onChange={this.setClientType} value={isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType}>
+                                <Radio value={ CLIENT_TYPE_SINGLE }>{langTrans("team topup form1 select1")}</Radio>
+                                <Radio value={ CLIENT_TYPE_TEAM }>{langTrans("team topup form1 select2")}</Radio>
+                            </Radio.Group>
                         </Form.Item>
-                        {this.state.clientHostValid ? 
+                        {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
                         <>
-                            <Form.Item label={langTrans("team topup form3")}>
-                                <Radio.Group onChange={this.setTeamType} value={this.state.teamType}>
-                                    <Radio value="create">{langTrans("team topup form3 radio1")}</Radio>
-                                    <Radio value="join">{langTrans("team topup form3 radio2")}</Radio>
-                                </Radio.Group>
+                            <Form.Item label={
+                                    <Tooltip title={langTrans("team topup form2 tip1")}>
+                                        <span>{langTrans("team topup form2")}</span>
+                                    </Tooltip>
+                                }
+                            >
+                                <Input.Group compact style={{ display: 'flex' }}>
+                                    <Input value={ isStringEmpty(this.state.clientHost) ? this.props.clientHost : this.state.clientHost } onChange={ event=> {
+                                        this.setState({
+                                            clientHost : event.target.value,
+                                            clientHostValid: false
+                                        })
+                                    } } />
+                                    <Button onClick={this.ckHostClick}>{langTrans("team topup form2 btn1")}</Button>
+                                </Input.Group>
                             </Form.Item>
-                            {this.state.teamType === "create" ? 
-                            <Form.Item label={langTrans("team topup form4")}>
-                                <Input value={ this.state.teamName } onChange={ event=>this.setState({teamName : event.target.value}) } />
-                            </Form.Item>
+                            {this.state.clientHostValid ? 
+                            <>
+                                <Form.Item label={langTrans("team topup form3")}>
+                                    <Radio.Group onChange={this.setTeamType} value={this.state.teamType}>
+                                        <Radio value="create">{langTrans("team topup form3 radio1")}</Radio>
+                                        <Radio value="join">{langTrans("team topup form3 radio2")}</Radio>
+                                    </Radio.Group>
+                                </Form.Item>
+                                {this.state.teamType === "create" ? 
+                                <Form.Item label={langTrans("team topup form4")}>
+                                    <Input value={ this.state.teamName } onChange={ event=>this.setState({teamName : event.target.value}) } />
+                                </Form.Item>
+                                : null}
+                                {this.state.teamType === "join" ? 
+                                <Form.Item label={langTrans("team topup form5")}>
+                                    <Select options={this.state.teams} defaultValue={this.props.teamId} onChange={_teamId => this.setState({teamId: _teamId})} />
+                                </Form.Item>
+                                : null}
+                                
+                            </>
                             : null}
-                            {this.state.teamType === "join" ? 
-                            <Form.Item label={langTrans("team topup form5")}>
-                                <Select options={this.state.teams} defaultValue={this.props.teamId} onChange={_teamId => this.setState({teamId: _teamId})} />
-                            </Form.Item>
-                            : null}
-                            
                         </>
                         : null}
-                    </>
-                    : null}
-                </Form>
+                    </Form>
+                </Spin>
             </Modal>
         )
     }
