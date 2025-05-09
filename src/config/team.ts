@@ -13,3 +13,7 @@ export const TEAM_LIST_URL = "/team/teams";
 export const TEAM_QUERY_NAME = "/team/getTeamName";
 
 export const ENVS_LIST_URL = "/envs/list";
+
+export const ENVS_SET_URL = "/envs/set";
+
+export const ENVS_DEL_URL = "/envs/del";

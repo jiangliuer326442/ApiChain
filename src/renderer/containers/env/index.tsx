@@ -52,12 +52,11 @@ class Env extends Component {
             <Popconfirm
               title={langTrans("env del title")}
               description={langTrans("env del desc")}
-              onConfirm={e => {
-                  delEnv(record, async () => {
-                    let pagination = cloneDeep(this.state.pagination);
-                    let datas = await getEnvsByPage(this.props.clientType, pagination);
-                    this.setState({listDatas: datas, pagination});
-                  });
+              onConfirm={async e => {
+                  await delEnv(this.props.clientType, this.props.teamId, record);
+                  let pagination = cloneDeep(this.state.pagination);
+                  let datas = await getEnvsByPage(this.props.clientType, pagination);
+                  this.setState({listDatas: datas, pagination});
               }}
               okText={langTrans("env del sure")}
               cancelText={langTrans("env del cancel")}
@@ -97,7 +96,11 @@ class Env extends Component {
             <Flex justify="space-between" align="center">
                 <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("env bread2") }]} />
                 <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addEnvClick}>{langTrans("env add")}</Button>
-                <AddEnvComponent />
+                <AddEnvComponent cb={async () => {
+                  let pagination = cloneDeep(this.state.pagination);
+                  let datas = await getEnvsByPage(this.props.clientType, pagination);
+                  this.setState({listDatas: datas, pagination});
+                }} />
             </Flex>
             <Table 
               dataSource={this.state.listDatas} 
@@ -119,8 +122,9 @@ class Env extends Component {
 
 function mapStateToProps (state) {
     return {
-        listColumn: state.env.envListColumn,
-        clientType: state.device.clientType,
+      teamId: state.device.teamId,
+      listColumn: state.env.envListColumn,
+      clientType: state.device.clientType,
     }
 }
 

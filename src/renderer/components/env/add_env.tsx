@@ -9,7 +9,7 @@ import {
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_ENV_MODEL } from '@conf/redux';
-import { getEnvs, addEnv } from '@act/env';
+import { addEnv } from '@act/env';
 import { langTrans } from '@lang/i18n';
 
 class AddEnvComponent extends Component {
@@ -37,7 +37,7 @@ class AddEnvComponent extends Component {
         return null;
     }
 
-    handleOk = () => {
+    handleOk = async () => {
         const envValue = this.state.envValue.trim();
         const remarkValue = this.state.remarkValue.trim();
 
@@ -55,17 +55,17 @@ class AddEnvComponent extends Component {
             loadingFlg: true
         });
 
-        addEnv(envValue, remarkValue, this.props.device, () => {
-            this.clearInput();
-            this.setState({
-                loadingFlg: false
-            });
-            this.props.dispatch({
-                type: SHOW_ADD_ENV_MODEL,
-                open: false
-            });
-            getEnvs(this.props.dispatch);
+        await addEnv(this.props.clientType, this.props.teamId, envValue, remarkValue, this.props.device);
+
+        this.clearInput();
+        this.setState({
+            loadingFlg: false
         });
+        this.props.dispatch({
+            type: SHOW_ADD_ENV_MODEL,
+            open: false
+        });
+        this.props.cb();
     };
 
     handleCancel = () => {
@@ -113,6 +113,8 @@ class AddEnvComponent extends Component {
 
 function mapStateToProps (state) {
     return {
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
         open : state.env.showAddEnvModelFlg || state.env.showEditEnvModelFlg,
         device : state.device,
         env: state.env.env,

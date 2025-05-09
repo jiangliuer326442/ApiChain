@@ -1,6 +1,6 @@
 import { TABLE_ENV_NAME, UNAME, TABLE_ENV_FIELDS } from '@conf/db';
 import { GET_ENVS } from '@conf/redux';
-import { CLIENT_TYPE_SINGLE, ENVS_LIST_URL } from '@conf/team';
+import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM, ENVS_LIST_URL, ENVS_DEL_URL, ENVS_SET_URL } from '@conf/team';
 import { getUsers } from '@act/user';
 import { sendTeamMessage } from '@act/message';
 
@@ -64,30 +64,50 @@ export async function getEnvs(dispatch) {
     return envs;
 }
 
-export async function delEnv(row, cb) {
+export async function delEnv(clientType: string, teamId : string, row) {
     let label = row[env_label];
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENVS_DEL_URL, {label});
+    }
 
     let env = await window.db[TABLE_ENV_NAME]
     .where(env_label).equals(label)
     .first();
 
-    if (env !== undefined) {
-        env[env_label] = label;
-        env[env_delFlg] = 1;
-        console.debug(env);
-        await window.db[TABLE_ENV_NAME].put(env);
-        cb();
+    if (env === undefined) return;
+
+    env[env_label] = label;
+    env[env_delFlg] = 1;
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        env.upload_flg = 0;
+        env.team_id = "";
+    } else {
+        env.upload_flg = 1;
+        env.team_id = teamId;
     }
+
+    await window.db[TABLE_ENV_NAME].put(env);
 }
 
-export async function addEnv(environment : string, remark : string, device : object, cb) {
-    let env = {};
+export async function addEnv(clientType : string, teamId : string, environment : string, remark : string, device : object) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENVS_SET_URL, {label: environment, remark});
+    }
+
+    let env : any = {};
     env[env_label] = environment;
     env[env_remark] = remark;
     env[env_cuid] = device.uuid;
     env[env_ctime] = Date.now();
     env[env_delFlg] = 0;
-    console.debug(env);
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        env.upload_flg = 0;
+        env.team_id = "";
+    } else {
+        env.upload_flg = 1;
+        env.team_id = teamId;
+    }
     await window.db[TABLE_ENV_NAME].put(env);
-    cb();
 }
