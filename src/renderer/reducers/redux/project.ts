@@ -39,8 +39,9 @@ export default function (state = {
     showAddPrjModelFlg: false,
     prj: "",
     remark: "",
+    programming: "",
+    framework: "",
     list: [],
-    selector: [],
   }, action : object) {
     switch(action.type) {
         case SHOW_ADD_PRJ_MODEL:
@@ -48,30 +49,25 @@ export default function (state = {
                 showAddPrjModelFlg : action.open,
                 prj: "",
                 remark: "",
+                programming: "",
+                framework: "",
             });
         case SHOW_EDIT_PRJ_MODEL:
           return Object.assign({}, state, {
             showAddPrjModelFlg : action.open,
             prj : action.prj,
             remark : action.remark,
+            programming: action.programming,
+            framework: action.framework,
           });
         case GET_PRJS:
           mixedSort(action.prjs, prj_label);
-          let list = [];
-          action.prjs.map(prj => {
-              prj.key = prj[prj_label];
-              list.push(prj);
-          });
-          let selector = [];
-          action.prjs.map(prj => {
-            let item = {};
-            item.label = prj[prj_remark];
-            item.value = prj[prj_label];
-            selector.push(item);
-          });
+          const list = action.prjs.map(item => ({
+            value: item[prj_label],
+            label: item[prj_remark]
+          }));
           return Object.assign({}, state, {
-              list,
-              selector
+              list
           });
         default:
             return state;

@@ -148,7 +148,7 @@ class EnvVar extends Component {
       let versionIterations = await this.getMovedIteratos();
       this.setState({ versionIterators: versionIterations, versionIteration });
       if (this.props.envs.length === 0) {
-        getEnvs(this.props.dispatch);
+        getEnvs(this.props.clientType, this.props.dispatch);
       }
     }
 
@@ -355,6 +355,7 @@ function mapStateToProps (state) {
       prjs: state.prj.list,
       device : state.device,
       envs: state.env.list,
+      clientType: state.device.clientType,
   }
 }
 

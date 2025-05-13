@@ -37,7 +37,7 @@ class PrjEnvSelect extends Component {
 
     componentDidMount(): void {
         if(this.props.envs.length === 0) {
-          getEnvs(this.props.dispatch);
+          getEnvs(this.props.clientType, this.props.dispatch);
         }
         if (!isStringEmpty(this.state.prj)) {
             this.props.cb(this.state.prj, this.state.env);
@@ -117,6 +117,7 @@ class PrjEnvSelect extends Component {
 
 function mapStateToProps (state) {
     return {
+        clientType: state.device.clientType,
         envs: state.env.list,
         prjs: state.prj.list,
     }

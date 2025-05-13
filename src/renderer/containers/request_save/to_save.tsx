@@ -174,10 +174,10 @@ class RequestSaveContainer extends Component {
 
     componentDidMount(): void {
         if(this.props.envs.length === 0) {
-            getEnvs(this.props.dispatch);
+            getEnvs(this.props.clientType, this.props.dispatch);
         }
         if(this.props.prjs.length === 0) {
-            getPrjs(this.props.dispatch);
+            getPrjs(this.props.clientType, this.props.dispatch);
         }
         getVersionIterators().then(iterators => {
             let prjsSelectector = [];
@@ -885,6 +885,7 @@ function mapStateToProps (state) {
         envs: state.env.list,
         prjs: state.prj.list, 
         device : state.device,
+        clientType: state.device.clientType,
     }
 }
   

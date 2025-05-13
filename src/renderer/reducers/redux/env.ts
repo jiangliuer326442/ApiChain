@@ -51,11 +51,10 @@ export default function (state = {
             remark : action.remark,
           });
         case GET_ENVS:
-          let list = [];
-          action.envs.map(env => {
-              env.key = env.label;
-              list.push(env);
-          });
+          const list = action.envs.map(item => ({
+            value: item.label,
+            label: item.remark
+          }));
           return Object.assign({}, state, {
               list
           });

@@ -242,7 +242,7 @@ class UnittestListVersion extends Component {
 
   async componentDidMount(): void {
     if (this.props.envs.length === 0) {
-      getEnvs(this.props.dispatch);
+      getEnvs(this.props.clientType, this.props.dispatch);
     }
     await getProjectUnitTests(
       this.state.project,
@@ -488,6 +488,7 @@ function mapStateToProps(state) {
     unittest: state.unittest.list,
     folders: state.unittest.folders,
     envs: state.env.list,
+    clientType: state.device.clientType,
   };
 }
 

@@ -12,8 +12,20 @@ export const TEAM_LIST_URL = "/team/teams";
 
 export const TEAM_QUERY_NAME = "/team/getTeamName";
 
-export const ENVS_LIST_URL = "/envs/list";
+export const ENVS_LIST_URL = "/envs/page";
+
+export const ENVS_ALL_LIST_URL = "/envs/all";
 
 export const ENVS_SET_URL = "/envs/set";
 
 export const ENVS_DEL_URL = "/envs/del";
+
+export const PRJS_LIST_URL = "/prjs/page";
+
+export const PRJS_SET_URL = "/prjs/set";
+
+export const PRJS_DEL_URL = "/prjs/del";
+
+export const PRJS_ALL_LIST_URL = "/prjs/all";
+
+export const ENV_VARS_GLOBAL_PAGE_URL = "/envvars/global/page";

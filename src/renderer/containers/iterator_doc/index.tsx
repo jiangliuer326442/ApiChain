@@ -85,7 +85,7 @@ class IteratorDoc extends Component {
     loadMarkDownFromElectron = async (iteratorId : string) => {
         let envs;
         if (this.props.envs.length === 0) {
-            envs = await getEnvs(null);
+            envs = await getEnvs(this.props.clientType, null);
         } else {
             envs = this.props.envs;
         }
@@ -187,6 +187,7 @@ function mapStateToProps (state) {
     return {
         prjs: state.prj.list,
         envs: state.env.list,
+        clientType: state.device.clientType,
     }
 }
       

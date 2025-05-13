@@ -136,7 +136,7 @@ class EnvVar extends Component {
     this.setState({ unittest: unitest });
     this.getEnvValueData(this.state.prj, this.state.unittestId, env, "");
     if(this.props.envs.length === 0) {
-      getEnvs(this.props.dispatch);
+      getEnvs(this.props.clientType, this.props.dispatch);
     }
   }
 
@@ -286,6 +286,7 @@ function mapStateToProps (state) {
       prjs: state.prj.list,
       device : state.device,
       envs: state.env.list,
+      clientType: state.device.clientType,
   }
 }
 

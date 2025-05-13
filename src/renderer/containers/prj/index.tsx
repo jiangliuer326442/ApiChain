@@ -6,6 +6,7 @@ import {
   Table, message
 } from "antd";
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { cloneDeep } from 'lodash';
 
 import { 
   TABLE_USER_NAME, TABLE_USER_FIELDS,
@@ -25,7 +26,7 @@ import {
 import { SHOW_ADD_PRJ_MODEL, SHOW_EDIT_PRJ_MODEL } from '@conf/redux';
 import AddPrjComponent from '@comp/prj/add_prj';
 import { getUser } from '@act/user';
-import { getPrjs, delPrj } from '@act/project';
+import { getPrjsByPage, delPrj } from '@act/project';
 import { langTrans } from '@lang/i18n';
 
 var _ = require('lodash');
@@ -41,6 +42,8 @@ let field_uid = TABLE_USER_FIELDS.FIELD_UID;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
+let prj_program = TABLE_MICRO_SERVICE_FIELDS.FIELD_PROGRAM;
+let prj_framework = TABLE_MICRO_SERVICE_FIELDS.FIELD_FRAME;
 
 let project_request_project = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
 let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
@@ -60,13 +63,20 @@ class Project extends Component {
       super(props);
       this.state = {
         listColumn: [],
+        listDatas: [],
         selectedProjects: [],
+        pagination: {
+          current: 1,
+          pageSize: 10,
+        },
       }
     }
   
-    componentDidMount(): void {
-      getPrjs(this.props.dispatch);
+    async componentDidMount(): Promise<void> {
       this.setListColumn();
+      let pagination = cloneDeep(this.state.pagination);
+      let datas = await getPrjsByPage(this.props.clientType, pagination);
+      this.setState({listDatas: datas, pagination});
     }
 
     importProjectDocs = async () => {
@@ -184,7 +194,9 @@ class Project extends Component {
       );
       let projectNum = datas[TABLE_MICRO_SERVICE_NAME].length;
       message.success("成功导入 " + projectNum + " 个项目");
-      getPrjs(this.props.dispatch);
+      let pagination = cloneDeep(this.state.pagination);
+      let listDatas = await getPrjsByPage(this.props.clientType, pagination);
+      this.setState({listDatas, pagination});
     }
 
     exportProjectDocs = () => {
@@ -300,10 +312,11 @@ class Project extends Component {
               <Popconfirm
                 title={langTrans("prj del title")}
                 description={langTrans("prj del desc")}
-                onConfirm={e => {
-                    delPrj(record, ()=>{
-                      getPrjs(this.props.dispatch);
-                    });
+                onConfirm={async e => {
+                    await delPrj(this.props.clientType, this.props.teamId, record);
+                    let pagination = cloneDeep(this.state.pagination);
+                    let datas = await getPrjsByPage(this.props.clientType, pagination);
+                    this.setState({listDatas: datas, pagination});
                 }}
                 okText={langTrans("prj del sure")}
                 cancelText={langTrans("prj del cancel")}
@@ -330,6 +343,8 @@ class Project extends Component {
           open: true,
           prj: record[prj_label],
           remark: record[prj_remark],
+          programming: record[prj_program],
+          framework: record[prj_framework],
       });
     }
 
@@ -344,7 +359,11 @@ class Project extends Component {
             {langTrans("prj title")}
           </Header>
           <Content style={{ margin: '0 16px' }}>
-            <AddPrjComponent />
+            <AddPrjComponent cb={async ()=>{
+              let pagination = cloneDeep(this.state.pagination);
+              let listDatas = await getPrjsByPage(this.props.clientType, pagination);
+              this.setState({listDatas, pagination});
+            }} />
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("prj bread1") }, { title: langTrans("prj bread2") }]} />
             <Flex vertical>
               <Flex justify="space-between" align="center">
@@ -360,8 +379,14 @@ class Project extends Component {
               </Flex>
               <Table 
                 rowSelection={{selectedRowKeys: this.state.selectedProjects, onChange: this.setSelectedProjects}}
-                dataSource={this.props.listDatas} 
-                columns={this.state.listColumn} />
+                dataSource={this.state.listDatas} 
+                rowKey={(record) => record.label}
+                pagination={this.state.pagination}
+                columns={this.state.listColumn} 
+                onChange={ async (pagination, filters, sorter) => {
+                  let datas = await getPrjsByPage(this.props.clientType, pagination);
+                  this.setState({listDatas: datas, pagination});
+                }} />
             </Flex>
           </Content>
           <Footer style={{ textAlign: 'center' }}>
@@ -376,8 +401,9 @@ function mapStateToProps (state) {
     return {
       uid: state.device.uuid,
       appVersion: state.device.appVersion,
+      teamId: state.device.teamId,
       listColumn: state.prj.projectListColumn,
-      listDatas: state.prj.list,
+      clientType: state.device.clientType,
     }
 }
 

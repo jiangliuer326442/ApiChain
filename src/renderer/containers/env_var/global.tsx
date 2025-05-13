@@ -16,11 +16,12 @@ import { getWikiEnv } from '@conf/url';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
 import { 
-  getEnvValues, 
+  getGlobalEnvValuesByPage, 
   delEnvValue,
   batchCopyEnvVales,
 } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
+import { cloneDeep } from 'lodash';
 
 const { Header, Content, Footer } = Layout;
 const { Text, Link } = Typography;
@@ -86,7 +87,7 @@ class EnvVar extends Component {
                     description={langTrans("envvar global del desc")}
                     onConfirm={e => {
                         delEnvValue("", (this.state.env ? this.state.env : this.props.env), "", "", record, ()=>{
-                          getEnvValues("", (this.state.env ? this.state.env : this.props.env), "", "", "", this.props.dispatch, env_vars=>{});
+                          getGlobalEnvValuesByPage("", (this.state.env ? this.state.env : this.props.env), "", "", "", this.props.dispatch, env_vars=>{});
                         });
                     }}
                     okText={langTrans("envvar global del sure")}
@@ -99,6 +100,11 @@ class EnvVar extends Component {
             },
           }
         ],
+        listDatas: [],
+        pagination: {
+          current: 1,
+          pageSize: 10,
+        },
         tips: [],
         pkeys: [],
         env: "",
@@ -109,7 +115,7 @@ class EnvVar extends Component {
     componentDidMount(): void {
       this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
       if(this.props.envs.length === 0) {
-        getEnvs(this.props.dispatch);
+        getEnvs(this.props.clientType, this.props.dispatch);
       }
     }
 
@@ -139,7 +145,7 @@ class EnvVar extends Component {
       });
     }
 
-    getEnvValueData = (env: string, paramName: string) => {
+    getEnvValueData = async (env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
       requestSendTip.init("", "", "", "", this.props.dispatch, env_vars => {});
       requestSendTip.getTips(envKeys => {
@@ -150,11 +156,12 @@ class EnvVar extends Component {
         this.setState( { tips } );
       });
       if(!isStringEmpty(env)) {
-        getEnvValues("", env, "", "", paramName, this.props.dispatch, env_vars => {
-          if (!paramName) {
-            this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
-          }
-        });
+        let pagination = cloneDeep(this.state.pagination);
+        let datas = await getGlobalEnvValuesByPage(env, paramName, this.props.clientType, pagination);
+        this.setState({listDatas: datas, pagination});
+        if (!paramName) {
+          this.setState({pkeys: datas.map(item => ({ value: item[pname] }))});
+        }
       }
     }
 
@@ -178,9 +185,7 @@ class EnvVar extends Component {
                         value={ this.state.env ? this.state.env : this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
-                        options={this.props.envs.map(item => {
-                          return {value: item.label, label: item.remark}
-                        })}
+                        options={this.props.envs}
                       />
                       :
                       <Button type="link" href={"#" + ENV_LIST_ROUTE}>添加服务器环境</Button>
@@ -224,9 +229,14 @@ class EnvVar extends Component {
             </Flex>
             <Table 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
-              dataSource={this.props.listDatas} 
+              dataSource={this.state.listDatas} 
+              rowKey={(record) => record[pname]}
               columns={this.state.listColumn} 
-              />
+              pagination={this.state.pagination}
+              onChange={ async (pagination, filters, sorter) => {
+                this.state.pagination = pagination;
+                this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
+              }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>
           ApiChain ©{new Date().getFullYear()} Created by 方海亮
@@ -238,10 +248,11 @@ class EnvVar extends Component {
 
 function mapStateToProps (state) {
   return {
-      listDatas: state.env_var.list,
       env: state.env_var.env,
       device : state.device,
       envs: state.env.list,
+      teamId: state.device.teamId,
+      clientType: state.device.clientType,
   }
 }
 

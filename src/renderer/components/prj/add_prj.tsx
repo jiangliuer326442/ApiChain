@@ -9,7 +9,7 @@ import {
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_PRJ_MODEL } from '@conf/redux';
-import { getPrjs, addPrj } from '@act/project';
+import { addPrj } from '@act/project';
 import { langTrans } from '@lang/i18n';
 
 class AddPrjComponent extends Component {
@@ -21,6 +21,8 @@ class AddPrjComponent extends Component {
             loadingFlg: false,
             prjValue: "",
             remarkValue: "",
+            programValue: "",
+            frameworkValue: "",
         };
     }
 
@@ -32,13 +34,17 @@ class AddPrjComponent extends Component {
                 actionType: "edit",
                 prjValue: nextProps.prj,
                 remarkValue: nextProps.remark,
+                programValue: nextProps.programming == null ? "" : nextProps.programming,
+                frameworkValue: nextProps.framework == null ? "" : nextProps.framework,
             });
         }
     }
 
-    handleOk = () => {
+    handleOk = async () => {
         const prjValue = this.state.prjValue.trim();
         const remarkValue = this.state.remarkValue.trim();
+        const programValue = this.state.programValue.trim();
+        const frameworkValue = this.state.frameworkValue.trim();
 
         if (isStringEmpty(prjValue)) {
             message.error(langTrans("prj add check1"));
@@ -50,21 +56,35 @@ class AddPrjComponent extends Component {
             return;
         }
 
+        if (isStringEmpty(programValue)) {
+            message.error(langTrans("prj add check3"));
+            return;
+        }
+
+        if (isStringEmpty(frameworkValue)) {
+            message.error(langTrans("prj add check4"));
+            return;
+        }
+
         this.setState({
             loadingFlg: true
         });
 
-        addPrj(prjValue, remarkValue, this.props.device, () => {
-            this.clearInput();
-            this.setState({
-                loadingFlg: false
-            });
-            this.props.dispatch({
-                type: SHOW_ADD_PRJ_MODEL,
-                open: false
-            });
-            getPrjs(this.props.dispatch);
+        await addPrj(
+            this.props.clientType, this.props.teamId, 
+            prjValue, remarkValue, 
+            programValue, frameworkValue,
+            this.props.device);
+
+        this.clearInput();
+        this.setState({
+            loadingFlg: false
         });
+        this.props.dispatch({
+            type: SHOW_ADD_PRJ_MODEL,
+            open: false
+        });
+        this.props.cb();
     };
 
     handleCancel = () => {
@@ -80,6 +100,8 @@ class AddPrjComponent extends Component {
             loadingFlg: false,
             prjValue: "",
             remarkValue: "",
+            programValue: "",
+            frameworkValue: "",
         });
     }
 
@@ -91,7 +113,7 @@ class AddPrjComponent extends Component {
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
                 onCancel={this.handleCancel}
-                width={230}
+                width={270}
             >
                 <Form
                 layout="vertical"
@@ -102,6 +124,12 @@ class AddPrjComponent extends Component {
                     <Form.Item>
                         <Input placeholder={langTrans("prj add form2")} value={this.state.remarkValue} onChange={ event=>this.setState({remarkValue : event.target.value}) } />
                     </Form.Item>
+                    <Form.Item>
+                        <Input placeholder={langTrans("prj add form3")} value={this.state.programValue} onChange={ event=>this.setState({programValue : event.target.value}) } />
+                    </Form.Item>
+                    <Form.Item>
+                        <Input placeholder={langTrans("prj add form4")} value={this.state.frameworkValue} onChange={ event=>this.setState({frameworkValue : event.target.value}) } />
+                    </Form.Item>
                 </Form>
             </Modal>
         );
@@ -111,10 +139,14 @@ class AddPrjComponent extends Component {
 
 function mapStateToProps (state) {
     return {
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
         open : state.prj.showAddPrjModelFlg,
         device : state.device,
         prj: state.prj.prj,
         remark: state.prj.remark,
+        programming: state.prj.programming,
+        framework: state.prj.framework,
     }
 }
 

@@ -49,7 +49,7 @@ class Nav extends Component {
     }
 
     cb = () => {
-      getPrjs(this.props.dispatch);
+      getPrjs(this.props.clientType, this.props.dispatch);
       getOpenVersionIterators(this.props.dispatch);
       this.state.initNavFlg = true;
     }
@@ -101,6 +101,7 @@ function mapStateToProps (state) {
     appName: state.device.appName,
     appVersion: state.device.appVersion,
     collapsed: state.nav.collapsed,
+    clientType: state.device.clientType,
   }
 }
 

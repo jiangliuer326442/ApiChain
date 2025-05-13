@@ -26,6 +26,8 @@ export const TABLE_MICRO_SERVICE_NAME = "microservices";
 export const TABLE_MICRO_SERVICE_FIELDS = {
     FIELD_LABEL : "label",
     FIELD_REMARK : "remark",
+    FIELD_PROGRAM : "programming",
+    FIELD_FRAME : "framework",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",

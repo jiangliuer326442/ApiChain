@@ -56,7 +56,7 @@ export function sendTeamMessage(url : string, postData) {
     return new Promise((resolve, reject) => {
 
         let messageSendListener = window.electron.ipcRenderer.on(ChannelsAxioBreidgeStr, (action, originUrl, errorMessage, data) => {
-            if (action === ChannelsAxioTeamReplyStr) {
+            if (action === ChannelsAxioTeamReplyStr && originUrl === url) {
                 messageSendListener();
                 if (isStringEmpty(errorMessage)) {
                     resolve(data);

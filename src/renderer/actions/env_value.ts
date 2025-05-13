@@ -1,21 +1,24 @@
+import { cloneDeep } from 'lodash';
+
 import {
     isStringEmpty,
     mixedSort
-} from '../util'
+} from '@rutil/index'
 import {
     sub, union
-} from '../util/sets'
+} from '@rutil/sets'
 import { 
     TABLE_ENV_KEY_NAME, TABLE_ENV_KEY_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
     TABLE_USER_NAME, UNAME
-} from '../../config/db';
+} from '@conf/db';
 import {
     ENV_VALUE_API_HOST
-} from '../../config/envKeys';
-import { GET_ENV_VALS } from '../../config/redux';
-import { getUsers } from './user';
-import { cloneDeep } from 'lodash';
+} from '@conf/envKeys';
+import { CLIENT_TYPE_SINGLE, ENV_VARS_GLOBAL_PAGE_URL } from '@conf/team'
+import { GET_ENV_VALS } from '@conf/redux';
+import { getUsers } from '@act/user';
+import { sendTeamMessage } from '@act/message';
 
 let env_key_delFlg = TABLE_ENV_KEY_FIELDS.FIELD_DELFLG;
 let env_key_prj = TABLE_ENV_KEY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -170,6 +173,47 @@ export async function batchCopyEnvVales(prj : string, env : string, iterator : s
     
         await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
     }
+}
+
+export async function getGlobalEnvValuesByPage(env : string, pname : string, clientType : string, pagination : any) {
+    let page = pagination.current;
+    let pageSize = pagination.pageSize;
+    let datas = [];
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        const offset = (page - 1) * pageSize;
+        let globalArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, "", "", "" ])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            return true;
+        })
+        .toArray();
+        pagination.total = globalArrays.length;
+
+        mixedSort(globalArrays, env_var_pname);
+
+        datas = globalArrays.splice(offset, pageSize);
+
+        let users = await getUsers();
+        datas.forEach(item => {
+            item[UNAME] = users.get(item[env_var_cuid]);
+        });
+    } else {
+        let params = Object.assign({}, pagination, {env, pname});
+        let result = await sendTeamMessage(ENV_VARS_GLOBAL_PAGE_URL, params);
+        let count = result.count;
+        pagination.total = count;
+        datas = result.list;
+    }
+
+    return datas;
 }
 
 export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch, cb) : Promise<Array<any>> {

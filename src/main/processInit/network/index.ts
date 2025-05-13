@@ -63,6 +63,7 @@ export default function() {
         if(action !== ChannelsAxioTeanSendStr) return;
 
         let result = await postRequest(url, postData);
+
         let errorMessage = result[0];
         let response = result[1];
 

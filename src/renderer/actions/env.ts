@@ -1,6 +1,12 @@
 import { TABLE_ENV_NAME, UNAME, TABLE_ENV_FIELDS } from '@conf/db';
 import { GET_ENVS } from '@conf/redux';
-import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM, ENVS_LIST_URL, ENVS_DEL_URL, ENVS_SET_URL } from '@conf/team';
+import { 
+    CLIENT_TYPE_SINGLE, 
+    CLIENT_TYPE_TEAM, 
+    ENVS_LIST_URL, 
+    ENVS_DEL_URL, ENVS_SET_URL,
+    ENVS_ALL_LIST_URL,
+} from '@conf/team';
 import { getUsers } from '@act/user';
 import { sendTeamMessage } from '@act/message';
 
@@ -43,17 +49,18 @@ export async function getEnvsByPage(clientType : string, pagination : any) {
     return datas;
 }
 
-export async function getEnvs(dispatch) {
-    let users = await getUsers();
+export async function getEnvs(clientType : string, dispatch) {
+    let envs;
 
-    let envs = await window.db[TABLE_ENV_NAME]
-    .where(env_delFlg).equals(0)
-    .reverse()
-    .toArray();
-
-    envs.forEach(item => {
-        item[UNAME] = users.get(item[env_cuid]);
-    });
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        envs = await window.db[TABLE_ENV_NAME]
+        .where(env_delFlg).equals(0)
+        .reverse()
+        .toArray();
+    } else {
+        let ret = await sendTeamMessage(ENVS_ALL_LIST_URL, {});
+        envs = ret.list;
+    }
 
     if (dispatch !== null) {
         dispatch({
