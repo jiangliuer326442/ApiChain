@@ -29,3 +29,7 @@ export const PRJS_DEL_URL = "/prjs/del";
 export const PRJS_ALL_LIST_URL = "/prjs/all";
 
 export const ENV_VARS_GLOBAL_PAGE_URL = "/envvars/global/page";
+
+export const ENV_VARS_GLOBAL_SET_URL = "/envvars/global/set";
+
+export const ENV_VARS_GLOBAL_DEL_URL = "/envvars/global/del";

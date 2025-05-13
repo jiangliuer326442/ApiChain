@@ -43,6 +43,7 @@ export default function (state = {
         case SHOW_ADD_PROPERTY_MODEL:
             return Object.assign({}, state, {
               showAddPropertyModelFlg : action.open,
+              prj: "",
               pname: "",
               pvalue: "",
               premark: "",

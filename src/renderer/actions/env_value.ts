@@ -15,7 +15,13 @@ import {
 import {
     ENV_VALUE_API_HOST
 } from '@conf/envKeys';
-import { CLIENT_TYPE_SINGLE, ENV_VARS_GLOBAL_PAGE_URL } from '@conf/team'
+import { 
+    CLIENT_TYPE_TEAM,
+    CLIENT_TYPE_SINGLE, 
+    ENV_VARS_GLOBAL_PAGE_URL,
+    ENV_VARS_GLOBAL_SET_URL,
+    ENV_VARS_GLOBAL_DEL_URL,
+} from '@conf/team'
 import { GET_ENV_VALS } from '@conf/redux';
 import { getUsers } from '@act/user';
 import { sendTeamMessage } from '@act/message';
@@ -216,6 +222,55 @@ export async function getGlobalEnvValuesByPage(env : string, pname : string, cli
     return datas;
 }
 
+export async function delGlobalEnvValues(env : string, pname : string, clientType : string, teamId : string) {
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENV_VARS_GLOBAL_DEL_URL, {env, pname});
+    }
+
+    const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
+    .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+    .equals([env, '', '', '', pname]).first();  
+    if (envVarItem !== undefined) {
+        envVarItem[env_var_delFlg] = 1;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            envVarItem.upload_flg = 0;
+            envVarItem.team_id = "";
+        } else {
+            envVarItem.upload_flg = 1;
+            envVarItem.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
+    }
+
+    const envVars = await window.db[TABLE_ENV_VAR_NAME]
+    .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+    .equals(['', '', "", pname]).toArray();  
+    let delEnvKeyFlag = true;
+    for (const envVarItem of envVars) {  
+        if (envVarItem[env_var_delFlg] === 0) {
+            delEnvKeyFlag = false;
+        }
+    }
+    if (delEnvKeyFlag) {
+        let env_key = await window.db[TABLE_ENV_KEY_NAME]
+        .where('[' + env_key_prj + '+' + env_key_pname + ']')
+        .equals(['', pname])
+        .first();
+        env_key[env_key_prj] = '';
+        env_key[env_key_pname] = pname;
+        env_key[env_key_delFlg] = 1;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            env_key.upload_flg = 0;
+            env_key.team_id = "";
+        } else {
+            env_key.upload_flg = 1;
+            env_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+    }
+}
+
 export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch, cb) : Promise<Array<any>> {
 
     let env_vars = await doGetEnvValues(prj, env, iterator, unittest, pname);
@@ -275,35 +330,53 @@ export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
 }
 
 export async function addEnvValues(
-    prj, env, iteration, unittest, 
-    pname, pval, premark,
-    device, cb) {
-    window.db.transaction('rw',
-    window.db[TABLE_ENV_KEY_NAME],
-    window.db[TABLE_USER_NAME],
-    window.db[TABLE_ENV_VAR_NAME], async () => {
-        let env_key : any = {};
-        env_key[env_key_prj] = prj;
-        env_key[env_key_pname] = pname;
-        env_key[env_key_cuid] = device.uuid;
-        env_key[env_key_ctime] = Date.now();
-        env_key[env_key_delFlg] = 0;
-        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+    clientType : string, teamId : string, 
+    prj : string, env : string, iteration : string, unittest : string, 
+    pname : string, pvar, remark,
+    device) {
 
-        let property_key : any = {};
-        property_key[env_var_micro_service] = prj;
-        property_key[env_var_env] = env;
-        property_key[env_var_iteration] = iteration;
-        property_key[env_var_unittest] = unittest;
-        property_key[env_var_pname] = pname;
-        property_key[env_var_pvalue] = pval;
-        property_key[env_var_premark] = premark;
-        property_key[env_var_cuid] = device.uuid;
-        property_key[env_var_ctime] = Date.now();
-        property_key[env_var_delFlg] = 0;
-        await window.db[TABLE_ENV_VAR_NAME].put(property_key);
-        cb();
-    })
+    if (clientType === CLIENT_TYPE_TEAM) {
+        //全局环境变量
+        if (isStringEmpty(prj) && isStringEmpty(iteration) && isStringEmpty(unittest)) {
+            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, env, remark});
+        }
+    }
+
+    let env_key : any = {};
+    env_key[env_key_prj] = prj;
+    env_key[env_key_pname] = pname;
+    env_key[env_key_cuid] = device.uuid;
+    env_key[env_key_ctime] = Date.now();
+    env_key[env_key_delFlg] = 0;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        env_key.upload_flg = 0;
+        env_key.team_id = "";
+    } else {
+        env_key.upload_flg = 1;
+        env_key.team_id = teamId;
+    }
+    await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+
+    let property_key : any = {};
+    property_key[env_var_micro_service] = prj;
+    property_key[env_var_env] = env;
+    property_key[env_var_iteration] = iteration;
+    property_key[env_var_unittest] = unittest;
+    property_key[env_var_pname] = pname;
+    property_key[env_var_pvalue] = pvar;
+    property_key[env_var_premark] = remark;
+    property_key[env_var_cuid] = device.uuid;
+    property_key[env_var_ctime] = Date.now();
+    property_key[env_var_delFlg] = 0;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        property_key.upload_flg = 0;
+        property_key.team_id = "";
+    } else {
+        property_key.upload_flg = 1;
+        property_key.team_id = teamId;
+    }
+    await window.db[TABLE_ENV_VAR_NAME].put(property_key);
+
 }
 
 async function doGetEnvValues(prj, env, iterator, unittest, pname) : Promise<Array<any>> {

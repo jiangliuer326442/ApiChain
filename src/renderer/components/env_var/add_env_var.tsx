@@ -37,7 +37,7 @@ class AddEnvVarComponent extends Component {
         }
     }
 
-    handleOk = () => {
+    handleOk = async () => {
         const pname = this.state.pname.trim();
         const pvalue = this.state.pvalue.trim();
         let premark = "";
@@ -64,26 +64,20 @@ class AddEnvVarComponent extends Component {
         this.setState({
             loadingFlg: true
         });
-
-        addEnvValues(this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "" , 
+        await addEnvValues(this.props.clientType, this.props.teamId, this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "" , 
             pname, pvalue, premark,
-            this.props.device, 
-            () => {
-                this.clearInput();
-                this.setState({
-                    loadingFlg: false
-                });
-                this.props.dispatch({
-                    type: SHOW_ADD_PROPERTY_MODEL,
-                    open: false
-                });
-                if (this.props.cb == null) {
-                    getEnvValues(this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "", "", this.props.dispatch, env_vars => {});
-                } else {
-                    this.props.cb();
-                }
-                
-            });
+            this.props.device);
+
+        this.clearInput();
+        this.setState({
+            loadingFlg: false
+        });
+        this.props.dispatch({
+            type: SHOW_ADD_PROPERTY_MODEL,
+            open: false
+        });
+
+        this.props.cb();
     }
 
     handleCancel = () => {
@@ -139,6 +133,8 @@ class AddEnvVarComponent extends Component {
 
 function mapStateToProps (state) {
     return {
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
         open : state.env_var.showAddPropertyModelFlg,
         device : state.device,
         prj: state.env_var.prj ? state.env_var.prj : "",

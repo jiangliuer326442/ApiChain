@@ -81,15 +81,15 @@ class PrjEnvSelect extends Component {
                         showSearch
                         allowClear
                         value={ isStringEmpty(this.state.prj) ? "" : (
-                            this.state.prj + "$$" + (this.props.prjs.find(row => row[prj_label] === this.state.prj) ? this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark] : "")
+                            this.state.prj + "$$" + (this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : "")
                         ) }
                         onChange={this.setProjectChange}
                         style={{ width: 170 }}
                         options={this.state.versionIteration[version_iterator_prjs] ? this.state.versionIteration[version_iterator_prjs].map(item => {
-                            let label = this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : "";
+                            let label = this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : "";
                             return {value: item + "$$" + label, label }
                         }) : this.props.prjs.map(item => {
-                            return {value: item.label + "$$" + item.remark , label: item.remark}
+                            return {value: item.value + "$$" + item.label , label: item.label}
                         })}
                     />
                     : 
@@ -102,9 +102,7 @@ class PrjEnvSelect extends Component {
                     value={ this.state.env }
                     onChange={this.setEnvironmentChange}
                     style={{ width: 120 }}
-                    options={this.props.envs.map(item => {
-                        return {value: item.label, label: item.remark}
-                    })}
+                    options={this.props.envs}
                     />
                     :
                     <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("env add")}</Button>

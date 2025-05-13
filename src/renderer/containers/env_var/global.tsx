@@ -17,7 +17,7 @@ import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
 import { 
   getGlobalEnvValuesByPage, 
-  delEnvValue,
+  delGlobalEnvValues,
   batchCopyEnvVales,
 } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
@@ -85,10 +85,9 @@ class EnvVar extends Component {
                   <Popconfirm
                     title={langTrans("envvar global del title")}
                     description={langTrans("envvar global del desc")}
-                    onConfirm={e => {
-                        delEnvValue("", (this.state.env ? this.state.env : this.props.env), "", "", record, ()=>{
-                          getGlobalEnvValuesByPage("", (this.state.env ? this.state.env : this.props.env), "", "", "", this.props.dispatch, env_vars=>{});
-                        });
+                    onConfirm={async e => {
+                      await delGlobalEnvValues((this.state.env ? this.state.env : this.props.env), record[pname], this.props.clientType, this.props.teamId);
+                      this.getEnvValueData((this.state.env ? this.state.env : this.props.env), "")
                     }}
                     okText={langTrans("envvar global del sure")}
                     cancelText={langTrans("envvar global del cancel")}
@@ -225,7 +224,9 @@ class EnvVar extends Component {
                   </Form.Item>
                 </Form>
               <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
-              <AddEnvVarComponent tips={this.state.tips} />
+              <AddEnvVarComponent tips={this.state.tips} cb={()=>{
+                this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
+              }} />
             </Flex>
             <Table 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}

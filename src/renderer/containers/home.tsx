@@ -121,7 +121,7 @@ class Home extends Component {
           title: langTrans("prj doc table field5"),
           dataIndex: "project",
           render: (_prj) => { 
-            return this.props.projects.find(row => row[prj_label] === _prj)[prj_remark];
+            return this.props.projects.find(row => row.value === _prj).label;
           }
         },
         {
@@ -480,7 +480,7 @@ class Home extends Component {
                     filterOption={(input, option) =>
                       (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                     }
-                    options={this.props.projects.map(_prj => ({label: _prj[prj_remark], value: _prj[prj_label] + "$$" + _prj[prj_remark]}))}
+                    options={this.props.projects.map(_prj => ({label: _prj.label, value: _prj.value + "$$" + _prj.label}))}
                     onChange={ this.handleSearchProject }
                   />
                   <Input 
