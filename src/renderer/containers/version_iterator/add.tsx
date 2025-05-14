@@ -60,8 +60,8 @@ class VersionIteratorAdd extends Component {
         } else {
             this.setState({formReadyFlg: true})
         }
-        if(this.props.prjs.length === 0) {
-            getPrjs(this.props.dispatch);
+        if(this.props.projects.length === 0) {
+            getPrjs(this.props.clientType, this.props.dispatch);
         }
     }
 
@@ -120,13 +120,13 @@ class VersionIteratorAdd extends Component {
                             name="projects" 
                             label={langTrans("iterator add form2")}
                             rules={[{ required: true, message: langTrans("iterator add check2") }]}>
-                            {this.props.prjs.length > 0 ? 
+                            {this.props.projects.length > 0 ? 
                             <Select
                                 mode="multiple"
                                 allowClear
                                 style={{ width: '100%' }}
                                 placeholder={langTrans("iterator add check3")}
-                                options={this.props.prjs} />
+                                options={this.props.projects} />
                             :
                             <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>创建微服务</Button>
                             }    
@@ -179,8 +179,10 @@ class VersionIteratorAdd extends Component {
 
 function mapStateToProps (state) {
   return {
-      prjs: state.prj.selector,
+      projects: state.prj.list,
       device : state.device,
+      teamId: state.device.teamId,
+      clientType: state.device.clientType,
   }
 }
 

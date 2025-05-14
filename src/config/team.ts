@@ -33,3 +33,5 @@ export const ENV_VARS_GLOBAL_PAGE_URL = "/envvars/global/page";
 export const ENV_VARS_GLOBAL_SET_URL = "/envvars/global/set";
 
 export const ENV_VARS_GLOBAL_DEL_URL = "/envvars/global/del";
+
+export const VERSION_ITERATIONS_PAGE_URL = "/version_iterations/page";

@@ -7,7 +7,9 @@ import {
     UNAME, TABLE_USER_NAME,
 } from '@conf/db';
 import { GET_VERSION_ITERATORS } from '@conf/redux';
+import { VERSION_ITERATIONS_PAGE_URL, CLIENT_TYPE_SINGLE } from '@conf/team';
 
+import { sendTeamMessage } from '@act/message';
 import { getUsers } from '@act/user';
 import { addProjectRequestFromVersionIterator } from '@act/project_request';
 
@@ -23,6 +25,40 @@ let version_iterator_cuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_CUID;
 let version_iterator_ctime = TABLE_VERSION_ITERATION_FIELDS.FIELD_CTIME;
 let version_iterator_close_time = TABLE_VERSION_ITERATION_FIELDS.FIELD_CLOSE_TIME;
 let version_iterator_delFlg = TABLE_VERSION_ITERATION_FIELDS.FIELD_DELFLG;
+
+export async function getVersionIteratorsByPage(clientType : string, pagination : any) {
+    let datas = [];
+    let page = pagination.current;
+    let pageSize = pagination.pageSize;
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        const offset = (page - 1) * pageSize;
+        let count = await window.db[TABLE_VERSION_ITERATION_NAME]
+        .where(version_iterator_delFlg).equals(0)
+        .count();
+        pagination.total = count;
+
+        let users = await getUsers();
+
+        datas = await window.db[TABLE_VERSION_ITERATION_NAME]
+        .where(version_iterator_delFlg).equals(0)
+        .offset(offset)
+        .limit(pageSize)
+        .reverse()
+        .toArray();
+    
+        datas.forEach(item => {
+            item[UNAME] = users.get(item[version_iterator_cuid]);
+        });
+    } else {
+        let result = await sendTeamMessage(VERSION_ITERATIONS_PAGE_URL, pagination);
+        let count = result.count;
+        pagination.total = count;
+        datas = result.list;
+    }
+
+    return datas;
+}
 
 export async function getVersionIterators() {
     let users = await getUsers();

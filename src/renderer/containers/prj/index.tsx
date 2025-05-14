@@ -26,10 +26,8 @@ import {
 import { SHOW_ADD_PRJ_MODEL, SHOW_EDIT_PRJ_MODEL } from '@conf/redux';
 import AddPrjComponent from '@comp/prj/add_prj';
 import { getUser } from '@act/user';
-import { getPrjsByPage, delPrj } from '@act/project';
+import { getPrjsByPage, getPrjs, delPrj } from '@act/project';
 import { langTrans } from '@lang/i18n';
-
-var _ = require('lodash');
 
 const { Header, Content, Footer } = Layout;
 
@@ -301,7 +299,7 @@ class Project extends Component {
     }
   
     setListColumn = () => {
-      let listColumn = _.cloneDeep(this.props.listColumn);
+      let listColumn = cloneDeep(this.props.listColumn);
       listColumn.push({
         title: langTrans("prj table5"),
         key: 'operater',
@@ -317,6 +315,7 @@ class Project extends Component {
                     let pagination = cloneDeep(this.state.pagination);
                     let datas = await getPrjsByPage(this.props.clientType, pagination);
                     this.setState({listDatas: datas, pagination});
+                    getPrjs(this.props.clientType, this.props.dispatch);
                 }}
                 okText={langTrans("prj del sure")}
                 cancelText={langTrans("prj del cancel")}

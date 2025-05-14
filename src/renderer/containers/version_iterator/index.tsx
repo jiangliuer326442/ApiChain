@@ -10,13 +10,14 @@ import {
   Breadcrumb, Layout, Space,
   Flex, Button, Table, Popconfirm,
 } from "antd";
+import { cloneDeep } from 'lodash';
 
 import VersionIteratorSwitch from '@comp/version_iterator/switch';
 import { VERSION_ITERATOR_ADD_ROUTE } from "@conf/routers";
 import { TABLE_VERSION_ITERATION_FIELDS, TABLE_MICRO_SERVICE_FIELDS } from '@conf/db';
 import { 
   getOpenVersionIterators,
-  getVersionIterators, 
+  getVersionIteratorsByPage, 
   delVersionIterator 
 } from "@act/version_iterator";
 import { langTrans } from '@lang/i18n';
@@ -47,8 +48,8 @@ class VersionIterator extends Component {
             width: 200,
             render: (projects) => {
               return projects.
-                filter(_prj => this.props.projects.find(row => row[prj_label] === _prj)).
-                map(_prj => this.props.projects.find(row => row[prj_label] === _prj)[prj_remark]).
+                filter(_prj => this.props.projects.find(row => row.value === _prj)).
+                map(_prj => this.props.projects.find(row => row.value === _prj).label).
                 join(" , ");
             },
           },
@@ -59,7 +60,9 @@ class VersionIterator extends Component {
             render: (status, row) => {
               return <VersionIteratorSwitch defaultChecked={status} uuid={row[version_iterator_uuid]} cb={async ()=>{
                 getOpenVersionIterators(this.props.dispatch);
-                this.setState({listDatas: await getVersionIterators()});
+                let pagination = cloneDeep(this.state.pagination);
+                let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
+                this.setState({listDatas, pagination});
               }} />
             },
           },
@@ -77,7 +80,9 @@ class VersionIterator extends Component {
                   description={langTrans("iterator del desc")}
                   onConfirm={e => {
                       delVersionIterator(record, async ()=>{
-                        this.setState({listDatas: await getVersionIterators()});
+                        let pagination = cloneDeep(this.state.pagination);
+                        let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
+                        this.setState({listDatas});
                       });
                   }}
                   okText={langTrans("iterator del sure")}
@@ -94,11 +99,17 @@ class VersionIterator extends Component {
           }
         ],
         listDatas: [],
+        pagination: {
+          current: 1,
+          pageSize: 10,
+        },
       }
     }
 
     async componentDidMount() {
-      this.setState({listDatas: await getVersionIterators()});
+      let pagination = cloneDeep(this.state.pagination);
+      let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
+      this.setState({listDatas, pagination});
     }
 
     render() : ReactNode {
@@ -112,7 +123,15 @@ class VersionIterator extends Component {
                     <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("iterator bread1") }, { title: langTrans("iterator bread2") }]} />
                     <Button  style={{ margin: '16px 0' }} type="primary" href={"#" + VERSION_ITERATOR_ADD_ROUTE}>{langTrans("iterator add")}</Button>
                 </Flex>
-                <Table dataSource={this.state.listDatas} columns={this.state.listColumn} />
+                <Table 
+                  dataSource={this.state.listDatas} 
+                  rowKey={(record) => record.uuid}
+                  columns={this.state.listColumn} 
+                  pagination={this.state.pagination}
+                  onChange={ async (pagination, filters, sorter) => {
+                    let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
+                    this.setState({listDatas, pagination});
+                  }} />
             </Content>
             <Footer style={{ textAlign: 'center' }}>
             ApiChain ©{new Date().getFullYear()} Created by 方海亮
@@ -125,6 +144,8 @@ class VersionIterator extends Component {
 function mapStateToProps (state) {
     return {
       projects: state.prj.list,
+      teamId: state.device.teamId,
+      clientType: state.device.clientType,
     }
 }
 
