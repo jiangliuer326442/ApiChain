@@ -78,12 +78,11 @@ class VersionIterator extends Component {
                   <Popconfirm
                   title={langTrans("iterator del title")}
                   description={langTrans("iterator del desc")}
-                  onConfirm={e => {
-                      delVersionIterator(record, async ()=>{
-                        let pagination = cloneDeep(this.state.pagination);
-                        let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
-                        this.setState({listDatas});
-                      });
+                  onConfirm={async e => {
+                    await delVersionIterator(this.props.clientType, this.props.teamId, record);
+                    let pagination = cloneDeep(this.state.pagination);
+                    let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
+                    this.setState({listDatas, pagination});
                   }}
                   okText={langTrans("iterator del sure")}
                   cancelText={langTrans("iterator del cancel")}

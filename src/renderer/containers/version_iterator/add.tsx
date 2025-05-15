@@ -15,7 +15,7 @@ import {
 import { TABLE_VERSION_ITERATION_FIELDS, UNAME } from '@conf/db';
 import { getPrjs } from '@act/project';
 import { 
-    getVersionIterator,
+    getRemoteVersionIterator,
     addVersionIterator,
     editVersionIterator,
 } from '@act/version_iterator';
@@ -51,7 +51,7 @@ class VersionIteratorAdd extends Component {
     async componentDidMount() {
         if ('uuid' in this.props.match.params) {
             let uuid = this.props.match.params.uuid;
-            let version_iteration = await getVersionIterator(uuid);
+            let version_iteration = await getRemoteVersionIterator(this.props.clientType, uuid);
             this.setState({
                 uuid, version_iteration, 
                 formReadyFlg: true,
@@ -65,16 +65,14 @@ class VersionIteratorAdd extends Component {
         }
     }
 
-    onFinish: FormProps<FieldType>['onFinish'] = (values) => {
+    onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         let title = values.title.trim();
         if(isStringEmpty(this.state.uuid)) {
-            addVersionIterator(title, this.state.content, values.projects, this.props.device, ()=>{
-                window.location.href = "index.html#" + VERSION_ITERATOR_LIST_ROUTE;
-            });
+            await addVersionIterator(this.props.clientType, this.props.teamId, title, this.state.content, values.projects, this.props.device);
+            this.props.history.push(VERSION_ITERATOR_LIST_ROUTE);
         } else {
-            editVersionIterator(this.state.uuid, title, this.state.content, values.projects, ()=>{
-                window.location.href = "index.html#" + VERSION_ITERATOR_LIST_ROUTE;
-            });
+            await editVersionIterator(this.props.clientType, this.props.teamId, this.state.uuid, title, this.state.content, values.projects);
+            this.props.history.push(VERSION_ITERATOR_LIST_ROUTE);
         }
     };
 

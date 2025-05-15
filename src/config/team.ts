@@ -1,3 +1,5 @@
+import { GET_ENVS } from "./redux";
+
 export const CLIENT_TYPE_SINGLE = "single";
 
 export const CLIENT_TYPE_TEAM = "team";
@@ -34,4 +36,18 @@ export const ENV_VARS_GLOBAL_SET_URL = "/envvars/global/set";
 
 export const ENV_VARS_GLOBAL_DEL_URL = "/envvars/global/del";
 
+export const ENV_VARS_PROJECT_PAGE_URL = "/envvars/project/page";
+
+export const ENV_VARS_PROJECT_SET_URL = "/envvars/project/set";
+
+export const ENV_VARS_PROJECT_DEL_URL = "/envvars/project/del";
+
 export const VERSION_ITERATIONS_PAGE_URL = "/version_iterations/page";
+
+export const VERSION_ITERATIONS_OPENS_URL = "/version_iterations/opens";
+
+export const VERSION_ITERATION_GET_URL = "/version_iterations/get";
+
+export const VERSION_ITERATION_SET_URL = "/version_iterations/set";
+
+export const VERSION_ITERATION_DEL_URL = "/version_iterations/del";

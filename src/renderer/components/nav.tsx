@@ -1,58 +1,12 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Layout, Menu, Flex } from "antd";
-import Dexie from 'dexie';
 
-import { DB_NAME } from '@conf/db';
 import { SET_NAV_COLLAPSED } from '@conf/redux';
-import { getOpenVersionIterators } from "@act/version_iterator";
-import { getPrjs } from "@act/project";
 
 const { Sider } = Layout;
 
 class Nav extends Component {
-
-    constructor(props) {
-        super(props);
-
-        if(window.db === undefined) {
-            window.db = new Dexie(DB_NAME);
-        }
-
-        window.db.on('ready', () => {
-          if (!this.state.initNavFlg) {
-            this.cb();
-          }
-        });
-
-        require('../reducers/db/20240501001');
-        require('../reducers/db/20240601001');
-        require('../reducers/db/20240604001');
-        require('../reducers/db/20240613001');
-        require('../reducers/db/20241028001');
-        require('../reducers/db/20241111001');
-        require('../reducers/db/20241112001');
-        require('../reducers/db/20241114001');
-        require('../reducers/db/20241216001');
-        require('../reducers/db/20250102001');
-
-        this.state = {
-          initNavFlg: false,
-        };
-    }
-
-    async componentDidMount() {
-      await window.db.open();
-      if (!this.state.initNavFlg) {
-        this.cb();
-      }
-    }
-
-    cb = () => {
-      getPrjs(this.props.clientType, this.props.dispatch);
-      getOpenVersionIterators(this.props.dispatch);
-      this.state.initNavFlg = true;
-    }
 
     setCollapsed = (collapsed) => {
       this.props.dispatch({
@@ -101,7 +55,6 @@ function mapStateToProps (state) {
     appName: state.device.appName,
     appVersion: state.device.appVersion,
     collapsed: state.nav.collapsed,
-    clientType: state.device.clientType,
   }
 }
 

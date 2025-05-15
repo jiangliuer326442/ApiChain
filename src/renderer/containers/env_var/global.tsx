@@ -81,7 +81,6 @@ class EnvVar extends Component {
               return (
                 <Space size="small">
                   <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
-                  {(record['allow_del'] === false ) ? null :
                   <Popconfirm
                     title={langTrans("envvar global del title")}
                     description={langTrans("envvar global del desc")}
@@ -93,7 +92,7 @@ class EnvVar extends Component {
                     cancelText={langTrans("envvar global del cancel")}
                   >
                     <Button danger type="link" icon={<DeleteOutlined />} />
-                  </Popconfirm>}
+                  </Popconfirm>
                 </Space>
               )
             },

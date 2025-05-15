@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { mixedSort } from '@rutil/index';
 import { 
     TABLE_VERSION_ITERATION_REQUEST_NAME, TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_VERSION_ITERATION_NAME, TABLE_VERSION_ITERATION_FIELDS,
@@ -7,7 +8,15 @@ import {
     UNAME, TABLE_USER_NAME,
 } from '@conf/db';
 import { GET_VERSION_ITERATORS } from '@conf/redux';
-import { VERSION_ITERATIONS_PAGE_URL, CLIENT_TYPE_SINGLE } from '@conf/team';
+import { 
+    VERSION_ITERATIONS_PAGE_URL, 
+    VERSION_ITERATION_GET_URL, 
+    VERSION_ITERATION_SET_URL, 
+    VERSION_ITERATIONS_OPENS_URL,
+    VERSION_ITERATION_DEL_URL,
+    CLIENT_TYPE_SINGLE,
+    CLIENT_TYPE_TEAM,
+} from '@conf/team';
 
 import { sendTeamMessage } from '@act/message';
 import { getUsers } from '@act/user';
@@ -76,12 +85,20 @@ export async function getVersionIterators() {
     return versionIterators;
 }
 
-export async function getOpenVersionIterators(dispatch) {
-    let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
-    .where([version_iterator_openFlg, version_iterator_delFlg])
-    .equals([1, 0])
-    .reverse()
-    .toArray();
+export async function getOpenVersionIterators(clientType: string, dispatch) {
+    let versionIterators;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
+        .where([version_iterator_openFlg, version_iterator_delFlg])
+        .equals([1, 0])
+        .reverse()
+        .toArray();
+
+        mixedSort(versionIterators, version_iterator_title);
+    } else {
+        let result = await sendTeamMessage(VERSION_ITERATIONS_OPENS_URL, {});
+        versionIterators = result.list;
+    }
 
     dispatch({
         type: GET_VERSION_ITERATORS,
@@ -102,6 +119,25 @@ export async function getOpenVersionIteratorsByPrj(prj : string) {
     return versionIterators;
 }
 
+export async function getRemoteVersionIterator(clientType : string, uuid) {
+    let version_iteration : any = {};
+    let users = await getUsers();
+    if (clientType === CLIENT_TYPE_SINGLE) {
+
+        version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
+        .where(version_iterator_uuid).equals(uuid)
+        .first();
+
+        version_iteration[UNAME] = users.get(version_iteration[version_iterator_cuid]);
+    } else {
+        version_iteration = await sendTeamMessage(VERSION_ITERATION_GET_URL, {uuid});
+        version_iteration[version_iterator_projects] = JSON.parse(version_iteration[version_iterator_projects]);
+        version_iteration[UNAME] = users.get(version_iteration[version_iterator_cuid]);
+    }
+
+    return version_iteration;
+}
+
 export async function getVersionIterator(uuid) {
     let users = await getUsers();
 
@@ -114,20 +150,30 @@ export async function getVersionIterator(uuid) {
     return version_iteration;
 }
 
-export async function delVersionIterator(row, cb) {
-    let uuid = row[version_iterator_uuid];
+export async function delVersionIterator(clientType: string, teamId : string, row) {
 
+    let uuid = row[version_iterator_uuid];
+    
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(VERSION_ITERATION_DEL_URL, {uuid});
+    }
+    
     let version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
     .where(version_iterator_uuid).equals(uuid)
     .first();
 
-    if (version_iteration !== undefined) {
-        version_iteration[version_iterator_uuid] = uuid;
-        version_iteration[version_iterator_delFlg] = 1;
-        console.debug(version_iteration);
-        await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
-        cb();
+    if (version_iteration === undefined) return;
+    
+    version_iteration[version_iterator_uuid] = uuid;
+    version_iteration[version_iterator_delFlg] = 1;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        version_iteration.upload_flg = 0;
+        version_iteration.team_id = "";
+    } else {
+        version_iteration.upload_flg = 1;
+        version_iteration.team_id = teamId;
     }
+    await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
 }
 
 export async function openVersionIterator(uuid, cb) {
@@ -176,9 +222,21 @@ export async function closeVersionIterator(uuid, cb) {
     });
 }
 
-export async function addVersionIterator(title, content, projects, device, cb) {
+export async function addVersionIterator(clientType : string, teamId : string, title, content, projects, device) {
+    let version_iteration_uuid = uuidv4() as string;
+    
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(VERSION_ITERATION_SET_URL, {
+            uuid:version_iteration_uuid, 
+            title, 
+            projects: JSON.stringify(projects), 
+            content
+        });
+    }
+
+
     let version_iteration : any = {};
-    version_iteration[version_iterator_uuid] = uuidv4() as string;
+    version_iteration[version_iterator_uuid] = version_iteration_uuid;
     version_iteration[version_iterator_title] = title;
     version_iteration[version_iterator_content] = content;
     version_iteration[version_iterator_projects] = projects;
@@ -187,12 +245,27 @@ export async function addVersionIterator(title, content, projects, device, cb) {
     version_iteration[version_iterator_cuid] = device.uuid;
     version_iteration[version_iterator_ctime] = Date.now();
     version_iteration[version_iterator_delFlg] = 0;
-    console.debug(version_iteration);
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        version_iteration.upload_flg = 0;
+        version_iteration.team_id = "";
+    } else {
+        version_iteration.upload_flg = 1;
+        version_iteration.team_id = teamId;
+    }
     await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
-    cb();
 }
 
-export async function editVersionIterator(uuid, title, content, projects, cb) {
+export async function editVersionIterator(clientType : string, teamId : string, uuid, title, content, projects) {
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(VERSION_ITERATION_SET_URL, {
+            uuid, 
+            title, 
+            projects: JSON.stringify(projects), 
+            content
+        });
+    }
+
     let version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
     .where(version_iterator_uuid).equals(uuid)
     .first();
@@ -202,8 +275,13 @@ export async function editVersionIterator(uuid, title, content, projects, cb) {
         version_iteration[version_iterator_title] = title;
         version_iteration[version_iterator_content] = content;
         version_iteration[version_iterator_projects] = projects;
-        console.debug(version_iteration);
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            version_iteration.upload_flg = 0;
+            version_iteration.team_id = "";
+        } else {
+            version_iteration.upload_flg = 1;
+            version_iteration.team_id = teamId;
+        }
         await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
-        cb();
     }
 }

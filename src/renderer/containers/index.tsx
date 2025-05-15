@@ -2,20 +2,25 @@ import { Component, ReactNode, Fragment } from 'react';
 import { connect } from 'react-redux';
 import { Route, Switch } from 'react-router-dom';
 import { Layout } from "antd";
+import Dexie from 'dexie';
 
 import { setLang } from '@lang/i18n';
+import { DB_NAME } from '@conf/db';
 import {
     USERCOUNTRY,
     USERLANG,
 } from '@conf/storage';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
+import { getOpenVersionIterators } from "@act/version_iterator";
+import { getPrjs } from "@act/project";
 
 let argsObject = getStartParams();
 console.log("argsObject", argsObject);
 let userCountry = argsObject.userCountry;
 let userLang = argsObject.userLang;
 let uuid = argsObject.uuid;
+let clientType = argsObject.clientType;
 
 if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
     userCountry = sessionStorage.getItem(USERCOUNTRY);
@@ -93,7 +98,7 @@ class MyRouter extends Component {
             ckCodeUrl : argsObject.ckCodeUrl,
             expireTime : parseInt(argsObject.expireTime),
             buyTimes : parseInt(argsObject.buyTimes),
-            clientType: argsObject.clientType,
+            clientType,
             clientHost: argsObject.clientHost,
             teamName: urlDecode(argsObject.teamName), 
             teamId: argsObject.teamId,
@@ -103,6 +108,44 @@ class MyRouter extends Component {
             userCountry,
             userLang,
         });
+
+        if(window.db === undefined) {
+            window.db = new Dexie(DB_NAME);
+        }
+
+        window.db.on('ready', () => {
+            if (!this.state.initNavFlg) {
+            this.cb();
+            }
+        });
+
+        require('../reducers/db/20240501001');
+        require('../reducers/db/20240601001');
+        require('../reducers/db/20240604001');
+        require('../reducers/db/20240613001');
+        require('../reducers/db/20241028001');
+        require('../reducers/db/20241111001');
+        require('../reducers/db/20241112001');
+        require('../reducers/db/20241114001');
+        require('../reducers/db/20241216001');
+        require('../reducers/db/20250102001');
+
+        this.state = {
+            initNavFlg: false,
+        };
+    }
+
+    async componentDidMount() {
+        await window.db.open();
+        if (!this.state.initNavFlg) {
+        this.cb();
+        }
+    }
+
+    cb = () => {
+        getPrjs(clientType, this.props.dispatch);
+        getOpenVersionIterators(clientType, this.props.dispatch);
+        this.state.initNavFlg = true;
     }
 
     render(): ReactNode {

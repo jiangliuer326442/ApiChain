@@ -1,4 +1,5 @@
 import { sendTeamMessage } from '@act/message';
+import { mixedSort } from '@rutil/index';
 import { TABLE_MICRO_SERVICE_NAME, TABLE_MICRO_SERVICE_FIELDS, UNAME } from '@conf/db';
 import { GET_PRJS } from '@conf/redux';
 import { 
@@ -59,6 +60,8 @@ export async function getPrjs(clientType : string, dispatch) {
         .where(prj_delFlg).equals(0)
         .reverse()
         .toArray();
+
+        mixedSort(prjs, prj_remark);
     } else {
         let ret = await sendTeamMessage(PRJS_ALL_LIST_URL, {});
         prjs = ret.list;

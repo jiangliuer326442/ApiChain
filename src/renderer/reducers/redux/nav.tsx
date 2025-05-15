@@ -7,8 +7,6 @@ import {
   FlagOutlined,
 } from '@ant-design/icons';
 
-import { mixedSort } from '@rutil/index';
-
 import {
   NETWORK,
   SETTINGS,
@@ -142,8 +140,6 @@ export default function (state = {
       selectedVersionIteratorNav.children = [];
       let versionIterators = cloneDeep(action.versionIterators);
 
-      mixedSort(versionIterators, version_iterator_title);
-
       for( let versionIterator of versionIterators) {
         selectedVersionIteratorNav.children.push({
           key: ITERATOR + "_" + versionIterator[version_iterator_uuid],
@@ -185,8 +181,6 @@ export default function (state = {
       selectedProjectNav.children = [];
 
       let prjs = cloneDeep(action.prjs);
-
-      mixedSort(prjs, prj_remark);
 
       for( let prj of prjs) {
         selectedProjectNav.children.push({
