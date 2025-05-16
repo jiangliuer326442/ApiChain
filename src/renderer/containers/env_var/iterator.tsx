@@ -6,6 +6,7 @@ import {
   Typography, AutoComplete, Input, Checkbox, message
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
+import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import RequestSendTips from '@clazz/RequestSendTips';
@@ -27,7 +28,7 @@ import {
   getEnvs 
 } from '@act/env';
 import { 
-  getEnvValues, 
+  getIteratorEnvValuesByPage, 
   delEnvValue,
   batchCopyEnvVales,
   batchMoveIteratorEnvValue,
@@ -105,7 +106,7 @@ class EnvVar extends Component {
             return (
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
-                {(record['allow_del'] === false ) ? null : 
+                {(record.source === "iterator_prj" || record.source === "iterator") ? 
                 <Popconfirm
                   title={langTrans("envvar iterator del title")}
                   description={langTrans("envvar iterator del desc")}
@@ -123,7 +124,7 @@ class EnvVar extends Component {
                   cancelText={langTrans("envvar iterator del cancel")}
                 >
                   <Button danger type="link" icon={<DeleteOutlined />} />
-                </Popconfirm>}
+                </Popconfirm> : null}
               </Space>
             )
           },
@@ -139,6 +140,11 @@ class EnvVar extends Component {
       copiedKeys: [],
       showCurrent: true,
       list: [],
+      listDatas: [],
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
     }
   }
   
@@ -165,7 +171,7 @@ class EnvVar extends Component {
     }
 
     getMovedIteratos = async () => {
-      let versionIterators = (await getOpenVersionIterators(this.props.dispatch))
+      let versionIterators = (await getOpenVersionIterators(this.props.clientType, this.props.dispatch))
       .filter(item => item[version_iterator_uuid] != this.state.iterator)
       .map(item => {
           return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
@@ -185,7 +191,9 @@ class EnvVar extends Component {
     addPropertiesClick = () => {
       this.props.dispatch({
           type: SHOW_ADD_PROPERTY_MODEL,
-          open: true
+          open: true,
+          iterator: this.state.iterator,
+          prj: this.state.prj,
       });
     }
   
@@ -193,6 +201,8 @@ class EnvVar extends Component {
       this.props.dispatch({
           type: SHOW_EDIT_PROPERTY_MODEL,
           open: true,
+          iterator: this.state.iterator,
+          prj: this.state.prj,
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
@@ -201,7 +211,7 @@ class EnvVar extends Component {
 
     getEnvValueData = async (prj: string, iterator: string, env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
-      requestSendTip.init(prj, "", iterator, "", this.props.dispatch, env_vars => {});
+      requestSendTip.initIterator(prj, iterator, this.props.dispatch);
       requestSendTip.getTips(envKeys => {
         let tips = [];
         for(let envKey of envKeys) {
@@ -210,9 +220,10 @@ class EnvVar extends Component {
         this.setState( { prj, tips } );
       });
       if(!isStringEmpty(env)) {
-        let envVars = await getEnvValues(prj, env, iterator, "", paramName, this.props.dispatch, envVars => {});
+        let pagination = cloneDeep(this.state.pagination);
+        let envVars = await getIteratorEnvValuesByPage(iterator, prj, env, paramName, this.props.clientType, pagination);
         if (this.state.showCurrent) {
-          envVars = envVars.filter(envVar => envVar['allow_del'])
+          envVars = envVars.filter(envVar => (envVar.source === "iterator_prj" || envVar.source === "iterator"));
         }
         envVars.map(envVar => {
           envVar.key = envVar[pname];
@@ -243,8 +254,8 @@ class EnvVar extends Component {
                   <Form.Item label={langTrans("envvar select tip4")}>
                       <Select
                           style={{ width: 180 }}
-                          options={this.state.versionIteration[version_iterator_prjs] ? this.state.versionIteration[version_iterator_prjs].map(item => {
-                              return {value: item, label: this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : ""}
+                          options={(this.state.versionIteration[version_iterator_prjs] && this.props.prjs.length > 0) ? this.state.versionIteration[version_iterator_prjs].map(item => {
+                              return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : ""}
                           }) : []}
                           onChange={ value => this.getEnvValueData(value, this.state.iterator, this.state.env ? this.state.env : this.props.env, "")}
                       />
@@ -255,9 +266,7 @@ class EnvVar extends Component {
                         value={ this.state.env ? this.state.env : this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
-                        options={this.props.envs.map(item => {
-                          return {value: item.label, label: item.remark}
-                        })}
+                        options={this.props.envs}
                       />
                       :
                       <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("envvar prj add env")}</Button>
@@ -338,8 +347,13 @@ class EnvVar extends Component {
             <Table 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
               dataSource={this.state.list} 
+              rowKey={(record) => record[pname]}
               columns={this.state.listColumn} 
-              />
+              pagination={this.state.pagination}
+              onChange={ async (pagination, filters, sorter) => {
+                this.state.pagination = pagination;
+                this.getEnvValueData(this.state.iterator, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+              }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>
           ApiChain ©{new Date().getFullYear()} Created by 方海亮

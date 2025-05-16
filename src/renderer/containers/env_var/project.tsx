@@ -6,18 +6,19 @@ import {
   Typography, AutoComplete, Input, message
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
+import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
-import { TABLE_ENV_VAR_FIELDS, TABLE_MICRO_SERVICE_FIELDS, UNAME } from '@conf/db';
+import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
 import { ENV_VALUE_API_HOST } from '@conf/envKeys';
 import { ENV_LIST_ROUTE } from '@conf/routers';
 import { getWikiEnv } from '@conf/url';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
 import { 
-  getEnvValues, 
+  getPrjEnvValuesByPage, 
   addEnvValues,
-  delEnvValue,
+  delPrjEnvValues,
   batchCopyEnvVales,
 } from '@act/env_value';
 import RequestSendTips from '@clazz/RequestSendTips';
@@ -31,9 +32,6 @@ let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 class EnvVar extends Component {
 
@@ -86,25 +84,29 @@ class EnvVar extends Component {
             return (
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
-                {(record['allow_del'] === false ) ? null : 
+                {(record.source === 'prj' && record[pname] !== ENV_VALUE_API_HOST) ? 
                 <Popconfirm
                   title={langTrans("envvar prj del title")}
                   description={langTrans("envvar prj del desc")}
-                  onConfirm={e => {
-                      delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", "", record, ()=>{
-                        getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", "", "", this.props.dispatch, env_vars=>{});
-                      });
+                  onConfirm={async e => {
+                      await delPrjEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), record[pname], this.props.clientType, this.props.teamId);
+                      this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
                   }}
                   okText={langTrans("envvar prj del sure")}
                   cancelText={langTrans("envvar prj del cancel")}
                 >
                   <Button danger type="link" icon={<DeleteOutlined />} />
-                </Popconfirm>}
+                </Popconfirm> : null}
               </Space>
             )
           },
         }
       ],
+      listDatas: [],
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
       prj: this.props.match.params.prj,
       tips: [],
       pkeys: [],
@@ -139,7 +141,8 @@ class EnvVar extends Component {
     addPropertiesClick = () => {
       this.props.dispatch({
           type: SHOW_ADD_PROPERTY_MODEL,
-          open: true
+          open: true,
+          prj: this.state.prj
       });
     }
   
@@ -147,13 +150,14 @@ class EnvVar extends Component {
       this.props.dispatch({
           type: SHOW_EDIT_PROPERTY_MODEL,
           open: true,
+          prj: this.state.prj,
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
       });
     }
 
-    getEnvValueData = (prj: string, env: string, paramName: string) => {
+    getEnvValueData = async (prj: string, env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
       requestSendTip.init(prj, "", "", "", this.props.dispatch, env_vars => {});
       requestSendTip.getTips(envKeys => {
@@ -164,25 +168,26 @@ class EnvVar extends Component {
         this.setState( { prj, tips } );
       });
       if(!isStringEmpty(env)) {
-        getEnvValues(prj, env, "", "", paramName, this.props.dispatch, env_vars => {
-          console.debug("env_vars", env_vars);
-          if (!paramName) {
-            this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
+        let pagination = cloneDeep(this.state.pagination);
+        let listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
+        this.setState({listDatas, pagination});
+        if (!paramName) {
+          this.setState({pkeys: listDatas.map(item => ({ value: item[pname] }))});
+        }
+
+        let hasApiHost = false;
+        for (let item of listDatas) {
+          if(item[pname] === ENV_VALUE_API_HOST) {
+            hasApiHost = true;
+            break;
           }
-          let hasApiHost = false;
-          for (let env_var of env_vars) {
-            if(env_var[pname] === ENV_VALUE_API_HOST) {
-              hasApiHost = true;
-              break;
-            }
-          }
-          if(!hasApiHost) {
-            addEnvValues(prj, env, "", "", 
-              ENV_VALUE_API_HOST, "", langTrans("envvar prj api"), this.props.device, ()=>{
-              getEnvValues(prj, env, "", "", "", this.props.dispatch, env_vars => {});
-            });
-          }
-        });
+        }
+        if(!hasApiHost) {
+          await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
+            ENV_VALUE_API_HOST, "", langTrans("envvar prj api"), this.props.device);
+          listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
+          this.setState({listDatas, pagination});
+        }
       }
     }
     
@@ -201,7 +206,7 @@ class EnvVar extends Component {
             <Flex justify="space-between" align="center">
               <Form layout="inline">
                   <Form.Item label={langTrans("envvar prj bread1")}>
-                      {this.props.prjs.find(row => row[prj_label] === this.state.prj) ? this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark] : ""}
+                      {this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : ""}
                   </Form.Item>
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
@@ -251,13 +256,20 @@ class EnvVar extends Component {
                   </Form.Item>
               </Form>
               <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
-              <AddEnvVarComponent tips={this.state.tips} />
+              <AddEnvVarComponent tips={this.state.tips} cb={()=>{
+                this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+              }}  />
             </Flex>
             <Table 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
-              dataSource={this.props.listDatas} 
+              dataSource={this.state.listDatas} 
+              rowKey={(record) => record[pname]}
               columns={this.state.listColumn} 
-              />
+              pagination={this.state.pagination}
+              onChange={ async (pagination, filters, sorter) => {
+                this.state.pagination = pagination;
+                this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+              }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>
           ApiChain ©{new Date().getFullYear()} Created by 方海亮
@@ -269,11 +281,11 @@ class EnvVar extends Component {
 
 function mapStateToProps (state) {
   return {
-      listDatas: state.env_var.list,
       env: state.env_var.env,
       prjs: state.prj.list,
       device : state.device,
       envs: state.env.list,
+      teamId: state.device.teamId,
       clientType: state.device.clientType,
   }
 }

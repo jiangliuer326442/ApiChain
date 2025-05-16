@@ -42,6 +42,12 @@ export const ENV_VARS_PROJECT_SET_URL = "/envvars/project/set";
 
 export const ENV_VARS_PROJECT_DEL_URL = "/envvars/project/del";
 
+export const ENV_VARS_ITERATOR_PAGE_URL = "/envvars/iteration/page";
+
+export const ENV_VARS_ITERATOR_SET_URL = "/envvars/iteration/set";
+
+export const ENV_VARS_ITERATOR_DEL_URL = "/envvars/iteration/del";
+
 export const VERSION_ITERATIONS_PAGE_URL = "/version_iterations/page";
 
 export const VERSION_ITERATIONS_OPENS_URL = "/version_iterations/opens";

@@ -20,7 +20,13 @@ import {
     CLIENT_TYPE_SINGLE, 
     ENV_VARS_GLOBAL_PAGE_URL,
     ENV_VARS_GLOBAL_SET_URL,
+    ENV_VARS_PROJECT_SET_URL,
     ENV_VARS_GLOBAL_DEL_URL,
+    ENV_VARS_PROJECT_DEL_URL,
+    ENV_VARS_PROJECT_PAGE_URL,
+    ENV_VARS_ITERATOR_PAGE_URL,
+    ENV_VARS_ITERATOR_SET_URL,
+    ENV_VARS_ITERATOR_DEL_URL,
 } from '@conf/team'
 import { GET_ENV_VALS } from '@conf/redux';
 import { getUsers } from '@act/user';
@@ -222,6 +228,42 @@ export async function getGlobalEnvValuesByPage(env : string, pname : string, cli
     return datas;
 }
 
+export async function getPrjEnvValuesByPage(prj : string, env : string, pname : string, clientType : string, pagination : any) {
+    let page = pagination.current;
+    let pageSize = pagination.pageSize;
+    let datas = [];
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+    
+    } else {
+        let params = Object.assign({}, pagination, {env, pname, prj});
+        let result = await sendTeamMessage(ENV_VARS_PROJECT_PAGE_URL, params);
+        let count = result.count;
+        pagination.total = count;
+        datas = result.list;
+    }
+
+    return datas;
+}
+
+export async function getIteratorEnvValuesByPage(iterator : string, prj : string, env : string, pname : string, clientType : string, pagination : any) {
+    let page = pagination.current;
+    let pageSize = pagination.pageSize;
+    let datas = [];
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+    
+    } else {
+        let params = Object.assign({}, pagination, {iterator, env, pname, prj});
+        let result = await sendTeamMessage(ENV_VARS_ITERATOR_PAGE_URL, params);
+        let count = result.count;
+        pagination.total = count;
+        datas = result.list;
+    }
+
+    return datas;
+}
+
 export async function delGlobalEnvValues(env : string, pname : string, clientType : string, teamId : string) {
 
     if (clientType === CLIENT_TYPE_TEAM) {
@@ -258,6 +300,54 @@ export async function delGlobalEnvValues(env : string, pname : string, clientTyp
         .equals(['', pname])
         .first();
         env_key[env_key_prj] = '';
+        env_key[env_key_pname] = pname;
+        env_key[env_key_delFlg] = 1;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            env_key.upload_flg = 0;
+            env_key.team_id = "";
+        } else {
+            env_key.upload_flg = 1;
+            env_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+    }
+}
+
+export async function delPrjEnvValues(prj : string, env : string, pname : string, clientType : string, teamId : string) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENV_VARS_PROJECT_DEL_URL, {prj, env, pname});
+    }
+
+    const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
+    .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+    .equals([env, prj, '', '', pname]).first();  
+    if (envVarItem !== undefined) {
+        envVarItem[env_var_delFlg] = 1;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            envVarItem.upload_flg = 0;
+            envVarItem.team_id = "";
+        } else {
+            envVarItem.upload_flg = 1;
+            envVarItem.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
+    }
+
+    const envVars = await window.db[TABLE_ENV_VAR_NAME]
+    .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+    .equals([prj, '', '', pname]).toArray();  
+    let delEnvKeyFlag = true;
+    for (const envVarItem of envVars) {  
+        if (envVarItem[env_var_delFlg] === 0) {
+            delEnvKeyFlag = false;
+        }
+    }
+    if (delEnvKeyFlag) {
+        let env_key = await window.db[TABLE_ENV_KEY_NAME]
+        .where('[' + env_key_prj + '+' + env_key_pname + ']')
+        .equals([prj, pname])
+        .first();
+        env_key[env_key_prj] = prj;
         env_key[env_key_pname] = pname;
         env_key[env_key_delFlg] = 1;
         if (clientType === CLIENT_TYPE_SINGLE) {
@@ -339,6 +429,8 @@ export async function addEnvValues(
         //全局环境变量
         if (isStringEmpty(prj) && isStringEmpty(iteration) && isStringEmpty(unittest)) {
             await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, env, remark});
+        } else if (isStringEmpty(iteration) && isStringEmpty(unittest)) {
+            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, env, remark})
         }
     }
 

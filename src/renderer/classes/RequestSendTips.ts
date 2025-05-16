@@ -73,6 +73,20 @@ export default class {
         this.cb = cb;
     }
 
+    initIterator(
+        prj : string,
+        iteration : string,
+        dispatch : any, 
+    ) {  
+        this.init(prj, "", iteration, "", dispatch, env_vars => {})
+    }
+
+    initGlobal(
+        dispatch : any, 
+    ) {  
+        this.init("", "", "", "", dispatch, env_vars => {})
+    }
+
     getTips(cb: (result: Array<string>) => void) : void {
         if (this.env_vars.length === 0) {
             if (isStringEmpty(this.prj)) {

@@ -6,6 +6,7 @@ import {
   Typography, AutoComplete, Input, message
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
+import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import RequestSendTips from '@clazz/RequestSendTips';
@@ -21,7 +22,6 @@ import {
   batchCopyEnvVales,
 } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
-import { cloneDeep } from 'lodash';
 
 const { Header, Content, Footer } = Layout;
 const { Text, Link } = Typography;
@@ -145,7 +145,7 @@ class EnvVar extends Component {
 
     getEnvValueData = async (env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
-      requestSendTip.init("", "", "", "", this.props.dispatch, env_vars => {});
+      requestSendTip.initGlobal(this.props.dispatch);
       requestSendTip.getTips(envKeys => {
         let tips = [];
         for(let envKey of envKeys) {

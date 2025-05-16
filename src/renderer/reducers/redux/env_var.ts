@@ -11,6 +11,7 @@ import {
 import { 
     TABLE_ENV_VAR_FIELDS,
 } from '@conf/db';
+import { isStringEmpty } from '@rutil/index';
 
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 
@@ -43,7 +44,8 @@ export default function (state = {
         case SHOW_ADD_PROPERTY_MODEL:
             return Object.assign({}, state, {
               showAddPropertyModelFlg : action.open,
-              prj: "",
+              prj: isStringEmpty(action.prj) ? "" : action.prj,
+              iterator: isStringEmpty(action.iterator) ? "" : action.iterator,
               pname: "",
               pvalue: "",
               premark: "",
@@ -51,6 +53,8 @@ export default function (state = {
         case SHOW_EDIT_PROPERTY_MODEL:
           return Object.assign({}, state, {
             showAddPropertyModelFlg : action.open,
+            prj: isStringEmpty(action.prj) ? "" : action.prj,
+            iterator: isStringEmpty(action.iterator) ? "" : action.iterator,
             pname : action.pname,
             pvalue : action.pvalue,
             premark : action.premark,

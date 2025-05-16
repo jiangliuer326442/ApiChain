@@ -2,10 +2,10 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Form, Input, Modal, message } from "antd";
 
-import { isStringEmpty } from '../../util';
-import { SHOW_ADD_PROPERTY_MODEL } from '../../../config/redux';
-import { ENV_VALUE_API_HOST } from '../../../config/envKeys';
-import { addEnvValues, getEnvValues } from '../../actions/env_value';
+import { isStringEmpty } from '@rutil/index';
+import { SHOW_ADD_PROPERTY_MODEL } from '@conf/redux';
+import { ENV_VALUE_API_HOST } from '@conf/envKeys';
+import { addEnvValues } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
@@ -38,6 +38,7 @@ class AddEnvVarComponent extends Component {
     }
 
     handleOk = async () => {
+        console.log("prj", this.props.prj);
         const pname = this.state.pname.trim();
         const pvalue = this.state.pvalue.trim();
         let premark = "";

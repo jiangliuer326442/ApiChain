@@ -61,7 +61,6 @@ export default function (state = {
             framework: action.framework,
           });
         case GET_PRJS:
-          mixedSort(action.prjs, prj_label);
           const list = action.prjs.map(item => ({
             value: item[prj_label],
             label: item[prj_remark]
