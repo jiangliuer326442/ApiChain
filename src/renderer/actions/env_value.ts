@@ -234,7 +234,56 @@ export async function getPrjEnvValuesByPage(prj : string, env : string, pname : 
     let datas = [];
 
     if (clientType === CLIENT_TYPE_SINGLE) {
-    
+        const offset = (page - 1) * pageSize;
+        let projectKeys = new Set<String>();
+        let projectArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, "", "" ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(projectArrays, env_var_pname);
+        projectKeys = new Set(projectArrays.map(item => ( item[env_var_pname])));
+        for (let projectRow of projectArrays) {
+            projectRow.source = 'prj';
+            datas.push(projectRow);
+        }
+        let globalArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, "", "", "" ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (projectKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray(); 
+        mixedSort(globalArrays, env_var_pname);
+        for (let globalRow of globalArrays) {
+            globalRow.source = 'global';
+            datas.push(globalRow);
+        }
+        pagination.total = datas.length;
+
+        datas = datas.splice(offset, pageSize);
+
+        let users = await getUsers();
+        datas.forEach(item => {
+            item[UNAME] = users.get(item[env_var_cuid]);
+        });
     } else {
         let params = Object.assign({}, pagination, {env, pname, prj});
         let result = await sendTeamMessage(ENV_VARS_PROJECT_PAGE_URL, params);
@@ -252,7 +301,105 @@ export async function getIteratorEnvValuesByPage(iterator : string, prj : string
     let datas = [];
 
     if (clientType === CLIENT_TYPE_SINGLE) {
-    
+        const offset = (page - 1) * pageSize;
+        let excludeKeys = new Set<String>();
+        let iteratorPrjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, iterator, "" ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(iteratorPrjArrays, env_var_pname);
+        excludeKeys = new Set(iteratorPrjArrays.map(item => ( item[env_var_pname])));
+        for (let iteratorPrjRow of iteratorPrjArrays) {
+            iteratorPrjRow.source = 'iterator_prj';
+            datas.push(iteratorPrjRow);
+        }
+
+        let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, '', iterator, '' ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(iteratorArrays, env_var_pname);
+        for (let iteratorPrjRow of iteratorPrjArrays) {
+            excludeKeys.add(iteratorPrjRow[env_var_pname]);
+            iteratorPrjRow.source = 'iterator';
+            datas.push(iteratorPrjRow);
+        }
+
+        let prjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, '', '' ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(prjArrays, env_var_pname);
+        for (let prjRow of prjArrays) {
+            excludeKeys.add(prjRow[env_var_pname]);
+            prjRow.source = 'prj';
+            datas.push(prjRow);
+        }
+
+        let globalArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, '', '', '' ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(globalArrays, env_var_pname);
+        for (let globalRow of globalArrays) {
+            excludeKeys.add(globalRow[env_var_pname]);
+            globalRow.source = 'global';
+            datas.push(globalRow);
+        }
+
+        pagination.total = datas.length;
+
+        datas = datas.splice(offset, pageSize);
+
+        let users = await getUsers();
+        datas.forEach(item => {
+            item[UNAME] = users.get(item[env_var_cuid]);
+        });
     } else {
         let params = Object.assign({}, pagination, {iterator, env, pname, prj});
         let result = await sendTeamMessage(ENV_VARS_ITERATOR_PAGE_URL, params);
@@ -361,6 +508,27 @@ export async function delPrjEnvValues(prj : string, env : string, pname : string
     }
 }
 
+export async function delIterationEnvValues(iterator : string, prj : string, env : string, pname : string, clientType : string, teamId : string) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENV_VARS_ITERATOR_DEL_URL, {iterator, prj, env, pname});
+    }
+
+    const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
+    .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+    .equals([env, prj, iterator, '', pname]).first();  
+    if (envVarItem !== undefined) {
+        envVarItem[env_var_delFlg] = 1;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            envVarItem.upload_flg = 0;
+            envVarItem.team_id = "";
+        } else {
+            envVarItem.upload_flg = 1;
+            envVarItem.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
+    }
+}
+
 export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch, cb) : Promise<Array<any>> {
 
     let env_vars = await doGetEnvValues(prj, env, iterator, unittest, pname);
@@ -421,16 +589,18 @@ export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
 
 export async function addEnvValues(
     clientType : string, teamId : string, 
-    prj : string, env : string, iteration : string, unittest : string, 
+    prj : string, env : string, iterator : string, unittest : string, 
     pname : string, pvar, remark,
     device) {
 
     if (clientType === CLIENT_TYPE_TEAM) {
         //全局环境变量
-        if (isStringEmpty(prj) && isStringEmpty(iteration) && isStringEmpty(unittest)) {
+        if (isStringEmpty(prj) && isStringEmpty(iterator) && isStringEmpty(unittest)) {
             await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, env, remark});
-        } else if (isStringEmpty(iteration) && isStringEmpty(unittest)) {
+        } else if (isStringEmpty(iterator) && isStringEmpty(unittest)) {
             await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, env, remark})
+        } else if (isStringEmpty(unittest)) {
+            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, env, remark})
         }
     }
 
@@ -452,7 +622,7 @@ export async function addEnvValues(
     let property_key : any = {};
     property_key[env_var_micro_service] = prj;
     property_key[env_var_env] = env;
-    property_key[env_var_iteration] = iteration;
+    property_key[env_var_iteration] = iterator;
     property_key[env_var_unittest] = unittest;
     property_key[env_var_pname] = pname;
     property_key[env_var_pvalue] = pvar;

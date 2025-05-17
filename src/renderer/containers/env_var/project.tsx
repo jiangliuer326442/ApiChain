@@ -214,9 +214,7 @@ class EnvVar extends Component {
                         value={ this.state.env ? this.state.env : this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
-                        options={this.props.envs.map(item => {
-                          return {value: item.label, label: item.remark}
-                        })}
+                        options={this.props.envs}
                       />
                       :
                       <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("envvar prj add env")}</Button>

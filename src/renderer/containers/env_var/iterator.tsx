@@ -15,7 +15,7 @@ import { getWikiEnv } from '@conf/url';
 import { 
   TABLE_ENV_VAR_FIELDS, 
   TABLE_VERSION_ITERATION_FIELDS,
-  TABLE_MICRO_SERVICE_FIELDS, UNAME,
+  UNAME,
 } from '@conf/db';
 import { 
   ENV_LIST_ROUTE 
@@ -29,7 +29,7 @@ import {
 } from '@act/env';
 import { 
   getIteratorEnvValuesByPage, 
-  delEnvValue,
+  delIterationEnvValues,
   batchCopyEnvVales,
   batchMoveIteratorEnvValue,
 } from '@act/env_value';
@@ -45,9 +45,6 @@ let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
@@ -103,22 +100,29 @@ class EnvVar extends Component {
           key: 'operater',
           width: 100,
           render: (_, record) => {
+            console.log("record", record);
             return (
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
-                {(record.source === "iterator_prj" || record.source === "iterator") ? 
+                {((this.state.prj && record.source === "iterator_prj") || (!this.state.prj && record.source === "iterator")) ? 
                 <Popconfirm
                   title={langTrans("envvar iterator del title")}
                   description={langTrans("envvar iterator del desc")}
-                  onConfirm={e => {
-                      delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", record, ()=>{
-                        this.getEnvValueData(
-                          this.state.prj, 
-                          this.state.iterator, 
-                          (this.state.env ? this.state.env : this.props.env), 
-                          ""
-                        );
-                      });
+                  onConfirm={async e => {
+                    await delIterationEnvValues(
+                      this.state.iterator, 
+                      this.state.prj, 
+                      (this.state.env ? this.state.env : this.props.env), 
+                      record[pname], 
+                      this.props.clientType, 
+                      this.props.teamId
+                    );
+                    this.getEnvValueData(
+                      this.state.prj, 
+                      this.state.iterator, 
+                      (this.state.env ? this.state.env : this.props.env), 
+                      ""
+                    );
                   }}
                   okText={langTrans("envvar iterator del sure")}
                   cancelText={langTrans("envvar iterator del cancel")}
@@ -253,11 +257,15 @@ class EnvVar extends Component {
               <Form layout="inline">
                   <Form.Item label={langTrans("envvar select tip4")}>
                       <Select
+                          allowClear
                           style={{ width: 180 }}
                           options={(this.state.versionIteration[version_iterator_prjs] && this.props.prjs.length > 0) ? this.state.versionIteration[version_iterator_prjs].map(item => {
                               return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : ""}
                           }) : []}
-                          onChange={ value => this.getEnvValueData(value, this.state.iterator, this.state.env ? this.state.env : this.props.env, "")}
+                          onChange={ value => {
+                            if (value === undefined) value = "";
+                            this.getEnvValueData(value, this.state.iterator, this.state.env ? this.state.env : this.props.env, "")
+                          }}
                       />
                   </Form.Item>  
                   <Form.Item label={langTrans("envvar select tip1")}>
