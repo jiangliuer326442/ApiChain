@@ -100,26 +100,37 @@ export async function getOpenVersionIterators(clientType: string, dispatch) {
         versionIterators = result.list;
     }
 
-    dispatch({
-        type: GET_VERSION_ITERATORS,
-        versionIterators
-    });
+    if (dispatch != null) {
+        dispatch({
+            type: GET_VERSION_ITERATORS,
+            versionIterators
+        });
+    }
 
     return versionIterators;
 }
 
-export async function getOpenVersionIteratorsByPrj(prj : string) {
-    let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
-    .where([version_iterator_openFlg, version_iterator_delFlg])
-    .equals([1, 0])
-    .filter(row => row[version_iterator_projects].some(_item => _item === prj))
-    .reverse()
-    .toArray();
+export async function getOpenVersionIteratorsByPrj(clientType : string, prj : string) {
+    let versionIterators;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
+        .where([version_iterator_openFlg, version_iterator_delFlg])
+        .equals([1, 0])
+        .reverse()
+        .toArray();
+        console.log("versionIterators", versionIterators)
+
+        mixedSort(versionIterators, version_iterator_title);
+    } else {
+        let result = await sendTeamMessage(VERSION_ITERATIONS_OPENS_URL, {prj});
+        console.log("result", result)
+        versionIterators = result.list;
+    }
 
     return versionIterators;
 }
 
-export async function getRemoteVersionIterator(clientType : string, uuid) {
+export async function getRemoteVersionIterator(clientType : string, uuid : string) {
     let version_iteration : any = {};
     let users = await getUsers();
     if (clientType === CLIENT_TYPE_SINGLE) {
@@ -134,18 +145,6 @@ export async function getRemoteVersionIterator(clientType : string, uuid) {
         version_iteration[version_iterator_projects] = JSON.parse(version_iteration[version_iterator_projects]);
         version_iteration[UNAME] = users.get(version_iteration[version_iterator_cuid]);
     }
-
-    return version_iteration;
-}
-
-export async function getVersionIterator(uuid) {
-    let users = await getUsers();
-
-    let version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
-    .where(version_iterator_uuid).equals(uuid)
-    .first();
-
-    version_iteration[UNAME] = users.get(version_iteration[version_iterator_cuid]);
 
     return version_iteration;
 }

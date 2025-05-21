@@ -1,7 +1,7 @@
 import md5 from 'js-md5';
 import { cloneDeep } from 'lodash';
 
-import { getType, isStringEmpty } from './index';
+import { getType, isJsonString, isStringEmpty } from './index';
 import { TABLE_JSON_FRAGEMENT_FIELDS } from '../../config/db';
 import { CONTENT_TYPE, DataTypeJsonObject } from '../../config/global_config';
 
@@ -29,6 +29,13 @@ export function retShortJsonContent(jsonObject : object) : object {
 export function shortJsonContent(shortJsonObject : any, jsonObject : any){
     for(let _key in jsonObject) {
         let type = getType(jsonObject[_key]);
+        let stringifyJsonFlg = false;
+        if (type === "String" && isJsonString(jsonObject[_key])) {
+
+            jsonObject[_key] = JSON.parse(jsonObject[_key]);
+            type = getType(jsonObject[_key]);
+            stringifyJsonFlg = true;
+        }
         if (type === "Object") {
             shortJsonObject[_key] = jsonObject[_key];
             shortJsonContent(shortJsonObject[_key], jsonObject[_key]);
@@ -55,6 +62,9 @@ export function shortJsonContent(shortJsonObject : any, jsonObject : any){
             } else {
                 shortJsonObject[_key] = jsonObject[_key].substring(0, 50) + "...";
             }
+        }
+        if (stringifyJsonFlg) {
+            shortJsonObject[_key] = JSON.stringify(jsonObject[_key]);
         }
     }
 }

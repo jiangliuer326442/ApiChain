@@ -34,7 +34,7 @@ import {
   batchMoveIteratorEnvValue,
 } from '@act/env_value';
 import { 
-  getVersionIterator, getOpenVersionIterators
+  getRemoteVersionIterator, getOpenVersionIterators
 } from '@act/version_iterator';
 import { langTrans } from '@lang/i18n';
 
@@ -154,7 +154,7 @@ class EnvVar extends Component {
   
     async componentDidMount(): void {
       this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
-      let versionIteration = await getVersionIterator(this.state.iterator);
+      let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iterator);
       let versionIterations = await this.getMovedIteratos();
       this.setState({ versionIterators: versionIterations, versionIteration });
       if (this.props.envs.length === 0) {
@@ -167,7 +167,7 @@ class EnvVar extends Component {
       if (this.state.iterator !== iteratorId) {
         this.state.iterator = iteratorId;
         this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
-        let versionIteration = await getVersionIterator(iteratorId);
+        let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
         let versionIterations = await this.getMovedIteratos();
         this.setState({ versionIterators: versionIterations, versionIteration });
         this.setState( { versionIteration });
@@ -215,7 +215,7 @@ class EnvVar extends Component {
 
     getEnvValueData = async (prj: string, iterator: string, env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
-      requestSendTip.initIterator(prj, iterator, this.props.dispatch);
+      requestSendTip.initIterator(prj, iterator, this.props.clientType, this.props.dispatch);
       requestSendTip.getTips(envKeys => {
         let tips = [];
         for(let envKey of envKeys) {

@@ -46,7 +46,7 @@ import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
 import { getEnvs } from '@act/env';
 import { getPrjs } from '@act/project';
 import { getEnvValues } from '@act/env_value';
-import { getVersionIterators, getOpenVersionIteratorsByPrj } from "@act/version_iterator";
+import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from "@act/version_iterator";
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
 import { getRequestHistory } from '@act/request_history';
@@ -65,6 +65,7 @@ import JsonSaveResponseHeaderTableContainer from "@comp/request_save/json_save_t
 import JsonSaveResponseCookieTableContainer from "@comp/request_save/json_save_table_response_cookie";
 import JsonSaveResponseTableComponent from "@comp/request_save/json_save_table_response";
 import { langTrans } from '@lang/i18n';
+import { exit } from 'node:process';
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
@@ -168,28 +169,30 @@ class RequestSaveContainer extends Component {
             versionIteratorsSelector: [],
             folders: [],
             contentType: "",
-            versionIterators: [],
+            selectedVersionIterator: {}
         }
     }
 
-    componentDidMount(): void {
+    async componentDidMount(): Promise<void> {
+        let prjs = this.props.prjs;
+        let selectedVersionIterator = {};
         if(this.props.envs.length === 0) {
-            getEnvs(this.props.clientType, this.props.dispatch);
+            await getEnvs(this.props.clientType, this.props.dispatch);
         }
-        if(this.props.prjs.length === 0) {
-            getPrjs(this.props.clientType, this.props.dispatch);
+        if(prjs.length === 0) {
+            prjs = await getPrjs(this.props.clientType, this.props.dispatch);
         }
-        getVersionIterators().then(iterators => {
-            let prjsSelectector = [];
-            if (!isStringEmpty(this.state.iteratorId)) {
-                let prjs = iterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_prjs]
-                for(let prj of prjs) {
-                    let prjRemark = this.props.prjs.find(row => row[prj_label] === prj)[prj_remark];
-                    prjsSelectector.push({label: prjRemark, value: prj});
-                }
+        let prjsSelectector = [];
+        if (!isStringEmpty(this.state.iteratorId)) {
+            selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
+            let selectVersionIterationPrjs = selectedVersionIterator[version_iterator_prjs];
+            for(let _prj of selectVersionIterationPrjs) {
+                let prjRemark = prjs.find(row => row.value === _prj).label;
+                prjsSelectector.push({label: prjRemark, value: _prj});
             }
-            this.setState({versionIterators: iterators, prjsSelectector})
-        })
+        }
+
+        this.setState({selectedVersionIterator, prjsSelectector})
 
         if (!isStringEmpty(this.props.match.params.historyId)) {
             let historyId = Number(this.props.match.params.historyId);
@@ -318,6 +321,7 @@ class RequestSaveContainer extends Component {
                     let formRequestBodyData = {};
                     parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, projectRequest[project_request_body]);
                     parseJsonToFilledTable(formRequestBodyData, requestFileData, projectRequest[project_request_body]);
+                    console.log("formRequestBodyData", formRequestBodyData)
                     let requestParamData = record[request_history_param];
                     let shortRequestParamJsonObject = {};
                     shortJsonContent(shortRequestParamJsonObject, requestParamData);
@@ -688,7 +692,7 @@ class RequestSaveContainer extends Component {
     }
 
     refreshVersionIteratorData = async (prj : string) => {
-        let versionIterators = await getOpenVersionIteratorsByPrj(prj);
+        let versionIterators = await getOpenVersionIteratorsByPrj(this.props.clientType, prj);
         let versionIteratorsSelector = [];
         for(let _index in versionIterators) {
             let versionIteratorsItem = {};
@@ -729,7 +733,7 @@ class RequestSaveContainer extends Component {
                                     onChange={ this.handleRequestProject }
                                 />
                                 : 
-                                (this.props.prjs.find(row => row[prj_label] === this.state.prj) ? this.props.prjs.find(row => row[prj_label] === this.state.prj)[prj_remark] : ""),
+                                (this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : ""),
                             },
                             {
                                 key: isStringEmpty(this.state.iteratorId) ? 'env' : 'iterator',
@@ -737,7 +741,7 @@ class RequestSaveContainer extends Component {
                                 children: isStringEmpty(this.state.iteratorId) ? 
                                 (this.props.envs.find(row => row[env_label] === this.state.env) ? this.props.envs.find(row => row[env_label] === this.state.env)[env_remark] : "") 
                                 : 
-                                (this.state.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId) ? this.state.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_name] : ""),
+                                (Object.keys(this.state.selectedVersionIterator).length > 0 ? this.state.selectedVersionIterator[version_iterator_name] : ""),
                             }
                             ] } />
                         </Flex>

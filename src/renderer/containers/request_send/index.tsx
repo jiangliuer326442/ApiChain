@@ -432,10 +432,10 @@ class RequestSendContainer extends Component {
     this.state.requestUri = uri;
   }
 
-  getEnvValueData = (prj: string, env: string) => {
+  getEnvValueData = async (prj: string, env: string) => {
     if (isStringEmpty(env)) return;
     this.setState(this.getClearState());
-    this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.dispatch, env_vars => {
+    this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.clientType, this.props.dispatch, env_vars => {
       if(env_vars.length === 0) {
         this.setState({ alertMessage: "请到设置菜单配置项目和环境，否则无法发送请求" });
         return;
@@ -446,17 +446,13 @@ class RequestSendContainer extends Component {
         env,
       });
     });
-    this.requestSendTip.getHost(requestHost => {
-      if (isStringEmpty(requestHost)) {
-        this.setState({ alertMessage: "未配置环境变量" + ENV_VALUE_API_HOST + "的值，无法发送请求" });
-        return;
-      } else {
-        this.setState({ requestHost });
-      }
-    });
-    this.requestSendTip.getTips(envKeys => {
-      this.setState({ envKeys });
-    });
+    let requestHost = await this.requestSendTip.getHost();
+    if (isStringEmpty(requestHost)) {
+      this.setState({ alertMessage: "未配置环境变量" + ENV_VALUE_API_HOST + "的值，无法发送请求" });
+      return;
+    }
+    let envKeys = await this.requestSendTip.getTips();
+    this.setState({ requestHost, envKeys: [...envKeys] });
   }
 
   sendRequest = async () => {

@@ -145,6 +145,7 @@ export const TABLE_VERSION_ITERATION_REQUEST_FIELDS = {
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
+    FIELD_EXPORT_DOCFLG : "export_doc_flg",
 }
 
 export const TABLE_PROJECT_REQUEST_NAME = "project_request";

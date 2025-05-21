@@ -23,7 +23,7 @@ import {
 import MarkdownView from '@comp/markdown/show';
 import { getEnvs } from '@act/env';
 import { getVarsByKey } from '@act/env_value';
-import { getVersionIterator } from '@act/version_iterator';
+import { getRemoteVersionIterator } from '@act/version_iterator';
 import { getVersionIteratorRequestsByProject } from '@act/version_iterator_requests';
 import { langTrans } from '@lang/i18n';
 
@@ -89,7 +89,7 @@ class IteratorDoc extends Component {
         } else {
             envs = this.props.envs;
         }
-        let versionIteration = await getVersionIterator(iteratorId);
+        let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
         let versionIterationPrjs = versionIteration[version_iterator_projects];
         let requests = await getVersionIteratorRequestsByProject(iteratorId, "", null, "", "");
         let prjs = this.props.prjs.filter(_prj => versionIterationPrjs.includes(_prj[prj_label]));

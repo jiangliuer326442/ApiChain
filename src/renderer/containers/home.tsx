@@ -268,7 +268,7 @@ class Home extends Component {
   if (isStringEmpty(this.state.searchPrj)) {
     iterators = this.props.versionIterators;
   } else {
-    iterators = await getOpenVersionIteratorsByPrj(this.state.searchPrj);
+    iterators = await getOpenVersionIteratorsByPrj(this.props.clientType, this.state.searchPrj);
   }
   if (iterators.length > 0) {
     for(let _iteraotr of iterators) {

@@ -36,11 +36,15 @@ export const ENV_VARS_GLOBAL_SET_URL = "/envvars/global/set";
 
 export const ENV_VARS_GLOBAL_DEL_URL = "/envvars/global/del";
 
+export const ENV_VARS_PROJECT_DATAS_URL = "/envvars/project/all";
+
 export const ENV_VARS_PROJECT_PAGE_URL = "/envvars/project/page";
 
 export const ENV_VARS_PROJECT_SET_URL = "/envvars/project/set";
 
 export const ENV_VARS_PROJECT_DEL_URL = "/envvars/project/del";
+
+export const ENV_VARS_ITERATOR_DATAS_URL = "/envvars/iteration/all";
 
 export const ENV_VARS_ITERATOR_PAGE_URL = "/envvars/iteration/page";
 

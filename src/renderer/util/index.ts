@@ -91,7 +91,7 @@ export function isJsonString(str : string) : boolean {
   } catch (e) {
       return false;
   }
-  if (str.substring(0, 1) !== "{") {
+  if (str.substring(0, 1) !== "{" && str.substring(0, 1) !== "[") {
       return false;
   }
   return true;

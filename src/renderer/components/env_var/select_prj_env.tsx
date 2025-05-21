@@ -11,7 +11,7 @@ import {
     TABLE_VERSION_ITERATION_FIELDS,
 } from '@conf/db';
 import { getEnvs } from '@act/env';
-import { getVersionIterators, getVersionIterator } from "@act/version_iterator";
+import { getVersionIterators, getRemoteVersionIterator } from "@act/version_iterator";
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 
@@ -43,7 +43,7 @@ class PrjEnvSelect extends Component {
             this.props.cb(this.state.prj, this.state.env);
         }
         if (!isStringEmpty(this.state.iteratorId)) {
-            getVersionIterator(this.state.iteratorId).then(versionIteration => this.setState( { versionIteration } ));
+            getRemoteVersionIterator(this.props.clientType, this.state.iteratorId).then(versionIteration => this.setState( { versionIteration } ));
         }
         getVersionIterators().then(iterators => this.setState({versionIterators: iterators}))
     }

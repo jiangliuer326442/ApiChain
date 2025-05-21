@@ -49,7 +49,7 @@ import {
     isStringEmpty 
 } from '@rutil/index';
 import { getPrjs } from '@act/project';
-import { getVersionIterator, getOpenVersionIteratorsByPrj } from '@act/version_iterator';
+import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import { 
     getVersionIteratorFolders, 
     delVersionIteratorFolder 
@@ -176,18 +176,19 @@ class RequestListVersion extends Component {
     async componentWillReceiveProps(nextProps) {
         let iteratorId = nextProps.match.params.id;
         if (this.state.iteratorId !== iteratorId) {
-            let versionIteration = await getVersionIterator(iteratorId);
+            let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
             this.setState( { iteratorId, versionIteration }, () => this.onFinish({}) );
             localStorage.setItem(ITERATOR, iteratorId);
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         if(this.props.prjs.length === 0) {
-            getPrjs(this.props.dispatch);
+            getPrjs(this.props.clientType, this.props.dispatch);
         }
         this.onFinish({});
-        getVersionIterator(this.state.iteratorId).then(versionIteration => this.setState( { versionIteration, formReadyFlg : true } ));
+        let versionIteration = await getRemoteVersionIterator(this.props.getRemoteVersionIterator, this.state.iteratorId);
+        this.setState( { versionIteration, formReadyFlg : true } )
         localStorage.setItem(ITERATOR, this.state.iteratorId);
     }
 
@@ -350,7 +351,7 @@ class RequestListVersion extends Component {
                                 <Select
                                     style={{ width: 180 }}
                                     options={this.state.versionIteration[version_iterator_prjs].map(item => {
-                                        return {value: item, label: this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : ""}
+                                        return {value: item, label: this.props.prjs.find(row => row.value=== item) ? this.props.prjs.find(row => row.value === item).label : ""}
                                     })}
                                     onChange={ async value => {
                                         this.setState({ prj: value });
@@ -498,7 +499,9 @@ class RequestListVersion extends Component {
     
 function mapStateToProps (state) {
     return {
-        prjs: state.prj.list
+        prjs: state.prj.list,
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
     }
 }
       

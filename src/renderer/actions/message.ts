@@ -1,6 +1,6 @@
 import IDBExportImport from 'indexeddb-export-import';
 
-import { isStringEmpty } from '@rutil/index';
+import { getStartParams, isStringEmpty } from '@rutil/index';
 import {
     IS_AUTO_UPGRADE,
     UNITTEST_ENV,
@@ -39,9 +39,12 @@ import {
 import { getVarsByKey } from '@act/env_value';
 import { getPrjs } from '@act/project';
 import { getEnvs } from '@act/env';
-import { getVersionIterator } from '@act/version_iterator';
+import { getRemoteVersionIterator } from '@act/version_iterator';
 import { getVersionIteratorRequestsByProject } from '@act/version_iterator_requests';
 import { langTrans } from '@lang/i18n';
+
+let argsObject = getStartParams();
+let clientType = argsObject.clientType;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -166,9 +169,9 @@ export default function() : void {
         //刷迭代文档
         window.electron.ipcRenderer.on(ChannelsMarkdownLongStr, async (action, iteratorId) => {
             if (action !== ChannelsMarkdownQueryStr) return;
-            let prjs = await getPrjs(null);
-            let envs = await getEnvs(null);
-            let versionIteration = await getVersionIterator(iteratorId);
+            let prjs = await getPrjs(clientType, null);
+            let envs = await getEnvs(clientType, null);
+            let versionIteration = await getRemoteVersionIterator(clientType, iteratorId);
             let requests = await getVersionIteratorRequestsByProject(iteratorId, "", null, "", "");
 
             let versionIterationPrjs = versionIteration[version_iterator_projects];
@@ -187,7 +190,7 @@ export default function() : void {
         //mock 接口处理
         window.electron.ipcRenderer.on(ChannelsMockServerLongStr, async (action, iteratorId, projectId, method, uri) => {
             if (action !== ChannelsMockServerQueryStr) return;
-            let versionIteration = await getVersionIterator(iteratorId);
+            let versionIteration = await getRemoteVersionIterator(clientType, iteratorId);
             let requests = await getVersionIteratorRequestsByProject(iteratorId, projectId, null, "", uri);
             window.electron.ipcRenderer.sendMessage(ChannelsMockServerLongStr, ChannelsMockServerQueryResultStr, versionIteration, requests);
         });
