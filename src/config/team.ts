@@ -61,3 +61,7 @@ export const VERSION_ITERATION_GET_URL = "/version_iterations/get";
 export const VERSION_ITERATION_SET_URL = "/version_iterations/set";
 
 export const VERSION_ITERATION_DEL_URL = "/version_iterations/del";
+
+export const REQUEST_VERSION_ITERATION_SET_URL = "/requests/iteration/set";
+
+export const REQUEST_PROJECT_SET_URL = "/requests/project/set";

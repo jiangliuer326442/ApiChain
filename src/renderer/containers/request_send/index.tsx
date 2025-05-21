@@ -435,7 +435,7 @@ class RequestSendContainer extends Component {
   getEnvValueData = async (prj: string, env: string) => {
     if (isStringEmpty(env)) return;
     this.setState(this.getClearState());
-    this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.clientType, this.props.dispatch, env_vars => {
+    this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.dispatch, env_vars => {
       if(env_vars.length === 0) {
         this.setState({ alertMessage: "请到设置菜单配置项目和环境，否则无法发送请求" });
         return;
@@ -739,7 +739,11 @@ class RequestSendContainer extends Component {
               <Flex vertical gap="middle">
                 <Flex justify="space-between" align="center">
                   {this.state.showFlg ? 
-                  <SelectPrjEnvComponent iteratorId={this.state.iteratorId} prj={ this.state.prj ? this.state.prj : this.props.prj } env={ this.state.env ? this.state.env : this.props.env } cb={this.getEnvValueData} />
+                  <SelectPrjEnvComponent 
+                    iteratorId={this.state.iteratorId} 
+                    prj={ this.state.prj ? this.state.prj : this.props.prj } 
+                    env={ this.state.env ? this.state.env : this.props.env } 
+                    cb={this.getEnvValueData} />
                   : null}
                   <Button 
                       type="primary" 

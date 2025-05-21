@@ -2,15 +2,19 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_NAME, TABLE_PROJECT_REQUEST_FIELDS,
     UNAME,
-} from '../../config/db';
+} from '@conf/db';
+import { 
+    CLIENT_TYPE_TEAM, CLIENT_TYPE_SINGLE,
+    REQUEST_PROJECT_SET_URL,
+} from '@conf/team';
 import {
     addVersionIteratorFolder
-} from './version_iterator_folders';
+} from '@act/version_iterator_folders';
 import {
     getUsers
-} from './user';
+} from '@act/user';
 
-import { isStringEmpty } from '../util';
+import { isStringEmpty } from '@rutil/index';
 
 let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
@@ -65,10 +69,17 @@ let project_request_cuid = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CUID;
 let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
 let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
-export async function addProjectRequest(project : string, method : string, uri : string, title : string, desc : string, fold : string,
+export async function addProjectRequest(
+    clientType : string, teamId : string,
+    project : string, method : string, uri : string, title : string, desc : string, fold : string,
     header : object, headerHash : string, body : object, bodyHash : string, param : object, paramHash : string, pathVariable : object, pathVariableHash : string, 
     responseContent : object, responseHead : object, responseCookie : object, responseHash : string, responseDemo : string,
     jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean, device : object) {
+
+        if (clientType === CLIENT_TYPE_TEAM) {
+
+        }
+
     let existedProjectRequest = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where('[' + project_request_project + '+' + project_request_method + '+' + project_request_uri + ']')
     .equals([project, method, uri])
@@ -99,6 +110,13 @@ export async function addProjectRequest(project : string, method : string, uri :
         projectRequest[project_request_htmlFlg] = htmlFlg;
         projectRequest[project_request_picFlg] = picFlg;
         projectRequest[project_request_fileFlg] = fileFlg;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            projectRequest.upload_flg = 0;
+            projectRequest.team_id = "";
+        } else {
+            projectRequest.upload_flg = 1;
+            projectRequest.team_id = teamId;
+        }
         projectRequest[project_request_delFlg] = 0;
         projectRequest[project_request_ctime] = Date.now();
         projectRequest[project_request_cuid] = device.uuid;
@@ -124,6 +142,13 @@ export async function addProjectRequest(project : string, method : string, uri :
         existedProjectRequest[project_request_htmlFlg] = htmlFlg;
         existedProjectRequest[project_request_picFlg] = picFlg;
         existedProjectRequest[project_request_fileFlg] = fileFlg;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            existedProjectRequest.upload_flg = 0;
+            existedProjectRequest.team_id = "";
+        } else {
+            existedProjectRequest.upload_flg = 1;
+            existedProjectRequest.team_id = teamId;
+        }
     
         console.debug("addProjectRequest", existedProjectRequest);
     

@@ -1,14 +1,18 @@
-import { cloneDeep } from 'lodash';
 import { 
     TABLE_VERSION_ITERATION_REQUEST_NAME, 
     TABLE_PROJECT_REQUEST_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS, 
     TABLE_USER_NAME,
     UNAME
-} from '../../config/db';
-import { isStringEmpty } from '../util';
-import { getProjectRequests } from './project_request';
-import { getUsers } from './user';
+} from '@conf/db';
+import { 
+    CLIENT_TYPE_TEAM, CLIENT_TYPE_SINGLE,
+    REQUEST_VERSION_ITERATION_SET_URL,
+} from '@conf/team';
+import { isStringEmpty } from '@rutil/index';
+import { sendTeamMessage } from '@act/message';
+import { getProjectRequests } from '@act/project_request';
+import { getUsers } from '@act/user';
 
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -35,6 +39,7 @@ let iteration_request_jsonFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_JSO
 let iteration_request_htmlFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_HTMLFLG;
 let iteration_request_picFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_PICFLG;
 let iteration_request_fileFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FILEFLG;
+let iteration_request_exportdocFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_EXPORT_DOCFLG;
 let iteration_request_cuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CUID;
 let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
 let iteration_request_ctime = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CTIME;
@@ -223,19 +228,37 @@ export async function editVersionIteratorRequest(
 }
 
 export async function addVersionIteratorRequest(
-    iteration_uuid : string, project : string, method : string, uri : string, 
-    title: string, desc: string, fold: string, 
+    clientType : string, teamId : string,
+    iteratorId : string, prj : string, method : string, uri : string, sort : number,
+    title: string, description: string, fold: string, 
     header: object, headerHash: string, body: object, bodyHash: string, param: object, paramHash: string, pathVariable: object, pathVariableHash: string, 
     responseContent: object, responseHead: object, responseCookie: object, responseHash: string, response_demo: object,
-    json_flg: boolean, html_flg: boolean, pic_flg: boolean, file_flg: boolean,
+    json_flg: boolean, html_flg: boolean, pic_flg: boolean, file_flg: boolean, export_doc_flg: boolean,
     device : any) {
+        if (clientType === CLIENT_TYPE_TEAM) {
+            await sendTeamMessage(REQUEST_VERSION_ITERATION_SET_URL, {
+                iteratorId, prj, method, uri, sort,
+                title, description, fold,
+                pic_flg, file_flg, json_flg, html_flg, 
+                header: JSON.stringify(header), 
+                param: JSON.stringify(param), 
+                pathVariable: JSON.stringify(pathVariable), 
+                body: JSON.stringify(body), 
+                responseContent: JSON.stringify(responseContent), 
+                response_demo, 
+                responseHead: JSON.stringify(responseHead), 
+                responseCookie: JSON.stringify(responseCookie), 
+                export_doc_flg
+            });
+        }
     let version_iteration_request : any = {};
-    version_iteration_request[iteration_request_iteration_uuid] = iteration_uuid;
-    version_iteration_request[iteration_request_project] = project;
+    version_iteration_request[iteration_request_iteration_uuid] = iteratorId;
+    version_iteration_request[iteration_request_project] = prj;
     version_iteration_request[iteration_request_method] = method;
     version_iteration_request[iteration_request_uri] = uri;
+    version_iteration_request[iteration_request_sort] = sort;
     version_iteration_request[iteration_request_title] = title;
-    version_iteration_request[iteration_request_desc] = desc;
+    version_iteration_request[iteration_request_desc] = description;
     version_iteration_request[iteration_request_fold] = fold;
     version_iteration_request[iteration_request_header] = header;
     version_iteration_request[iteration_request_header_hash] = headerHash;
@@ -254,6 +277,16 @@ export async function addVersionIteratorRequest(
     version_iteration_request[iteration_request_htmlFlg] = html_flg;
     version_iteration_request[iteration_request_picFlg] = pic_flg;
     version_iteration_request[iteration_request_fileFlg] = file_flg;
+    version_iteration_request[iteration_request_exportdocFlg] = export_doc_flg;
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        version_iteration_request.upload_flg = 0;
+        version_iteration_request.team_id = "";
+    } else {
+        version_iteration_request.upload_flg = 1;
+        version_iteration_request.team_id = teamId;
+    }
+
     version_iteration_request[iteration_request_cuid] = device.uuid;
     version_iteration_request[iteration_request_ctime] = Date.now();
     version_iteration_request[iteration_request_delFlg] = 0;

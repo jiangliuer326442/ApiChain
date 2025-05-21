@@ -42,8 +42,6 @@ export default class {
 
     private unittest: string = "";
 
-    private dispatch: any = null;
-
     private clientType: any = null;
 
     private cb: (envKeyVar: Array<any>) => void = () => {};
@@ -60,19 +58,17 @@ export default class {
         iteration : string, 
         unittest : string,
         clientType : string,
-        dispatch : any, 
         cb : (envKeyVar: Array<any>) => void
     ) {  
         if (this.prj !== prj || this.env !== env) {
             this.env_vars = [];
-            this.envKeyVar = new Map();
+            this.envKeyVarMap = new Map();
         }
         this.prj = prj;
         this.env = env;
         this.iteration = iteration;
         this.unittest = unittest;
         this.clientType = clientType;
-        this.dispatch = dispatch;
         this.cb = cb;
         if (isStringEmpty(this.prj) && isStringEmpty(this.iteration) && isStringEmpty(this.unittest)) {
             this.env_var_type = "global";
@@ -89,16 +85,14 @@ export default class {
         prj : string,
         iteration : string,
         clientType : any, 
-        dispatch : any, 
     ) {  
-        this.init(prj, "", iteration, "", clientType, dispatch, env_vars => {})
+        this.init(prj, "", iteration, "", clientType, env_vars => {})
     }
 
     initGlobal(
         clientType : any,
-        dispatch : any, 
     ) {  
-        this.init("", "", "", "", clientType, dispatch, env_vars => {})
+        this.init("", "", "", "", clientType, env_vars => {})
     }
 
     async getTips() : Promise<Set<string>> {

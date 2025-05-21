@@ -1,11 +1,12 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Input, Divider, Select } from "antd";
+import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Checkbox, Input, Divider, Select } from "antd";
 import { cloneDeep } from 'lodash';
 import { encode } from 'base-64';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
+    getType,
     isStringEmpty
 } from '@rutil/index';
 import {
@@ -31,8 +32,6 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_FIELDS,
     TABLE_REQUEST_HISTORY_FIELDS,
-    TABLE_MICRO_SERVICE_FIELDS,
-    TABLE_ENV_FIELDS,
 } from '@conf/db';
 import {
     CONTENT_TYPE_URLENCODE,
@@ -65,7 +64,6 @@ import JsonSaveResponseHeaderTableContainer from "@comp/request_save/json_save_t
 import JsonSaveResponseCookieTableContainer from "@comp/request_save/json_save_table_response_cookie";
 import JsonSaveResponseTableComponent from "@comp/request_save/json_save_table_response";
 import { langTrans } from '@lang/i18n';
-import { exit } from 'node:process';
 
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
@@ -94,7 +92,9 @@ let version_iterator_request_jsonflg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FI
 let version_iterator_request_htmlflg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_HTMLFLG;
 let version_iterator_request_picflg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_PICFLG;
 let version_iterator_request_fileflg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FILEFLG;
+let version_iterator_request_sort = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_SORT;
 let version_iterator_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
+let version_iterator_request_exportdocflg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_EXPORT_DOCFLG;
 let version_iterator_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let version_iterator_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let version_iterator_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
@@ -122,12 +122,6 @@ let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 
-let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
-let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
-
 class RequestSaveContainer extends Component {
 
     constructor(props) {
@@ -143,6 +137,7 @@ class RequestSaveContainer extends Component {
             requestHost: "",
             requestUri: "",
             requestMethod: "",
+            sort: 0,
             responseDemo: "",
             formResponseData: {},
             formResponseHeadData: {},
@@ -152,6 +147,7 @@ class RequestSaveContainer extends Component {
             isResponseHtml: false,
             isResponsePic: false,
             isResponseFile: false,
+            isExportDoc: false,
             requestHeadData: {},
             formRequestHeadData: {},
             requestHeaderHash: "",
@@ -218,6 +214,8 @@ class RequestSaveContainer extends Component {
         if (!isStringEmpty(this.state.iteratorId)) {
             getVersionIteratorRequest(this.state.iteratorId, prj, method, uri).then(versionIterationRequest => {
                 if (versionIterationRequest !== null) {
+                    let sort = versionIterationRequest[version_iterator_request_sort] === undefined ? 0 : versionIterationRequest[version_iterator_request_sort];
+                    let isExportDoc = (getType(versionIterationRequest[version_iterator_request_exportdocflg]) === "String" && isStringEmpty(versionIterationRequest[version_iterator_request_exportdocflg])) ? true : versionIterationRequest[version_iterator_request_exportdocflg];
                     let requestHeadData = record[request_history_head];
                     let shortRequestHeadJsonObject = {};
                     shortJsonContent(shortRequestHeadJsonObject, requestHeadData);
@@ -298,10 +296,12 @@ class RequestSaveContainer extends Component {
                         formResponseHeadData,
                         formResponseCookieData,
                         responseHash,
+                        isExportDoc,
+                        sort,
                         responseDemo,
                     });
                 } else {
-                    this.simpleBootByRequestHistoryRecord(record, prj, method, uri);
+                    this.simpleBootByRequestHistoryRecord(record, prj, method, uri, true);
                 }
             });
         } else {
@@ -318,10 +318,9 @@ class RequestSaveContainer extends Component {
                     shortJsonContent(shortRequestBodyJsonObject, requestBodyData);
                     let requestFileData = record[request_history_file];
                     let requestBodyHash = iteratorBodyGenHash(shortRequestBodyJsonObject, requestFileData);
-                    let formRequestBodyData = {};
+                    let formRequestBodyData : any = {};
                     parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, projectRequest[project_request_body]);
                     parseJsonToFilledTable(formRequestBodyData, requestFileData, projectRequest[project_request_body]);
-                    console.log("formRequestBodyData", formRequestBodyData)
                     let requestParamData = record[request_history_param];
                     let shortRequestParamJsonObject = {};
                     shortJsonContent(shortRequestParamJsonObject, requestParamData);
@@ -409,7 +408,7 @@ class RequestSaveContainer extends Component {
         }
     }
 
-    simpleBootByRequestHistoryRecord = (historyRecord: any, prj : string, method : string, uri : string) => {
+    simpleBootByRequestHistoryRecord = (historyRecord: any, prj : string, method : string, uri : string, isExportDoc : boolean) => {
         let requestHeadData = historyRecord[request_history_head];
         let requestHeaderHash = iteratorGenHash(requestHeadData);
         let formRequestHeadData = {};
@@ -472,6 +471,7 @@ class RequestSaveContainer extends Component {
             formResponseCookieData,
             responseHash,
             responseDemo,
+            isExportDoc
         });
     }
 
@@ -490,7 +490,13 @@ class RequestSaveContainer extends Component {
 
     handleSetVersionIterator = async (value) => {
         let folders = await getVersionIteratorFolders(value, this.state.prj);
-        this.setState({folders, iteratorId : value})
+        let selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, value);
+        this.state.iteratorId = value;
+        this.setState({selectedVersionIterator, folders})
+        if (!isStringEmpty(this.props.match.params.historyId)) {
+            let historyId = Number(this.props.match.params.historyId);
+            this.initFromRequestHistory(historyId);
+        }
     }
 
     handleSave = async () => {
@@ -542,14 +548,16 @@ class RequestSaveContainer extends Component {
             this.state.isResponseHtml = false;
 
             //新增迭代接口
-            await addVersionIteratorRequest(this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri,
+            await addVersionIteratorRequest(
+                this.props.clientType, this.props.teamId, 
+                this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri, this.state.sort,
                 this.state.title, this.state.description, this.state.selectedFolder, 
                 this.state.formRequestHeadData, this.state.requestHeaderHash, 
                 this.state.formRequestBodyData, this.state.requestBodyHash, 
                 this.state.formRequestParamData, this.state.requestParamHash, 
                 this.state.formRequestPathVariableData, this.state.requestPathVariableHash, 
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData, this.state.responseHash, this.state.responseDemo,
-                this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile,
+                this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile, this.state.isExportDoc,
                 this.props.device
             );
             message.success(langTrans("request save result1"));
@@ -558,7 +566,9 @@ class RequestSaveContainer extends Component {
             //编辑
             if (isStringEmpty(this.state.iteratorId)){
                 //编辑项目接口
-                await addProjectRequest(this.state.prj, this.state.requestMethod, this.state.requestUri,
+                await addProjectRequest(
+                    this.props.clientType, this.props.teamId, 
+                    this.state.prj, this.state.requestMethod, this.state.requestUri,
                     this.state.title, this.state.description, this.state.selectedFolder,
                     this.state.formRequestHeadData, this.state.requestHeaderHash, 
                     this.state.formRequestBodyData, this.state.requestBodyHash, 
@@ -572,14 +582,16 @@ class RequestSaveContainer extends Component {
                 this.props.history.push("/project_requests/" + this.state.prj);
             } else {
                 //编辑迭代接口
-                await addVersionIteratorRequest(this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri,
+                await addVersionIteratorRequest(
+                    this.props.clientType, this.props.teamId,
+                    this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri, this.state.sort,
                     this.state.title, this.state.description, this.state.selectedFolder, 
                     this.state.formRequestHeadData, this.state.requestHeaderHash, 
                     this.state.formRequestBodyData, this.state.requestBodyHash, 
                     this.state.formRequestParamData, this.state.requestParamHash, 
                     this.state.formRequestPathVariableData, this.state.requestPathVariableHash, 
                     this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData, this.state.responseHash, this.state.responseDemo,
-                    this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile,
+                    this.state.isResponseJson, this.state.isResponseHtml, this.state.isResponsePic, this.state.isResponseFile, this.state.isExportDoc,
                     this.props.device
                 );
                 message.success(langTrans("request save result2"));
@@ -739,7 +751,7 @@ class RequestSaveContainer extends Component {
                                 key: isStringEmpty(this.state.iteratorId) ? 'env' : 'iterator',
                                 label: isStringEmpty(this.state.iteratorId) ? langTrans("request save select2") : langTrans("request save select3"),
                                 children: isStringEmpty(this.state.iteratorId) ? 
-                                (this.props.envs.find(row => row[env_label] === this.state.env) ? this.props.envs.find(row => row[env_label] === this.state.env)[env_remark] : "") 
+                                (this.props.envs.find(row => row.value === this.state.env) ? this.props.envs.find(row => row.value === this.state.env).label : "") 
                                 : 
                                 (Object.keys(this.state.selectedVersionIterator).length > 0 ? this.state.selectedVersionIterator[version_iterator_name] : ""),
                             }
@@ -784,6 +796,11 @@ class RequestSaveContainer extends Component {
                                     }}
                                     folders={ this.state.folders }
                                 />
+                                {!isStringEmpty(this.state.iteratorId) ? 
+                                <Form.Item label="导出到文档">
+                                    <Checkbox checked={this.state.isExportDoc} onChange={e => this.setState({isExportDoc: e.target.checked})} />
+                                </Form.Item>
+                                 : null}
                             </Form>
                         </Flex>
                         <Flex>
@@ -889,6 +906,7 @@ function mapStateToProps (state) {
         envs: state.env.list,
         prjs: state.prj.list, 
         device : state.device,
+        teamId: state.device.teamId,
         clientType: state.device.clientType,
     }
 }

@@ -257,9 +257,7 @@ export function iteratorGenHash(originObject : Object) : string {
 }
 
 export function iteratorBodyGenHash(bodyObject : Object, fileObject : Object) : string {
-    let shortBodyObject = {};
-    shortJsonContent(shortBodyObject, bodyObject);
-    let genHash = innerIteratorGenHash("", shortBodyObject);
+    let genHash = innerIteratorGenHash("", bodyObject);
     for (let _key in fileObject) {
         genHash += _key;
     }
