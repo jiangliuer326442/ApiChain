@@ -7,6 +7,7 @@ import {
     CLIENT_TYPE_TEAM, CLIENT_TYPE_SINGLE,
     REQUEST_PROJECT_SET_URL,
 } from '@conf/team';
+import { sendTeamMessage } from '@act/message';
 import {
     addVersionIteratorFolder
 } from '@act/version_iterator_folders';
@@ -71,27 +72,39 @@ let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
 export async function addProjectRequest(
     clientType : string, teamId : string,
-    project : string, method : string, uri : string, title : string, desc : string, fold : string,
+    prj : string, method : string, uri : string, title : string, description : string, fold : string,
     header : object, headerHash : string, body : object, bodyHash : string, param : object, paramHash : string, pathVariable : object, pathVariableHash : string, 
-    responseContent : object, responseHead : object, responseCookie : object, responseHash : string, responseDemo : string,
-    jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean, device : object) {
+    responseContent : object, responseHead : object, responseCookie : object, responseHash : string, response_demo : string,
+    json_flg : boolean, html_flg : boolean, pic_flg : boolean, file_flg : boolean, device : object) {
 
         if (clientType === CLIENT_TYPE_TEAM) {
-
+            await sendTeamMessage(REQUEST_PROJECT_SET_URL, {
+                prj, method, uri, sort: 0,
+                title, description, fold,
+                pic_flg, file_flg, json_flg, html_flg, 
+                header: JSON.stringify(header), 
+                param: JSON.stringify(param), 
+                pathVariable: JSON.stringify(pathVariable), 
+                body: JSON.stringify(body), 
+                responseContent: JSON.stringify(responseContent), 
+                response_demo, 
+                responseHead: JSON.stringify(responseHead), 
+                responseCookie: JSON.stringify(responseCookie)
+            });
         }
 
     let existedProjectRequest = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where('[' + project_request_project + '+' + project_request_method + '+' + project_request_uri + ']')
-    .equals([project, method, uri])
+    .equals([prj, method, uri])
     .first();
     //不存在或者已删除，直接新增
     if (existedProjectRequest === undefined || existedProjectRequest[project_request_delFlg] === 1) {
         let projectRequest : any = {};
-        projectRequest[project_request_project] = project;
+        projectRequest[project_request_project] = prj;
         projectRequest[project_request_method] = method;
         projectRequest[project_request_uri] = uri;
         projectRequest[project_request_title] = title;
-        projectRequest[project_request_desc] = desc;
+        projectRequest[project_request_desc] = description;
         projectRequest[project_request_fold] = fold;
         projectRequest[project_request_header] = header;
         projectRequest[project_request_header_hash] = headerHash;
@@ -105,11 +118,11 @@ export async function addProjectRequest(
         projectRequest[project_request_response_head] = responseHead;
         projectRequest[project_request_response_cookie] = responseCookie;
         projectRequest[project_request_response_hash] = responseHash;
-        projectRequest[project_request_response_demo] = responseDemo;
-        projectRequest[project_request_jsonFlg] = jsonFlg;
-        projectRequest[project_request_htmlFlg] = htmlFlg;
-        projectRequest[project_request_picFlg] = picFlg;
-        projectRequest[project_request_fileFlg] = fileFlg;
+        projectRequest[project_request_response_demo] = response_demo;
+        projectRequest[project_request_jsonFlg] = json_flg;
+        projectRequest[project_request_htmlFlg] = html_flg;
+        projectRequest[project_request_picFlg] = pic_flg;
+        projectRequest[project_request_fileFlg] = file_flg;
         if (clientType === CLIENT_TYPE_SINGLE) {
             projectRequest.upload_flg = 0;
             projectRequest.team_id = "";
@@ -124,7 +137,7 @@ export async function addProjectRequest(
     } else {
         //存在判断是否需要更新
         existedProjectRequest[project_request_title] = title;
-        existedProjectRequest[project_request_desc] = desc;
+        existedProjectRequest[project_request_desc] = description;
         existedProjectRequest[project_request_header] = header;
         existedProjectRequest[project_request_header_hash] = headerHash;
         existedProjectRequest[project_request_body] = body;
@@ -137,11 +150,11 @@ export async function addProjectRequest(
         existedProjectRequest[project_request_response_head] = responseHead;
         existedProjectRequest[project_request_response_cookie] = responseCookie;
         existedProjectRequest[project_request_response_hash] = responseHash;
-        existedProjectRequest[project_request_response_demo] = responseDemo;
-        existedProjectRequest[project_request_jsonFlg] = jsonFlg;
-        existedProjectRequest[project_request_htmlFlg] = htmlFlg;
-        existedProjectRequest[project_request_picFlg] = picFlg;
-        existedProjectRequest[project_request_fileFlg] = fileFlg;
+        existedProjectRequest[project_request_response_demo] = response_demo;
+        existedProjectRequest[project_request_jsonFlg] = json_flg;
+        existedProjectRequest[project_request_htmlFlg] = html_flg;
+        existedProjectRequest[project_request_picFlg] = pic_flg;
+        existedProjectRequest[project_request_fileFlg] = file_flg;
         if (clientType === CLIENT_TYPE_SINGLE) {
             existedProjectRequest.upload_flg = 0;
             existedProjectRequest.team_id = "";
@@ -149,8 +162,6 @@ export async function addProjectRequest(
             existedProjectRequest.upload_flg = 1;
             existedProjectRequest.team_id = teamId;
         }
-    
-        console.debug("addProjectRequest", existedProjectRequest);
     
         await window.db[TABLE_PROJECT_REQUEST_NAME].put(existedProjectRequest);
     }

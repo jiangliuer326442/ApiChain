@@ -118,7 +118,6 @@ export async function getOpenVersionIteratorsByPrj(clientType : string, prj : st
         .equals([1, 0])
         .reverse()
         .toArray();
-        console.log("versionIterators", versionIterators)
 
         mixedSort(versionIterators, version_iterator_title);
     } else {

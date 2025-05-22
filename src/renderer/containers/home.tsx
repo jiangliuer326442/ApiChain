@@ -190,7 +190,6 @@ class Home extends Component {
           user[user_country] = userCountry;
           user[user_lang] = userLang;
           user[user_ip] = ip;
-          console.debug(user);
           await window.db[TABLE_USER_NAME].put(user);
       }
       this.setState({user})

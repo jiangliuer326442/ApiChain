@@ -539,6 +539,7 @@ class RequestSaveContainer extends Component {
 
         //新增（只能新增迭代接口）
         if (isStringEmpty(this.props.match.params.historyId)) {
+            console.log("1111111111111")
             this.state.requestHeaderHash = iteratorGenHash(cleanJson(this.state.formRequestHeadData));
             this.state.requestBodyHash = iteratorGenHash(cleanJson(this.state.formRequestBodyData));
             this.state.requestParamHash = iteratorGenHash(cleanJson(this.state.formRequestParamData));
@@ -565,6 +566,7 @@ class RequestSaveContainer extends Component {
         } else {
             //编辑
             if (isStringEmpty(this.state.iteratorId)){
+                console.log("222222222222222222")
                 //编辑项目接口
                 await addProjectRequest(
                     this.props.clientType, this.props.teamId, 
@@ -581,6 +583,7 @@ class RequestSaveContainer extends Component {
                 message.success(langTrans("request save result2"));
                 this.props.history.push("/project_requests/" + this.state.prj);
             } else {
+                console.log("33333333333333333")
                 //编辑迭代接口
                 await addVersionIteratorRequest(
                     this.props.clientType, this.props.teamId,
