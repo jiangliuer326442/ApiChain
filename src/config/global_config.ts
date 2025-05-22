@@ -40,6 +40,10 @@ export const VipTagDoc = "vip.tag.doc";
 
 export const VipTagMockServer = "vip.tag.mock";
 
+export const FoldSourcePrj = "fold$$prj$$";
+
+export const FoldSourceIterator = "fold$$iterator$$";
+
 export const DataTypeJsonObject = "JsonString";
 
 export const dataTypeSelect = [

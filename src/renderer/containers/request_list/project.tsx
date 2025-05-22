@@ -73,10 +73,12 @@ import {
 } from '@rutil/json';
 import { getVarsByKey } from '@act/env_value';
 import { 
-    addVersionIteratorFolder,
-    getVersionIteratorFolders, 
-    delVersionIteratorFolder 
+    delFolder 
 } from '@act/version_iterator_folders';
+import {
+    addProjectFolder,
+    getProjectFolders
+} from '@act/project_folders';
 import { 
     getProjectRequests, 
     delProjectRequest, 
@@ -175,7 +177,7 @@ class RequestListProject extends Component {
 
     async componentDidUpdate(prevProps) {
         if (prevProps.match.params.id !== this.props.match.params.id) {
-            this.state.folders = await getVersionIteratorFolders("", this.props.match.params.id);
+            this.state.folders = await getProjectFolders(ths.props.clientType, this.props.match.params.id);
             this.onFinish({})
         }
     }
@@ -366,9 +368,9 @@ class RequestListProject extends Component {
                 </Flex>);
                 foldJsx.extra = (!isStringEmpty(fold) ? (
                     <DeleteOutlined onClick={event => {
-                        delVersionIteratorFolder("", this.state.projectLabel, fold, async ()=>{
+                        delFolder("", this.state.projectLabel, fold, async ()=>{
                             message.success("删除文件夹成功");
-                            let folders = await getVersionIteratorFolders("", this.state.projectLabel);
+                            let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel);
                             this.onFinish({
                                 title: this.state.title, 
                                 uri: this.state.uri,
@@ -416,14 +418,13 @@ class RequestListProject extends Component {
         });
     }
 
-    handleCreateFolder = (folderName : string) => {
-        addVersionIteratorFolder("", this.state.projectLabel, folderName, this.props.device, async ()=>{
-            let folders = await getVersionIteratorFolders("", this.state.projectLabel);
-            this.onFinish({
-                folders,
-                title: this.state.title, 
-                uri: this.state.uri
-            });
+    handleCreateFolder = async (folderName : string) => {
+        await addProjectFolder(this.props.clientType, this.props.teamId, this.state.projectLabel, folderName, this.props.device);
+        let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel);
+        this.onFinish({
+            folders,
+            title: this.state.title, 
+            uri: this.state.uri
         });
     }
 
@@ -544,7 +545,9 @@ class RequestListProject extends Component {
     
 function mapStateToProps (state) {
     return {
-        device: state.device,
+        device : state.device,
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
     }
 }
       

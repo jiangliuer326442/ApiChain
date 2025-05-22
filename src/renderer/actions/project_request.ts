@@ -9,8 +9,8 @@ import {
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
 import {
-    addVersionIteratorFolder
-} from '@act/version_iterator_folders';
+    addProjectFolder
+} from '@act/project_folders';
 import {
     getUsers
 } from '@act/user';
@@ -167,7 +167,7 @@ export async function addProjectRequest(
     }
 }
 
-export async function addProjectRequestFromVersionIterator(version_iteration_request : any) {
+export async function addProjectRequestFromVersionIterator(clientType : string, teamId : string, version_iteration_request : any) {
     let existedProjectRequest = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where('[' + project_request_project + '+' + project_request_method + '+' + project_request_uri + ']')
     .equals([version_iteration_request[iteration_request_project], version_iteration_request[iteration_request_method], version_iteration_request[iteration_request_uri]])
@@ -179,7 +179,7 @@ export async function addProjectRequestFromVersionIterator(version_iteration_req
         let device : any = {};
         device.uuid = version_iteration_request[iteration_request_cuid];
         //新增项目文件夹
-        await addVersionIteratorFolder("", project, foldName, device, ()=>{});
+        await addProjectFolder(clientType, teamId, project, foldName, device);
 
         let projectRequest : any = {};
         projectRequest[project_request_project] = project;

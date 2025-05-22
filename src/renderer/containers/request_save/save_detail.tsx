@@ -33,8 +33,11 @@ import FolderSelector from "@comp/request_save/folder";
 import { getPrjs } from '@act/project';
 import { addJsonFragement } from '@act/request_save';
 import { 
-    getVersionIteratorFolders
+    getIteratorFolders
 } from '@act/version_iterator_folders';
+import {
+    getProjectFolders
+} from '@act/project_folders';
 import { editVersionIteratorRequest, getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { editProjectRequest, getProjectRequest } from '@act/project_request';
 
@@ -119,10 +122,14 @@ class RequestSaveContainer extends Component {
 
     async componentDidMount() {
         if(this.props.prjs.length === 0) {
-            getPrjs(this.props.dispatch);
+            getPrjs(this.props.clientType, this.props.dispatch);
         }
-
-        let folders = await getVersionIteratorFolders(this.state.versionIterator, this.state.prj);
+        let folders;
+        if (isStringEmpty(this.state.versionIterator)) {
+            folders = await getProjectFolders(this.props.clientType, this.state.prj);
+        } else {
+            folders = await getIteratorFolders(this.props.clientType, this.state.versionIterator, this.state.prj);
+        }
         this.setState({folders})
 
         if (isStringEmpty(this.state.versionIterator)) {
@@ -448,6 +455,7 @@ function mapStateToProps (state) {
         prjs: state.prj.list,
         device : state.device,
         versionIterators : state['version_iterator'].list,
+        clientType: state.device.clientType,
     }
 }
   

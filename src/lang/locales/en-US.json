@@ -394,6 +394,7 @@
     "request save select6": "Select Requirement Iteration",
     "request save tip6": "Select Requirement Iteration Version",
     "request save tip62": "Create New Requirement Iteration",
+    "request save checkbox1": "Export to Document",
     "request save btn": "Save",
     "request save response header": "Response Header",
     "request save response cookie": "Response Cookie",

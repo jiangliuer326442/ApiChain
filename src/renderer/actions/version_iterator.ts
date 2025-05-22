@@ -122,7 +122,6 @@ export async function getOpenVersionIteratorsByPrj(clientType : string, prj : st
         mixedSort(versionIterators, version_iterator_title);
     } else {
         let result = await sendTeamMessage(VERSION_ITERATIONS_OPENS_URL, {prj});
-        console.log("result", result)
         versionIterators = result.list;
     }
 

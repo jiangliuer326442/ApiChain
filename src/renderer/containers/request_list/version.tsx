@@ -51,8 +51,8 @@ import {
 import { getPrjs } from '@act/project';
 import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import { 
-    getVersionIteratorFolders, 
-    delVersionIteratorFolder 
+    getIteratorFolders, 
+    delFolder 
 } from '@act/version_iterator_folders';
 import { 
     getVersionIteratorRequestsByProject, 
@@ -244,14 +244,14 @@ class RequestListVersion extends Component {
             if (!(prj in requestsDividered)) {
                 requestsDividered[prj] = {};
                 requestsJsxDividered[prj] = [];
-                let versionIterators = (await getOpenVersionIteratorsByPrj(prj))
+                let versionIterators = (await getOpenVersionIteratorsByPrj(this.props.clientType, prj))
                 .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
                 .map(item => {
                     return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
                 });
                 requestsJsxDividered[prj]['__iterators'] = versionIterators;
                 requestsJsxDividered[prj]['__requests'] = [];
-                let folders = await getVersionIteratorFolders(this.state.iteratorId, prj);
+                let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
                 let oldFolders = this.state.folders;
                 oldFolders[prj] = folders;
             }
@@ -269,9 +269,9 @@ class RequestListVersion extends Component {
                 />);
                 foldJsx.extra = ((!isStringEmpty(fold) && this.state.versionIteration[version_iterator_openflg] === 1) ? (
                 <DeleteOutlined onClick={event => {
-                    delVersionIteratorFolder(this.state.iteratorId, prj, fold, async ()=>{
+                    delFolder(this.state.iteratorId, prj, fold, async ()=>{
                         message.success("删除文件夹成功");
-                        let folders = await getVersionIteratorFolders(this.state.iteratorId, prj);
+                        let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
                         let oldFolders = this.state.folders;
                         oldFolders[prj] = folders;
                         this.setState({folders: cloneDeep(this.state.folders)});
@@ -410,11 +410,11 @@ class RequestListVersion extends Component {
                         </Flex>
                     </Flex>
                     {Object.keys(this.state.requestsJsxDividered).map(prj => (
-                        (this.props.prjs.length > 0 && this.props.prjs.find(row => row[prj_label] === prj) ? 
+                        (this.props.prjs.length > 0 && this.props.prjs.find(row => row.value === prj) ? 
                             <div key={prj}>
                                 <Divider orientation="left">
                                     <p>{langFormat("version doc project", {
-                                        name: (this.props.prjs.length > 0 ? this.props.prjs.find(row => row[prj_label] === prj)[prj_remark] : "")
+                                        name: (this.props.prjs.length > 0 ? this.props.prjs.find(row => row.value === prj).label : "")
                                     })}</p >
                                 </Divider>
                                 <Form layout="inline" style={{marginBottom: 16}}>

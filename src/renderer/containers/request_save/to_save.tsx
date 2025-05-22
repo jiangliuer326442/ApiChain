@@ -40,6 +40,8 @@ import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST,
     CONTENT_TYPE,
+    FoldSourcePrj,
+    FoldSourceIterator,
 } from '@conf/global_config';
 import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
 import { getEnvs } from '@act/env';
@@ -51,8 +53,11 @@ import { getProjectRequest } from '@act/project_request';
 import { getRequestHistory } from '@act/request_history';
 import { addJsonFragement } from '@act/request_save';
 import {
-    getVersionIteratorFolders 
+    getIteratorFolders 
 } from '@act/version_iterator_folders';
+import {
+    getProjectFolders 
+} from '@act/project_folders';
 import { addProjectRequest } from '@act/project_request';
 import { addVersionIteratorRequest } from '@act/version_iterator_requests';
 import FolderSelector from "@comp/request_save/folder";
@@ -397,10 +402,13 @@ class RequestSaveContainer extends Component {
     }
 
     initByIteratorPrjEnv = async (iteratorId: string, prj: string, env: string) => {
-        if (!isStringEmpty(iteratorId)) {
-            let folders = await getVersionIteratorFolders(iteratorId, prj);
-            this.setState({folders})
+        let folders;
+        if (isStringEmpty(iteratorId)) {
+            folders = await getProjectFolders(this.props.clientType, prj);
+        } else {
+            folders = await getIteratorFolders(this.props.clientType, iteratorId, prj);
         }
+        this.setState({folders})
 
         this.getEnvValueData(prj, env);
         if (isStringEmpty(this.state.iteratorId)) {
@@ -476,7 +484,12 @@ class RequestSaveContainer extends Component {
     }
 
     handleRequestProject = async (prj) => {
-        let folders = await getVersionIteratorFolders(this.state.iteratorId, prj);
+        let folders;
+        if (isStringEmpty(this.state.iteratorId)) {
+            folders = await getProjectFolders(this.props.clientType, prj);
+        } else {
+            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
+        }
         this.setState({folders, prj})
     }
 
@@ -489,9 +502,14 @@ class RequestSaveContainer extends Component {
     }
 
     handleSetVersionIterator = async (value) => {
-        let folders = await getVersionIteratorFolders(value, this.state.prj);
-        let selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, value);
         this.state.iteratorId = value;
+        let folders;
+        if (isStringEmpty(this.state.iteratorId)) {
+            folders = await getProjectFolders(this.props.clientType, this.state.prj);
+        } else {
+            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, this.state.prj);
+        }
+        let selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, value);
         this.setState({selectedVersionIterator, folders})
         if (!isStringEmpty(this.props.match.params.historyId)) {
             let historyId = Number(this.props.match.params.historyId);
@@ -537,9 +555,11 @@ class RequestSaveContainer extends Component {
             if(this.state.stopFlg) break;
         }
 
+        let folderName = this.state.selectedFolder;
+        let simpleFolderName = folderName.replaceAll(FoldSourcePrj, "").replaceAll(FoldSourceIterator, "");
+
         //新增（只能新增迭代接口）
         if (isStringEmpty(this.props.match.params.historyId)) {
-            console.log("1111111111111")
             this.state.requestHeaderHash = iteratorGenHash(cleanJson(this.state.formRequestHeadData));
             this.state.requestBodyHash = iteratorGenHash(cleanJson(this.state.formRequestBodyData));
             this.state.requestParamHash = iteratorGenHash(cleanJson(this.state.formRequestParamData));
@@ -552,7 +572,7 @@ class RequestSaveContainer extends Component {
             await addVersionIteratorRequest(
                 this.props.clientType, this.props.teamId, 
                 this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri, this.state.sort,
-                this.state.title, this.state.description, this.state.selectedFolder, 
+                this.state.title, this.state.description, simpleFolderName, 
                 this.state.formRequestHeadData, this.state.requestHeaderHash, 
                 this.state.formRequestBodyData, this.state.requestBodyHash, 
                 this.state.formRequestParamData, this.state.requestParamHash, 
@@ -566,12 +586,11 @@ class RequestSaveContainer extends Component {
         } else {
             //编辑
             if (isStringEmpty(this.state.iteratorId)){
-                console.log("222222222222222222")
                 //编辑项目接口
                 await addProjectRequest(
                     this.props.clientType, this.props.teamId, 
                     this.state.prj, this.state.requestMethod, this.state.requestUri,
-                    this.state.title, this.state.description, this.state.selectedFolder,
+                    this.state.title, this.state.description, simpleFolderName,
                     this.state.formRequestHeadData, this.state.requestHeaderHash, 
                     this.state.formRequestBodyData, this.state.requestBodyHash, 
                     this.state.formRequestParamData, this.state.requestParamHash, 
@@ -583,12 +602,11 @@ class RequestSaveContainer extends Component {
                 message.success(langTrans("request save result2"));
                 this.props.history.push("/project_requests/" + this.state.prj);
             } else {
-                console.log("33333333333333333")
                 //编辑迭代接口
                 await addVersionIteratorRequest(
                     this.props.clientType, this.props.teamId,
                     this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri, this.state.sort,
-                    this.state.title, this.state.description, this.state.selectedFolder, 
+                    this.state.title, this.state.description, simpleFolderName, 
                     this.state.formRequestHeadData, this.state.requestHeaderHash, 
                     this.state.formRequestBodyData, this.state.requestBodyHash, 
                     this.state.formRequestParamData, this.state.requestParamHash, 
@@ -794,13 +812,18 @@ class RequestSaveContainer extends Component {
                                     value={ this.state.selectedFolder }
                                     setValue={ value => this.setState({selectedFolder: value}) }
                                     refreshFolders={ async () => {
-                                        let folders = await getVersionIteratorFolders(this.state.iteratorId, this.state.prj);
+                                        let folders;
+                                        if (isStringEmpty(this.state.iteratorId)) {
+                                            folders = await getProjectFolders(this.props.clientType, this.state.prj);
+                                        } else {
+                                            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, this.state.prj);
+                                        }
                                         this.setState({folders, selectedFolder: ""})
                                     }}
                                     folders={ this.state.folders }
                                 />
                                 {!isStringEmpty(this.state.iteratorId) ? 
-                                <Form.Item label="导出到文档">
+                                <Form.Item label={langTrans("request save checkbox1")}>
                                     <Checkbox checked={this.state.isExportDoc} onChange={e => this.setState({isExportDoc: e.target.checked})} />
                                 </Form.Item>
                                  : null}

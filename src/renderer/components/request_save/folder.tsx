@@ -5,9 +5,13 @@ import { DeleteOutlined } from '@ant-design/icons';
 
 import { langTrans } from '@lang/i18n';
 import {
-    addVersionIteratorFolder,
-    delVersionIteratorFolder,
+    addIteratorFolder,
+    delFolder,
 } from '@act/version_iterator_folders';
+import {
+    addProjectFolder
+} from '@act/project_folders';
+import { isStringEmpty } from '@rutil/index';
 
 class FolderSelector extends Component {
 
@@ -18,15 +22,27 @@ class FolderSelector extends Component {
         }
     }
 
-    handleCreateFolder = () => {
-        addVersionIteratorFolder(
-            this.props.versionIterator, 
-            this.props.prj, 
-            this.state.folderName, this.props.device, async () => {
-                this.setState({folderName: ""});
-                this.props.refreshFolders()
-            }
-        );
+    handleCreateFolder = async () => {
+        if (isStringEmpty(this.props.versionIterator)) {
+            await addProjectFolder(
+                this.props.clientType,
+                this.props.teamId,
+                this.props.prj, 
+                this.state.folderName, 
+                this.props.device
+            );
+        } else {
+            await addIteratorFolder(
+                this.props.clientType,
+                this.props.teamId,
+                this.props.versionIterator, 
+                "", 
+                this.state.folderName, 
+                this.props.device
+            );
+        }
+        this.setState({folderName: ""});
+        this.props.refreshFolders()
     }
 
     render() : ReactNode {
@@ -36,20 +52,23 @@ class FolderSelector extends Component {
                     showSearch
                     style={{minWidth: 150}}
                     value={ this.props.value }
-                    onChange={ value => this.props.setValue(value) }
+                    onChange={ value => {
+                        this.props.setValue(value)
+                    } }
                     optionRender={(option) => (
                         <div>
                             <span>{option.label} </span>
                             <DeleteOutlined
                             onClick={(e) => {
                                 e.stopPropagation();
-                                delVersionIteratorFolder(
-                                this.props.versionIterator, 
-                                this.props.prj, 
-                                option.value, 
-                                async () => {
-                                    this.props.refreshFolders()
-                                });
+                                delFolder(
+                                    this.props.versionIterator, 
+                                    this.props.prj, 
+                                    option.value, 
+                                    async () => {
+                                        this.props.refreshFolders()
+                                    }
+                                );
                             }}
                             />
                         </div>
@@ -82,6 +101,8 @@ class FolderSelector extends Component {
 function mapStateToProps (state) {
     return {
         device : state.device,
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
     }
 }
   

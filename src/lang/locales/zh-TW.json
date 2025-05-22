@@ -394,6 +394,7 @@
     "request save select6": "選擇需求迭代",
     "request save tip6": "選擇需求迭代版本",
     "request save tip62": "新建需求迭代",
+    "request save checkbox1": "匯出至文件",
     "request save btn": "儲存",
     "request save response header": "響應Header",
     "request save response cookie": "響應Cookie",
