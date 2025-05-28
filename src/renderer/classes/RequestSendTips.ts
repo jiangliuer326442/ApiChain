@@ -21,7 +21,8 @@ import {
 } from '@conf/global_config'
 import { 
     getIteratorEnvValues, 
-    getPrjEnvValues 
+    getPrjEnvValues,
+    getGlobalEnvValues,
 } from '@act/env_value';
 import { 
     getType, 
@@ -46,8 +47,6 @@ export default class {
 
     private cb: (envKeyVar: Array<any>) => void = () => {};
 
-    private env_vars: Array<any> = [];
-
     private envKeyVarMap: Map<string, string> = new Map();
 
     private env_var_type = "";
@@ -63,6 +62,9 @@ export default class {
         if (this.prj !== prj || this.env !== env) {
             this.env_vars = [];
             this.envKeyVarMap = new Map();
+        }
+        if (env == null) {
+            env = "";
         }
         this.prj = prj;
         this.env = env;
@@ -89,17 +91,23 @@ export default class {
         this.init(prj, "", iteration, "", clientType, env_vars => {})
     }
 
-    initGlobal(
+    initProject(
+        prj : string,
+        env : string,
         clientType : any,
-    ) {  
-        this.init("", "", "", "", clientType, env_vars => {})
+    ) {
+        this.init(prj, env, "", "", clientType, env_vars => {})
+    }
+
+    initGlobal(
+        env : string,
+        clientType : any,
+    ) {
+        this.init("", env, "", "", clientType, env_vars => {})
     }
 
     async getTips() : Promise<Set<string>> {
-        if (this.env_vars.length === 0) {
-            if (isStringEmpty(this.prj)) {
-                this.prj = "";
-            }
+        if (this.envKeyVarMap.size === 0) {
             let env_vars = await this.getEnvValues(this.prj, this.env, this.iteration, "", "");
             this.envKeyVarMap = env_vars;
             this.cb(env_vars);
@@ -187,6 +195,9 @@ export default class {
             return result;
         } else if (this.env_var_type === "prj") {
             let result = await getPrjEnvValues(prj, env, this.clientType);
+            return result;
+        } else if (this.env_var_type === "global") {
+            let result = await getGlobalEnvValues(env, this.clientType);
             return result;
         }
     }

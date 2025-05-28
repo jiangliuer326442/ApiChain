@@ -43,7 +43,6 @@ import {
   ChannelsAutoUpgradeDownloadStr,
 } from '@conf/channel';
 import {
-  TABLE_USER_NAME,
   TABLE_VERSION_ITERATION_REQUEST_NAME,
   TABLE_USER_FIELDS,
   TABLE_PROJECT_REQUEST_NAME,
@@ -60,7 +59,7 @@ import {
   substr,
   getStartParams,
 } from '@rutil/index';
-import { addUser, getUser, setUserName as ac_setUserName, } from '@act/user';
+import { addUser, getUser, setUserName as ac_setUserName, setUserCountryLangIp } from '@act/user';
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import registerMessageHook from '@act/message';
 import PayModel from '@comp/topup';
@@ -71,12 +70,8 @@ const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text, Link } = Typography;
 
 const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
-let user_country = TABLE_USER_FIELDS.FIELD_COUNTRY;
-let user_lang = TABLE_USER_FIELDS.FIELD_LANG;
-let user_ip = TABLE_USER_FIELDS.FIELD_IP;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 let iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 
@@ -181,16 +176,13 @@ class Home extends Component {
 
       let user = null;
       if (!isStringEmpty(uuid)) {
-          user = await getUser(uuid);
+          user = await getUser(this.props.clientType, uuid);
       }
       if (user === null) {
           await addUser(uuid, uname, ip, userCountry, userLang);
-          user = await getUser(uuid);
+          user = await getUser(this.props.clientType, uuid);
       } else {
-          user[user_country] = userCountry;
-          user[user_lang] = userLang;
-          user[user_ip] = ip;
-          await window.db[TABLE_USER_NAME].put(user);
+          await setUserCountryLangIp(this.props.clientType, this.props.teamId, uuid, userCountry, userLang, ip);
       }
       this.setState({user})
   }
@@ -236,8 +228,8 @@ class Home extends Component {
   }
 
   setUserName = async (newUserName) => {
-    await ac_setUserName(this.props.uid, newUserName);
-    let user = await getUser(this.props.uid);
+    await ac_setUserName(this.props.teamId, this.props.clientType, this.props.uid, newUserName);
+    let user = await getUser(this.props.clientType, this.props.uid);
     this.setState({ user });
   }
 
@@ -761,6 +753,7 @@ function mapStateToProps (state) {
     versionIterators : state['version_iterator'].list,
     teamName: state.device.teamName,
     clientType: state.device.clientType,
+    teamId: state.device.teamId,
   }
 }
 

@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { cloneDeep } from 'lodash';
 
 import { 
-    TABLE_USER_NAME,
     TABLE_UNITTEST_FOLD_NAME, TABLE_UNITTEST_FOLD_FIELDS,
     TABLE_UNITTEST_NAME, TABLE_UNITTEST_FIELDS,
     TABLE_UNITTEST_STEPS_NAME,TABLE_UNITTEST_STEPS_FIELDS,
@@ -136,72 +135,63 @@ let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
 export async function batchMoveIteratorUnittest(oldIterator : string, unittestArr : Array<string>, newIterator : string, cb : () => void) {
-    window.db.transaction('rw',
-        window.db[TABLE_USER_NAME],
-        window.db[TABLE_UNITTEST_NAME],
-        window.db[TABLE_UNITTEST_FOLD_NAME], 
-        window.db[TABLE_UNITTEST_STEPS_NAME],
-        window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME],
-        async () => {
-            for (let _unittestRow of unittestArr) {
-                let version_iteration_unittest = await window.db[TABLE_UNITTEST_NAME]
-                .where(field_unittest_uuid)
-                .equals(_unittestRow)
-                .first();
-        
-                if (version_iteration_unittest === undefined) {
-                    continue;
-                }
-        
-                let selectedFold = version_iteration_unittest[unittest_fold];
-                let iteration_unittest_fold = await window.db[TABLE_UNITTEST_FOLD_NAME]
-                .where([version_iteration_test_folder_iterator, version_iteration_test_folder_name])
-                .equals([oldIterator, selectedFold])
-                .first();
-        
-                let iteration_unittest_steps = await window.db[TABLE_UNITTEST_STEPS_NAME]
-                .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-                .equals([0, oldIterator, _unittestRow])
-                .toArray();
-        
-                for (let iteration_unittest_step of iteration_unittest_steps) {
-                    let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
-                    let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-                    .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-                    .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
-                    .toArray();
-                }
-        
-                version_iteration_unittest[unittest_iterator_uuid] = newIterator;
-                await window.db[TABLE_UNITTEST_NAME].put(version_iteration_unittest);
+    for (let _unittestRow of unittestArr) {
+        let version_iteration_unittest = await window.db[TABLE_UNITTEST_NAME]
+        .where(field_unittest_uuid)
+        .equals(_unittestRow)
+        .first();
 
-                if (iteration_unittest_fold !== undefined) {
-                    iteration_unittest_fold[version_iteration_test_folder_iterator] = newIterator;
-                    await window.db[TABLE_UNITTEST_FOLD_NAME].put(iteration_unittest_fold);
-                }
-
-                let cloneIterationUnittestSteps = cloneDeep(iteration_unittest_steps);
-                for (let iteration_unittest_step of cloneIterationUnittestSteps) {
-                    iteration_unittest_step[unittest_step_iterator_uuid] = newIterator;
-                    await window.db[TABLE_UNITTEST_STEPS_NAME].put(iteration_unittest_step);
-                }
-
-                cloneIterationUnittestSteps = cloneDeep(iteration_unittest_steps);
-                for (let iteration_unittest_step of cloneIterationUnittestSteps) {
-                    let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
-                    let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-                    .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-                    .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
-                    .toArray();
-                    for (let iteration_unittest_assert of iteration_unittest_asserts) {
-                        iteration_unittest_assert[unittest_step_assert_iterator] = newIterator;
-                        await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].put(iteration_unittest_assert);
-                    }
-                }
-            }
-            cb();
+        if (version_iteration_unittest === undefined) {
+            continue;
         }
-    );
+
+        let selectedFold = version_iteration_unittest[unittest_fold];
+        let iteration_unittest_fold = await window.db[TABLE_UNITTEST_FOLD_NAME]
+        .where([version_iteration_test_folder_iterator, version_iteration_test_folder_name])
+        .equals([oldIterator, selectedFold])
+        .first();
+
+        let iteration_unittest_steps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+        .equals([0, oldIterator, _unittestRow])
+        .toArray();
+
+        for (let iteration_unittest_step of iteration_unittest_steps) {
+            let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
+            let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
+            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
+            .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
+            .toArray();
+        }
+
+        version_iteration_unittest[unittest_iterator_uuid] = newIterator;
+        await window.db[TABLE_UNITTEST_NAME].put(version_iteration_unittest);
+
+        if (iteration_unittest_fold !== undefined) {
+            iteration_unittest_fold[version_iteration_test_folder_iterator] = newIterator;
+            await window.db[TABLE_UNITTEST_FOLD_NAME].put(iteration_unittest_fold);
+        }
+
+        let cloneIterationUnittestSteps = cloneDeep(iteration_unittest_steps);
+        for (let iteration_unittest_step of cloneIterationUnittestSteps) {
+            iteration_unittest_step[unittest_step_iterator_uuid] = newIterator;
+            await window.db[TABLE_UNITTEST_STEPS_NAME].put(iteration_unittest_step);
+        }
+
+        cloneIterationUnittestSteps = cloneDeep(iteration_unittest_steps);
+        for (let iteration_unittest_step of cloneIterationUnittestSteps) {
+            let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
+            let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
+            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
+            .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
+            .toArray();
+            for (let iteration_unittest_assert of iteration_unittest_asserts) {
+                iteration_unittest_assert[unittest_step_assert_iterator] = newIterator;
+                await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].put(iteration_unittest_assert);
+            }
+        }
+    }
+    cb();
 }
 
 export async function addIteratorUnitTest(versionIteratorId : string, title : string, folder : string, device : object, cb) {
@@ -527,8 +517,8 @@ export async function getProjectUnitTests(project : string, folder : string | nu
     });
 }
 
-export async function getIterationUnitTests(iteratorId : string, folder : string | null, env : string|null, dispatch : any) {
-    let users = await getUsers();
+export async function getIterationUnitTests(clientType : string, iteratorId : string, folder : string | null, env : string|null, dispatch : any) {
+    let users = await getUsers(clientType);
     let unitTests;
     let folders;
 

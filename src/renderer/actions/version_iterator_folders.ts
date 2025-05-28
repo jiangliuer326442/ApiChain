@@ -6,7 +6,7 @@ import {
 import {
     CLIENT_TYPE_TEAM,
     CLIENT_TYPE_SINGLE,
-    FOLDERS_ITERATOR_ALL, FOLDERS_ITERATOR_ADD, FOLDERS_ITERATOR_DEL,
+    FOLDERS_ITERATOR_ALL, FOLDERS_ITERATOR_ADD_URL, FOLDERS_ITERATOR_DEL_URL,
 } from '@conf/team';
 import {
     FoldSourcePrj, FoldSourceIterator
@@ -132,7 +132,7 @@ export async function addIteratorFolder(
 ) {
 
         if (clientType === CLIENT_TYPE_TEAM) {
-            await sendTeamMessage(FOLDERS_ITERATOR_ADD, {iterator: version_iterator, prj: project, name});
+            await sendTeamMessage(FOLDERS_ITERATOR_ADD_URL, {iterator: version_iterator, prj: project, name});
         }
 
         let version_iteration_folder : any = {};

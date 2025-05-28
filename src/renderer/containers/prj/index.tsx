@@ -87,109 +87,99 @@ class Project extends Component {
       let tuid = jsonObject.uid;
       let datas = jsonObject.db;
 
-      window.db.transaction('rw',
-        window.db[TABLE_USER_NAME],
-        window.db[TABLE_MICRO_SERVICE_NAME], 
-        window.db[TABLE_PROJECT_REQUEST_NAME], 
-        window.db[TABLE_ENV_KEY_NAME], 
-        window.db[TABLE_ENV_VAR_NAME], 
-        window.db[TABLE_ENV_NAME],
-        async () => {
-          let users = datas[TABLE_USER_NAME];
-          for (let _user of users) {
-            let _uid = _user[field_uid];
-            //自己跳过
-            if (_uid === this.props.uid) {
-              continue;
-            }
-            //对方直接接收
-            if (_uid === tuid) {
-              await window.db[TABLE_USER_NAME].put(_user);
-              continue;
-            }
-            //其他人不存在则添加
-            let queryUser = await getUser(_uid);
-            if (queryUser === null) {
-              await window.db[TABLE_USER_NAME].put(_user);
-            }
-          }
-
-          let projects = datas[TABLE_MICRO_SERVICE_NAME];
-          for (let _project of projects) {
-            //没创建过的项目进行创建
-            let prj = await window.db[TABLE_MICRO_SERVICE_NAME]
-            .where(prj_label).equals(_project[prj_label])
-            .first();
-        
-            if (prj !== undefined) {
-              continue;
-            }
-            await window.db[TABLE_MICRO_SERVICE_NAME].put(_project);
-          }
-
-          let requests = datas[TABLE_PROJECT_REQUEST_NAME];
-          for (let _request of requests) {
-            let project = _request[project_request_project];
-            let method = _request[project_request_method];
-            let uri = _request[project_request_uri];
-
-            let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
-            .where([ project_request_project, project_request_method, project_request_uri ])
-            .equals([ project, method, uri ])
-            .first();
-            if (project_request !== undefined) {
-              continue;
-            }
-            await window.db[TABLE_PROJECT_REQUEST_NAME].put(_request);
-          }
-
-          let envs = datas[TABLE_ENV_NAME];
-          for (let _env of envs) {
-            //没创建过的环境进行创建
-            let env = await window.db[TABLE_ENV_NAME]
-            .where(env_label).equals(_env[env_label])
-            .first();
-        
-            if (env !== undefined) {
-              continue;
-            }
-            await window.db[TABLE_ENV_NAME].put(_env);
-          }
-
-          let keys = datas[TABLE_ENV_KEY_NAME];
-          for (let _key of keys) {
-            let prj = _key[env_key_prj];
-            let pname = _key[env_key_pname];
-
-            let env_key = await window.db[TABLE_ENV_KEY_NAME]
-            .where([ env_key_prj, env_key_pname ])
-            .equals([prj, pname])
-            .first();
-            if (env_key !== undefined) {
-              continue;
-            }
-            await window.db[TABLE_ENV_KEY_NAME].put(_key);
-          }
-
-          let vars = datas[TABLE_ENV_VAR_NAME];
-          for (let _var of vars) {
-            let env = _var[env_var_env];
-            let prj = _var[env_var_micro_service];
-            let iterator = _var[env_var_iteration];
-            let unittest = _var[env_var_unittest];
-            let pname = _var[env_var_pname];
-
-            let envVarItem = await db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-            .equals([env, prj, iterator, unittest, pname])
-            .first();
-            if (envVarItem !== undefined) {
-              continue;
-            }
-            await window.db[TABLE_ENV_VAR_NAME].put(_var);
-          }
+      let users = datas[TABLE_USER_NAME];
+      for (let _user of users) {
+        let _uid = _user[field_uid];
+        //自己跳过
+        if (_uid === this.props.uid) {
+          continue;
         }
-      );
+        //对方直接接收
+        if (_uid === tuid) {
+          await window.db[TABLE_USER_NAME].put(_user);
+          continue;
+        }
+        //其他人不存在则添加
+        let queryUser = await getUser(this.props.clientType, _uid);
+        if (queryUser === null) {
+          await window.db[TABLE_USER_NAME].put(_user);
+        }
+      }
+
+      let projects = datas[TABLE_MICRO_SERVICE_NAME];
+      for (let _project of projects) {
+        //没创建过的项目进行创建
+        let prj = await window.db[TABLE_MICRO_SERVICE_NAME]
+        .where(prj_label).equals(_project[prj_label])
+        .first();
+    
+        if (prj !== undefined) {
+          continue;
+        }
+        await window.db[TABLE_MICRO_SERVICE_NAME].put(_project);
+      }
+
+      let requests = datas[TABLE_PROJECT_REQUEST_NAME];
+      for (let _request of requests) {
+        let project = _request[project_request_project];
+        let method = _request[project_request_method];
+        let uri = _request[project_request_uri];
+
+        let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
+        .where([ project_request_project, project_request_method, project_request_uri ])
+        .equals([ project, method, uri ])
+        .first();
+        if (project_request !== undefined) {
+          continue;
+        }
+        await window.db[TABLE_PROJECT_REQUEST_NAME].put(_request);
+      }
+
+      let envs = datas[TABLE_ENV_NAME];
+      for (let _env of envs) {
+        //没创建过的环境进行创建
+        let env = await window.db[TABLE_ENV_NAME]
+        .where(env_label).equals(_env[env_label])
+        .first();
+    
+        if (env !== undefined) {
+          continue;
+        }
+        await window.db[TABLE_ENV_NAME].put(_env);
+      }
+
+      let keys = datas[TABLE_ENV_KEY_NAME];
+      for (let _key of keys) {
+        let prj = _key[env_key_prj];
+        let pname = _key[env_key_pname];
+
+        let env_key = await window.db[TABLE_ENV_KEY_NAME]
+        .where([ env_key_prj, env_key_pname ])
+        .equals([prj, pname])
+        .first();
+        if (env_key !== undefined) {
+          continue;
+        }
+        await window.db[TABLE_ENV_KEY_NAME].put(_key);
+      }
+
+      let vars = datas[TABLE_ENV_VAR_NAME];
+      for (let _var of vars) {
+        let env = _var[env_var_env];
+        let prj = _var[env_var_micro_service];
+        let iterator = _var[env_var_iteration];
+        let unittest = _var[env_var_unittest];
+        let pname = _var[env_var_pname];
+
+        let envVarItem = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+        .equals([env, prj, iterator, unittest, pname])
+        .first();
+        if (envVarItem !== undefined) {
+          continue;
+        }
+        await window.db[TABLE_ENV_VAR_NAME].put(_var);
+      }
       let projectNum = datas[TABLE_MICRO_SERVICE_NAME].length;
       message.success("成功导入 " + projectNum + " 个项目");
       let pagination = cloneDeep(this.state.pagination);

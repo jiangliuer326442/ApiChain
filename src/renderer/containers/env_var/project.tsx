@@ -12,6 +12,7 @@ import { isStringEmpty, getdayjs } from '@rutil/index';
 import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
 import { ENV_VALUE_API_HOST } from '@conf/envKeys';
 import { ENV_LIST_ROUTE } from '@conf/routers';
+import { GET_ENV_VALS } from '@conf/redux';
 import { getWikiEnv } from '@conf/url';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
@@ -130,6 +131,13 @@ class EnvVar extends Component {
   }
 
     setEnvironmentChange = (value: string) => {
+      this.props.dispatch({
+        type: GET_ENV_VALS,
+        prj: this.state.prj,
+        env: value,
+        iterator: "",
+        unittest: ""
+      });
       this.setState({env: value});
       this.getEnvValueData(this.state.prj, value, "");
     }
@@ -159,14 +167,13 @@ class EnvVar extends Component {
 
     getEnvValueData = async (prj: string, env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
-      requestSendTip.init(prj, "", "", "", this.props.dispatch, env_vars => {});
-      requestSendTip.getTips(envKeys => {
-        let tips = [];
-        for(let envKey of envKeys) {
-          tips.push( {value: envKey} );
-        }
-        this.setState( { prj, tips } );
-      });
+      requestSendTip.initProject(prj, env, this.props.clientType);
+      let envKeys = await requestSendTip.getTips();
+      let tips = [];
+      for(let envKey of envKeys) {
+        tips.push( {value: envKey} );
+      }
+      this.setState( { tips, prj } );
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
         let listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);

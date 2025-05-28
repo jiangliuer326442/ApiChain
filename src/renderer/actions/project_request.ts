@@ -237,8 +237,8 @@ export async function addProjectRequestFromVersionIterator(clientType : string, 
     }
 }
 
-export async function getProjectRequest(project : string, method : string, uri : string) {
-    let users = await getUsers();
+export async function getProjectRequest(clientType:string, project : string, method : string, uri : string) {
+    let users = await getUsers(clientType);
 
     let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where([ project_request_project, project_request_method, project_request_uri ])

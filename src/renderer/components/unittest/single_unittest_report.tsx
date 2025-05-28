@@ -10,7 +10,7 @@ import { getdayjs, isStringEmpty } from '@rutil/index';
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST
-} from '../../../config/global_config';
+} from '@conf/global_config';
 import { ENV_VALUE_API_HOST } from '@conf/envKeys';
 import {
     TABLE_UNITTEST_FIELDS,
@@ -32,7 +32,7 @@ import {
     getUnitTestStepAsserts,
 } from '@act/unittest';
 import {
-    getEnvValues
+    getPrjEnvValuesByPage
 } from '@act/env_value';
 import { langFormat, langTrans } from '@lang/i18n';
 
@@ -125,7 +125,10 @@ class SingleUnitTestReport extends Component {
             
             let promises = []
             for(let prj of prjs) {
-                promises.push(getEnvValues(prj, this.props.env, this.props.iteratorId, "", ENV_VALUE_API_HOST, this.props.dispatch, result => {}));
+                promises.push(getPrjEnvValuesByPage(prj, this.props.env, ENV_VALUE_API_HOST, this.props.clientType, {
+                    current: 1,
+                    pageSize: 1,
+                }));
             }
             let values = await Promise.all(promises);
             let hosts : any = {};
@@ -333,6 +336,7 @@ class SingleUnitTestReport extends Component {
 
 function mapStateToProps (state) {
     return {
+        clientType: state.device.clientType,
         unittest: state.unittest.list,
         prjs: state.prj.list,
         envs: state.env.list,

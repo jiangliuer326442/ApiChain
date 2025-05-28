@@ -27,11 +27,6 @@ export default function (state = {
   }, action : any) {
     switch(action.type) {
         case GET_ENV_VALS:
-            let list : any[] = [];
-            action.env_vars.map(envVar => {
-                envVar.key = envVar[env_var_pname];
-                list.push(envVar);
-            });
             localStorage.setItem(PRJ, action.prj);
             localStorage.setItem(ENV, action.env);
             return Object.assign({}, state, {
@@ -39,7 +34,6 @@ export default function (state = {
               env: action.env,
               iterator: action.iterator,
               unittest: action.unittest,
-              list,
             });
         case SHOW_ADD_PROPERTY_MODEL:
             return Object.assign({}, state, {

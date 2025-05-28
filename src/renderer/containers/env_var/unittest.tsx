@@ -23,7 +23,6 @@ import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
 import { getSingleUnittest } from '@act/unittest';
 import { 
-  getEnvValues, 
   delEnvValue,
   batchCopyEnvVales,
 } from '@act/env_value';
@@ -107,7 +106,7 @@ class EnvVar extends Component {
                   description={langTrans("envvar unittest del desc")}
                   onConfirm={e => {
                       delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", this.state.unittestId, record, ()=>{
-                        getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", this.state.unittestId, "", this.props.dispatch, env_vars=>{});
+                        // getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", this.state.unittestId, "", this.props.dispatch, env_vars=>{});
                       });
                   }}
                   okText={langTrans("envvar unittest del sure")}
@@ -184,11 +183,11 @@ class EnvVar extends Component {
         this.setState( { prj, tips } );
       });
       if(!isStringEmpty(env)) {
-        getEnvValues(prj, env, "", unittestId, paramName, this.props.dispatch, env_vars => {
-          if (!paramName) {
-            this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
-          }
-        });
+        // getEnvValues(prj, env, "", unittestId, paramName, this.props.dispatch, env_vars => {
+        //   if (!paramName) {
+        //     this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
+        //   }
+        // });
       }
     }
 

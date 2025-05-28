@@ -52,9 +52,9 @@ class TeamModel extends Component {
             if (err) {
                 message.error("数据库导出失败")
             } else {
-                let user = await getUser(this.props.uid);
+                let user = await getUser(this.props.clientType, this.props.uid);
                 let uname = user.uname;
-                let users = await getUsers();
+                let users = await getUsers(this.props.clientType);
                 let usersList = []
                 for (const [_uid, _uname] of users) {
                     usersList.push(_uid + "$$" + _uname);

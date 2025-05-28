@@ -46,7 +46,7 @@ import {
 import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
 import { getEnvs } from '@act/env';
 import { getPrjs } from '@act/project';
-import { getEnvValues } from '@act/env_value';
+import { getPrjEnvValues, getIteratorEnvValues } from '@act/env_value';
 import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from "@act/version_iterator";
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
@@ -698,14 +698,19 @@ class RequestSaveContainer extends Component {
         ];
     }
 
-    getEnvValueData = (prj: string, env: string) => {
+    getEnvValueData = async (prj: string, env: string) => {
         if(!(isStringEmpty(prj) || isStringEmpty(env))) {
-          getEnvValues(prj, env, this.state.iteratorId, "", "", this.props.dispatch, env_vars => {
+            let env_vars;
+            if (isStringEmpty(this.state.iteratorId)) {
+                env_vars = await getPrjEnvValues(prj, env, this.props.clientType);
+            } else {
+                env_vars = await getIteratorEnvValues(this.state.iteratorId, prj, env, this.props.clientType);
+            }
             if(env_vars.length === 0) {
               message.error("项目和环境已被删除，该请求无法保存到迭代");
               return;
             }
-            for(let env_value of env_vars) {
+            for(let env_value : any of env_vars) {
               if(env_value[env_var_pname] === ENV_VALUE_API_HOST) {
                 let requestHost = env_value[env_var_pvalue];
                 if (isStringEmpty(requestHost)) {
@@ -719,8 +724,6 @@ class RequestSaveContainer extends Component {
                 });
               }
             }
-          })
-          
         }
     }
 

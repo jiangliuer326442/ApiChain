@@ -30,6 +30,8 @@ export const PRJS_DEL_URL = "/prjs/del";
 
 export const PRJS_ALL_LIST_URL = "/prjs/all";
 
+export const ENV_VARS_GLOBAL_DATAS_URL = "/envvars/global/all";
+
 export const ENV_VARS_GLOBAL_PAGE_URL = "/envvars/global/page";
 
 export const ENV_VARS_GLOBAL_SET_URL = "/envvars/global/set";
@@ -74,6 +76,14 @@ export const FOLDERS_PROJECT_DEL = "/folders/project/del";
 
 export const FOLDERS_ITERATOR_ALL = "/folders/iterator/all";
 
-export const FOLDERS_ITERATOR_ADD = "/folders/iterator/add";
+export const FOLDERS_ITERATOR_ADD_URL = "/folders/iterator/add";
 
-export const FOLDERS_ITERATOR_DEL = "/folders/iterator/del";
+export const FOLDERS_ITERATOR_DEL_URL = "/folders/iterator/del";
+
+export const USERS_ALL_URL = "/users/all";
+
+export const USERS_GET_URL = "/users/get";
+
+export const USERS_SET_MY_UNAME_URL = "/users/set_uname";
+
+export const USERS_SET_MY_INFO_URL = "/users/set_user_info";

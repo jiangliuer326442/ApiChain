@@ -10,6 +10,7 @@ import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import RequestSendTips from '@clazz/RequestSendTips';
+import { GET_ENV_VALS } from '@conf/redux';
 import AddEnvVarComponent from '@comp/env_var/add_env_var';
 import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
 import { ENV_LIST_ROUTE } from '@conf/routers';
@@ -118,6 +119,13 @@ class EnvVar extends Component {
     }
 
     setEnvironmentChange = (value: string) => {
+      this.props.dispatch({
+        type: GET_ENV_VALS,
+        prj: "",
+        env: value,
+        iterator: "",
+        unittest: ""
+      });
       this.setState({env: value});
       this.getEnvValueData(value, "");
     }
@@ -145,14 +153,13 @@ class EnvVar extends Component {
 
     getEnvValueData = async (env: string, paramName: string) => {
       let requestSendTip = new RequestSendTips();
-      requestSendTip.initGlobal(this.props.clientType);
-      requestSendTip.getTips(envKeys => {
-        let tips = [];
-        for(let envKey of envKeys) {
-          tips.push( {value: envKey} );
-        }
-        this.setState( { tips } );
-      });
+      requestSendTip.initGlobal(env, this.props.clientType);
+      let envKeys = await requestSendTip.getTips();
+      let tips = [];
+      for(let envKey of envKeys) {
+        tips.push( {value: envKey} );
+      }
+      this.setState( { tips } );
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
         let datas = await getGlobalEnvValuesByPage(env, paramName, this.props.clientType, pagination);
@@ -168,6 +175,7 @@ class EnvVar extends Component {
     }
   
     render() : ReactNode {
+      console.log("props.env", this.props.env, "state.env", this.state.env);
       return (
         <Layout>
           <Header style={{ padding: 0 }}>

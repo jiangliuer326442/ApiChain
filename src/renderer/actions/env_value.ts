@@ -5,16 +5,13 @@ import {
     mixedSort
 } from '@rutil/index'
 import {
-    sub, union
+    union
 } from '@rutil/sets'
 import { 
     TABLE_ENV_KEY_NAME, TABLE_ENV_KEY_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
-    TABLE_USER_NAME, UNAME
+    UNAME
 } from '@conf/db';
-import {
-    ENV_VALUE_API_HOST
-} from '@conf/envKeys';
 import { 
     CLIENT_TYPE_TEAM,
     CLIENT_TYPE_SINGLE, 
@@ -24,13 +21,13 @@ import {
     ENV_VARS_GLOBAL_DEL_URL,
     ENV_VARS_PROJECT_DEL_URL,
     ENV_VARS_PROJECT_PAGE_URL,
+    ENV_VARS_GLOBAL_DATAS_URL,
     ENV_VARS_PROJECT_DATAS_URL,
     ENV_VARS_ITERATOR_DATAS_URL,
     ENV_VARS_ITERATOR_PAGE_URL,
     ENV_VARS_ITERATOR_SET_URL,
     ENV_VARS_ITERATOR_DEL_URL,
-} from '@conf/team'
-import { GET_ENV_VALS } from '@conf/redux';
+} from '@conf/team';
 import { getUsers } from '@act/user';
 import { sendTeamMessage } from '@act/message';
 
@@ -52,75 +49,68 @@ let env_var_cuid = TABLE_ENV_VAR_FIELDS.FIELD_CUID;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 export async function batchMoveIteratorEnvValue(prj : string, env : string, oldIterator : string, envVarKeyArr : Array<string>, newIterator : string, cb : () => void) {
-    window.db.transaction('rw',
-        window.db[TABLE_USER_NAME],
-        window.db[TABLE_ENV_VAR_NAME],
-        window.db[TABLE_ENV_KEY_NAME],
-        async () => {
-            for (let _envVarKey of envVarKeyArr) {
-                if (!isStringEmpty(prj)) {
-                    let iteratorPlusPrjObject = await db[TABLE_ENV_VAR_NAME]
-                    .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
-                    .equals([env, prj, oldIterator, "", _envVarKey])
-                    .filter(row => {
-                        if (row[env_var_delFlg]) {
-                            return false;
-                        }
-                        return true;
-                    })
-                    .first();
-
-                    if (iteratorPlusPrjObject === undefined) {
-                        continue;
-                    }
-
-                    await db[TABLE_ENV_VAR_NAME]
-                    .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
-                    .equals([env, prj, oldIterator, "", _envVarKey])
-                    .filter(row => {
-                        if (row[env_var_delFlg]) {
-                            return false;
-                        }
-                        return true;
-                    })
-                    .delete();
-                    let newData = cloneDeep(iteratorPlusPrjObject);
-                    newData[env_var_iteration] = newIterator;
-                    await window.db[TABLE_ENV_VAR_NAME].put(newData);
+    for (let _envVarKey of envVarKeyArr) {
+        if (!isStringEmpty(prj)) {
+            let iteratorPlusPrjObject = await db[TABLE_ENV_VAR_NAME]
+            .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
+            .equals([env, prj, oldIterator, "", _envVarKey])
+            .filter(row => {
+                if (row[env_var_delFlg]) {
+                    return false;
                 }
-                
-                let iteratorObject = await db[TABLE_ENV_VAR_NAME]
-                .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
-                .equals([env, "", oldIterator, "", _envVarKey])
-                .filter(row => {
-                    if (row[env_var_delFlg]) {
-                        return false;
-                    }
-                    return true;
-                })
-                .first();
-                
-                if (iteratorObject === undefined) {
-                    continue;
-                }
+                return true;
+            })
+            .first();
 
-                await db[TABLE_ENV_VAR_NAME]
-                .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
-                .equals([env, "", oldIterator, "", _envVarKey])
-                .filter(row => {
-                    if (row[env_var_delFlg]) {
-                        return false;
-                    }
-                    return true;
-                })
-                .delete();
-                let newData = cloneDeep(iteratorObject);
-                newData[env_var_iteration] = newIterator;
-                await window.db[TABLE_ENV_VAR_NAME].put(newData);
+            if (iteratorPlusPrjObject === undefined) {
+                continue;
             }
-            cb();
+
+            await db[TABLE_ENV_VAR_NAME]
+            .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
+            .equals([env, prj, oldIterator, "", _envVarKey])
+            .filter(row => {
+                if (row[env_var_delFlg]) {
+                    return false;
+                }
+                return true;
+            })
+            .delete();
+            let newData = cloneDeep(iteratorPlusPrjObject);
+            newData[env_var_iteration] = newIterator;
+            await window.db[TABLE_ENV_VAR_NAME].put(newData);
         }
-    );
+        
+        let iteratorObject = await db[TABLE_ENV_VAR_NAME]
+        .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
+        .equals([env, "", oldIterator, "", _envVarKey])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .first();
+        
+        if (iteratorObject === undefined) {
+            continue;
+        }
+
+        await db[TABLE_ENV_VAR_NAME]
+        .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest, env_var_pname])
+        .equals([env, "", oldIterator, "", _envVarKey])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .delete();
+        let newData = cloneDeep(iteratorObject);
+        newData[env_var_iteration] = newIterator;
+        await window.db[TABLE_ENV_VAR_NAME].put(newData);
+    }
+    cb();
 }
 
 export async function getVarsByKey(prj, pname) {
@@ -215,7 +205,7 @@ export async function getGlobalEnvValuesByPage(env : string, pname : string, cli
 
         datas = globalArrays.splice(offset, pageSize);
 
-        let users = await getUsers();
+        let users = await getUsers(clientType);
         datas.forEach(item => {
             item[UNAME] = users.get(item[env_var_cuid]);
         });
@@ -228,6 +218,30 @@ export async function getGlobalEnvValuesByPage(env : string, pname : string, cli
     }
 
     return datas;
+}
+
+export async function getGlobalEnvValues(env : string, clientType : string) {
+    let datas : any = {};
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        let globalArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, "", "", "" ])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray(); 
+        for (let globalRow of globalArrays) {
+            datas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
+        }
+    } else {
+        datas = await sendTeamMessage(ENV_VARS_GLOBAL_DATAS_URL, {env});
+    }
+
+    return new Map(Object.entries(datas));
 }
 
 export async function getPrjEnvValuesByPage(prj : string, env : string, pname : string, clientType : string, pagination : any) {
@@ -282,7 +296,7 @@ export async function getPrjEnvValuesByPage(prj : string, env : string, pname : 
 
         datas = datas.splice(offset, pageSize);
 
-        let users = await getUsers();
+        let users = await getUsers(clientType);
         datas.forEach(item => {
             item[UNAME] = users.get(item[env_var_cuid]);
         });
@@ -440,7 +454,7 @@ export async function getIteratorEnvValuesByPage(iterator : string, prj : string
 
         datas = datas.splice(offset, pageSize);
 
-        let users = await getUsers();
+        let users = await getUsers(clientType);
         datas.forEach(item => {
             item[UNAME] = users.get(item[env_var_cuid]);
         });
@@ -653,62 +667,38 @@ export async function delIterationEnvValues(iterator : string, prj : string, env
     }
 }
 
-export async function getEnvValues(prj, env, iterator, unittest, pname, dispatch, cb) : Promise<Array<any>> {
-
-    let env_vars = await doGetEnvValues(prj, env, iterator, unittest, pname);
-
-    cb(env_vars);
-
-    dispatch({
-        type: GET_ENV_VALS,
-        prj,
-        env,
-        iterator,
-        unittest,
-        env_vars,
-    });
-
-    return env_vars;
-}
-
 export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
-    window.db.transaction('rw',
-        window.db[TABLE_ENV_KEY_NAME],
-        window.db[TABLE_ENV_VAR_NAME], 
-        window.db[TABLE_USER_NAME],
-        async () => {
-            let pname = row[env_var_pname];
+    let pname = row[env_var_pname];
 
-            const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-            .equals([env, prj, iteration, unittest, pname]).first();  
-            if (envVarItem !== undefined) {
-                envVarItem[env_var_delFlg] = 1;
-                await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
-            }
+    const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
+    .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+    .equals([env, prj, iteration, unittest, pname]).first();  
+    if (envVarItem !== undefined) {
+        envVarItem[env_var_delFlg] = 1;
+        await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
+    }
 
-            const envVars = await window.db[TABLE_ENV_VAR_NAME]
-            .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-            .equals([prj, iteration, "", pname]).toArray();  
-            let delEnvKeyFlag = true;
-            for (const envVarItem of envVars) {  
-                if (envVarItem[env_var_delFlg] === 0) {
-                    delEnvKeyFlag = false;
-                }
-            }
-            if (delEnvKeyFlag) {
-                let env_key = await window.db[TABLE_ENV_KEY_NAME]
-                .where('[' + env_key_prj + '+' + env_key_pname + ']')
-                .equals([prj, pname])
-                .first();
-                env_key[env_key_prj] = prj;
-                env_key[env_key_pname] = pname;
-                env_key[env_key_delFlg] = 1;
-                console.debug(env_key);
-                await window.db[TABLE_ENV_KEY_NAME].put(env_key);
-            }
-            cb();
-    });
+    const envVars = await window.db[TABLE_ENV_VAR_NAME]
+    .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+    .equals([prj, iteration, "", pname]).toArray();  
+    let delEnvKeyFlag = true;
+    for (const envVarItem of envVars) {  
+        if (envVarItem[env_var_delFlg] === 0) {
+            delEnvKeyFlag = false;
+        }
+    }
+    if (delEnvKeyFlag) {
+        let env_key = await window.db[TABLE_ENV_KEY_NAME]
+        .where('[' + env_key_prj + '+' + env_key_pname + ']')
+        .equals([prj, pname])
+        .first();
+        env_key[env_key_prj] = prj;
+        env_key[env_key_pname] = pname;
+        env_key[env_key_delFlg] = 1;
+        console.debug(env_key);
+        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+    }
+    cb();
 }
 
 export async function addEnvValues(
@@ -763,178 +753,4 @@ export async function addEnvValues(
     }
     await window.db[TABLE_ENV_VAR_NAME].put(property_key);
 
-}
-
-async function doGetEnvValues(prj, env, iterator, unittest, pname) : Promise<Array<any>> {
-    const env_vars = []; 
-
-    // 优先级 迭代+项目 > 迭代 > 项目 > 全局
-    let iteratorPlusPrjKeys = new Set<String>();
-    let iteratorKeys = new Set<String>();
-    let unittestPlusPrjKeys = new Set<String>();
-    let unittestKeys = new Set<String>();
-    let projectKeys = new Set<String>();
-    let globalKeys = new Set<String>();
-
-    if (!isStringEmpty(iterator)) {
-        if (!isStringEmpty(prj)) {
-            let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
-            .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest])
-            .equals([env, prj, iterator, ""])
-            .filter(row => {
-                if (row[env_var_delFlg]) {
-                    return false;
-                }
-                return true;
-            })
-            .toArray();
-            if (pname) {
-                iteratorPlusPrjKeys = new Set([pname]);
-            } else {
-                iteratorPlusPrjKeys = new Set(iteratorPlusPrjArrays.map(item => ( item[env_var_pname])));
-            }
-            for (let iteratorPlusPrjRow of iteratorPlusPrjArrays) {
-                let _pname = iteratorPlusPrjRow[env_var_pname];
-                if (iteratorPlusPrjKeys.has(_pname)) {
-                    iteratorPlusPrjRow['allow_del'] = true;
-                    env_vars.push(iteratorPlusPrjRow);
-                }
-            }
-        }
-
-        let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
-        .where([env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest])
-        .equals([env, "", iterator, ""])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return true;
-        })
-        .toArray();
-        if (pname) {
-            iteratorKeys = new Set([pname]);
-        } else {
-            let _keys = iteratorArrays.map(item => ( item[env_var_pname]));
-            iteratorKeys = sub(_keys, iteratorPlusPrjKeys);
-        }
-        for (let iteratorRow of iteratorArrays) {
-            let _pname = iteratorRow[env_var_pname];
-            if (iteratorKeys.has(_pname)) {
-                iteratorRow['allow_del'] = !prj;
-                env_vars.push(iteratorRow);
-            }
-        }
-    } else if (!isStringEmpty(unittest)) {
-        if (!isStringEmpty(prj)) {
-            let unittestPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
-            .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
-            .equals([ env, prj, "", unittest ])
-            .filter(row => {
-                if (row[env_var_delFlg]) {
-                    return false;
-                }
-                return true;
-            })
-            .toArray();
-            if (pname) {
-                unittestPlusPrjKeys = new Set([pname]);
-            } else {
-                unittestPlusPrjKeys = new Set(unittestPlusPrjArrays.map(item => ( item[env_var_pname])));
-            }
-            for (let unittestPlusPrjRow of unittestPlusPrjArrays) {
-                let _pname = unittestPlusPrjRow[env_var_pname];
-                if (unittestPlusPrjKeys.has(_pname)) {
-                    unittestPlusPrjRow['allow_del'] = true;
-                    env_vars.push(unittestPlusPrjRow);
-                }
-            }
-        }
-
-        let unittestArrays = await db[TABLE_ENV_VAR_NAME]
-        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
-        .equals([ env, "", "", unittest ])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return true;
-        })
-        .toArray();
-        if (pname) {
-            unittestKeys = new Set([pname]);
-        } else {
-            let _keys = unittestArrays.map(item => ( item[env_var_pname]));
-            unittestKeys = sub(_keys, unittestPlusPrjKeys);
-        }
-        for (let unittestRow of unittestArrays) {
-            let _pname = unittestRow[env_var_pname];
-            if (unittestKeys.has(_pname)) {
-                unittestRow['allow_del'] = !prj;
-                env_vars.push(unittestRow);
-            }
-        }
-    }
-
-    if (prj) {
-        let projectArrays = await db[TABLE_ENV_VAR_NAME]
-        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
-        .equals([ env, prj, "", "" ])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return true;
-        })
-        .toArray();  
-        if (pname) {
-            projectKeys = new Set([pname]);
-        } else {
-            let _keys = projectArrays.map(item => ( item[env_var_pname]));
-            _keys = sub(sub(_keys, iteratorPlusPrjKeys), unittestPlusPrjKeys);
-            projectKeys = sub(sub(_keys, iteratorKeys), unittestKeys);
-        }
-        for (let projectRow of projectArrays) {
-            let _pname = projectRow[env_var_pname];
-            if (projectKeys.has(_pname)) {
-                projectRow['allow_del'] = (!iterator && !unittest && (_pname !== ENV_VALUE_API_HOST));
-                env_vars.push(projectRow);
-            }
-        }
-    }
-
-    let globalArrays = await db[TABLE_ENV_VAR_NAME]
-    .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
-    .equals([ env, "", "", "" ])
-    .filter(row => {
-        if (row[env_var_delFlg]) {
-            return false;
-        }
-        return true;
-    })
-    .toArray();  
-    if (pname) {
-        globalKeys = new Set([pname]);
-    } else {
-        let _keys = globalArrays.map(item => ( item[env_var_pname]));
-        _keys = sub(sub(_keys, iteratorPlusPrjKeys), unittestPlusPrjKeys);
-        _keys = sub(sub(_keys, iteratorKeys), unittestKeys);
-        globalKeys = sub(_keys, projectKeys);
-    }
-    for (let globalRow of globalArrays) {
-        let _pname = globalRow[env_var_pname];
-        if (globalKeys.has(_pname)) {
-            globalRow['allow_del'] = !(iterator || unittest || prj);
-            env_vars.push(globalRow);
-        }
-    }
-
-    let users = await getUsers();
-    env_vars.forEach(item => {
-        item[UNAME] = users.get(item[env_var_cuid]);
-    });
-
-    mixedSort(env_vars, env_var_pname);
-
-    return env_vars;
 }

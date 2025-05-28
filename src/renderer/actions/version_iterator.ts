@@ -4,8 +4,7 @@ import { mixedSort } from '@rutil/index';
 import { 
     TABLE_VERSION_ITERATION_REQUEST_NAME, TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_VERSION_ITERATION_NAME, TABLE_VERSION_ITERATION_FIELDS,
-    TABLE_PROJECT_REQUEST_NAME, TABLE_VERSION_ITERATION_FOLD_NAME,
-    UNAME, TABLE_USER_NAME,
+    UNAME,
 } from '@conf/db';
 import { GET_VERSION_ITERATORS } from '@conf/redux';
 import { 
@@ -47,7 +46,7 @@ export async function getVersionIteratorsByPage(clientType : string, pagination 
         .count();
         pagination.total = count;
 
-        let users = await getUsers();
+        let users = await getUsers(clientType);
 
         datas = await window.db[TABLE_VERSION_ITERATION_NAME]
         .where(version_iterator_delFlg).equals(0)
@@ -69,8 +68,8 @@ export async function getVersionIteratorsByPage(clientType : string, pagination 
     return datas;
 }
 
-export async function getVersionIterators() {
-    let users = await getUsers();
+export async function getVersionIterators(clientType : string) {
+    let users = await getUsers(clientType);
 
     let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
     .where(version_iterator_delFlg).equals(0)
@@ -130,7 +129,7 @@ export async function getOpenVersionIteratorsByPrj(clientType : string, prj : st
 
 export async function getRemoteVersionIterator(clientType : string, uuid : string) {
     let version_iteration : any = {};
-    let users = await getUsers();
+    let users = await getUsers(clientType);
     if (clientType === CLIENT_TYPE_SINGLE) {
 
         version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
@@ -188,35 +187,28 @@ export async function openVersionIterator(uuid, cb) {
     }
 }
 
-export async function closeVersionIterator(uuid, cb) {
-    window.db.transaction('rw',
-        window.db[TABLE_USER_NAME], 
-        window.db[TABLE_VERSION_ITERATION_REQUEST_NAME], 
-        window.db[TABLE_VERSION_ITERATION_NAME], 
-        window.db[TABLE_PROJECT_REQUEST_NAME],
-        window.db[TABLE_VERSION_ITERATION_FOLD_NAME], async () => {
-        let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
-        .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
-        .equals([ 0, uuid ])
-        .toArray();
-    
-        for (let version_iteration_request of version_iteration_requests) {
-            addProjectRequestFromVersionIterator(version_iteration_request);
-        }
-    
-        let version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
-        .where(version_iterator_uuid).equals(uuid)
-        .first();
-    
-        if (version_iteration !== undefined) {
-            version_iteration[version_iterator_openFlg] = 0;
-            version_iteration[version_iterator_close_time] = Date.now();
-    
-            console.debug(version_iteration);
-            await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
-            cb();
-        }
-    });
+export async function closeVersionIterator(clientType : string, teamId : string, uuid, cb) {
+    let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+    .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
+    .equals([ 0, uuid ])
+    .toArray();
+
+    for (let version_iteration_request of version_iteration_requests) {
+        addProjectRequestFromVersionIterator(clientType, teamId, version_iteration_request);
+    }
+
+    let version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
+    .where(version_iterator_uuid).equals(uuid)
+    .first();
+
+    if (version_iteration !== undefined) {
+        version_iteration[version_iterator_openFlg] = 0;
+        version_iteration[version_iterator_close_time] = Date.now();
+
+        console.debug(version_iteration);
+        await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
+        cb();
+    }
 }
 
 export async function addVersionIterator(clientType : string, teamId : string, title, content, projects, device) {

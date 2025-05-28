@@ -91,7 +91,7 @@ class Vip extends Component {
                 this.setState({checkFlg})
             });
         }
-        getUser(this.props.uuid).then(async user => {
+        getUser(this.props.clientType, this.props.uuid).then(async user => {
             let ip = user[field_user_ip];
             let docUrl = this.props.html.replace("localhost", ip) + "#/version_iterator_doc/" + this.state.iteratorId;
             let projects = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_projects];
@@ -205,6 +205,7 @@ class Vip extends Component {
 
 function mapStateToProps (state) {
     return {
+        clientType: state.device.clientType,
         html: state.device.html,			
         uuid: state.device.uuid,
         vipFlg: state.device.vipFlg,

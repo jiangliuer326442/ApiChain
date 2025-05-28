@@ -38,7 +38,7 @@ export async function getPrjsByPage(clientType : string, pagination : any) {
         .reverse()
         .toArray();
 
-        let users = await getUsers();
+        let users = await getUsers(clientType);
         datas.forEach(item => {
             item[UNAME] = users.get(item[prj_cuid]);
         });
