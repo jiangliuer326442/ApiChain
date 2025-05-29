@@ -42,8 +42,8 @@ import {
     UNAME,
 } from '@conf/db';
 import {
-    ITERATOR
-} from '@conf/storage';
+    GET_ITERATOR
+} from '@conf/redux';
 import { 
     getdayjs, 
     isStringEmpty 
@@ -55,7 +55,7 @@ import {
     delFolder 
 } from '@act/version_iterator_folders';
 import { 
-    getVersionIteratorRequestsByProject, 
+    getSimpleVersionIteratorRequests, 
     delVersionIteratorRequest, 
     setVersionIterationRequestSort,
     batchMoveIteratorRequest,
@@ -92,9 +92,6 @@ let iteration_request_prj = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_S
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 class RequestListVersion extends Component {
 
@@ -178,7 +175,11 @@ class RequestListVersion extends Component {
         if (this.state.iteratorId !== iteratorId) {
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
             this.setState( { iteratorId, versionIteration }, () => this.onFinish({}) );
-            localStorage.setItem(ITERATOR, iteratorId);
+            this.props.dispatch({
+                type: GET_ITERATOR,
+                iterator: iteratorId,
+                unittest: ""
+            });
         }
     }
 
@@ -187,9 +188,13 @@ class RequestListVersion extends Component {
             getPrjs(this.props.clientType, this.props.dispatch);
         }
         this.onFinish({});
-        let versionIteration = await getRemoteVersionIterator(this.props.getRemoteVersionIterator, this.state.iteratorId);
+        let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
         this.setState( { versionIteration, formReadyFlg : true } )
-        localStorage.setItem(ITERATOR, this.state.iteratorId);
+        this.props.dispatch({
+            type: GET_ITERATOR,
+            iterator: this.state.iteratorId,
+            unittest: ""
+        });
     }
 
     setApiSort = async (prj : string, method : string, uri : string, sort : number) => {
@@ -234,7 +239,7 @@ class RequestListVersion extends Component {
         let title = values?.title;
         let uri = values?.uri;
         let folder = values?.folder;
-        let version_iteration_requests = await getVersionIteratorRequestsByProject(this.state.iteratorId, prj, folder, title, uri);
+        let version_iteration_requests = await getSimpleVersionIteratorRequests(this.props.clientType, this.state.iteratorId, prj, folder, title, uri);
         let requestsDividered : any = {};
         let requestsJsxDividered : any = {};
         
@@ -298,7 +303,6 @@ class RequestListVersion extends Component {
     }
 
     render() : ReactNode {
-
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
@@ -478,7 +482,7 @@ class RequestListVersion extends Component {
                     </Flex>
                     <MarkdownView 
                         showNav={ true } 
-                        content={ this.state.versionIteration[version_iterator_content] } show={ this.state.formReadyFlg } 
+                        content={ this.state.versionIteration[version_iterator_content] } 
                         width={ 630 }
                         />
                     <FloatButton 

@@ -22,6 +22,8 @@ export const GET_ENVS = "get_envs";
 
 export const GET_ENV_VALS = "get_env_vals";
 
+export const GET_ITERATOR = "get_iterator";
+
 export const GET_PRJS = "get_prjs";
 
 export const GET_VERSION_ITERATORS = "get_version_iterators";

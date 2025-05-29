@@ -100,7 +100,6 @@ class EnvVar extends Component {
           key: 'operater',
           width: 100,
           render: (_, record) => {
-            console.log("record", record);
             return (
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />

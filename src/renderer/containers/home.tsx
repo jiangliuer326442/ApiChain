@@ -33,7 +33,7 @@ import {
   getWikiWeatherReportUrl,
   getWikiUserRegisterUrl,
 } from '@conf/url';
-import { IS_AUTO_UPGRADE, ITERATOR } from '@conf/storage';
+import { IS_AUTO_UPGRADE } from '@conf/storage';
 import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
@@ -160,7 +160,6 @@ class Home extends Component {
             },
         }
       ],
-      iterator: localStorage.getItem(ITERATOR),
       closeShowPay: false,
     }
   }
@@ -430,7 +429,7 @@ class Home extends Component {
               ]}
             />
             <Flex vertical>
-              {isStringEmpty(this.state.iterator) ? null :
+              {isStringEmpty(this.props.iterator) ? null :
               <>      
                 <Title level={1}>
                   {langTrans("quick link title")}
@@ -438,22 +437,22 @@ class Home extends Component {
                 <Row gutter={16}>        
                   <Col span={6}>          
                     <Card title={langTrans("quick link3")} bordered={false}>            
-                      <Button type="primary" onClick={()=> this.props.history.push("/internet_request_send_by_iterator/" + this.state.iterator)} block>{ langTrans("quick link4") }</Button>          
+                      <Button type="primary" onClick={()=> this.props.history.push("/internet_request_send_by_iterator/" + this.props.iterator)} block>{ langTrans("quick link4") }</Button>          
                     </Card>        
                   </Col>     
                   <Col span={6}>          
                     <Card title={langTrans("quick link2")} bordered={false}>            
-                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator_requests/" + this.state.iterator)} block>{ langTrans("quick link4") }</Button>          
+                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator_requests/" + this.props.iterator)} block>{ langTrans("quick link4") }</Button>          
                     </Card>
                   </Col>  
                   <Col span={6}>          
                     <Card title={langTrans("quick link5")} bordered={false}>            
-                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator_tests/" + this.state.iterator)} block>{ langTrans("quick link4") }</Button>          
+                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator_tests/" + this.props.iterator)} block>{ langTrans("quick link4") }</Button>          
                     </Card>
                   </Col>
                   <Col span={6}>          
                     <Card title={langTrans("quick link1")} bordered={false}>            
-                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator/" + this.state.iterator)} block>{ langTrans("quick link4") }</Button>          
+                      <Button type="primary" onClick={()=> this.props.history.push("/version_iterator/" + this.props.iterator)} block>{ langTrans("quick link4") }</Button>          
                     </Card>
                   </Col>  
                 </Row>    
@@ -743,6 +742,7 @@ class Home extends Component {
 
 function mapStateToProps (state) {
   return {
+    iterator: state.env_var.iterator,
     uid: state.device.uuid,
     appName: state.device.appName,
     vipFlg: state.device.vipFlg,

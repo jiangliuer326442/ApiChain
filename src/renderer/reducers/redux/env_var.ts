@@ -1,11 +1,12 @@
 import {
   SHOW_ADD_PROPERTY_MODEL,
   SHOW_EDIT_PROPERTY_MODEL,
-  GET_ENV_VALS
+  GET_ENV_VALS,
+  GET_ITERATOR
 } from '@conf/redux';
 
 import {
-    PRJ, ENV
+    PRJ, ENV, ITERATOR
 } from '@conf/storage';
 
 import { 
@@ -26,6 +27,12 @@ export default function (state = {
     list: []
   }, action : any) {
     switch(action.type) {
+        case GET_ITERATOR:
+            localStorage.setItem(ITERATOR, action.iterator);
+            return Object.assign({}, state, {
+              iterator: action.iterator,
+              unittest: action.unittest,
+            });
         case GET_ENV_VALS:
             localStorage.setItem(PRJ, action.prj);
             localStorage.setItem(ENV, action.env);
@@ -56,6 +63,7 @@ export default function (state = {
         default:
             state.prj = localStorage.getItem(PRJ);
             state.env = localStorage.getItem(ENV);
+            state.iterator = localStorage.getItem(ITERATOR);
             return state;
     }
 }

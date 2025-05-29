@@ -24,11 +24,20 @@ export default class extends Component {
         }
     }
 
+    componentDidMount(): void {
+        let content = this.getContent(this.props.content);
+        this.setState({ content });
+    }
+
     componentWillReceiveProps(nextProps) {
         if (this.state.content !== nextProps.content) {
-            let content = "<style>\nimg {width: 40%;}\ntable { width: 100%; }\ntable { background-color: #1d1d1d; border-collapse: collapse; }\ntable thead { height: 29px; }\ntable thead th { border: 1px solid #525252; }\ntable thead { background-color: #1f1f1f; }\ntable thead { background-color: #141414; }\ntable tbody { height: 24px; }\ntable th { text-align: center; }\ntable td { text-align: left; }</style>\n\n" + nextProps.content;
+            let content = this.getContent(nextProps.content);
             this.setState({ content });
         }
+    }
+
+    getContent = (content) => {
+        return "<style>\nimg {width: 40%;}\ntable { width: 100%; }\ntable { background-color: #1d1d1d; border-collapse: collapse; }\ntable thead { height: 29px; }\ntable thead th { border: 1px solid #525252; }\ntable thead { background-color: #1f1f1f; }\ntable thead { background-color: #141414; }\ntable tbody { height: 24px; }\ntable th { text-align: center; }\ntable td { text-align: left; }</style>\n\n" + content;
     }
 
     render() : ReactNode {
