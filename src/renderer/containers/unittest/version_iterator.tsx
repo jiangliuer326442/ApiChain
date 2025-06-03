@@ -175,6 +175,7 @@ class UnittestListVersion extends Component {
                                         });
 
                                         let batchUuid = await continueIteratorExecuteUnitTest(
+                                            this.props.clientType,
                                             this.state.iteratorId, 
                                             valueUnittestStepUnittestUuid, 
                                             record[unittest_report_batch], 
@@ -478,6 +479,7 @@ class UnittestListVersion extends Component {
                                             });
                                             let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
                                             executeIteratorUnitTest(
+                                                this.props.clientType,
                                                 this.state.iteratorId, unittestUuid, currentUnitTest.children, this.state.env, this.props.dispatch, 
                                                 (batchUuid : string, stepUuid : string) => {
                                                     this.setState({ unittestUuid, batchUuid, stepUuid})

@@ -60,13 +60,19 @@ export const VERSION_ITERATIONS_OPENS_URL = "/version_iterations/opens";
 
 export const VERSION_ITERATION_GET_URL = "/version_iterations/get";
 
+export const VERSION_ITERATION_ALL_URL = "/version_iterations/all";
+
 export const VERSION_ITERATION_SET_URL = "/version_iterations/set";
 
 export const VERSION_ITERATION_DEL_URL = "/version_iterations/del";
 
-export const REQUEST_VERSION_ITERATION_SET_URL = "/requests/iteration/set";
+export const REQUEST_VERSION_ITERATION_ADD_URL = "/requests/iteration/add";
+
+export const REQUEST_VERSION_ITERATION_EDIT_URL = "/requests/iteration/edit";
 
 export const REQUEST_VERSION_ITERATION_QUERY_URL = "/requests/iteration/query";
+
+export const REQUEST_VERSION_ITERATION_FIND_URL = "/requests/iteration/find";
 
 export const REQUEST_PROJECT_SET_URL = "/requests/project/set";
 

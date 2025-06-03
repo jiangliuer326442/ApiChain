@@ -7,3 +7,13 @@ export function union(set1 : Set<String>, set2 : Set<String>, set3 : Set<String>
     let unionSet = new Set([...set1, ...set2, ...set3]);
     return unionSet;
 }
+
+export function objectToMap(obj) {
+    const map = new Map();
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) { // 确保只处理对象自身的属性
+            map.set(key, obj[key]);
+        }
+    }
+    return map;
+}

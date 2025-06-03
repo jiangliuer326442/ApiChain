@@ -6,8 +6,10 @@ import {
 } from '@conf/db';
 import { 
     CLIENT_TYPE_TEAM, CLIENT_TYPE_SINGLE,
-    REQUEST_VERSION_ITERATION_SET_URL,
+    REQUEST_VERSION_ITERATION_ADD_URL,
+    REQUEST_VERSION_ITERATION_EDIT_URL,
     REQUEST_VERSION_ITERATION_QUERY_URL,
+    REQUEST_VERSION_ITERATION_FIND_URL,
 } from '@conf/team';
 import { isStringEmpty } from '@rutil/index';
 import { sendTeamMessage } from '@act/message';
@@ -46,28 +48,33 @@ let iteration_request_ctime = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CTIME
 
 let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 
-export async function getVersionIteratorRequest(clientType : string, iteration_uuid : string, project : string, method : string, uri : string) {
+export async function getVersionIteratorRequest(clientType : string, iteratorId : string, prj : string, method : string, uri : string) {
     let users = await getUsers(clientType);
+    let version_iteration_request;
 
-    let version_iteration_request = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
-    .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])
-    .equals([ iteration_uuid, project, method, uri ])
-    .first();
-    if (version_iteration_request === undefined || version_iteration_request[iteration_request_delFlg] !== 0) {
-        return null;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        version_iteration_request = await sendTeamMessage(REQUEST_VERSION_ITERATION_FIND_URL, {iteratorId, prj, method, uri});
+    } else {
+        version_iteration_request = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+        .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])
+        .equals([ iteratorId, prj, method, uri ])
+        .first();
+        if (version_iteration_request === undefined || version_iteration_request[iteration_request_delFlg] !== 0) {
+            return null;
+        }
     }
 
     version_iteration_request[UNAME] = users.get(version_iteration_request[iteration_request_cuid]);
     return version_iteration_request;
 }
 
-export async function delVersionIteratorRequest(record, cb) {
+export async function delVersionIteratorRequest(clientType, record, cb) {
     let iteration_uuid = record[iteration_request_iteration_uuid];
     let project = record[iteration_request_project];
     let method = record[iteration_request_method];
     let uri = record[iteration_request_uri];
 
-    let version_iteration_request = await getVersionIteratorRequest(iteration_uuid, project, method, uri);
+    let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, method, uri);
     if (version_iteration_request !== undefined) {
         version_iteration_request[iteration_request_delFlg] = 1;
         await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
@@ -228,45 +235,59 @@ export async function getVersionIteratorRequestsByProject(iteration_uuid : strin
 }
 
 export async function editVersionIteratorRequest(
+    clientType : string,
     initMethod : string, initUri : string,
     iteration_uuid : string, project : string, method : string, uri : string, 
     title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, 
-    responseContent: object, responseHead: object, responseCookie: object
+    responseContent: object, responseHead: object, responseCookie: object, isExportDoc: boolean
 ) {
-    //未改动基础，只修改
-    if (initMethod === method && initUri === uri) {
-        let version_iteration_request = await getVersionIteratorRequest(iteration_uuid, project, method, uri);
-        version_iteration_request[iteration_request_title] = title;
-        version_iteration_request[iteration_request_desc] = desc;
-        version_iteration_request[iteration_request_fold] = fold;
-        version_iteration_request[iteration_request_header] = header;
-        version_iteration_request[iteration_request_body] = body;
-        version_iteration_request[iteration_request_param] = param;
-        version_iteration_request[iteration_request_path_variable] = pathVariable;
-        version_iteration_request[iteration_request_response_content] = responseContent;
-        version_iteration_request[iteration_request_response_head] = responseHead;
-        version_iteration_request[iteration_request_response_cookie] = responseCookie;
-    
-        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(REQUEST_VERSION_ITERATION_EDIT_URL, {
+            initMethod, initUri, iteratorId: iteration_uuid,
+            prj: project, method, uri,
+            title, description: desc, fold, 
+            header, param, pathVariable, body,
+            responseContent, responseHead, responseCookie, 
+            export_doc_flg: isExportDoc
+        });
     } else {
-        let version_iteration_request = await getVersionIteratorRequest(iteration_uuid, project, initMethod, initUri);
-        version_iteration_request[iteration_request_delFlg] = 1;
-        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+        //未改动基础，只修改
+        if (initMethod === method && initUri === uri) {
+            let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, method, uri);
+            version_iteration_request[iteration_request_title] = title;
+            version_iteration_request[iteration_request_desc] = desc;
+            version_iteration_request[iteration_request_fold] = fold;
+            version_iteration_request[iteration_request_header] = header;
+            version_iteration_request[iteration_request_body] = body;
+            version_iteration_request[iteration_request_param] = param;
+            version_iteration_request[iteration_request_path_variable] = pathVariable;
+            version_iteration_request[iteration_request_response_content] = responseContent;
+            version_iteration_request[iteration_request_response_head] = responseHead;
+            version_iteration_request[iteration_request_response_cookie] = responseCookie;
+            version_iteration_request[iteration_request_exportdocFlg] = isExportDoc;
         
-        version_iteration_request[iteration_request_method] = method;
-        version_iteration_request[iteration_request_uri] = uri;
-        version_iteration_request[iteration_request_title] = title;
-        version_iteration_request[iteration_request_desc] = desc;
-        version_iteration_request[iteration_request_fold] = fold;
-        version_iteration_request[iteration_request_header] = header;
-        version_iteration_request[iteration_request_body] = body;
-        version_iteration_request[iteration_request_param] = param;
-        version_iteration_request[iteration_request_path_variable] = pathVariable;
-        version_iteration_request[iteration_request_response_content] = responseContent;
-        version_iteration_request[iteration_request_response_head] = responseHead;
-        version_iteration_request[iteration_request_response_cookie] = responseCookie;
-        version_iteration_request[iteration_request_delFlg] = 0;
-        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+            await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+        } else {
+            let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, initMethod, initUri);
+            version_iteration_request[iteration_request_delFlg] = 1;
+            await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+            
+            version_iteration_request[iteration_request_method] = method;
+            version_iteration_request[iteration_request_uri] = uri;
+            version_iteration_request[iteration_request_title] = title;
+            version_iteration_request[iteration_request_desc] = desc;
+            version_iteration_request[iteration_request_fold] = fold;
+            version_iteration_request[iteration_request_header] = header;
+            version_iteration_request[iteration_request_body] = body;
+            version_iteration_request[iteration_request_param] = param;
+            version_iteration_request[iteration_request_path_variable] = pathVariable;
+            version_iteration_request[iteration_request_response_content] = responseContent;
+            version_iteration_request[iteration_request_response_head] = responseHead;
+            version_iteration_request[iteration_request_response_cookie] = responseCookie;
+            version_iteration_request[iteration_request_exportdocFlg] = isExportDoc;
+            version_iteration_request[iteration_request_delFlg] = 0;
+            await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+        }
     }
 }
 
@@ -279,7 +300,7 @@ export async function addVersionIteratorRequest(
     json_flg: boolean, html_flg: boolean, pic_flg: boolean, file_flg: boolean, export_doc_flg: boolean,
     device : any) {
         if (clientType === CLIENT_TYPE_TEAM) {
-            await sendTeamMessage(REQUEST_VERSION_ITERATION_SET_URL, {
+            await sendTeamMessage(REQUEST_VERSION_ITERATION_ADD_URL, {
                 iteratorId, prj, method, uri, sort,
                 title, description, fold,
                 pic_flg, file_flg, json_flg, html_flg, 

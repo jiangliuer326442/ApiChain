@@ -13,6 +13,7 @@ import {
     VERSION_ITERATION_SET_URL, 
     VERSION_ITERATIONS_OPENS_URL,
     VERSION_ITERATION_DEL_URL,
+    VERSION_ITERATION_ALL_URL,
     CLIENT_TYPE_SINGLE,
     CLIENT_TYPE_TEAM,
 } from '@conf/team';
@@ -20,6 +21,7 @@ import {
 import { sendTeamMessage } from '@act/message';
 import { getUsers } from '@act/user';
 import { addProjectRequestFromVersionIterator } from '@act/project_request';
+import { objectToMap } from '@rutil/sets';
 
 let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
@@ -69,19 +71,23 @@ export async function getVersionIteratorsByPage(clientType : string, pagination 
 }
 
 export async function getVersionIterators(clientType : string) {
-    let users = await getUsers(clientType);
 
-    let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
-    .where(version_iterator_delFlg).equals(0)
-    .reverse()
-    .toArray();
+    let ret = new Map<string, string>();
 
-    versionIterators.forEach(item => {
-        item.key = item[version_iterator_uuid];
-        item[UNAME] = users.get(item[version_iterator_cuid]);
-    });
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        let versionIterators = await window.db[TABLE_VERSION_ITERATION_NAME]
+        .where(version_iterator_delFlg).equals(0)
+        .reverse()
+        .toArray();
 
-    return versionIterators;
+        versionIterators.forEach(item => {
+            ret.set(item[version_iterator_uuid], item[version_iterator_title])
+        });
+    } else {
+        ret = objectToMap(await sendTeamMessage(VERSION_ITERATION_ALL_URL, {}));
+    }
+
+    return ret;
 }
 
 export async function getOpenVersionIterators(clientType: string, dispatch) {
@@ -131,17 +137,14 @@ export async function getRemoteVersionIterator(clientType : string, uuid : strin
     let version_iteration : any = {};
     let users = await getUsers(clientType);
     if (clientType === CLIENT_TYPE_SINGLE) {
-
         version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
         .where(version_iterator_uuid).equals(uuid)
         .first();
-
-        version_iteration[UNAME] = users.get(version_iteration[version_iterator_cuid]);
     } else {
         version_iteration = await sendTeamMessage(VERSION_ITERATION_GET_URL, {uuid});
         version_iteration[version_iterator_projects] = JSON.parse(version_iteration[version_iterator_projects]);
-        version_iteration[UNAME] = users.get(version_iteration[version_iterator_cuid]);
     }
+    version_iteration[UNAME] = users.get(version_iteration[version_iterator_cuid]);
 
     return version_iteration;
 }

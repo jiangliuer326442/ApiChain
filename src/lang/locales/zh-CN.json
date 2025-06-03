@@ -418,6 +418,7 @@
     "request detail desc2": "项目",
     "request detail desc3": "创建人",
     "request detail desc4": "创建时间",
+    "request detail no versioniteration": "不属于任何迭代",
     "unittest env check": "需要选择服务器环境",
     "unittest export success": "导出单测到项目成功",
     "unittest export revoke success": "已成功从项目删除该单测",

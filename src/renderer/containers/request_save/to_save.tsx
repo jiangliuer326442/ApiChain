@@ -217,7 +217,7 @@ class RequestSaveContainer extends Component {
         this.initByIteratorPrjEnv(this.state.iteratorId, prj, env);
 
         if (!isStringEmpty(this.state.iteratorId)) {
-            getVersionIteratorRequest(this.state.iteratorId, prj, method, uri).then(versionIterationRequest => {
+            getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, prj, method, uri).then(versionIterationRequest => {
                 if (versionIterationRequest !== null) {
                     let sort = versionIterationRequest[version_iterator_request_sort] === undefined ? 0 : versionIterationRequest[version_iterator_request_sort];
                     let isExportDoc = (getType(versionIterationRequest[version_iterator_request_exportdocflg]) === "String" && isStringEmpty(versionIterationRequest[version_iterator_request_exportdocflg])) ? true : versionIterationRequest[version_iterator_request_exportdocflg];

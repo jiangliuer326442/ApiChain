@@ -85,10 +85,11 @@ export default class {
 
     initIterator(
         prj : string,
+        env : string,
         iteration : string,
         clientType : any, 
     ) {  
-        this.init(prj, "", iteration, "", clientType, env_vars => {})
+        this.init(prj, env, iteration, "", clientType, env_vars => {})
     }
 
     initProject(
@@ -121,8 +122,10 @@ export default class {
         if (this.envKeyVarMap.size === 0) {
             let env_vars = await this.getEnvValues(this.prj, this.env, this.iteration, "", "");
             this.envKeyVarMap = env_vars;
+            this.cb(env_vars);
             return this.getApiHost();
         } else {
+            this.cb(this.envKeyVarMap);
             return this.getApiHost();
         }
     }

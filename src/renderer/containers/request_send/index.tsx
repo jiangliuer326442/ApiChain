@@ -20,11 +20,12 @@ import {
   TABLE_FIELD_TYPE,
   TABLE_FIELD_VALUE,
   cleanJson,
-  retShortJsonContent,
-  shortJsonContent
 } from '@rutil/json';
 import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { getWikiSendRequest } from '@conf/url';
+import {
+  GET_ENV_VALS
+} from '@conf/redux'
 import { 
   TABLE_REQUEST_HISTORY_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
@@ -222,7 +223,7 @@ class RequestSendContainer extends Component {
       let requestPathVariable = {};
       if (isStringEmpty(iteratorId)) {
         iteratorId = "";
-        let record = await getProjectRequest(prj, requestMethod, requestUri);
+        let record = await getProjectRequest(this.props.clientType, prj, requestMethod, requestUri);
         prj = record[project_request_project];
         uri = record[project_request_uri];
         method = record[project_request_method];
@@ -231,7 +232,7 @@ class RequestSendContainer extends Component {
         requestParam = record[project_request_param];
         requestPathVariable = record[project_request_path_variable];
       } else {
-        let record = await getVersionIteratorRequest(iteratorId, prj, requestMethod, requestUri);
+        let record = await getVersionIteratorRequest(this.props.clientType, iteratorId, prj, requestMethod, requestUri);
         prj = record[iteration_request_prj];
         uri = record[iteration_request_uri];
         method = record[iteration_request_method];
@@ -436,7 +437,7 @@ class RequestSendContainer extends Component {
     if (isStringEmpty(env)) return;
     this.setState(this.getClearState());
     this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.dispatch, env_vars => {
-      if(env_vars.length === 0) {
+      if(env_vars.size === 0) {
         this.setState({ alertMessage: "请到设置菜单配置项目和环境，否则无法发送请求" });
         return;
       }
@@ -444,6 +445,13 @@ class RequestSendContainer extends Component {
         requestEnable : true,
         prj,
         env,
+      });
+      this.props.dispatch({
+        type: GET_ENV_VALS,
+        prj: prj,
+        env: env,
+        iterator: this.state.iteratorId,
+        unittest: ""
       });
     });
     let requestHost = await this.requestSendTip.getHost();
@@ -461,6 +469,7 @@ class RequestSendContainer extends Component {
     this.setState(state);
 
     let requestDefine = await getVersionIteratorRequest(
+      this.props.clientType,
       this.state.iteratorId, 
       this.state.prj, 
       this.state.requestMethod, 
@@ -842,6 +851,8 @@ class RequestSendContainer extends Component {
 
 function mapStateToProps (state) {
   return {
+    clientType: state.device.clientType,
+    teamId: state.device.teamId,
     prj: state.env_var.prj,
     env: state.env_var.env,
   }

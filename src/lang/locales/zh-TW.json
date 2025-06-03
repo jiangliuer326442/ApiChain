@@ -417,6 +417,7 @@
     "request detail desc2": "項目",
     "request detail desc3": "創建人",
     "request detail desc4": "創建時間",
+    "request detail no versioniteration": "不屬於任何迭代",
     "unittest env check": "需要選擇伺服器環境",
     "unittest export success": "導出單測到項目成功",
     "unittest export revoke success": "已從項目中成功刪除該單測",

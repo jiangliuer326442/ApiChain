@@ -569,6 +569,7 @@ export async function getUnitTestStepAsserts(iteratorId : string, unitTestId : s
 }
 
 export async function continueIteratorExecuteUnitTest(
+    clientType : string,
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
     env : string, dispatch : any, cb) {
 
@@ -617,9 +618,9 @@ export async function continueIteratorExecuteUnitTest(
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
         },
         async (project, method, requestUri) => {
-            let request = await getVersionIteratorRequest(iteratorId, project, method, requestUri);
+            let request = await getVersionIteratorRequest(clientType, iteratorId, project, method, requestUri);
             if (request === null) {
-                request = await getProjectRequest(project, method, requestUri);
+                request = await getProjectRequest(clientType, project, method, requestUri);
             }
             return request;
         },
@@ -783,6 +784,7 @@ export async function executeProjectUnitTest(
 }
 
 export async function executeIteratorUnitTest(
+    clientType : string,
     iteratorId : string, unitTestId : string, 
     steps : Array<any>, env : string, dispatch : any,
     cb : Function
@@ -829,9 +831,9 @@ export async function executeIteratorUnitTest(
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
         },
         async (project, method, requestUri) => {
-            let request = await getVersionIteratorRequest(iteratorId, project, method, requestUri);
+            let request = await getVersionIteratorRequest(clientType, iteratorId, project, method, requestUri);
             if (request === null) {
-                request = await getProjectRequest(project, method, requestUri);
+                request = await getProjectRequest(clientType, project, method, requestUri);
             }
             return request;
         },

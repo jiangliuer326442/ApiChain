@@ -417,6 +417,7 @@
     "request detail desc2": "Project",
     "request detail desc3": "Creator",
     "request detail desc4": "Creation Time",
+    "request detail no versioniteration": "Not part of any iteration",
     "unittest env check": "Server environment needs to be selected",
     "unittest export success": "Exported unit test to project successfully",
     "unittest export revoke success": "Successfully removed the unit test from the project",
