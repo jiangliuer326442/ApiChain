@@ -276,6 +276,13 @@ export async function editVersionIteratorRequest(
         await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
     } else {
         let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, initMethod, initUri);
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            version_iteration_request.upload_flg = 0;
+            version_iteration_request.team_id = "";
+        } else {
+            version_iteration_request.upload_flg = 1;
+            version_iteration_request.team_id = teamId;
+        }
         version_iteration_request[iteration_request_delFlg] = 1;
         await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
         
@@ -292,6 +299,13 @@ export async function editVersionIteratorRequest(
         version_iteration_request[iteration_request_response_head] = responseHead;
         version_iteration_request[iteration_request_response_cookie] = responseCookie;
         version_iteration_request[iteration_request_exportdocFlg] = isExportDoc;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            version_iteration_request.upload_flg = 0;
+            version_iteration_request.team_id = "";
+        } else {
+            version_iteration_request.upload_flg = 1;
+            version_iteration_request.team_id = teamId;
+        }
         version_iteration_request[iteration_request_delFlg] = 0;
         await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
     }
