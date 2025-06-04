@@ -236,7 +236,7 @@ class RequestSaveContainer extends Component {
             this.props.history.push("/project_requests/" + this.state.prj);
         } else {
             await editVersionIteratorRequest(
-                this.props.clientType,
+                this.props.clientType, this.props.teamId,
                 this.state.initRequestMethod, this.state.initRequestUri, 
                 this.state.versionIterator, this.state.prj, this.state.requestMethod, this.state.requestUri,
                 this.state.title, this.state.description, this.state.selectedFolder, 
@@ -477,6 +477,7 @@ function mapStateToProps (state) {
     return {
         prjs: state.prj.list,
         device : state.device,
+        teamId: state.device.teamId,
         clientType: state.device.clientType,
     }
 }

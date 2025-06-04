@@ -235,7 +235,7 @@ export async function getVersionIteratorRequestsByProject(iteration_uuid : strin
 }
 
 export async function editVersionIteratorRequest(
-    clientType : string,
+    clientType : string, teamId : string,
     initMethod : string, initUri : string,
     iteration_uuid : string, project : string, method : string, uri : string, 
     title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, 
@@ -250,44 +250,50 @@ export async function editVersionIteratorRequest(
             responseContent: JSON.stringify(responseContent), responseHead: JSON.stringify(responseHead), responseCookie: JSON.stringify(responseCookie), 
             export_doc_flg: isExportDoc
         });
-    } else {
-        //未改动基础，只修改
-        if (initMethod === method && initUri === uri) {
-            let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, method, uri);
-            version_iteration_request[iteration_request_title] = title;
-            version_iteration_request[iteration_request_desc] = desc;
-            version_iteration_request[iteration_request_fold] = fold;
-            version_iteration_request[iteration_request_header] = header;
-            version_iteration_request[iteration_request_body] = body;
-            version_iteration_request[iteration_request_param] = param;
-            version_iteration_request[iteration_request_path_variable] = pathVariable;
-            version_iteration_request[iteration_request_response_content] = responseContent;
-            version_iteration_request[iteration_request_response_head] = responseHead;
-            version_iteration_request[iteration_request_response_cookie] = responseCookie;
-            version_iteration_request[iteration_request_exportdocFlg] = isExportDoc;
-        
-            await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+    }
+    //未改动基础，只修改
+    if (initMethod === method && initUri === uri) {
+        let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, method, uri);
+        version_iteration_request[iteration_request_title] = title;
+        version_iteration_request[iteration_request_desc] = desc;
+        version_iteration_request[iteration_request_fold] = fold;
+        version_iteration_request[iteration_request_header] = header;
+        version_iteration_request[iteration_request_body] = body;
+        version_iteration_request[iteration_request_param] = param;
+        version_iteration_request[iteration_request_path_variable] = pathVariable;
+        version_iteration_request[iteration_request_response_content] = responseContent;
+        version_iteration_request[iteration_request_response_head] = responseHead;
+        version_iteration_request[iteration_request_response_cookie] = responseCookie;
+        version_iteration_request[iteration_request_exportdocFlg] = isExportDoc;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            version_iteration_request.upload_flg = 0;
+            version_iteration_request.team_id = "";
         } else {
-            let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, initMethod, initUri);
-            version_iteration_request[iteration_request_delFlg] = 1;
-            await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
-            
-            version_iteration_request[iteration_request_method] = method;
-            version_iteration_request[iteration_request_uri] = uri;
-            version_iteration_request[iteration_request_title] = title;
-            version_iteration_request[iteration_request_desc] = desc;
-            version_iteration_request[iteration_request_fold] = fold;
-            version_iteration_request[iteration_request_header] = header;
-            version_iteration_request[iteration_request_body] = body;
-            version_iteration_request[iteration_request_param] = param;
-            version_iteration_request[iteration_request_path_variable] = pathVariable;
-            version_iteration_request[iteration_request_response_content] = responseContent;
-            version_iteration_request[iteration_request_response_head] = responseHead;
-            version_iteration_request[iteration_request_response_cookie] = responseCookie;
-            version_iteration_request[iteration_request_exportdocFlg] = isExportDoc;
-            version_iteration_request[iteration_request_delFlg] = 0;
-            await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+            version_iteration_request.upload_flg = 1;
+            version_iteration_request.team_id = teamId;
         }
+    
+        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+    } else {
+        let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, initMethod, initUri);
+        version_iteration_request[iteration_request_delFlg] = 1;
+        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+        
+        version_iteration_request[iteration_request_method] = method;
+        version_iteration_request[iteration_request_uri] = uri;
+        version_iteration_request[iteration_request_title] = title;
+        version_iteration_request[iteration_request_desc] = desc;
+        version_iteration_request[iteration_request_fold] = fold;
+        version_iteration_request[iteration_request_header] = header;
+        version_iteration_request[iteration_request_body] = body;
+        version_iteration_request[iteration_request_param] = param;
+        version_iteration_request[iteration_request_path_variable] = pathVariable;
+        version_iteration_request[iteration_request_response_content] = responseContent;
+        version_iteration_request[iteration_request_response_head] = responseHead;
+        version_iteration_request[iteration_request_response_cookie] = responseCookie;
+        version_iteration_request[iteration_request_exportdocFlg] = isExportDoc;
+        version_iteration_request[iteration_request_delFlg] = 0;
+        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
     }
 }
 
