@@ -246,8 +246,8 @@ export async function editVersionIteratorRequest(
             initMethod, initUri, iteratorId: iteration_uuid,
             prj: project, method, uri,
             title, description: desc, fold, 
-            header, param, pathVariable, body,
-            responseContent, responseHead, responseCookie, 
+            header: JSON.stringify(header), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable), body: JSON.stringify(body),
+            responseContent: JSON.stringify(responseContent), responseHead: JSON.stringify(responseHead), responseCookie: JSON.stringify(responseCookie), 
             export_doc_flg: isExportDoc
         });
     } else {
