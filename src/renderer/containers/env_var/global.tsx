@@ -175,7 +175,8 @@ class EnvVar extends Component {
     }
   
     render() : ReactNode {
-      console.log("props.env", this.props.env, "state.env", this.state.env);
+      let currentEnv = this.state.env ? this.state.env : this.props.env;
+      let isEmptyEnv = isStringEmpty(currentEnv);
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
@@ -230,7 +231,12 @@ class EnvVar extends Component {
                     />
                   </Form.Item>
                 </Form>
-              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
+              <Button  
+                style={{ margin: '16px 0' }} type="primary" 
+                onClick={this.addPropertiesClick} 
+                disabled={ isEmptyEnv }>
+                  {isEmptyEnv ? langTrans("envvar global add before check") : langTrans("envvar global add")}
+              </Button>
               <AddEnvVarComponent tips={this.state.tips} cb={()=>{
                 this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
               }} />

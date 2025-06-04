@@ -105,6 +105,8 @@ class MyRouter extends Component {
             html : argsObject.html,
             appName : argsObject.appName,
             appVersion : argsObject.appVersion,
+            defaultRunnerUrl : argsObject.defaultRunnerUrl,
+            minServerVersion : argsObject.minServerVersion,
             userCountry,
             userLang,
         });

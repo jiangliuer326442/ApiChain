@@ -2,6 +2,7 @@
   "name": "ApiChain",
   "version": "1.2.3",
   "minServerVersion": "1.2.3",
+  "defaultRunnerUrl": "http://runner.fanghailiang.cn",
   "description": "是一款类似 PostMan 的接口请求软件",
   "license": "MIT",
   "author": {

@@ -2,6 +2,8 @@ import {
   UUID, 
   BUY_TIMES, 
   APPNAME, 
+  DEFAULT_RUNNER_URL,
+  DEFAULT_RUNNER_VERSION,
   USERCOUNTRY,
   USERLANG,
   HTML, 
@@ -24,6 +26,8 @@ export default function (state = {
   uuid: "",
   html: "",
   appName: "",
+  defaultRunnerUrl: "",
+  defaultRunnerVersion: "",
   appVersion: "",
   userCountry: "",
   userLang: "",
@@ -75,6 +79,16 @@ export default function (state = {
         newState.appName = action.appName;
       }
 
+      if (action.defaultRunnerUrl !== undefined) {
+        sessionStorage.setItem(DEFAULT_RUNNER_URL, action.defaultRunnerUrl);
+        newState.defaultRunnerUrl = action.defaultRunnerUrl;
+      }
+
+      if (action.minServerVersion !== undefined) {
+        sessionStorage.setItem(DEFAULT_RUNNER_VERSION, action.minServerVersion);
+        newState.defaultRunnerVersion = action.minServerVersion;
+      }
+
       if (action.userCountry !== undefined) {
         sessionStorage.setItem(USERCOUNTRY, action.userCountry);
         newState.userCountry = action.userCountry;
@@ -123,6 +137,8 @@ export default function (state = {
     state.ckCodeUrl = isStringEmpty(sessionStorage.getItem(CKCODE_URL)) ? "" : sessionStorage.getItem(CKCODE_URL) as string;
     state.expireTime = isStringEmpty(sessionStorage.getItem(EXPIRE_TIME)) ? 0 : Number(sessionStorage.getItem(EXPIRE_TIME));
     state.appName = isStringEmpty(sessionStorage.getItem(APPNAME)) ? "" : sessionStorage.getItem(APPNAME) as string;
+    state.defaultRunnerUrl = isStringEmpty(sessionStorage.getItem(DEFAULT_RUNNER_URL)) ? "" : sessionStorage.getItem(DEFAULT_RUNNER_URL) as string;
+    state.defaultRunnerVersion = isStringEmpty(sessionStorage.getItem(DEFAULT_RUNNER_VERSION)) ? "" : sessionStorage.getItem(DEFAULT_RUNNER_VERSION) as string;
     state.appVersion = isStringEmpty(sessionStorage.getItem(APPVERSION)) ? "" : sessionStorage.getItem(APPVERSION) as string;
     state.buyTimes = isStringEmpty(sessionStorage.getItem(BUY_TIMES)) ? 0 : Number(sessionStorage.getItem(BUY_TIMES));
     state.html = isStringEmpty(sessionStorage.getItem(HTML)) ? "" : sessionStorage.getItem(HTML) as string;

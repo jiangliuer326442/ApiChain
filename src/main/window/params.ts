@@ -72,6 +72,8 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
     let html = resolveHtmlPath('index.html');
     let appVersion = packageJson.version;
     let appName = packageJson.name;
+    let defaultRunnerUrl = packageJson.defaultRunnerUrl;
+    let minServerVersion = packageJson.minServerVersion;
     let clientType = getClientType();
     let clientHost = getClientHost();
     let teamId = getTeamId();
@@ -94,6 +96,8 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
         "$$" + base64Encode("html=" + html),
         "$$" + base64Encode("appVersion=" + appVersion),
         "$$" + base64Encode("appName=" + appName),
+        "$$" + base64Encode("defaultRunnerUrl=" + defaultRunnerUrl),
+        "$$" + base64Encode("minServerVersion=" + minServerVersion),
         "$$" + base64Encode("userLang=" + userLang),
         "$$" + base64Encode("userCountry=" + userCountry),
         "$$" + base64Encode("firstLauch=" + firstLauch),

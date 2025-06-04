@@ -24,6 +24,10 @@ export const EXPIRE_TIME = "device.expire.time";
 
 export const APPNAME = "app.name";
 
+export const DEFAULT_RUNNER_URL = "app.runner.url";
+
+export const DEFAULT_RUNNER_VERSION = "app.runner.version";
+
 export const USERCOUNTRY = "user.country";
 
 export const USERLANG = "user.lang";

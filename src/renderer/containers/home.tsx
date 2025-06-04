@@ -396,6 +396,7 @@ class Home extends Component {
             <TeamModel 
               showTeam={this.state.showTeam} 
               teamType={this.state.teamType}
+              uname={this.state.user[db_field_uname]}
               cb={showTeam => this.setState({showTeam})} /> 
             : null}
             <Breadcrumb

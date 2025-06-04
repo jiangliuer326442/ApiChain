@@ -7,12 +7,15 @@ import {
     Modal, 
     Radio,
     Select,
+    Typography,
     Tooltip,
 } from 'antd';
 import { RadioChangeEvent } from 'antd/lib';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import IDBExportImport from 'indexeddb-export-import';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 import { getUser, getUsers } from '@act/user';
 import {
@@ -25,7 +28,9 @@ import {
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
 import { isStringEmpty } from '@rutil/index';
-import { langTrans } from '@lang/i18n';
+import { langFormat, langTrans } from '@lang/i18n';
+
+const { Paragraph, Text, Link } = Typography;
 
 class TeamModel extends Component {
 
@@ -216,18 +221,46 @@ class TeamModel extends Component {
                         {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
                         <>
                             <Form.Item label={
-                                    <Tooltip title={langTrans("team topup form2 tip1")}>
+                                    <Tooltip 
+                                        title={
+                                        <Paragraph>
+{langTrans("team topup form2 tip1")} 
+<Link>{this.props.defaultRunnerUrl}</Link>
+{langTrans("team topup form2 tip2")}
+<SyntaxHighlighter
+  language="shell"
+  style={tomorrow}
+  wrapLines
+>
+    {`docker run -d 
+    -p 6588:6588 
+    -e DB_HOST=[MYSQL_HOST_URL]
+    -e DB_PORT=[MYSQL_HOST_PORT]
+    -e DB_USER=[MYSQL_HOST_USER]
+    -e DB_PASS=[MYSQL_HOST_PWD]
+    -e DB_NAME=apichain_runner
+    -e APICHAIN_SUPER_UID=${this.props.uid}
+    -e APICHAIN_SUPER_UNAME=${this.props.uname}
+    -v [/path/to/local/dir]:/opt/cache
+    --name apichain-runner
+    registry.cn-shanghai.aliyuncs.com/apichain/runner:${this.props.defaultRunnerVersion}`}
+</SyntaxHighlighter>
+                                        </Paragraph>}
+                                        overlayStyle={{ maxWidth: 500 }}>
                                         <span>{langTrans("team topup form2")}</span>
                                     </Tooltip>
                                 }
                             >
                                 <Input.Group compact style={{ display: 'flex' }}>
-                                    <Input value={ isStringEmpty(this.state.clientHost) ? this.props.clientHost : this.state.clientHost } onChange={ event=> {
-                                        this.setState({
-                                            clientHost : event.target.value,
-                                            clientHostValid: false
-                                        })
-                                    } } />
+                                    <Input 
+                                        value={ isStringEmpty(this.state.clientHost) ? this.props.clientHost : this.state.clientHost } 
+                                        placeholder={this.props.defaultRunnerUrl}
+                                        onChange={ event=> {
+                                            this.setState({
+                                                clientHost : event.target.value,
+                                                clientHostValid: false
+                                            })
+                                        } } />
                                     <Button onClick={this.ckHostClick}>{langTrans("team topup form2 btn1")}</Button>
                                 </Input.Group>
                             </Form.Item>
@@ -268,6 +301,8 @@ function mapStateToProps (state) {
       clientType: state.device.clientType,
       clientHost: state.device.clientHost,
       teamId: state.device.teamId,
+      defaultRunnerUrl: state.device.defaultRunnerUrl,
+      defaultRunnerVersion: state.device.defaultRunnerVersion,
     }
 }
 

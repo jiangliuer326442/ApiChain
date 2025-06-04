@@ -2,6 +2,7 @@
   "name": "ApiChainDebug",
   "version": "1.2.3",
   "minServerVersion": "1.2.3",
+  "defaultRunnerUrl": "http://127.0.0.1:6588",
   "description": "接口文档与单元测试工具",
   "keywords": [
     "postman",
