@@ -58,6 +58,8 @@ export const VERSION_ITERATIONS_PAGE_URL = "/version_iterations/page";
 
 export const VERSION_ITERATIONS_OPENS_URL = "/version_iterations/opens";
 
+export const VERSION_ITERATION_RE_OPEN_URL = "/version_iterations/reopen";
+
 export const VERSION_ITERATION_GET_URL = "/version_iterations/get";
 
 export const VERSION_ITERATION_ALL_URL = "/version_iterations/all";

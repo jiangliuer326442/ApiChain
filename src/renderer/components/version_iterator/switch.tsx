@@ -17,17 +17,14 @@ class MySwitch extends Component {
         };
     }
 
-    onChange = (checked: boolean) => {
+    onChange = async (checked: boolean) => {
         this.setState({defaultChecked: checked});
         if (checked) {
-            openVersionIterator(this.props.uuid, ()=>{
-                this.props.cb();
-            });
+            await openVersionIterator(this.props.clientType, this.props.teamId, this.props.uuid);
         } else {
-            closeVersionIterator(this.props.uuid, ()=>{
-                this.props.cb();
-            });
+            await closeVersionIterator(this.props.clientType, this.props.teamId, this.props.uuid);
         }
+        this.props.cb();
     };
 
     render() : ReactNode {
@@ -59,6 +56,8 @@ class MySwitch extends Component {
 
 function mapStateToProps (state) {
     return {
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
     }
 }
   

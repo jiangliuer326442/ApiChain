@@ -24,9 +24,6 @@ import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
-
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 let version_iterator_prjects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -59,7 +56,7 @@ class VersionIterator extends Component {
             width: 90,
             render: (status, row) => {
               return <VersionIteratorSwitch defaultChecked={status} uuid={row[version_iterator_uuid]} cb={async ()=>{
-                getOpenVersionIterators(this.props.dispatch);
+                getOpenVersionIterators(this.props.clientType, this.props.dispatch);
                 let pagination = cloneDeep(this.state.pagination);
                 let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
                 this.setState({listDatas, pagination});

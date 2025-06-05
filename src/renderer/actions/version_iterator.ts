@@ -14,6 +14,7 @@ import {
     VERSION_ITERATIONS_OPENS_URL,
     VERSION_ITERATION_DEL_URL,
     VERSION_ITERATION_ALL_URL,
+    VERSION_ITERATION_RE_OPEN_URL,
     CLIENT_TYPE_SINGLE,
     CLIENT_TYPE_TEAM,
 } from '@conf/team';
@@ -175,22 +176,30 @@ export async function delVersionIterator(clientType: string, teamId : string, ro
     await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
 }
 
-export async function openVersionIterator(uuid, cb) {
+export async function openVersionIterator(clientType : string, teamId : string, uuid : string) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(VERSION_ITERATION_RE_OPEN_URL, {uuid});
+    }
+
     let version_iteration = await window.db[TABLE_VERSION_ITERATION_NAME]
     .where(version_iterator_uuid).equals(uuid)
     .first();
 
     if (version_iteration !== undefined) {
         version_iteration[version_iterator_openFlg] = 1;
-        version_iteration[version_iterator_close_time] = Date.now();
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            version_iteration.upload_flg = 0;
+            version_iteration.team_id = "";
+        } else {
+            version_iteration.upload_flg = 1;
+            version_iteration.team_id = teamId;
+        }
 
-        console.debug(version_iteration);
         await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
-        cb();
     }
 }
 
-export async function closeVersionIterator(clientType : string, teamId : string, uuid, cb) {
+export async function closeVersionIterator(clientType : string, teamId : string, uuid : string) {
     let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
     .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
     .equals([ 0, uuid ])
@@ -207,10 +216,7 @@ export async function closeVersionIterator(clientType : string, teamId : string,
     if (version_iteration !== undefined) {
         version_iteration[version_iterator_openFlg] = 0;
         version_iteration[version_iterator_close_time] = Date.now();
-
-        console.debug(version_iteration);
         await window.db[TABLE_VERSION_ITERATION_NAME].put(version_iteration);
-        cb();
     }
 }
 
