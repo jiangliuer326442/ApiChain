@@ -643,6 +643,7 @@ export async function continueIteratorExecuteUnitTest(
 }
 
 export async function continueProjectExecuteUnitTest(
+    clientType : string,
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
     env : string, dispatch : any, cb : Function) {
 
@@ -692,7 +693,7 @@ export async function continueProjectExecuteUnitTest(
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
         }, 
         async (project, method, requestUri) => {
-            let request = await getProjectRequest(project, method, requestUri);
+            let request = await getProjectRequest(clientType, project, method, requestUri);
             return request;
         },
         progressCb
@@ -714,6 +715,7 @@ export async function continueProjectExecuteUnitTest(
 }
 
 export async function executeProjectUnitTest(
+    clientType : string,
     iteratorId : string, unitTestId : string, 
     steps : Array<any>, env : string, dispatch : any,
     cb : Function
@@ -758,7 +760,7 @@ export async function executeProjectUnitTest(
             await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
         },
         async (project, method, requestUri) => {
-            let request = await getProjectRequest(project, method, requestUri);
+            let request = await getProjectRequest(clientType, project, method, requestUri);
             return request;
         },
         progressCb

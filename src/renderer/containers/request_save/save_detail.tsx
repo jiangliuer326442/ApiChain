@@ -227,7 +227,10 @@ class RequestSaveContainer extends Component {
             if(this.state.stopFlg) break;
         }
         if (isStringEmpty(this.state.versionIterator)){
-            await editProjectRequest(this.state.prj, this.state.requestMethod, this.state.requestUri,
+            await editProjectRequest(
+                this.props.clientType, this.props.teamId,
+                this.state.initRequestMethod, this.state.initRequestUri, 
+                this.state.prj, this.state.requestMethod, this.state.requestUri,
                 this.state.title, this.state.description, this.state.selectedFolder, 
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData

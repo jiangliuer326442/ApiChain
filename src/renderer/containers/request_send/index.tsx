@@ -468,18 +468,22 @@ class RequestSendContainer extends Component {
     state.sendingFlg = true;
     this.setState(state);
 
-    let requestDefine = await getVersionIteratorRequest(
-      this.props.clientType,
-      this.state.iteratorId, 
-      this.state.prj, 
-      this.state.requestMethod, 
-      this.state.requestUri
-    );
-    if (requestDefine === null) {
-      requestDefine = await getProjectRequest(this.state.prj, this.state.requestMethod, this.state.requestUri);
-      if (requestDefine == null) {
-        requestDefine = {};
-      }
+    let requestDefine = {};
+    if (isStringEmpty(this.state.iteratorId)) {
+      requestDefine = await getProjectRequest(
+        this.props.clientType,
+        this.state.prj, 
+        this.state.requestMethod, 
+        this.state.requestUri
+      );
+    } else {
+      requestDefine = await getVersionIteratorRequest(
+        this.props.clientType,
+        this.state.iteratorId, 
+        this.state.prj, 
+        this.state.requestMethod, 
+        this.state.requestUri
+      )
     }
 
     let url = this.state.requestHost + this.state.requestUri;
@@ -523,7 +527,7 @@ class RequestSendContainer extends Component {
     if (this.state.requestMethod === REQUEST_METHOD_POST) {
       let postData = this.requestSendTip.iteratorGetVarByKey(
         this.state.requestBodyData, 
-        Object.keys(requestDefine).length > 0 ? requestDefine['body'] : null 
+        requestDefine?.body ?? null
       );
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {

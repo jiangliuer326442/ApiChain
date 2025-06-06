@@ -1,46 +1,19 @@
 import {
-    TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_NAME, TABLE_PROJECT_REQUEST_FIELDS,
     UNAME,
 } from '@conf/db';
 import { 
     CLIENT_TYPE_TEAM, CLIENT_TYPE_SINGLE,
-    REQUEST_PROJECT_SET_URL,
+    REQUEST_PROJECT_ADD_URL,
+    REQUEST_PROJECT_QUERY_URL,
+    REQUEST_PROJECT_FIND_URL,
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
-import {
-    addProjectFolder
-} from '@act/project_folders';
 import {
     getUsers
 } from '@act/user';
 
-import { isStringEmpty } from '@rutil/index';
-
-let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
-let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
-let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
-let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
-let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
-let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
-let iteration_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
-let iteration_request_header_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_HEADER_HASH;
-let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY;
-let iteration_request_body_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY_HASH;
-let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
-let iteration_request_param_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM_HASH;
-let iteration_request_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
-let iteration_request_response_head = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
-let iteration_request_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
-let iteration_request_response_hash = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HASH;
-let iteration_request_response_demo = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_DEMO;
-let iteration_request_jsonFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_JSONFLG;
-let iteration_request_htmlFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_HTMLFLG;
-let iteration_request_picFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_PICFLG;
-let iteration_request_fileFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FILEFLG;
-let iteration_request_cuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CUID;
-let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
-let iteration_request_ctime = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_CTIME;
+import { isStringEmpty, mixedSort } from '@rutil/index';
 
 let project_request_project = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
 let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
@@ -78,7 +51,7 @@ export async function addProjectRequest(
     json_flg : boolean, html_flg : boolean, pic_flg : boolean, file_flg : boolean, device : object) {
 
         if (clientType === CLIENT_TYPE_TEAM) {
-            await sendTeamMessage(REQUEST_PROJECT_SET_URL, {
+            await sendTeamMessage(REQUEST_PROJECT_ADD_URL, {
                 prj, method, uri, sort: 0,
                 title, description, fold,
                 pic_flg, file_flg, json_flg, html_flg, 
@@ -167,87 +140,21 @@ export async function addProjectRequest(
     }
 }
 
-export async function addProjectRequestFromVersionIterator(clientType : string, teamId : string, version_iteration_request : any) {
-    let existedProjectRequest = await window.db[TABLE_PROJECT_REQUEST_NAME]
-    .where('[' + project_request_project + '+' + project_request_method + '+' + project_request_uri + ']')
-    .equals([version_iteration_request[iteration_request_project], version_iteration_request[iteration_request_method], version_iteration_request[iteration_request_uri]])
-    .first();
-    //不存在或者已删除，直接新增
-    if (existedProjectRequest === undefined || existedProjectRequest[project_request_delFlg] === 1) {
-        let project = version_iteration_request[iteration_request_project];
-        let foldName = version_iteration_request[iteration_request_fold];
-        let device : any = {};
-        device.uuid = version_iteration_request[iteration_request_cuid];
-        //新增项目文件夹
-        await addProjectFolder(clientType, teamId, project, foldName, device);
-
-        let projectRequest : any = {};
-        projectRequest[project_request_project] = project;
-        projectRequest[project_request_method] = version_iteration_request[iteration_request_method];
-        projectRequest[project_request_uri] = version_iteration_request[iteration_request_uri];
-        projectRequest[project_request_title] = version_iteration_request[iteration_request_title];
-        projectRequest[project_request_desc] = version_iteration_request[iteration_request_desc];
-        projectRequest[project_request_fold] = foldName;
-        projectRequest[project_request_header] = version_iteration_request[iteration_request_header];
-        projectRequest[project_request_header_hash] = version_iteration_request[iteration_request_header_hash];
-        projectRequest[project_request_body] = version_iteration_request[iteration_request_body];
-        projectRequest[project_request_body_hash] = version_iteration_request[iteration_request_body_hash];
-        projectRequest[project_request_param] = version_iteration_request[iteration_request_param];
-        projectRequest[project_request_param_hash] = version_iteration_request[iteration_request_param_hash];
-        projectRequest[project_request_response_content] = version_iteration_request[iteration_request_response_content];
-        projectRequest[project_request_response_head] = version_iteration_request[iteration_request_response_head];
-        projectRequest[project_request_response_cookie] = version_iteration_request[iteration_request_response_cookie];
-        projectRequest[project_request_response_hash] = version_iteration_request[iteration_request_response_hash];
-        projectRequest[project_request_response_demo] = version_iteration_request[iteration_request_response_demo];
-        projectRequest[project_request_jsonFlg] = version_iteration_request[iteration_request_jsonFlg];
-        projectRequest[project_request_htmlFlg] = version_iteration_request[iteration_request_htmlFlg];
-        projectRequest[project_request_picFlg] = version_iteration_request[iteration_request_picFlg];
-        projectRequest[project_request_fileFlg] = version_iteration_request[iteration_request_fileFlg];
-        projectRequest[project_request_delFlg] = version_iteration_request[iteration_request_delFlg];
-        projectRequest[project_request_ctime] = version_iteration_request[iteration_request_ctime];
-        projectRequest[project_request_cuid] = version_iteration_request[iteration_request_cuid];
-    
-        console.debug("addProjectRequestFromVersionIterator", projectRequest);
-    
-        await window.db[TABLE_PROJECT_REQUEST_NAME].put(projectRequest);
-    } else if (
-        (existedProjectRequest[project_request_header_hash] != version_iteration_request[iteration_request_header_hash])
-        ||
-        (existedProjectRequest[project_request_param_hash] != version_iteration_request[iteration_request_param_hash])
-        ||
-        (existedProjectRequest[project_request_body_hash] != version_iteration_request[iteration_request_body_hash])
-        ||
-        (existedProjectRequest[project_request_response_hash] != version_iteration_request[iteration_request_response_hash])
-    ) {
-        //存在判断是否需要更新
-        existedProjectRequest[project_request_header] = version_iteration_request[iteration_request_header];
-        existedProjectRequest[project_request_header_hash] = version_iteration_request[iteration_request_header_hash];
-        existedProjectRequest[project_request_body] = version_iteration_request[iteration_request_body];
-        existedProjectRequest[project_request_body_hash] = version_iteration_request[iteration_request_body_hash];
-        existedProjectRequest[project_request_param] = version_iteration_request[iteration_request_param];
-        existedProjectRequest[project_request_param_hash] = version_iteration_request[iteration_request_param_hash];
-        existedProjectRequest[project_request_response_content] = version_iteration_request[iteration_request_response_content];
-        existedProjectRequest[project_request_response_head] = version_iteration_request[iteration_request_response_head];
-        existedProjectRequest[project_request_response_cookie] = version_iteration_request[iteration_request_response_cookie];
-        existedProjectRequest[project_request_response_hash] = version_iteration_request[iteration_request_response_hash];
-    
-        console.debug("addProjectRequestFromVersionIterator", existedProjectRequest);
-    
-        await window.db[TABLE_PROJECT_REQUEST_NAME].put(existedProjectRequest);
-    }
-}
-
-export async function getProjectRequest(clientType:string, project : string, method : string, uri : string) {
+export async function getProjectRequest(clientType : string, prj : string, method : string, uri : string) {
     let users = await getUsers(clientType);
+    let project_request;
 
-    let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
-    .where([ project_request_project, project_request_method, project_request_uri ])
-    .equals([ project, method, uri ])
-    .first();
-    if (project_request === undefined || project_request[project_request_delFlg] !== 0) {
-        return null;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        project_request = await sendTeamMessage(REQUEST_PROJECT_FIND_URL, {prj, method, uri});
+    } else {
+        project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
+        .where([ project_request_project, project_request_method, project_request_uri ])
+        .equals([ prj, method, uri ])
+        .first();
+        if (project_request === undefined || project_request[project_request_delFlg] !== 0) {
+            return null;
+        }
     }
-
     project_request[UNAME] = users.get(project_request[project_request_cuid]);
     return project_request;
 }
@@ -296,50 +203,49 @@ export async function setProjectRequestSort(project : string, method : string, u
     cb();
 }
 
-export async function getProjectRequests(project : string, fold : string | null, title : string, uri : string) {
-    let project_requests = await window.db[TABLE_PROJECT_REQUEST_NAME]
-    .where([ project_request_delFlg, project_request_project ])
-    .equals([ 0, project ])
-    .filter(row => {
-        if (!isStringEmpty(title)) {
-            if (row[project_request_title].indexOf(title) < 0 && row[project_request_desc].indexOf(title) < 0) {
-                return false;
+export async function getProjectRequests(clientType : string, project : string, fold : string | null, title : string, uri : string) {
+    let project_requests;
+    
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        project_requests = await window.db[TABLE_PROJECT_REQUEST_NAME]
+        .where([ project_request_delFlg, project_request_project ])
+        .equals([ 0, project ])
+        .filter(row => {
+            if (!isStringEmpty(title)) {
+                if (row[project_request_title].indexOf(title) < 0 && row[project_request_desc].indexOf(title) < 0) {
+                    return false;
+                }
             }
-        }
-        if (!isStringEmpty(uri)) {
-            if (row[project_request_uri].toLowerCase().indexOf(uri.toLowerCase()) < 0) {
-                return false;
+            if (!isStringEmpty(uri)) {
+                if (row[project_request_uri].toLowerCase().indexOf(uri.toLowerCase()) < 0) {
+                    return false;
+                }
             }
-        }
-        if (!isStringEmpty(fold) || fold === "") {
-            if (row[project_request_fold] !== fold) {
-                return false;
+            if (!isStringEmpty(fold) || fold === "") {
+                if (row[project_request_fold] !== fold) {
+                    return false;
+                }
             }
-        }
-        return true;
-    })
-    .reverse()
-    .toArray();
+            return true;
+        })
+        .reverse()
+        .toArray();
 
-    project_requests.sort((a, b) => {
-        if (a[project_request_sort] === undefined) {
-            a[project_request_sort] = 0;
-        }
-        if (b[project_request_sort] === undefined) {
-            b[project_request_sort] = 0;
-        }
-        return b[project_request_sort] - a[project_request_sort];
-    })
+        mixedSort(project_requests, project_request_title);
+    } else {
+        let ret = await sendTeamMessage(REQUEST_PROJECT_QUERY_URL, {prj: project, fold, title, uri});
+        project_requests = ret.requests;
+    }
     
     return project_requests;
 }
 
-export async function delProjectRequest(record, cb) {
+export async function delProjectRequest(clientType : string, record, cb) {
     let project = record[project_request_project];
     let method = record[project_request_method];
     let uri = record[project_request_uri];
 
-    let project_request = await getProjectRequest(project, method, uri);
+    let project_request = await getProjectRequest(clientType, project, method, uri);
     if (project_request !== undefined) {
         project_request[project_request_delFlg] = 1;
         console.debug("delProjectRequest", project_request);
@@ -349,11 +255,13 @@ export async function delProjectRequest(record, cb) {
 }
 
 export async function editProjectRequest(
+    clientType : string, teamId : string,
+    initMethod : string, initUri : string,
     project : string, method : string, uri : string, 
     title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, 
     responseContent: object, responseHead: object, responseCookie: object
 ) {
-    let project_request = await getProjectRequest(project, method, uri);
+    let project_request = await getProjectRequest(clientType, project, method, uri);
     project_request[project_request_title] = title;
     project_request[project_request_desc] = desc;
     project_request[project_request_fold] = fold;
@@ -364,8 +272,13 @@ export async function editProjectRequest(
     project_request[project_request_response_content] = responseContent;
     project_request[project_request_response_head] = responseHead;
     project_request[project_request_response_cookie] = responseCookie;
-
-    console.debug("editProjectRequest", project_request);
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        project_request.upload_flg = 0;
+        project_request.team_id = "";
+    } else {
+        project_request.upload_flg = 1;
+        project_request.team_id = teamId;
+    }
 
     await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
 }

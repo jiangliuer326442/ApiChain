@@ -310,7 +310,7 @@ class RequestSaveContainer extends Component {
                 }
             });
         } else {
-            getProjectRequest(prj, method, uri).then(projectRequest => {
+            getProjectRequest(this.props.clientType, prj, method, uri).then(projectRequest => {
                 if (projectRequest !== null) {
                     let requestHeadData = record[request_history_head];
                     let shortRequestHeadJsonObject = {};

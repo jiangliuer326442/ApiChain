@@ -82,13 +82,13 @@ export async function delVersionIteratorRequest(clientType, record, cb) {
     }
 }
 
-export async function getUnitTestRequests(project : string, iteration_uuid : string, uri : string) {
+export async function getUnitTestRequests(clientType : string, project : string, iteration_uuid : string, uri : string) {
     let uris = new Set();
     let requests = await getVersionIteratorRequestsByProject(iteration_uuid, project, null, "", uri);
     for (let _request of requests) {
         uris.add(_request[iteration_request_uri]);
     }
-    let projectRequests = await getProjectRequests(project, null, "", uri);
+    let projectRequests = await getProjectRequests(clientType, project, null, "", uri);
     for (let _request of projectRequests) {
         if (!uris.has(_request[project_request_uri])) {
             requests.push(_request);

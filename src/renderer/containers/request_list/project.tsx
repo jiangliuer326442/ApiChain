@@ -177,7 +177,7 @@ class RequestListProject extends Component {
 
     async componentDidUpdate(prevProps) {
         if (prevProps.match.params.id !== this.props.match.params.id) {
-            this.state.folders = await getProjectFolders(ths.props.clientType, this.props.match.params.id);
+            this.state.folders = await getProjectFolders(this.props.clientType, this.props.match.params.id);
             this.onFinish({})
         }
     }
@@ -193,7 +193,7 @@ class RequestListProject extends Component {
     }
 
     async componentDidMount() {
-        this.state.folders = await getVersionIteratorFolders("", this.state.projectLabel);
+        this.state.folders = await getProjectFolders(this.props.clientType, this.state.projectLabel);
         this.onFinish({});
     }
 
@@ -311,7 +311,7 @@ class RequestListProject extends Component {
         let title = values.title;
         let uri = values.uri;
         let folder = values.folder;
-        let project_requests = await getProjectRequests(this.state.projectLabel, folder, title, uri);
+        let project_requests = await getProjectRequests(this.props.clientType, this.state.projectLabel, folder, title, uri);
         let requestsDividered : any = {};
         let requestsJsxDividered = [];
         let optionsUri = [];
