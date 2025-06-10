@@ -1,5 +1,3 @@
-import { GET_ENVS } from "./redux";
-
 export const CLIENT_TYPE_SINGLE = "single";
 
 export const CLIENT_TYPE_TEAM = "team";
@@ -79,6 +77,8 @@ export const REQUEST_VERSION_ITERATION_QUERY_URL = "/requests/iteration/query";
 export const REQUEST_VERSION_ITERATION_FIND_URL = "/requests/iteration/find";
 
 export const REQUEST_PROJECT_ADD_URL = "/requests/project/add";
+
+export const REQUEST_PROJECT_EDIT_URL = "/requests/project/edit";
 
 export const REQUEST_PROJECT_QUERY_URL = "/requests/project/query";
 

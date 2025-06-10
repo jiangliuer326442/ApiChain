@@ -5,6 +5,7 @@ import {
 import { 
     CLIENT_TYPE_TEAM, CLIENT_TYPE_SINGLE,
     REQUEST_PROJECT_ADD_URL,
+    REQUEST_PROJECT_EDIT_URL,
     REQUEST_PROJECT_QUERY_URL,
     REQUEST_PROJECT_FIND_URL,
 } from '@conf/team';
@@ -261,24 +262,70 @@ export async function editProjectRequest(
     title: string, desc: string, fold: string, header: object, body: object, param: object, pathVariable: object, 
     responseContent: object, responseHead: object, responseCookie: object
 ) {
-    let project_request = await getProjectRequest(clientType, project, method, uri);
-    project_request[project_request_title] = title;
-    project_request[project_request_desc] = desc;
-    project_request[project_request_fold] = fold;
-    project_request[project_request_header] = header;
-    project_request[project_request_body] = body;
-    project_request[project_request_param] = param;
-    project_request[project_request_path_variable] = pathVariable;
-    project_request[project_request_response_content] = responseContent;
-    project_request[project_request_response_head] = responseHead;
-    project_request[project_request_response_cookie] = responseCookie;
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        project_request.upload_flg = 0;
-        project_request.team_id = "";
-    } else {
-        project_request.upload_flg = 1;
-        project_request.team_id = teamId;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(REQUEST_PROJECT_EDIT_URL, {
+            initMethod, initUri,
+            prj: project, method, uri,
+            title, description: desc, fold, 
+            header: JSON.stringify(header), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable), body: JSON.stringify(body),
+            responseContent: JSON.stringify(responseContent), responseHead: JSON.stringify(responseHead), responseCookie: JSON.stringify(responseCookie)
+        });
     }
 
-    await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
+    //未改动基础，只修改
+    if (initMethod === method && initUri === uri) {
+        let project_request = await getProjectRequest(clientType, project, method, uri);
+        project_request[project_request_title] = title;
+        project_request[project_request_desc] = desc;
+        project_request[project_request_fold] = fold;
+        project_request[project_request_header] = header;
+        project_request[project_request_body] = body;
+        project_request[project_request_param] = param;
+        project_request[project_request_path_variable] = pathVariable;
+        project_request[project_request_response_content] = responseContent;
+        project_request[project_request_response_head] = responseHead;
+        project_request[project_request_response_cookie] = responseCookie;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            project_request.upload_flg = 0;
+            project_request.team_id = "";
+        } else {
+            project_request.upload_flg = 1;
+            project_request.team_id = teamId;
+        }
+    
+        await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
+    } else {
+        let project_request = await getProjectRequest(clientType, project, initMethod, initUri);
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            project_request.upload_flg = 0;
+            project_request.team_id = "";
+        } else {
+            project_request.upload_flg = 1;
+            project_request.team_id = teamId;
+        }
+        project_request[project_request_delFlg] = 1;
+        await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
+        
+        project_request[project_request_method] = method;
+        project_request[project_request_uri] = uri;
+        project_request[project_request_title] = title;
+        project_request[project_request_desc] = desc;
+        project_request[project_request_fold] = fold;
+        project_request[project_request_header] = header;
+        project_request[project_request_body] = body;
+        project_request[project_request_param] = param;
+        project_request[project_request_path_variable] = pathVariable;
+        project_request[project_request_response_content] = responseContent;
+        project_request[project_request_response_head] = responseHead;
+        project_request[project_request_response_cookie] = responseCookie;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            project_request.upload_flg = 0;
+            project_request.team_id = "";
+        } else {
+            project_request.upload_flg = 1;
+            project_request.team_id = teamId;
+        }
+        project_request[project_request_delFlg] = 0;
+        await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
+    }
 }
