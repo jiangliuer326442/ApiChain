@@ -7,6 +7,7 @@ import {
 import {
     union
 } from '@rutil/sets'
+import { ENV_VALUE_API_HOST } from '@conf/envKeys';
 import { 
     TABLE_ENV_KEY_NAME, TABLE_ENV_KEY_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
@@ -27,6 +28,7 @@ import {
     ENV_VARS_ITERATOR_PAGE_URL,
     ENV_VARS_ITERATOR_SET_URL,
     ENV_VARS_ITERATOR_DEL_URL,
+    PRJ_HOST_URL,
 } from '@conf/team';
 import { getUsers } from '@act/user';
 import { sendTeamMessage } from '@act/message';
@@ -113,11 +115,31 @@ export async function batchMoveIteratorEnvValue(prj : string, env : string, oldI
     cb();
 }
 
-export async function getVarsByKey(prj, pname) {
-    const envVarItems = await db[TABLE_ENV_VAR_NAME]
-    .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-    .equals([prj, "", "", pname]).toArray();
-    return envVarItems;
+export async function getEnvHosts(clientType : string, prj : string, env : string|null) : Promise<Map<string, string>> {
+    let datas : any = {};
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        const envVarItems = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+        .equals([prj, "", "", ENV_VALUE_API_HOST])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (env && row[env_var_env] !== env) {
+                return false
+            }
+            return true;
+        })
+        .toArray();
+        for (let globalRow of envVarItems) {
+            datas[globalRow[env_var_env]] = globalRow[env_var_pvalue];
+        }
+    } else {
+        datas = await sendTeamMessage(PRJ_HOST_URL, {prj, env});
+    }
+
+    return new Map(Object.entries(datas));
 }
 
 export async function getKeys(prj, iteration) {

@@ -71,7 +71,7 @@ import {
     iteratorBodyGenHash, 
     parseJsonToFilledTable
 } from '@rutil/json';
-import { getVarsByKey } from '@act/env_value';
+import { getEnvHosts } from '@act/env_value';
 import { 
     delFolder 
 } from '@act/version_iterator_folders';
@@ -505,10 +505,10 @@ class RequestListProject extends Component {
 
                                 <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                     <Button type="link" danger onClick={async ()=>{
-                                        const envVarItems = await getVarsByKey(this.state.projectLabel, ENV_VALUE_API_HOST);
+                                        const envVarItems = await getEnvHosts(this.props.clientType, this.state.projectLabel, null);
                                         let replaceHost = "";
-                                        for(let envVar of envVarItems) {
-                                            replaceHost = getHostRight(envVar[env_var_pvalue]) + "/";
+                                        for (let host of envVarItems.values()) {
+                                            replaceHost = getHostRight(host) + "/";
                                         }
                                         if (isStringEmpty(replaceHost)) {
                                             message.error("当前项目环境变量未设置 " + ENV_VALUE_API_HOST + " 的值");

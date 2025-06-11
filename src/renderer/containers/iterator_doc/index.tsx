@@ -22,9 +22,10 @@ import {
 } from '@conf/channel';
 import MarkdownView from '@comp/markdown/show';
 import { getEnvs } from '@act/env';
-import { getVarsByKey } from '@act/env_value';
+import { getPrjs } from '@act/project';
+import { getEnvHosts } from '@act/env_value';
 import { getRemoteVersionIterator } from '@act/version_iterator';
-import { getVersionIteratorRequestsByProject } from '@act/version_iterator_requests';
+import { getExportVersionIteratorRequests } from '@act/version_iterator_requests';
 import { langTrans } from '@lang/i18n';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
@@ -89,14 +90,20 @@ class IteratorDoc extends Component {
         } else {
             envs = this.props.envs;
         }
+        let prjs;
+        if (this.props.prjs.length === 0) {
+            prjs = await getPrjs(this.props.clientType, null);
+        } else {
+            prjs = this.props.prjs;
+        }
         let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
         let versionIterationPrjs = versionIteration[version_iterator_projects];
-        let requests = await getVersionIteratorRequestsByProject(iteratorId, "", null, "", "");
-        let prjs = this.props.prjs.filter(_prj => versionIterationPrjs.includes(_prj[prj_label]));
+        let requests = await getExportVersionIteratorRequests(this.props.clientType, iteratorId);
+        prjs = prjs.filter(_prj => versionIterationPrjs.includes(_prj.value));
         let envVars : any = {};
         for (let _prj of prjs) {
-            let projectLabel = _prj[prj_label];
-            const envVarItems = await getVarsByKey(projectLabel, ENV_VALUE_API_HOST);
+            let projectLabel = _prj.value;
+            const envVarItems = await getEnvHosts(this.props.clientType, projectLabel, null);
             envVars[projectLabel] = envVarItems;
         }
 

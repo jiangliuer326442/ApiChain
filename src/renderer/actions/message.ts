@@ -36,11 +36,11 @@ import {
     ChannelsAxioTeamReplyStr,
 } from '@conf/channel';
 
-import { getVarsByKey } from '@act/env_value';
+import { getEnvHosts } from '@act/env_value';
 import { getPrjs } from '@act/project';
 import { getEnvs } from '@act/env';
 import { getRemoteVersionIterator } from '@act/version_iterator';
-import { getVersionIteratorRequestsByProject } from '@act/version_iterator_requests';
+import { getSimpleVersionIteratorRequests } from '@act/version_iterator_requests';
 import { langTrans } from '@lang/i18n';
 
 let argsObject = getStartParams();
@@ -172,7 +172,7 @@ export default function() : void {
             let prjs = await getPrjs(clientType, null);
             let envs = await getEnvs(clientType, null);
             let versionIteration = await getRemoteVersionIterator(clientType, iteratorId);
-            let requests = await getVersionIteratorRequestsByProject(iteratorId, "", null, "", "");
+            let requests = await getSimpleVersionIteratorRequests(clientType, iteratorId, "", null, "", "");
 
             let versionIterationPrjs = versionIteration[version_iterator_projects];
             prjs = prjs.filter(_prj => versionIterationPrjs.includes(_prj[prj_label]));
@@ -180,7 +180,7 @@ export default function() : void {
             let envVars : any = {};
             for (let _prj of prjs) {
                 let projectLabel = _prj[prj_label];
-                const envVarItems = await getVarsByKey(projectLabel, ENV_VALUE_API_HOST);
+                const envVarItems = await getEnvHosts(clientType, projectLabel, null);
                 envVars[projectLabel] = envVarItems;
             }
 
@@ -191,7 +191,7 @@ export default function() : void {
         window.electron.ipcRenderer.on(ChannelsMockServerLongStr, async (action, iteratorId, projectId, method, uri) => {
             if (action !== ChannelsMockServerQueryStr) return;
             let versionIteration = await getRemoteVersionIterator(clientType, iteratorId);
-            let requests = await getVersionIteratorRequestsByProject(iteratorId, projectId, null, "", uri);
+            let requests = await getSimpleVersionIteratorRequests(clientType, iteratorId, projectId, null, "", uri);
             window.electron.ipcRenderer.sendMessage(ChannelsMockServerLongStr, ChannelsMockServerQueryResultStr, versionIteration, requests);
         });
     }

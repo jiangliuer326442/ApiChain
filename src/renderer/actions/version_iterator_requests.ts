@@ -9,6 +9,7 @@ import {
     REQUEST_VERSION_ITERATION_ADD_URL,
     REQUEST_VERSION_ITERATION_EDIT_URL,
     REQUEST_VERSION_ITERATION_QUERY_URL,
+    REQUEST_VERSION_ITERATION_EXPORT_URL,
     REQUEST_VERSION_ITERATION_FIND_URL,
 } from '@conf/team';
 import { isStringEmpty } from '@rutil/index';
@@ -141,6 +142,39 @@ export async function batchMoveIteratorRequest(oldIterator : string, project : s
     cb();
 }
 
+export async function getExportVersionIteratorRequests(clientType : string, iteration_uuid : string) {
+    let version_iteration_requests;
+    
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+        .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
+        .equals([ 0, iteration_uuid ])
+        .filter(row => {
+            if (row[iteration_request_exportdocFlg] === false) {
+                return false;
+            }
+            return true;
+        })
+        .reverse()
+        .toArray();
+    } else {
+        let ret = await sendTeamMessage(REQUEST_VERSION_ITERATION_EXPORT_URL, {iteratorId: iteration_uuid});
+        version_iteration_requests = ret.requests;
+    }
+
+    version_iteration_requests.sort((a, b) => {
+        if (a[iteration_request_sort] === undefined) {
+            a[iteration_request_sort] = 0;
+        }
+        if (b[iteration_request_sort] === undefined) {
+            b[iteration_request_sort] = 0;
+        }
+        return b[iteration_request_sort] - a[iteration_request_sort];
+    })
+    
+    return version_iteration_requests;
+}
+
 export async function getSimpleVersionIteratorRequests(clientType : string, iteration_uuid : string, project : string, fold : string | null, title : string, uri : string) {
     let version_iteration_requests;
     
@@ -191,7 +225,7 @@ export async function getSimpleVersionIteratorRequests(clientType : string, iter
     return version_iteration_requests;
 }
 
-export async function getVersionIteratorRequestsByProject(iteration_uuid : string, project : string, fold : string | null, title : string, uri : string) {
+async function getVersionIteratorRequestsByProject(iteration_uuid : string, project : string, fold : string | null, title : string, uri : string) {
     let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
     .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
     .equals([ 0, iteration_uuid ])
