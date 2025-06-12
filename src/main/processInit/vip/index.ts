@@ -1,6 +1,5 @@
 import { ipcMain } from 'electron';
 
-import { PayQueryUrl } from '../../../config/url';
 import { 
     ChannelsVipStr, 
     ChannelsVipGenUrlStr, 
@@ -21,6 +20,7 @@ import {
     genCheckCodeUrl,
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
+import { getPackageJson } from '../../util/util';
 
 export default function (){
 
@@ -66,11 +66,13 @@ export default function (){
 
         if (action !== ChannelsVipCkCodeStr) return;
 
+        let packageJson = getPackageJson();
+
         let url = "";
         //拿订单号
         let tradeNo = getOutTradeNo();
         if (!isStringEmpty(tradeNo)) {
-            url = PayQueryUrl + tradeNo;
+            url = packageJson.payQueryUrl + tradeNo;
         }
         let product = getLatestProduct();
 

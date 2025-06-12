@@ -13,11 +13,13 @@ import { SHOW_ADD_ENV_MODEL, SHOW_EDIT_ENV_MODEL } from '@conf/redux';
 import AddEnvComponent from '@comp/env/add_env';
 import { langTrans } from '@lang/i18n';
 import { getEnvsByPage, delEnv } from '@act/env';
+import { isStringEmpty } from '@rutil/index';
 
 const { Header, Content, Footer } = Layout;
 
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
+let request_device = TABLE_ENV_FIELDS.FIELD_REQUEST_DEVICE;
 
 class Env extends Component {
 
@@ -83,6 +85,7 @@ class Env extends Component {
         open: true,
         env: record[env_label],
         remark: record[env_remark],
+        requestDevice: isStringEmpty(record[request_device]) ? "0" : record[request_device],
     });
   }
 

@@ -84,27 +84,17 @@ class IteratorDoc extends Component {
     }
 
     loadMarkDownFromElectron = async (iteratorId : string) => {
-        let envs;
-        if (this.props.envs.length === 0) {
-            envs = await getEnvs(this.props.clientType, null);
-        } else {
-            envs = this.props.envs;
-        }
-        let prjs;
-        if (this.props.prjs.length === 0) {
-            prjs = await getPrjs(this.props.clientType, null);
-        } else {
-            prjs = this.props.prjs;
-        }
+        let envs = await getEnvs(this.props.clientType, null);
+        let prjs = await getPrjs(this.props.clientType, null);
         let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
         let versionIterationPrjs = versionIteration[version_iterator_projects];
         let requests = await getExportVersionIteratorRequests(this.props.clientType, iteratorId);
-        prjs = prjs.filter(_prj => versionIterationPrjs.includes(_prj.value));
+        prjs = prjs.filter(_prj => versionIterationPrjs.includes(_prj[prj_label]));
         let envVars : any = {};
         for (let _prj of prjs) {
-            let projectLabel = _prj.value;
+            let projectLabel = _prj[prj_label];
             const envVarItems = await getEnvHosts(this.props.clientType, projectLabel, null);
-            envVars[projectLabel] = envVarItems;
+            envVars[projectLabel] = Object.fromEntries(envVarItems);
         }
 
         this.setState({prjs, envs, envVars, versionIteration, requests});
@@ -192,8 +182,6 @@ class IteratorDoc extends Component {
 
 function mapStateToProps (state) {
     return {
-        prjs: state.prj.list,
-        envs: state.env.list,
         clientType: state.device.clientType,
     }
 }

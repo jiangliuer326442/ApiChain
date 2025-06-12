@@ -35,6 +35,7 @@ export default function (state = {
     showAddEnvModelFlg: false,
     env: "",
     remark: "",
+    requestDevice: 0,
     list: []
   }, action : object) {
     switch(action.type) {
@@ -43,12 +44,14 @@ export default function (state = {
                 showAddEnvModelFlg : action.open,
                 env: "",
                 remark: "",
+                requestDevice: 0,
             });
         case SHOW_EDIT_ENV_MODEL:
           return Object.assign({}, state, {
             showAddEnvModelFlg : action.open,
             env : action.env,
             remark : action.remark,
+            requestDevice : action.requestDevice
           });
         case GET_ENVS:
           const list = action.envs.map(item => ({

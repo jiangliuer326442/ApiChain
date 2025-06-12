@@ -57,9 +57,6 @@ let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
 
-let envvar_env_label = TABLE_ENV_VAR_FIELDS.FIELD_ENV_LABEL;
-let envvar_param_var = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
-
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 let iteration_request_prj = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
@@ -320,9 +317,11 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
         markdownContent += "\n## " + _prjName + "\n\n";
 
         for (let _env of envs) {
-            let selectedEnvVar = envVars[_prj].filter(_envVar => _envVar[envvar_env_label] === _env[env_label]);
-            if (selectedEnvVar.length == 0) continue;
-            markdownContent += _env[env_remark] + "：" + selectedEnvVar[0][envvar_param_var] + "\n\n" ;
+            let envHost = envVars[_prj][_env[env_label]];
+            if (isStringEmpty(envHost)) {
+                continue;
+            }
+            markdownContent += _env[env_remark] + "：" + envHost + "\n\n" ;
         }
         markdownContent += langTrans("doc mockserver") + "：" + "http://" + ip + ":" + GLobalPort + "/mockserver/" + iterationUUID + "/" + _prj + "/" + "\n\n" ;
         markdownContent += "\n";
@@ -345,12 +344,11 @@ function getMarkDownContent(versionIteration, version_iteration_requests, prjs, 
     
                 //接口 uri
                 markdownContent +=  "uri：" + _request[iteration_request_method] + " " + _request[iteration_request_uri] + "\n\n";
-
                 if (!isStringEmpty(_request[iteration_request_desc])) {
                     for (let rowText of _request[iteration_request_desc].split("\n")) {
                         markdownContent += "> " + rowText + "\n\n";
                     }
-                    markdownContent += + "\n\n";
+                    markdownContent += "\n\n";
                 }
 
                 let pathVariable = _request[iteration_request_path_variable];

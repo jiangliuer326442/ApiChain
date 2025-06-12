@@ -63,6 +63,7 @@
     "env add title": "添加伺服器環境",
     "env add form1": "環境標識",
     "env add form2": "備註",
+    "env add form3": "發送請求",
     "env add check1": "請輸入環境標識",
     "env add check2": "請輸入備註",
     "env edit title": "編輯伺服器環境",

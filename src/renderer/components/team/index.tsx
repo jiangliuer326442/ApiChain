@@ -10,6 +10,7 @@ import {
     Typography,
     Tooltip,
 } from 'antd';
+import { QuestionCircleTwoTone } from '@ant-design/icons';
 import { RadioChangeEvent } from 'antd/lib';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
@@ -38,7 +39,7 @@ class TeamModel extends Component {
         super(props);
         this.state = {
             clientType: "",
-            clientHost: "",
+            clientHost: props.clientHost,
             clientHostValid: false,
             teamType: this.props.teamType,
             teamName: "",
@@ -147,7 +148,7 @@ class TeamModel extends Component {
                 }
             });
 
-            let _clientHost = isStringEmpty(this.state.clientHost) ? this.props.clientHost : this.state.clientHost;
+            let _clientHost = this.state.clientHost;
     
             if (!isStringEmpty(_clientHost)) {
                 window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamTestHostStr, _clientHost);
@@ -224,36 +225,38 @@ class TeamModel extends Component {
                                     <Tooltip 
                                         title={
                                         <Paragraph>
-{langTrans("team topup form2 tip1")} 
-<Link>{this.props.defaultRunnerUrl}</Link>
-{langTrans("team topup form2 tip2")}
-<SyntaxHighlighter
-  language="shell"
-  style={tomorrow}
-  wrapLines
->
-    {`docker run -d 
-    -p 6588:6588 
-    -e DB_HOST=[MYSQL_HOST_URL]
-    -e DB_PORT=[MYSQL_HOST_PORT]
-    -e DB_USER=[MYSQL_HOST_USER]
-    -e DB_PASS=[MYSQL_HOST_PWD]
-    -e DB_NAME=apichain_runner
-    -e APICHAIN_SUPER_UID=${this.props.uid}
-    -e APICHAIN_SUPER_UNAME=${this.props.uname}
-    -v [/path/to/local/dir]:/opt/cache
-    --name apichain-runner
-    registry.cn-shanghai.aliyuncs.com/apichain/runner:${this.props.defaultRunnerVersion}`}
-</SyntaxHighlighter>
+                                            {langTrans("team topup form2 tip1")} 
+                                            <Link onClick={() => {
+                                                this.setState({clientHost: this.props.defaultRunnerUrl});
+                                            }}>{this.props.defaultRunnerUrl}</Link>
+                                            {langTrans("team topup form2 tip2")}
+                                            <SyntaxHighlighter
+                                            language="shell"
+                                            style={tomorrow}
+                                            wrapLines
+                                            >
+                                                {`docker run -d 
+-p 6588:6588 
+-e DB_HOST=[MYSQL_HOST_URL]
+-e DB_PORT=[MYSQL_HOST_PORT]
+-e DB_USER=[MYSQL_HOST_USER]
+-e DB_PASS=[MYSQL_HOST_PWD]
+-e DB_NAME=apichain_runner
+-e APICHAIN_SUPER_UID=${this.props.uid}
+-e APICHAIN_SUPER_UNAME=${this.props.uname}
+-v [/path/to/local/dir]:/opt/cache
+--name apichain-runner
+registry.cn-shanghai.aliyuncs.com/apichain/runner:${this.props.defaultRunnerVersion}`}
+                                            </SyntaxHighlighter>
                                         </Paragraph>}
                                         overlayStyle={{ maxWidth: 500 }}>
-                                        <span>{langTrans("team topup form2")}</span>
+                                        <Text>{langTrans("team topup form2")}<QuestionCircleTwoTone /></Text>
                                     </Tooltip>
                                 }
                             >
                                 <Input.Group compact style={{ display: 'flex' }}>
                                     <Input 
-                                        value={ isStringEmpty(this.state.clientHost) ? this.props.clientHost : this.state.clientHost } 
+                                        value={ this.state.clientHost } 
                                         placeholder={this.props.defaultRunnerUrl}
                                         onChange={ event=> {
                                             this.setState({

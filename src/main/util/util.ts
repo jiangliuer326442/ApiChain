@@ -42,7 +42,7 @@ export async function getPackageJson() {
     if (app.isPackaged) {
       retPath = path.join(__dirname, '../../package.json')
     } else {
-      retPath = path.join(__dirname, '../../../release/app/package.json')
+      retPath = path.join(__dirname, '../../../package.json')
     }
 
     let content = (await fs.readFile(retPath)).toString();

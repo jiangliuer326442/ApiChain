@@ -24,9 +24,7 @@ import {
   SendOutlined, 
 } from '@ant-design/icons';
 
-import { 
-  getDemoDatabaseFile,
-  DownloadDemoPostMan,
+import {
   getProjectUrl,
   getWikiUrl,
   getWikiConceptUrl,
@@ -513,7 +511,7 @@ class Home extends Component {
               <Title level={3}>下载并导入我们的示例demo数据</Title>
               <ul>
                 <li>
-                点击<Link href={ getDemoDatabaseFile() }>这里</Link>下载示例数据库
+                点击<Link href={ argsObject.demoDatabaseFile }>这里</Link>下载示例数据库
                 </li>
                 <li>
                   点击顶部菜单-数据-还原数据库，选择下载的示例数据库文件
@@ -539,7 +537,7 @@ class Home extends Component {
               </Paragraph>
               <ul>
                 <li>
-                点击<Link href={ DownloadDemoPostMan }>这里</Link>下载 PostMan 的备份文件。
+                点击<Link href={ argsObject.demoPostmanFile }>这里</Link>下载 PostMan 的备份文件。
                 </li>
                 <li>
                   点击设置-项目-添加微服务，项目标识 填写 “fly”，备注填写 “无人机”，确定按钮新增项目。
@@ -584,7 +582,7 @@ class Home extends Component {
               <Title level={3}>下載並導入我們的示例 demo 數據</Title>
               <ul>
                 <li>
-                點擊<Link href={ getDemoDatabaseFile() }>這裡</Link>下載示例數據庫。
+                點擊<Link href={ argsObject.demoDatabaseFile }>這裡</Link>下載示例數據庫。
                 </li>
                 <li>
                 點擊頂部選單-數據-還原數據庫，選擇下載的範例數據庫文件
@@ -610,7 +608,7 @@ class Home extends Component {
               </Paragraph>
               <ul>
                 <li>
-                點擊<Link href={ DownloadDemoPostMan }>這裡</Link>下載 PostMan 的備份文件。
+                點擊<Link href={ argsObject.demoPostmanFile }>這裡</Link>下載 PostMan 的備份文件。
                 </li>
                 <li>
                 點擊設置-項目-添加微服務，項目標識 填寫 “fly”，備註填寫 “無人機”，確定按鈕新增項目。
@@ -654,7 +652,7 @@ class Home extends Component {
               <Title level={3}>Download and import our sample demo data</Title>
               <ul>
                 <li>
-                Click <Link href={ getDemoDatabaseFile() }>here</Link> to download the sample database.
+                Click <Link href={ argsObject.demoDatabaseFile }>here</Link> to download the sample database.
                 </li>
                 <li>
                 Click on the top menu - Data - Restore Database, then select the downloaded sample database file.
@@ -680,7 +678,7 @@ class Home extends Component {
               </Paragraph>
               <ul>
                 <li>
-                Click <Link href={ DownloadDemoPostMan }>here</Link> to download the backup file of PostMan.
+                Click <Link href={ argsObject.demoPostmanFile }>here</Link> to download the backup file of PostMan.
                 </li>
                 <li>
                 Click on Settings - Projects - Add Microservice, fill in “fly” for the project identifier, and “drone” for the remarks, then click the confirm button to add the project.

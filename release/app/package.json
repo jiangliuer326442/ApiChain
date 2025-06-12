@@ -3,6 +3,9 @@
   "version": "1.2.3",
   "minServerVersion": "1.2.3",
   "defaultRunnerUrl": "http://runner.fanghailiang.cn",
+  "payJumpUrl":"https://pay.apichain.app/pay/jump/",
+  "payQueryUrl":"https://pay.apichain.app/pay/query/",
+  "staticUrl":"http://cdn.fanghailiang.cn/",
   "description": "是一款类似 PostMan 的接口请求软件",
   "license": "MIT",
   "author": {

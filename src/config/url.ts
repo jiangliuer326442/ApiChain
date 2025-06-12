@@ -72,20 +72,14 @@ export function getWikiProject() {
     }
 }
 
-export function getDemoDatabaseFile() {
+export function getDemoDatabaseFile(staticUrl : string) {
     if (getLang() === 'zh-CN' || getLang() === 'zh-TW') {
-        return STATIC_URL + "demo_database_zh.json";
+        return staticUrl + "demo_database_zh.json";
     } else {
-        return STATIC_URL + "demo_database_en.json";
+        return staticUrl + "demo_database_en.json";
     }
 }
 
-const HOST_PAY = "https://pay.apichain.app/pay/";
-
-const STATIC_URL = "http://cdn.fanghailiang.cn/";
-
-export const PayJumpUrl = HOST_PAY + "jump/";
-
-export const PayQueryUrl = HOST_PAY + "query/";
-
-export const DownloadDemoPostMan = STATIC_URL + "demo_postman.json";
+export function getDemoPostmanFile(staticUrl : string) {
+    return staticUrl + "demo_postman.json"
+}

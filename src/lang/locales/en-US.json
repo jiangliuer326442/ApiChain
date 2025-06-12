@@ -63,6 +63,7 @@
     "env add title": "Add Server Environment",
     "env add form1": "Environment Identifier",
     "env add form2": "Remarks",
+    "env add form3": "Send Request",
     "env add check1": "Please enter environment identifier",
     "env add check2": "Please enter remarks",
     "env edit title": "Edit Server Environment",

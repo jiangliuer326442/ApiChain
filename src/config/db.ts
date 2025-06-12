@@ -17,6 +17,7 @@ export const TABLE_ENV_NAME = "env";
 export const TABLE_ENV_FIELDS = {
     FIELD_LABEL : "label",
     FIELD_REMARK : "remark",
+    FIELD_REQUEST_DEVICE : "request_device",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",

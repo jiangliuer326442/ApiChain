@@ -2,9 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import getCache from './index';
 import { getUuid } from './user';
-import { base64Decode, base64Encode } from '../../util/util'
+import { base64Decode, base64Encode, getPackageJson } from '../../util/util'
 import { isStringEmpty } from '../../../renderer/util';
-import { PayJumpUrl, PayQueryUrl } from '../../../config/url';
 
 export const TABLE_NAME = "vip.status";
 
@@ -143,8 +142,9 @@ export function clearVipCacheFlg() {
 
 export function getCheckCodeUrl() {
     let cache = getCache("");
+    let packageJson = getPackageJson();
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
-    let url = PayQueryUrl + myOrderNo;
+    let url = packageJson.payQueryUrl + myOrderNo;
     return url;
 }
 
@@ -161,9 +161,10 @@ export function genCheckCodeUrl(productName : string, payMethod : string) {
 
 function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : string {
     let param = getUuid();
+    let packageJson = getPackageJson();
 
     let encryptString = productName + ":" + payMethod + ":" + outTradeNo + ":" + param;
     let data = base64Encode(encryptString)
-    let url = PayJumpUrl + data;
+    let url = packageJson.payJumpUrl + data;
     return url;
 }
