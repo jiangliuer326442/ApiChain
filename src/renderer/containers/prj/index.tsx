@@ -24,6 +24,7 @@ import {
   ChannelsDbProjectImportResultStr,
 } from '@conf/channel';
 import { SHOW_ADD_PRJ_MODEL, SHOW_EDIT_PRJ_MODEL } from '@conf/redux';
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import AddPrjComponent from '@comp/prj/add_prj';
 import { getUser } from '@act/user';
 import { getPrjsByPage, getPrjs, delPrj } from '@act/project';
@@ -357,12 +358,16 @@ class Project extends Component {
             <Flex vertical>
               <Flex justify="space-between" align="center">
                 <Flex>
-                  <Button onClick={this.exportProjectDocs} color="primary">
-                    {langTrans("prj export")}
-                  </Button>
-                  <Button type="link" onClick={this.importProjectDocs}>
-                  {langTrans("prj import")}
-                  </Button>
+                  {this.props.clientType === CLIENT_TYPE_SINGLE ? 
+                  <>
+                    <Button onClick={this.exportProjectDocs} color="primary">
+                      {langTrans("prj export")}
+                    </Button>
+                    <Button type="link" onClick={this.importProjectDocs}>
+                    {langTrans("prj import")}
+                    </Button>
+                  </>
+                  : null}
                 </Flex>
                 <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPrjClick}>{langTrans("prj add")}</Button>
               </Flex>

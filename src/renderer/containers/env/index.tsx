@@ -85,7 +85,7 @@ class Env extends Component {
         open: true,
         env: record[env_label],
         remark: record[env_remark],
-        requestDevice: isStringEmpty(record[request_device]) ? "0" : record[request_device],
+        requestDevice: record[request_device] == undefined ? 0 : record[request_device],
     });
   }
 

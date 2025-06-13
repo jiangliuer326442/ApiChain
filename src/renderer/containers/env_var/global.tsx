@@ -9,19 +9,21 @@ import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/ico
 import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
-import RequestSendTips from '@clazz/RequestSendTips';
 import { GET_ENV_VALS } from '@conf/redux';
 import AddEnvVarComponent from '@comp/env_var/add_env_var';
 import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
 import { ENV_LIST_ROUTE } from '@conf/routers';
 import { getWikiEnv } from '@conf/url';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
+
 import { getEnvs } from '@act/env';
 import { 
   getGlobalEnvValuesByPage, 
   delGlobalEnvValues,
-  batchCopyEnvVales,
+  batchCopyGlobalEnvValues,
 } from '@act/env_value';
+import { getGlobalKeys } from '@act/keys';
+
 import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
@@ -104,7 +106,6 @@ class EnvVar extends Component {
           current: 1,
           pageSize: 10,
         },
-        tips: [],
         pkeys: [],
         env: "",
         copiedKeys: [],
@@ -152,21 +153,15 @@ class EnvVar extends Component {
     }
 
     getEnvValueData = async (env: string, paramName: string) => {
-      let requestSendTip = new RequestSendTips();
-      requestSendTip.initGlobal(env, this.props.clientType);
-      let envKeys = await requestSendTip.getTips();
-      let tips = [];
-      for(let envKey of envKeys) {
-        tips.push( {value: envKey} );
-      }
-      this.setState( { tips } );
+      let pkeys = await getGlobalKeys(this.props.clientType);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
         let datas = await getGlobalEnvValuesByPage(env, paramName, this.props.clientType, pagination);
-        this.setState({listDatas: datas, pagination});
-        if (!paramName) {
-          this.setState({pkeys: datas.map(item => ({ value: item[pname] }))});
-        }
+        this.setState({
+          listDatas: datas, 
+          pagination,
+          pkeys: !paramName ? pkeys : [],
+        });
       }
     }
 
@@ -195,18 +190,22 @@ class EnvVar extends Component {
                         options={this.props.envs}
                       />
                       :
-                      <Button type="link" href={"#" + ENV_LIST_ROUTE}>添加服务器环境</Button>
+                      <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("envvar prj add env")}</Button>
                       }
                   </Form.Item>
                   <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar select tip2")}>
                       <AutoComplete 
                           allowClear={{ clearIcon: <CloseSquareFilled /> }} 
-                          options={this.state.pkeys} 
+                          options={this.state.pkeys.map(item => ({
+                            value: item,
+                            label: item
+                          }))} 
                           filterOption={(inputValue, option) =>
                             (inputValue && option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1) || (!inputValue)
                           }
                           onSelect={this.setPName}
                           onClear={()=>this.setPName("")}
+                          showSearch
                       >
                           <Input />
                       </AutoComplete>
@@ -215,16 +214,16 @@ class EnvVar extends Component {
                     <Select
                         onChange={ async value => {
                           if (this.state.copiedKeys.length === 0) return;
-                          await batchCopyEnvVales("", (this.state.env ? this.state.env : this.props.env), "", "", this.state.copiedKeys, value);
+                          await batchCopyGlobalEnvValues(this.props.clientType, this.props.teamId, (this.state.env ? this.state.env : this.props.env), value, this.state.copiedKeys);
                           this.state.copiedKeys = [];
-                          message.success("环境变量拷贝成功");
+                          message.success(langTrans("envvar global copy success"));
                           this.setEnvironmentChange(value);
                         }}
                         style={{ width: 120 }}
                         options={this.props.envs
-                          .filter(item => item.label != (this.state.env ? this.state.env : this.props.env))
+                          .filter(item => item.value != (this.state.env ? this.state.env : this.props.env))
                           .map(item => {
-                            return {value: item.label, label: item.remark}
+                            return {value: item.value, label: item.label}
                           })
                         }
                         allowClear
@@ -237,7 +236,7 @@ class EnvVar extends Component {
                 disabled={ isEmptyEnv }>
                   {isEmptyEnv ? langTrans("envvar global add before check") : langTrans("envvar global add")}
               </Button>
-              <AddEnvVarComponent tips={this.state.tips} cb={()=>{
+              <AddEnvVarComponent cb={()=>{
                 this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
               }} />
             </Flex>

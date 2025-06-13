@@ -36,6 +36,10 @@ export const ENV_VARS_GLOBAL_SET_URL = "/envvars/global/set";
 
 export const ENV_VARS_GLOBAL_DEL_URL = "/envvars/global/del";
 
+export const ENV_VARS_GLOBAL_KEYS_URL = "/envvars/global/keys";
+
+export const ENV_VARS_GLOBAL_COPY_URL = "/envvars/global/copy";
+
 export const ENV_VARS_PROJECT_DATAS_URL = "/envvars/project/all";
 
 export const ENV_VARS_PROJECT_PAGE_URL = "/envvars/project/page";

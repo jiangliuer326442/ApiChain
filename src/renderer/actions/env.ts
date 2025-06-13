@@ -12,6 +12,7 @@ import { sendTeamMessage } from '@act/message';
 
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
+let env_request_device = TABLE_ENV_FIELDS.FIELD_REQUEST_DEVICE;
 let env_cuid = TABLE_ENV_FIELDS.FIELD_CUID;
 let env_ctime = TABLE_ENV_FIELDS.FIELD_CTIME;
 let env_delFlg = TABLE_ENV_FIELDS.FIELD_DELFLG;
@@ -98,14 +99,15 @@ export async function delEnv(clientType: string, teamId : string, row) {
     await window.db[TABLE_ENV_NAME].put(env);
 }
 
-export async function addEnv(clientType : string, teamId : string, environment : string, remark : string, device : object) {
+export async function addEnv(clientType : string, teamId : string, environment : string, remark : string, requestDevice : string, device : object) {
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(ENVS_SET_URL, {label: environment, remark});
+        await sendTeamMessage(ENVS_SET_URL, {label: environment, remark, requestDevice});
     }
 
     let env : any = {};
     env[env_label] = environment;
     env[env_remark] = remark;
+    env[env_request_device] = requestDevice;
     env[env_cuid] = device.uuid;
     env[env_ctime] = Date.now();
     env[env_delFlg] = 0;

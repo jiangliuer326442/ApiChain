@@ -20,7 +20,6 @@ class AddEnvVarComponent extends Component {
             pname: "",
             pvalue: "",
             premark: "",
-            tips: [],
         };
     }
 
@@ -38,7 +37,6 @@ class AddEnvVarComponent extends Component {
     }
 
     handleOk = async () => {
-        console.log("prj", this.props.prj);
         const pname = this.state.pname.trim();
         const pvalue = this.state.pvalue.trim();
         let premark = "";

@@ -8,6 +8,11 @@ export function union(set1 : Set<String>, set2 : Set<String>, set3 : Set<String>
     return unionSet;
 }
 
+export function intersect(set1 : Set<String>, set2 : Set<String>) {
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    return intersection;
+}
+
 export function objectToMap(obj) {
     const map = new Map();
     for (const key in obj) {

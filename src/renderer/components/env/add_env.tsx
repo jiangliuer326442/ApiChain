@@ -35,7 +35,7 @@ class AddEnvComponent extends Component {
                 actionType: "edit",
                 envValue: nextProps.env,
                 remarkValue: nextProps.remark,
-                requestDevice: nextProps.requestDevice,
+                requestDevice: nextProps.requestDevice.toString(),
             };
         } 
         return null;
@@ -59,7 +59,7 @@ class AddEnvComponent extends Component {
             loadingFlg: true
         });
 
-        await addEnv(this.props.clientType, this.props.teamId, envValue, remarkValue, this.props.device);
+        await addEnv(this.props.clientType, this.props.teamId, envValue, remarkValue, this.state.requestDevice, this.props.device);
 
         this.clearInput();
         this.setState({
@@ -85,6 +85,7 @@ class AddEnvComponent extends Component {
             loadingFlg: false,
             envValue: "",
             remarkValue: "",
+            requestDevice: "0",
             actionType: "",
         });
     }
@@ -97,9 +98,9 @@ class AddEnvComponent extends Component {
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
                 onCancel={this.handleCancel}
-                width={260}
+                width={310}
             >
-                <Form labelCol={{ span: 12 }} wrapperCol={{ span: 12 }}>
+                <Form labelCol={{ span: 9 }} wrapperCol={{ span: 15 }}>
                     <Form.Item label={langTrans("env add form1")}>
                         <Input 
                             value={this.state.envValue} 
@@ -115,12 +116,12 @@ class AddEnvComponent extends Component {
                     </Form.Item>
                     <Form.Item label={langTrans("env add form3")}>
                         <Radio.Group 
-                            value={(this.props.clientType === CLIENT_TYPE_SINGLE || isStringEmpty(this.state.requestDevice)) ? 0 : this.state.requestDevice}
+                            value={(this.props.clientType === CLIENT_TYPE_SINGLE) ? 0 : this.state.requestDevice}
                             disabled={ this.props.clientType === CLIENT_TYPE_SINGLE }
                             onChange={ event=>this.setState({requestDevice : event.target.value}) }
                             >
-                            <Radio value={ 1 }>runner</Radio>
-                            <Radio value={ 0 }>client</Radio>
+                            <Radio value="1">runner</Radio>
+                            <Radio value="0">client</Radio>
                         </Radio.Group>
                     </Form.Item>
                 </Form>
