@@ -48,6 +48,10 @@ export const ENV_VARS_PROJECT_SET_URL = "/envvars/project/set";
 
 export const ENV_VARS_PROJECT_DEL_URL = "/envvars/project/del";
 
+export const ENV_VARS_PROJECT_KEYS_URL = "/envvars/project/keys";
+
+export const ENV_VARS_PROJECT_COPY_URL = "/envvars/project/copy";
+
 export const PRJ_HOST_URL = "/envvars/project/apiHosts";
 
 export const ENV_VARS_ITERATOR_DATAS_URL = "/envvars/iteration/all";
@@ -84,6 +88,8 @@ export const REQUEST_VERSION_ITERATION_EXPORT_URL = "/requests/iteration/export"
 
 export const REQUEST_VERSION_ITERATION_FIND_URL = "/requests/iteration/find";
 
+export const REQUEST_VERSION_ITERATION_PAGE_FOLD_URL = "/requests/iteration/pageByFold";
+
 export const REQUEST_PROJECT_ADD_URL = "/requests/project/add";
 
 export const REQUEST_PROJECT_EDIT_URL = "/requests/project/edit";
@@ -91,6 +97,8 @@ export const REQUEST_PROJECT_EDIT_URL = "/requests/project/edit";
 export const REQUEST_PROJECT_QUERY_URL = "/requests/project/query";
 
 export const REQUEST_PROJECT_FIND_URL = "/requests/project/find";
+
+export const REQUEST_PROJECT_PAGE_FOLD_URL = "/requests/project/pageByFold";
 
 export const FOLDERS_PROJECT_ALL = "/folders/project/all";
 

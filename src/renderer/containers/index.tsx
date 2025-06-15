@@ -131,6 +131,8 @@ class MyRouter extends Component {
         require('../reducers/db/20241114001');
         require('../reducers/db/20241216001');
         require('../reducers/db/20250102001');
+        require('../reducers/db/20250614001');
+        require('../reducers/db/20250614002');
 
         this.state = {
             initNavFlg: false,

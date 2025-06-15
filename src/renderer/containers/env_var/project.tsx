@@ -20,9 +20,11 @@ import {
   getPrjEnvValuesByPage, 
   addEnvValues,
   delPrjEnvValues,
-  batchCopyEnvVales,
+  batchCopyProjectEnvValues,
 } from '@act/env_value';
-import RequestSendTips from '@clazz/RequestSendTips';
+import {
+  getProjectKeys
+} from '@act/keys';
 import AddEnvVarComponent from '@comp/env_var/add_env_var';
 import { langTrans } from '@lang/i18n';
 
@@ -166,21 +168,16 @@ class EnvVar extends Component {
     }
 
     getEnvValueData = async (prj: string, env: string, paramName: string) => {
-      let requestSendTip = new RequestSendTips();
-      requestSendTip.initProject(prj, env, this.props.clientType);
-      let envKeys = await requestSendTip.getTips();
-      let tips = [];
-      for(let envKey of envKeys) {
-        tips.push( {value: envKey} );
-      }
-      this.setState( { tips, prj } );
+      let pkeys = await getProjectKeys(this.props.clientType, prj);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
         let listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
-        this.setState({listDatas, pagination});
-        if (!paramName) {
-          this.setState({pkeys: listDatas.map(item => ({ value: item[pname] }))});
-        }
+        this.setState({
+          prj, 
+          listDatas, 
+          pagination,
+          pkeys: !paramName ? pkeys : [],
+        });
 
         let hasApiHost = false;
         for (let item of listDatas) {
@@ -209,12 +206,13 @@ class EnvVar extends Component {
             {langTrans("envvar prj title")} <Text type="secondary"><Link href={getWikiEnv()}>{langTrans("envvar prj doc")}</Link></Text>
           </Header>
           <Content style={{ padding: '0 16px' }}>
-            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar prj bread1") }, { title: langTrans("envvar prj bread2") }]} />
+            <Breadcrumb style={{ margin: '16px 0' }} items={[
+              { title: langTrans("envvar prj bread1") }, 
+              { title: this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : "" },
+              { title: langTrans("envvar prj bread2") }
+            ]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">
-                  <Form.Item label={langTrans("envvar prj bread1")}>
-                      {this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : ""}
-                  </Form.Item>
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
@@ -230,7 +228,10 @@ class EnvVar extends Component {
                   <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar select tip2")}>
                       <AutoComplete 
                           allowClear={{ clearIcon: <CloseSquareFilled /> }} 
-                          options={this.state.pkeys} 
+                          options={this.state.pkeys.map(item => ({
+                            value: item,
+                            label: item
+                          }))}
                           filterOption={(inputValue, option) =>
                             (inputValue && option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1) || (!inputValue)
                           }
@@ -244,16 +245,24 @@ class EnvVar extends Component {
                     <Select
                         onChange={ async value => {
                           if (this.state.copiedKeys.length === 0) return;
-                          await batchCopyEnvVales(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", "", this.state.copiedKeys, value);
+                          if (isStringEmpty(value)) return;
+                          await batchCopyProjectEnvValues(
+                            this.props.clientType, 
+                            this.props.teamId, 
+                            this.state.prj, 
+                            (this.state.env ? this.state.env : this.props.env), 
+                            value, 
+                            this.state.copiedKeys
+                          );
                           this.state.copiedKeys = [];
-                          message.success("环境变量拷贝成功");
+                          message.success(langTrans("envvar global copy success"));
                           this.setEnvironmentChange(value);
                         }}
                         style={{ width: 120 }}
                         options={this.props.envs
-                          .filter(item => item.label != (this.state.env ? this.state.env : this.props.env))
+                          .filter(item => item.value != (this.state.env ? this.state.env : this.props.env))
                           .map(item => {
-                            return {value: item.label, label: item.remark}
+                            return {value: item.value, label: item.label}
                           })
                         }
                         allowClear
@@ -261,7 +270,7 @@ class EnvVar extends Component {
                   </Form.Item>
               </Form>
               <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
-              <AddEnvVarComponent tips={this.state.tips} cb={()=>{
+              <AddEnvVarComponent cb={()=>{
                 this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
               }}  />
             </Flex>

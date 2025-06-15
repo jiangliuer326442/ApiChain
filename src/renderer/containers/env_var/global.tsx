@@ -178,7 +178,11 @@ class EnvVar extends Component {
             {langTrans("envvar global title")} <Text type="secondary"><Link href={getWikiEnv()}>{langTrans("envvar global doc")}</Link></Text>
           </Header>
           <Content style={{ padding: '0 16px' }}>
-            <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar global bread1") }, { title: langTrans("envvar global bread2") }]} />
+            <Breadcrumb style={{ margin: '16px 0' }} items={[
+              { title: langTrans("envvar global bread1") }, 
+              { title: langTrans("envvar global bread2") },
+              { title: langTrans("envvar global bread3") }
+            ]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">
                   <Form.Item label={langTrans("envvar select tip1")}>
@@ -214,6 +218,7 @@ class EnvVar extends Component {
                     <Select
                         onChange={ async value => {
                           if (this.state.copiedKeys.length === 0) return;
+                          if (isStringEmpty(value)) return;
                           await batchCopyGlobalEnvValues(this.props.clientType, this.props.teamId, (this.state.env ? this.state.env : this.props.env), value, this.state.copiedKeys);
                           this.state.copiedKeys = [];
                           message.success(langTrans("envvar global copy success"));

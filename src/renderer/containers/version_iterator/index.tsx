@@ -56,7 +56,7 @@ class VersionIterator extends Component {
             width: 90,
             render: (status, row) => {
               return <VersionIteratorSwitch defaultChecked={status} uuid={row[version_iterator_uuid]} cb={async ()=>{
-                getOpenVersionIterators(this.props.clientType, this.props.dispatch);
+                await getOpenVersionIterators(this.props.clientType, this.props.dispatch);
                 let pagination = cloneDeep(this.state.pagination);
                 let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
                 this.setState({listDatas, pagination});

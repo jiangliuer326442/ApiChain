@@ -71,53 +71,34 @@ export async function delFolder(version_iterator : string, project : string, fol
     });
 }
 
-export async function getIteratorFolders(clientType : string, version_iterator : string, project : string) {
-    let folders = new Set<String>();
+export async function getIteratorFolders(clientType : string, version_iterator : string) {
+    let prjfolders = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
-        let project_folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
-        .where([version_iteration_folder_delFlg, version_iteration_folder_uuid, version_iteration_folder_project])
-        .equals([0, "", project])
+        let version_iteration_folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
+        .where([version_iteration_folder_delFlg, version_iteration_folder_uuid])
+        .equals([0, version_iterator])
         .toArray();
-        for (let project_folder of project_folders) {
-            let folderName = project_folder[version_iteration_folder_name];
-            if (folders.has(folderName) || isStringEmpty(folderName)){
+        for (let version_iteration_folder of version_iteration_folders) {
+            let folderName = version_iteration_folder[version_iteration_folder_name];
+            if (folders.has(FoldSourcePrj + folderName) || folders.has(FoldSourceIterator + folderName) || isStringEmpty(folderName)){
                 continue;
             }
-            folders.add(FoldSourcePrj + folderName);
-        }
-        if (!isStringEmpty(version_iterator)) {
-            let version_iteration_folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
-            .where([version_iteration_folder_delFlg, version_iteration_folder_uuid])
-            .equals([0, version_iterator])
-            .toArray();
-            for (let version_iteration_folder of version_iteration_folders) {
-                let folderName = version_iteration_folder[version_iteration_folder_name];
-                if (folders.has(FoldSourcePrj + folderName) || folders.has(FoldSourceIterator + folderName) || isStringEmpty(folderName)){
-                    continue;
-                }
-                folders.add(FoldSourceIterator + folderName);
-            }
+            prjfolders.add(FoldSourceIterator + folderName);
         }
     } else {
-        let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iterator: version_iterator, prj: project});
-        folders = new Set(ret.list);
+        let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iterator: version_iterator});
+        prjfolders = ret;
     }
 
-    let result = [];
+    let result = {};
 
-    for (let folder of folders) {
-        let simpleFolderName = folder.replaceAll(FoldSourcePrj, "").replaceAll(FoldSourceIterator, "");
-        let item = {};
-        item.label = "/" + simpleFolderName;
-        item.value = folder;
-        result.push(item);
+    for (let prj in prjfolders) {
+        result[prj] = prjfolders[prj].map(item => ({
+            label: "/" + item,
+            value: FoldSourceIterator + item
+        }));
     }
-
-    let item = {};
-    item.label = "/";
-    item.value = "";
-    result.push(item);
 
     return result;
 }

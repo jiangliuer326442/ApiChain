@@ -34,11 +34,11 @@ import type { FormProps } from 'antd';
 import { encode } from 'base-64';
 import { cloneDeep } from 'lodash';
 
+import RequestListCollapse from '@comp/requests_list_collapse';
 import MarkdownView from '@comp/markdown/show';
 import { 
     TABLE_VERSION_ITERATION_REQUEST_FIELDS, 
-    TABLE_VERSION_ITERATION_FIELDS, 
-    TABLE_MICRO_SERVICE_FIELDS,
+    TABLE_VERSION_ITERATION_FIELDS,
     UNAME,
 } from '@conf/db';
 import {
@@ -101,7 +101,7 @@ class RequestListVersion extends Component {
         this.state = {
             iteratorId,
             versionIteration: {},
-            requestsJsxDividered: {},
+            // requestsJsxDividered: {},
             listColumn: [
                 {
                     title: langTrans("prj doc table field1"),
@@ -173,8 +173,13 @@ class RequestListVersion extends Component {
     async componentWillReceiveProps(nextProps) {
         let iteratorId = nextProps.match.params.id;
         if (this.state.iteratorId !== iteratorId) {
+            let folders = await getIteratorFolders(this.props.clientType, iteratorId);
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
-            this.setState( { iteratorId, versionIteration }, () => this.onFinish({}) );
+            this.setState( { 
+                iteratorId, 
+                versionIteration,
+                folders,
+            } );
             this.props.dispatch({
                 type: GET_ITERATOR,
                 iterator: iteratorId,
@@ -187,9 +192,9 @@ class RequestListVersion extends Component {
         if(this.props.prjs.length === 0) {
             getPrjs(this.props.clientType, this.props.dispatch);
         }
-        this.onFinish({});
+        let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId);
         let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
-        this.setState( { versionIteration, formReadyFlg : true } )
+        this.setState( { versionIteration, folders, formReadyFlg : true } )
         this.props.dispatch({
             type: GET_ITERATOR,
             iterator: this.state.iteratorId,
@@ -199,19 +204,11 @@ class RequestListVersion extends Component {
 
     setApiSort = async (prj : string, method : string, uri : string, sort : number) => {
         setVersionIterationRequestSort(this.state.iteratorId, prj, method, uri, sort, () => {
-            this.onFinish({
-                prj: this.state.prj,
-                folder: this.state.folder,
-            });
         });
     }
 
     setMovedRequests = newMovedRequestKeys => {
         this.state.movedRequests = newMovedRequestKeys;
-        this.onFinish({
-            prj: this.state.prj,
-            folder: this.state.folder,
-        });
     }
 
     getMore = (record : any) : MenuProps => {
@@ -223,7 +220,6 @@ class RequestListVersion extends Component {
                     description={langTrans("prj doc del desc")}
                     onConfirm={e => {
                         delVersionIteratorRequest(record, ()=>{
-                            this.onFinish({});
                         });
                     }}
                     okText={langTrans("prj doc del sure")}
@@ -234,73 +230,73 @@ class RequestListVersion extends Component {
             }]};
     }
 
-    onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        let prj = values?.prj;
-        let title = values?.title;
-        let uri = values?.uri;
-        let folder = values?.folder;
-        let version_iteration_requests = await getSimpleVersionIteratorRequests(this.props.clientType, this.state.iteratorId, prj, folder, title, uri);
-        let requestsDividered : any = {};
-        let requestsJsxDividered : any = {};
+    // onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+    //     let prj = values?.prj;
+    //     let title = values?.title;
+    //     let uri = values?.uri;
+    //     let folder = values?.folder;
+    //     let version_iteration_requests = await getSimpleVersionIteratorRequests(this.props.clientType, this.state.iteratorId, prj, folder, title, uri);
+    //     let requestsDividered : any = {};
+    //     let requestsJsxDividered : any = {};
         
-        for(let version_iteration_request of version_iteration_requests ) {
-            version_iteration_request.key = version_iteration_request[iteration_request_method] + "$$" + version_iteration_request[iteration_request_uri];
-            let prj = version_iteration_request[iteration_request_prj];
-            if (!(prj in requestsDividered)) {
-                requestsDividered[prj] = {};
-                requestsJsxDividered[prj] = [];
-                let versionIterators = (await getOpenVersionIteratorsByPrj(this.props.clientType, prj))
-                .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
-                .map(item => {
-                    return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
-                });
-                requestsJsxDividered[prj]['__iterators'] = versionIterators;
-                requestsJsxDividered[prj]['__requests'] = [];
-                let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
-                let oldFolders = this.state.folders;
-                oldFolders[prj] = folders;
-            }
-            let fold = version_iteration_request[iteration_request_fold];
-            if (!(fold in requestsDividered[prj])) {
-                requestsDividered[prj][fold] = [];
+    //     for(let version_iteration_request of version_iteration_requests ) {
+    //         version_iteration_request.key = version_iteration_request[iteration_request_method] + "$$" + version_iteration_request[iteration_request_uri];
+    //         let prj = version_iteration_request[iteration_request_prj];
+    //         if (!(prj in requestsDividered)) {
+    //             requestsDividered[prj] = {};
+    //             requestsJsxDividered[prj] = [];
+    //             let versionIterators = (await getOpenVersionIteratorsByPrj(this.props.clientType, prj))
+    //             .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
+    //             .map(item => {
+    //                 return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
+    //             });
+    //             requestsJsxDividered[prj]['__iterators'] = versionIterators;
+    //             requestsJsxDividered[prj]['__requests'] = [];
+    //             let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
+    //             let oldFolders = this.state.folders;
+    //             oldFolders[prj] = folders;
+    //         }
+    //         let fold = version_iteration_request[iteration_request_fold];
+    //         if (!(fold in requestsDividered[prj])) {
+    //             requestsDividered[prj][fold] = [];
 
-                let foldJsx = {};
-                foldJsx.key = fold;
-                foldJsx.label = "/" + fold;
-                foldJsx.children = (<Table 
-                    rowSelection={{selectedRowKeys: this.state.movedRequests, onChange: this.setMovedRequests}}
-                    dataSource={requestsDividered[prj][fold]} 
-                    columns={this.state.listColumn} 
-                />);
-                foldJsx.extra = ((!isStringEmpty(fold) && this.state.versionIteration[version_iterator_openflg] === 1) ? (
-                <DeleteOutlined onClick={event => {
-                    delFolder(this.state.iteratorId, prj, fold, async ()=>{
-                        message.success("删除文件夹成功");
-                        let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
-                        let oldFolders = this.state.folders;
-                        oldFolders[prj] = folders;
-                        this.setState({folders: cloneDeep(this.state.folders)});
-                        this.onFinish({});
-                    });
-                    event.stopPropagation();
-                }} />) : null);
+    //             let foldJsx = {};
+    //             foldJsx.key = fold;
+    //             foldJsx.label = "/" + fold;
+    //             foldJsx.children = (<Table 
+    //                 rowSelection={{selectedRowKeys: this.state.movedRequests, onChange: this.setMovedRequests}}
+    //                 dataSource={requestsDividered[prj][fold]} 
+    //                 columns={this.state.listColumn} 
+    //             />);
+    //             foldJsx.extra = ((!isStringEmpty(fold) && this.state.versionIteration[version_iterator_openflg] === 1) ? (
+    //             <DeleteOutlined onClick={event => {
+    //                 delFolder(this.state.iteratorId, prj, fold, async ()=>{
+    //                     message.success("删除文件夹成功");
+    //                     let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
+    //                     let oldFolders = this.state.folders;
+    //                     oldFolders[prj] = folders;
+    //                     this.setState({folders: cloneDeep(this.state.folders)});
+    //                     this.onFinish({});
+    //                 });
+    //                 event.stopPropagation();
+    //             }} />) : null);
 
-                requestsJsxDividered[prj]['__requests'].push(foldJsx);
-            }
-            requestsDividered[prj][fold].push(version_iteration_request);
-        }
-        for (let _prj in requestsJsxDividered) {
-            for (let requestJsxDividered of requestsJsxDividered[_prj]) {
-                let fold = requestJsxDividered.key;
-                requestJsxDividered.label = "/" + fold + "（" + requestsDividered[_prj][fold].length + "）";
-            }
-        }
-        this.setState({
-            requestsJsxDividered,
-            prj,
-            folder
-        });
-    }
+    //             requestsJsxDividered[prj]['__requests'].push(foldJsx);
+    //         }
+    //         requestsDividered[prj][fold].push(version_iteration_request);
+    //     }
+    //     for (let _prj in requestsJsxDividered) {
+    //         for (let requestJsxDividered of requestsJsxDividered[_prj]) {
+    //             let fold = requestJsxDividered.key;
+    //             requestJsxDividered.label = "/" + fold + "（" + requestsDividered[_prj][fold].length + "）";
+    //         }
+    //     }
+    //     this.setState({
+    //         requestsJsxDividered,
+    //         prj,
+    //         folder
+    //     });
+    // }
 
     render() : ReactNode {
         return (
@@ -376,6 +372,7 @@ class RequestListVersion extends Component {
                                 </Button>
                             </Form.Item>
                         </Form>
+                        {this.state.versionIteration[version_iterator_openflg] === 1 ? 
                         <Flex vertical justify="flex-start" align="center" gap="middle">
                             <ConfigProvider
                                 theme={{
@@ -412,8 +409,9 @@ class RequestListVersion extends Component {
                             </ConfigProvider>
 
                         </Flex>
+                        : null}
                     </Flex>
-                    {Object.keys(this.state.requestsJsxDividered).map(prj => (
+                    {this.state.versionIteration[version_iterator_prjs].map(prj => (
                         (this.props.prjs.length > 0 && this.props.prjs.find(row => row.value === prj) ? 
                             <div key={prj}>
                                 <Divider orientation="left">
@@ -421,7 +419,7 @@ class RequestListVersion extends Component {
                                         name: (this.props.prjs.length > 0 ? this.props.prjs.find(row => row.value === prj).label : "")
                                     })}</p >
                                 </Divider>
-                                <Form layout="inline" style={{marginBottom: 16}}>
+                                {/* <Form layout="inline" style={{marginBottom: 16}}>
                                     <Form.Item label={langTrans("version doc operator3")}>
                                         <Select
                                             allowClear
@@ -473,7 +471,11 @@ class RequestListVersion extends Component {
                                         />
                                     </Form.Item>
                                 </Form>
-                                <Collapse items={this.state.requestsJsxDividered[prj]['__requests']} />
+                                <Collapse items={this.state.requestsJsxDividered[prj]['__requests']} /> */}
+                                <RequestListCollapse 
+                                    metadata={this.state.iteratorId+"$$"+prj}
+                                    folders={this.state.folders[prj]} 
+                                />
                             </div>
                         : null)
                     ))}

@@ -8,6 +8,7 @@ import {
     REQUEST_PROJECT_EDIT_URL,
     REQUEST_PROJECT_QUERY_URL,
     REQUEST_PROJECT_FIND_URL,
+    REQUEST_PROJECT_PAGE_FOLD_URL,
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
 import {
@@ -202,6 +203,61 @@ export async function setProjectRequestSort(project : string, method : string, u
     await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
     
     cb();
+}
+
+export async function getFolderProjectRequests(
+    clientType : string, 
+    prj : string, 
+    fold : string, 
+    title: string | null,
+    uri: string | null,
+    pagination : any
+) {
+    let datas = [];
+    let page = pagination.current;
+    let pageSize = pagination.pageSize;
+
+    if (clientType == CLIENT_TYPE_SINGLE) {
+        const offset = (page - 1) * pageSize;
+        let count = await window.db[TABLE_PROJECT_REQUEST_NAME]
+            .where([ project_request_delFlg, project_request_project, project_request_fold ])
+            .equals([ 0, prj, fold ])
+            .filter(row => {
+                if (!isStringEmpty(title) && row[project_request_title].indexOf(title) < 0) {
+                    return false;
+                }
+                if (!isStringEmpty(uri) && row[project_request_uri].indexOf(uri) < 0) {
+                    return false;
+                }
+                return true;
+            })
+            .count();
+        pagination.total = count;
+        datas = await window.db[TABLE_PROJECT_REQUEST_NAME]
+            .where([ project_request_delFlg, project_request_project, project_request_fold ])
+            .equals([ 0, prj, fold ])
+            .filter(row => {
+                if (!isStringEmpty(title) && row[project_request_title].indexOf(title) < 0) {
+                    return false;
+                }
+                if (!isStringEmpty(uri) && row[project_request_uri].indexOf(uri) < 0) {
+                    return false;
+                }
+                return true;
+            })
+            .offset(offset)
+            .limit(pageSize)
+            .toArray();
+        mixedSort(datas, project_request_title);
+        datas = datas.sort((a, b) => a[project_request_sort] - b[project_request_sort]);
+    } else {
+        let result = await sendTeamMessage(REQUEST_PROJECT_PAGE_FOLD_URL, Object.assign({}, pagination, {prj, fold, title, uri}));
+        let count = result.count;
+        pagination.total = count;
+        datas = result.list;
+    }
+
+    return datas;
 }
 
 export async function getProjectRequests(clientType : string, project : string, fold : string | null, title : string, uri : string) {
