@@ -40,7 +40,7 @@ import {
     REQUEST_METHOD_POST,
 } from '@conf/global_config';
 import JsonSaveTableComponent from "@comp/request_save/json_save_table";
-import FolderSelector from "@comp/request_save/folder";
+import FolderSelector from "@comp/folders/index";
 import { getPrjs } from '@act/project';
 import { addJsonFragement } from '@act/request_save';
 import { 

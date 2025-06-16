@@ -60,7 +60,7 @@ import {
 } from '@act/project_folders';
 import { addProjectRequest } from '@act/project_request';
 import { addVersionIteratorRequest } from '@act/version_iterator_requests';
-import FolderSelector from "@comp/request_save/folder";
+import FolderSelector from "@comp/folders/index";
 import JsonSaveParamTableContainer from "@comp/request_save/json_save_table_param";
 import JsonSaveHeaderTableContainer from "@comp/request_save/json_save_table_header";
 import JsonSavePathVariTableContainer from "@comp/request_save/json_save_table_path_variable";

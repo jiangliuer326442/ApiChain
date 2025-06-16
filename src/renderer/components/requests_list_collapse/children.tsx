@@ -32,6 +32,7 @@ import {
     getFolderIteratorRequests
 } from '@act/version_iterator_requests';
 import { langTrans } from '@lang/i18n';
+import FolderSelector from "@comp/folders";
 import { TABLE_PROJECT_REQUEST_FIELDS } from '@conf/db';
 import { isStringEmpty } from '@rutil/index';
 
@@ -104,6 +105,9 @@ class RequestListCollapseChildren extends Component {
             }
         ],
         listDatas: [],
+        selectedFolder: "",
+        iteratorId: "",
+        prj: "",
       }
     }
 
@@ -163,13 +167,13 @@ class RequestListCollapseChildren extends Component {
             let folder  = this.props.folder.substring(FoldSourcePrj.length);
             let prj = this.props.metadata;
             let datas = await getFolderProjectRequests(this.props.clientType, prj, folder, this.props.filterTitle, this.props.filterUri, pagination);
-            this.setState({listDatas: datas, pagination});
+            this.setState({listDatas: datas, pagination, prj});
         } else if (this.props.folder.indexOf(FoldSourceIterator) === 0) {
             let folder  = this.props.folder.substring(FoldSourceIterator.length);
             let iteratorId = this.props.metadata.split("$$")[0];
             let prj = this.props.metadata.split("$$")[1];
             let datas = await getFolderIteratorRequests(this.props.clientType, iteratorId, prj, folder, pagination);
-            this.setState({listDatas: datas, pagination});
+            this.setState({listDatas: datas, pagination, iteratorId, prj});
         }
     }
 
@@ -178,34 +182,21 @@ class RequestListCollapseChildren extends Component {
             <Flex vertical>
                 <Form layout="inline" style={{marginBottom: 16}}>
                     <Form.Item label={langTrans("prj doc operator3")}>
-                        <Select
-                            style={{minWidth: 130}}
-                            onChange={ value => {
-                                batchSetProjectRequestFold(this.state.projectLabel, this.state.selectedApi, value, () => {
-                                    this.state.selectedApi = [];
-                                    this.onFinish({
-                                        title: this.state.title, 
-                                        uri: this.state.uri
-                                    });
-                                });
+                        <FolderSelector 
+                            versionIterator={ this.state.iteratorId }
+                            prj={ this.state.prj }
+                            value={ this.state.selectedFolder }
+                            setValue={ value => this.setState({selectedFolder: value}) }
+                            refreshFolders={ async () => {
+                                let folders;
+                                if (isStringEmpty(this.state.iteratorId)) {
+                                    folders = await getProjectFolders(this.props.clientType, this.state.prj);
+                                } else {
+                                    folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, this.state.prj);
+                                }
+                                this.setState({folders, selectedFolder: ""})
                             }}
-                            dropdownRender={(menu) => (
-                                <>
-                                    {menu}
-                                    <Divider style={{ margin: '8px 0' }} />
-                                    <Input
-                                        placeholder="回车新建文件夹"
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter') {
-                                                this.handleCreateFolder(e.target.value);
-                                                e.target.value = ""
-                                            }
-                                            e.stopPropagation()
-                                        }}
-                                    />
-                                </>
-                            )}
-                            options={ this.props.folders }
+                            folders={ this.props.folders }
                         />
                     </Form.Item>
                 </Form>
