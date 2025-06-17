@@ -9,7 +9,6 @@ import {
     Input,
     Button,
 } from "antd";
-import type { FormProps } from 'antd';
 import { 
     CloseSquareFilled, 
 } from '@ant-design/icons'
@@ -21,7 +20,7 @@ import {
     getProjectFolders
 } from '@act/project_folders';
 import { isStringEmpty } from '@rutil/index';
-import { filter } from 'lodash';
+import { title } from 'node:process';
 
 const { Header, Content, Footer } = Layout;
 const { Text, Link } = Typography;
@@ -51,8 +50,8 @@ class RequestListProject extends Component {
 
     async componentDidUpdate(prevProps) {
         if (prevProps.match.params.id !== this.props.match.params.id) {
-            let folders = await getProjectFolders(this.props.clientType, this.props.match.params.id, null, null);
-            this.setState({folders})
+            this.state.projectLabel = this.props.match.params.id;
+            this.onFinish({});
         }
     }
 
@@ -67,13 +66,12 @@ class RequestListProject extends Component {
     }
 
     async componentDidMount() {
-        let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, null, null);
-        this.setState({folders})
+        this.onFinish({});
     }
 
-    onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        let title = values.title;
-        let uri = values.uri;
+    onFinish = async (values) => {
+        let title = values?.title;
+        let uri = values?.uri;
         if (isStringEmpty(uri) && isStringEmpty(title)) {
             let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, null, null);
             this.setState({
@@ -137,7 +135,11 @@ class RequestListProject extends Component {
                                     folders={this.state.folders} 
                                     filterTitle={this.state.filterTitle}
                                     filterUri={this.state.filterUri}
-                                    />
+                                    refreshCallback={() => this.onFinish({
+                                        title: this.state.filterTitle,
+                                        uri: this.state.filterUri
+                                    })}
+                                />
                             </div>
                         </Flex>
                     </Flex>

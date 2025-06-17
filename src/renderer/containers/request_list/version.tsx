@@ -52,14 +52,10 @@ import { getPrjs } from '@act/project';
 import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import { 
     getIteratorFolders, 
-    delFolder 
 } from '@act/version_iterator_folders';
 import { 
-    getSimpleVersionIteratorRequests, 
     delVersionIteratorRequest, 
     setVersionIterationRequestSort,
-    batchMoveIteratorRequest,
-    batchSetProjectRequestFold,
 } from '@act/version_iterator_requests';
 import { langFormat, langTrans } from '@lang/i18n';
 
@@ -79,7 +75,6 @@ const getHoverColors = (colors: string[]) =>
 const getActiveColors = (colors: string[]) =>
     colors.map((color) => new TinyColor(color).darken(5).toString());
 
-let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 let iteration_request_sort = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_SORT;
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -87,7 +82,6 @@ let version_iterator_content = TABLE_VERSION_ITERATION_FIELDS.FIELD_CONTENT;
 let version_iterator_openflg = TABLE_VERSION_ITERATION_FIELDS.FIELD_OPENFLG;
 let version_iterator_ctime = TABLE_VERSION_ITERATION_FIELDS.FIELD_CTIME;
 
-let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 let iteration_request_prj = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
@@ -101,7 +95,6 @@ class RequestListVersion extends Component {
         this.state = {
             iteratorId,
             versionIteration: {},
-            // requestsJsxDividered: {},
             listColumn: [
                 {
                     title: langTrans("prj doc table field1"),
@@ -230,74 +223,6 @@ class RequestListVersion extends Component {
             }]};
     }
 
-    // onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-    //     let prj = values?.prj;
-    //     let title = values?.title;
-    //     let uri = values?.uri;
-    //     let folder = values?.folder;
-    //     let version_iteration_requests = await getSimpleVersionIteratorRequests(this.props.clientType, this.state.iteratorId, prj, folder, title, uri);
-    //     let requestsDividered : any = {};
-    //     let requestsJsxDividered : any = {};
-        
-    //     for(let version_iteration_request of version_iteration_requests ) {
-    //         version_iteration_request.key = version_iteration_request[iteration_request_method] + "$$" + version_iteration_request[iteration_request_uri];
-    //         let prj = version_iteration_request[iteration_request_prj];
-    //         if (!(prj in requestsDividered)) {
-    //             requestsDividered[prj] = {};
-    //             requestsJsxDividered[prj] = [];
-    //             let versionIterators = (await getOpenVersionIteratorsByPrj(this.props.clientType, prj))
-    //             .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
-    //             .map(item => {
-    //                 return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
-    //             });
-    //             requestsJsxDividered[prj]['__iterators'] = versionIterators;
-    //             requestsJsxDividered[prj]['__requests'] = [];
-    //             let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
-    //             let oldFolders = this.state.folders;
-    //             oldFolders[prj] = folders;
-    //         }
-    //         let fold = version_iteration_request[iteration_request_fold];
-    //         if (!(fold in requestsDividered[prj])) {
-    //             requestsDividered[prj][fold] = [];
-
-    //             let foldJsx = {};
-    //             foldJsx.key = fold;
-    //             foldJsx.label = "/" + fold;
-    //             foldJsx.children = (<Table 
-    //                 rowSelection={{selectedRowKeys: this.state.movedRequests, onChange: this.setMovedRequests}}
-    //                 dataSource={requestsDividered[prj][fold]} 
-    //                 columns={this.state.listColumn} 
-    //             />);
-    //             foldJsx.extra = ((!isStringEmpty(fold) && this.state.versionIteration[version_iterator_openflg] === 1) ? (
-    //             <DeleteOutlined onClick={event => {
-    //                 delFolder(this.state.iteratorId, prj, fold, async ()=>{
-    //                     message.success("删除文件夹成功");
-    //                     let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
-    //                     let oldFolders = this.state.folders;
-    //                     oldFolders[prj] = folders;
-    //                     this.setState({folders: cloneDeep(this.state.folders)});
-    //                     this.onFinish({});
-    //                 });
-    //                 event.stopPropagation();
-    //             }} />) : null);
-
-    //             requestsJsxDividered[prj]['__requests'].push(foldJsx);
-    //         }
-    //         requestsDividered[prj][fold].push(version_iteration_request);
-    //     }
-    //     for (let _prj in requestsJsxDividered) {
-    //         for (let requestJsxDividered of requestsJsxDividered[_prj]) {
-    //             let fold = requestJsxDividered.key;
-    //             requestJsxDividered.label = "/" + fold + "（" + requestsDividered[_prj][fold].length + "）";
-    //         }
-    //     }
-    //     this.setState({
-    //         requestsJsxDividered,
-    //         prj,
-    //         folder
-    //     });
-    // }
-
     render() : ReactNode {
         return (
             <Layout>
@@ -419,59 +344,6 @@ class RequestListVersion extends Component {
                                         name: (this.props.prjs.length > 0 ? this.props.prjs.find(row => row.value === prj).label : "")
                                     })}</p >
                                 </Divider>
-                                {/* <Form layout="inline" style={{marginBottom: 16}}>
-                                    <Form.Item label={langTrans("version doc operator3")}>
-                                        <Select
-                                            allowClear
-                                            style={{minWidth: 130}}
-                                            onChange={ value => {
-                                                if (isStringEmpty(value)) {
-                                                    return;
-                                                }
-                                                batchMoveIteratorRequest(this.state.iteratorId, prj, this.state.movedRequests, value, () => {
-                                                    this.state.movedRequests = [];
-                                                    message.success(langTrans("request act1"));
-                                                    this.onFinish({
-                                                        prj: this.state.prj,
-                                                        folder: this.state.folder,
-                                                    });
-                                                });
-                                            }}
-                                            options={ this.state.requestsJsxDividered[prj]['__iterators'] }
-                                        />
-                                    </Form.Item>
-                                    <Form.Item label={langTrans("version doc operator4")}>
-                                        <Select
-                                            style={{minWidth: 130}}
-                                            onChange={ async value => {
-                                                await batchSetProjectRequestFold(this.state.iteratorId, prj, this.state.movedRequests, value);
-                                                this.state.movedRequests = [];
-                                                this.onFinish({
-                                                    title: this.state.title, 
-                                                    uri: this.state.uri
-                                                });
-                                            } }
-                                            dropdownRender={(menu) => (
-                                                <>
-                                                    {menu}
-                                                    <Divider style={{ margin: '8px 0' }} />
-                                                    <Input
-                                                        placeholder={langTrans("request act2")}
-                                                        onKeyDown={e => {
-                                                            if (e.key === 'Enter') {
-                                                                this.handleCreateFolder(e.target.value);
-                                                                e.target.value = ""
-                                                            }
-                                                            e.stopPropagation()
-                                                        }}
-                                                    />
-                                                </>
-                                            )}
-                                            options={ this.state.folders[prj] }
-                                        />
-                                    </Form.Item>
-                                </Form>
-                                <Collapse items={this.state.requestsJsxDividered[prj]['__requests']} /> */}
                                 <RequestListCollapse 
                                     metadata={this.state.iteratorId+"$$"+prj}
                                     folders={this.state.folders[prj]} 

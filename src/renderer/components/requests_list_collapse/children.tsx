@@ -1,14 +1,11 @@
 import { Component, ReactNode } from 'react';
 import { 
     Button,
-    Divider,
     Dropdown,
     Flex, 
     Form, 
-    Input,
     InputNumber, 
     Popconfirm,
-    Select,
     Space, 
     Table,
     Tooltip, 
@@ -29,12 +26,14 @@ import {
     setProjectRequestSort,
 } from '@act/project_request';
 import {
+    batchSetProjectRequestFold
+} from '@act/project_folders';
+import {
     getFolderIteratorRequests
 } from '@act/version_iterator_requests';
 import { langTrans } from '@lang/i18n';
 import FolderSelector from "@comp/folders";
 import { TABLE_PROJECT_REQUEST_FIELDS } from '@conf/db';
-import { isStringEmpty } from '@rutil/index';
 
 let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 let project_request_title = TABLE_PROJECT_REQUEST_FIELDS.FIELD_TITLE;
@@ -108,6 +107,7 @@ class RequestListCollapseChildren extends Component {
         selectedFolder: "",
         iteratorId: "",
         prj: "",
+        folders: [],
       }
     }
 
@@ -121,6 +121,8 @@ class RequestListCollapseChildren extends Component {
             this.props.filterTitle != prevProps.filterTitle
             || 
             this.props.filterUri != prevProps.filterUri
+            ||
+            this.props.folders.length != prevProps.folders.length
         ) {
             let pagination = cloneDeep(this.state.pagination);
             this.getDatas(pagination);
@@ -158,22 +160,22 @@ class RequestListCollapseChildren extends Component {
     }
 
     setSelectedApi = newSelectedRowKeys => {
-        this.state.selectedApi = newSelectedRowKeys;
-        this.props.refresh()
+        this.setState({selectedApi: newSelectedRowKeys});
     }
 
     getDatas = async (pagination) => {
+        let folders = this.props.folders.filter(row => row.value !== this.props.folder);
         if (this.props.folder.indexOf(FoldSourcePrj) === 0) {
             let folder  = this.props.folder.substring(FoldSourcePrj.length);
             let prj = this.props.metadata;
             let datas = await getFolderProjectRequests(this.props.clientType, prj, folder, this.props.filterTitle, this.props.filterUri, pagination);
-            this.setState({listDatas: datas, pagination, prj});
+            this.setState({listDatas: datas, pagination, prj, folders});
         } else if (this.props.folder.indexOf(FoldSourceIterator) === 0) {
             let folder  = this.props.folder.substring(FoldSourceIterator.length);
             let iteratorId = this.props.metadata.split("$$")[0];
             let prj = this.props.metadata.split("$$")[1];
             let datas = await getFolderIteratorRequests(this.props.clientType, iteratorId, prj, folder, pagination);
-            this.setState({listDatas: datas, pagination, iteratorId, prj});
+            this.setState({listDatas: datas, pagination, iteratorId, prj, folders});
         }
     }
 
@@ -186,22 +188,28 @@ class RequestListCollapseChildren extends Component {
                             versionIterator={ this.state.iteratorId }
                             prj={ this.state.prj }
                             value={ this.state.selectedFolder }
-                            setValue={ value => this.setState({selectedFolder: value}) }
-                            refreshFolders={ async () => {
-                                let folders;
-                                if (isStringEmpty(this.state.iteratorId)) {
-                                    folders = await getProjectFolders(this.props.clientType, this.state.prj);
-                                } else {
-                                    folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, this.state.prj);
+                            setValue={ async value => {
+                                if (value === undefined) return;
+                                if (this.state.selectedApi.length === 0) return;
+                                let folderName = "";
+                                if (this.props.folder.indexOf(FoldSourcePrj) === 0) {
+                                    let prj = this.props.metadata;
+                                    folderName = value.substring(FoldSourcePrj.length);
+                                    await batchSetProjectRequestFold(this.props.clientType, this.props.teamId, prj, this.state.selectedApi, folderName);
                                 }
-                                this.setState({folders, selectedFolder: ""})
+                                this.setState({selectedFolder: value})
+                                let pagination = cloneDeep(this.state.pagination);
+                                this.getDatas(pagination);
+                            } }
+                            refreshFolders={ async () => {
+                                this.props.refreshCallback();
                             }}
-                            folders={ this.props.folders }
+                            folders={ this.state.folders }
                         />
                     </Form.Item>
                 </Form>
                 <Table 
-                    rowKey={(record) => record[project_request_method] + record[project_request_uri]}
+                    rowKey={(record) => record[project_request_method] + "$$" + record[project_request_uri]}
                     rowSelection={{selectedRowKeys: this.state.selectedApi, onChange: this.setSelectedApi}}
                     dataSource={this.state.listDatas} 
                     pagination={this.state.pagination}

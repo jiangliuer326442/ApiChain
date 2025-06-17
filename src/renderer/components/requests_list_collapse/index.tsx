@@ -47,8 +47,13 @@ class RequestListCollapse extends Component {
                 filterTitle={this.props.filterTitle}
                 filterUri={this.props.filterUri}
                 folder={_fold.value} 
+                refreshCallback={() => this.props.refreshCallback()}
             />;
-            item.extra = <RequestListCollapseExtra metadata={this.props.metadata} folder={_fold.value} />;
+            item.extra = <RequestListCollapseExtra 
+                metadata={this.props.metadata} 
+                folder={_fold.value} 
+                refreshCallback={() => this.props.refreshCallback()}
+            />;
             items.push(item);
         }
         this.setState({

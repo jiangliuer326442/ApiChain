@@ -104,6 +104,8 @@ export const FOLDERS_PROJECT_ALL = "/folders/project/all";
 
 export const FOLDERS_PROJECT_ADD = "/folders/project/add";
 
+export const FOLDERS_PROJECT_SET_REQUEST = "/folders/project/set_requests_fold";
+
 export const FOLDERS_PROJECT_DEL = "/folders/project/del";
 
 export const FOLDERS_ITERATOR_ALL = "/folders/iterator/all";

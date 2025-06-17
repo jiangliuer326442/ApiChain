@@ -161,29 +161,6 @@ export async function getProjectRequest(clientType : string, prj : string, metho
     return project_request;
 }
 
-export async function batchSetProjectRequestFold(project : string, methodUriArr : Array<string>, fold : string, cb : () => void) {
-    for (let _methodUriRow of methodUriArr) {
-        let [method, uri] = _methodUriRow.split("$$");
-
-        let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
-        .where([ project_request_project, project_request_method, project_request_uri ])
-        .equals([ project, method, uri ])
-        .first();
-        if (
-            project_request === undefined || 
-            project_request[project_request_delFlg] !== 0 ||
-            project_request[project_request_fold] === fold
-        ) {
-            continue;
-        }
-        project_request[project_request_fold] = fold;
-    
-        await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
-    }
-
-    cb();
-}
-
 export async function setProjectRequestSort(project : string, method : string, uri : string, sort : number, cb : () => void) {
     let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where([ project_request_project, project_request_method, project_request_uri ])

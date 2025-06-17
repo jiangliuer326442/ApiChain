@@ -132,29 +132,3 @@ export async function addIteratorFolder(
         }
         await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(version_iteration_folder);
 }
-
-export async function addFolder(
-    clientType : string, 
-    teamId : string,
-    version_iterator : string, project : string, name : string, device) {
-
-        if (clientType === CLIENT_TYPE_TEAM) {
-            await sendTeamMessage(FOLDERS_ITERATOR_ADD, {iterator: version_iterator, prj: project, name});
-        }
-
-        let version_iteration_folder : any = {};
-        version_iteration_folder[version_iteration_folder_uuid] = version_iterator;
-        version_iteration_folder[version_iteration_folder_project] = project;
-        version_iteration_folder[version_iteration_folder_name] = name;
-        version_iteration_folder[version_iteration_folder_cuid] = device.uuid;
-        version_iteration_folder[version_iteration_folder_ctime] = Date.now();
-        version_iteration_folder[version_iteration_folder_delFlg] = 0;
-        if (clientType === CLIENT_TYPE_SINGLE) {
-            version_iteration_folder.upload_flg = 0;
-            version_iteration_folder.team_id = "";
-        } else {
-            version_iteration_folder.upload_flg = 1;
-            version_iteration_folder.team_id = teamId;
-        }
-        await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(version_iteration_folder);
-}
