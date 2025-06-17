@@ -6,6 +6,7 @@ import {
     Form, 
     InputNumber, 
     Popconfirm,
+    Select,
     Space, 
     Table,
     Tooltip, 
@@ -24,6 +25,8 @@ import { FoldSourceIterator, FoldSourcePrj } from '@conf/global_config';
 import {
     getFolderProjectRequests,
     setProjectRequestSort,
+    batchMoveProjectRequestPrj,
+    delProjectRequest,
 } from '@act/project_request';
 import {
     batchSetProjectRequestFold
@@ -71,14 +74,18 @@ class RequestListCollapseChildren extends Component {
                 title: langTrans("prj doc table field3"),
                 dataIndex: project_request_sort,
                 render: (sort, record) => {
-                    let prj = record[project_request_prj];
-                    let method = record[project_request_method];
-                    let uri = record[project_request_uri];
-                    if (sort === undefined) {
-                        return <InputNumber style={{width: 65}} value={0} onBlur={event => this.setApiSort(prj, method, uri, event.target.value)} />;
-                    } else {
-                        return <InputNumber style={{width: 65}} value={sort} onBlur={event => this.setApiSort(prj, method, uri, event.target.value)} />;
+                    let method;
+                    let uri;
+                    if (this.props.type === "prj") {
+                        method = record[project_request_method];
+                        uri = record[project_request_uri];
                     }
+                    if (sort === undefined || Number.isNaN(sort)) {
+                        sort = 0;
+                    } else {
+                        sort = Number(sort);
+                    }
+                    return <InputNumber style={{width: 65}} value={ sort } onBlur={event => this.setApiSort(method, uri, Number(event.target.value))} />;
                 }
             },
             {
@@ -104,7 +111,8 @@ class RequestListCollapseChildren extends Component {
             }
         ],
         listDatas: [],
-        selectedFolder: "",
+        selectedFolder: null,
+        movedPrj: "",
         iteratorId: "",
         prj: "",
         folders: [],
@@ -123,7 +131,10 @@ class RequestListCollapseChildren extends Component {
             this.props.filterUri != prevProps.filterUri
             ||
             this.props.folders.length != prevProps.folders.length
+            ||
+            this.props.metadata !== prevProps.metadata
         ) {
+            this.setState({selectedApi: [], selectedFolder: null, movedPrj: ""})
             let pagination = cloneDeep(this.state.pagination);
             this.getDatas(pagination);
         }
@@ -137,13 +148,12 @@ class RequestListCollapseChildren extends Component {
             <Popconfirm
                 title={langTrans("prj doc del title")}
                 description={langTrans("prj doc del desc")}
-                onConfirm={e => {
-                    delProjectRequest(record, ()=>{
-                        this.onFinish({
-                            title: this.state.title, 
-                            uri: this.state.uri
-                        });
-                    });
+                onConfirm={async e => {
+                    if (this.props.type === "prj") {
+                        await delProjectRequest(this.props.clientType, this.props.teamId, record);
+                    }
+                    let pagination = cloneDeep(this.state.pagination);
+                    this.getDatas(pagination);
                 }}
                 okText={langTrans("prj doc del sure")}
                 cancelText={langTrans("prj doc del cancel")}
@@ -153,10 +163,31 @@ class RequestListCollapseChildren extends Component {
         }]};
     }
 
-    setApiSort = async (prj : string, method : string, uri : string, sort : number) => {
-        setProjectRequestSort(prj, method, uri, sort, () => {
-            
-        });
+    setApiSort = async (method : string, uri : string, sort : number) => {
+        if (this.props.type === "prj") {
+            let prj = this.props.metadata;
+            await setProjectRequestSort(this.props.clientType, this.props.teamId, prj, method, uri, sort);
+        } else if (this.props.type === "iterator") {
+            let iteratorId = this.props.metadata.split("$$")[0];
+            let prj = this.props.metadata.split("$$")[1];
+        }
+        let pagination = cloneDeep(this.state.pagination);
+        this.getDatas(pagination);
+    }
+
+    moveApiPrj = async (newPrj) => {
+        if (newPrj === undefined) {
+            this.setState({movedPrj: ""})
+            return;
+        }
+        if (this.state.selectedApi.length === 0) return;
+        if (this.props.type === "prj") {
+            let prj = this.props.metadata;
+            await batchMoveProjectRequestPrj(this.props.clientType, this.props.teamId, prj, this.state.selectedApi, newPrj, this.props.device);
+        }
+        this.setState({movedPrj: newPrj})
+        let pagination = cloneDeep(this.state.pagination);
+        this.getDatas(pagination);
     }
 
     setSelectedApi = newSelectedRowKeys => {
@@ -165,12 +196,12 @@ class RequestListCollapseChildren extends Component {
 
     getDatas = async (pagination) => {
         let folders = this.props.folders.filter(row => row.value !== this.props.folder);
-        if (this.props.folder.indexOf(FoldSourcePrj) === 0) {
+        if (this.props.type === "prj") {
             let folder  = this.props.folder.substring(FoldSourcePrj.length);
             let prj = this.props.metadata;
             let datas = await getFolderProjectRequests(this.props.clientType, prj, folder, this.props.filterTitle, this.props.filterUri, pagination);
             this.setState({listDatas: datas, pagination, prj, folders});
-        } else if (this.props.folder.indexOf(FoldSourceIterator) === 0) {
+        } else if (this.props.type === "iterator") {
             let folder  = this.props.folder.substring(FoldSourceIterator.length);
             let iteratorId = this.props.metadata.split("$$")[0];
             let prj = this.props.metadata.split("$$")[1];
@@ -189,10 +220,13 @@ class RequestListCollapseChildren extends Component {
                             prj={ this.state.prj }
                             value={ this.state.selectedFolder }
                             setValue={ async value => {
-                                if (value === undefined) return;
+                                if (value === undefined) {
+                                    this.setState({selectedFolder: null})
+                                    return;
+                                }
                                 if (this.state.selectedApi.length === 0) return;
                                 let folderName = "";
-                                if (this.props.folder.indexOf(FoldSourcePrj) === 0) {
+                                if (this.props.type === "prj") {
                                     let prj = this.props.metadata;
                                     folderName = value.substring(FoldSourcePrj.length);
                                     await batchSetProjectRequestFold(this.props.clientType, this.props.teamId, prj, this.state.selectedApi, folderName);
@@ -205,6 +239,16 @@ class RequestListCollapseChildren extends Component {
                                 this.props.refreshCallback();
                             }}
                             folders={ this.state.folders }
+                        />
+                    </Form.Item>
+                    <Form.Item label={ langTrans("prj doc operator4") }>
+                        <Select 
+                            showSearch
+                            allowClear
+                            value={this.state.movedPrj}
+                            style={ {minWidth: 260} }
+                            options={ this.props.prjs.filter(item => item.value !== this.props.metadata) }
+                            onChange={ this.moveApiPrj }
                         />
                     </Form.Item>
                 </Form>
@@ -227,6 +271,8 @@ function mapStateToProps (state) {
     return {
       teamId: state.device.teamId,
       clientType: state.device.clientType,
+      prjs: state.prj.list,
+      device : state.device,
     }
 }
 

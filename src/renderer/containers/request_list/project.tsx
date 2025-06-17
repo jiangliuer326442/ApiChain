@@ -16,11 +16,8 @@ import {
 import { langTrans } from '@lang/i18n';
 import { getWikiProject } from '@conf/url';
 import RequestListCollapse from '@comp/requests_list_collapse';
-import {
-    getProjectFolders
-} from '@act/project_folders';
+import { getProjectFolders } from '@act/project_folders';
 import { isStringEmpty } from '@rutil/index';
-import { title } from 'node:process';
 
 const { Header, Content, Footer } = Layout;
 const { Text, Link } = Typography;
@@ -98,6 +95,7 @@ class RequestListProject extends Component {
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: langTrans("prj doc bread1") }, 
+                        { title: this.props.prjs.find(row => row.value === this.state.projectLabel) ? this.props.prjs.find(row => row.value === this.state.projectLabel).label : "" },
                         { title: langTrans("prj doc bread2") }
                     ]} />
                     <Flex vertical gap="middle">
@@ -155,6 +153,7 @@ class RequestListProject extends Component {
 function mapStateToProps (state) {
     return {
         device : state.device,
+        prjs: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
     }

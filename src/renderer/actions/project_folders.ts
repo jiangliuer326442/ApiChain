@@ -19,7 +19,7 @@ import { isStringEmpty, mixedSort } from '@rutil/index';
 import { intersect } from '@rutil/sets';
 import { sendTeamMessage } from '@act/message'
 
-let version_iteration_folder_uuid = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_ITERATOR_UUID;
+let version_iteration_folder_iterator = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_ITERATOR_UUID;
 let version_iteration_folder_project = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_PROJECT;
 let version_iteration_folder_name = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_FOLD_NAME;
 let version_iteration_folder_delFlg = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_DELFLG;
@@ -71,9 +71,18 @@ export async function delProjectFolder(clientType : string, teamId : string, pro
     }
 
     let selectedFold = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
-        .where([version_iteration_folder_uuid, version_iteration_folder_project, version_iteration_folder_name])
+        .where([version_iteration_folder_iterator, version_iteration_folder_project, version_iteration_folder_name])
         .equals(["", project, fold])
+        .filter(row => {
+            if (row[version_iteration_folder_delFlg] === 1) {
+                return false;
+            }
+            return true;
+        })
         .first();
+    if (selectedFold === undefined) {
+        return;
+    }
     selectedFold[version_iteration_folder_delFlg] = 1;
     if (clientType === CLIENT_TYPE_SINGLE) {
         selectedFold.upload_flg = 0;
@@ -98,7 +107,7 @@ export async function addProjectFolder(
         }
 
         let version_iteration_folder : any = {};
-        version_iteration_folder[version_iteration_folder_uuid] = "";
+        version_iteration_folder[version_iteration_folder_iterator] = "";
         version_iteration_folder[version_iteration_folder_project] = project;
         version_iteration_folder[version_iteration_folder_name] = name;
         version_iteration_folder[version_iteration_folder_cuid] = device.uuid;
@@ -140,7 +149,7 @@ async function getFolders(clientType : string, project : string, title : string|
         }
 
         let project_folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
-        .where([version_iteration_folder_delFlg, version_iteration_folder_uuid, version_iteration_folder_project])
+        .where([version_iteration_folder_delFlg, version_iteration_folder_iterator, version_iteration_folder_project])
         .equals([0, "", project])
         .filter(row => {
             let folderName = row[version_iteration_folder_name];

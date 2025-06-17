@@ -1,6 +1,7 @@
 import { Component, ReactNode } from 'react';
 import { Collapse } from 'antd';
 
+import { FoldSourceIterator, FoldSourcePrj } from '@conf/global_config';
 import RequestListCollapseChildren from '@comp/requests_list_collapse/children';
 import RequestListCollapseExtra from '@comp/requests_list_collapse/extra';
 
@@ -38,6 +39,13 @@ class RequestListCollapse extends Component {
         }
         let items = [];
         for (let _fold of currentFolders) {
+            let type = "";
+            if (_fold.value.indexOf(FoldSourcePrj) === 0) {
+                type = "prj";
+            } else if (_fold.value.indexOf(FoldSourceIterator) === 0) {
+                type = "iterator"
+            }
+
             let item = {};
             item.key = _fold.value;
             item.label = _fold.label;
@@ -47,11 +55,13 @@ class RequestListCollapse extends Component {
                 filterTitle={this.props.filterTitle}
                 filterUri={this.props.filterUri}
                 folder={_fold.value} 
+                type={ type }
                 refreshCallback={() => this.props.refreshCallback()}
             />;
             item.extra = <RequestListCollapseExtra 
                 metadata={this.props.metadata} 
                 folder={_fold.value} 
+                type={ type }
                 refreshCallback={() => this.props.refreshCallback()}
             />;
             items.push(item);

@@ -7,6 +7,9 @@ import {
     REQUEST_PROJECT_ADD_URL,
     REQUEST_PROJECT_EDIT_URL,
     REQUEST_PROJECT_QUERY_URL,
+    REQUEST_PROJECT_SET_SORT_URL,
+    REQUEST_PROJECT_MOVE_PRJ_URL,
+    REQUEST_PROJECT_DEL_URL,
     REQUEST_PROJECT_FIND_URL,
     REQUEST_PROJECT_PAGE_FOLD_URL,
 } from '@conf/team';
@@ -14,6 +17,9 @@ import { sendTeamMessage } from '@act/message';
 import {
     getUsers
 } from '@act/user';
+import {
+    addProjectFolder
+} from '@act/project_folders';
 
 import { isStringEmpty, mixedSort } from '@rutil/index';
 
@@ -161,10 +167,59 @@ export async function getProjectRequest(clientType : string, prj : string, metho
     return project_request;
 }
 
-export async function setProjectRequestSort(project : string, method : string, uri : string, sort : number, cb : () => void) {
+export async function batchMoveProjectRequestPrj(clientType : string, teamId : string, project : string, methodUriArr : Array<string>, newPrj : string, device : object) {
+    if (newPrj === project) return;
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(REQUEST_PROJECT_MOVE_PRJ_URL, {
+            prj: project, 
+            methodUris: methodUriArr.join(","), 
+            newPrj
+        });
+    }
+
+    for (let _methodUriRow of methodUriArr) {
+        let [method, uri] = _methodUriRow.split("$$");
+
+        let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
+        .where([ project_request_project, project_request_method, project_request_uri ])
+        .equals([ project, method, uri ])
+        .first();
+        if (
+            project_request === undefined || 
+            project_request[project_request_delFlg] !== 0
+        ) {
+            continue;
+        }
+
+        project_request[project_request_project] = newPrj;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            project_request.upload_flg = 0;
+            project_request.team_id = "";
+        } else {
+            project_request.upload_flg = 1;
+            project_request.team_id = teamId;
+        }
+    
+        await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
+
+        let fold = project_request[project_request_fold];
+        await addProjectFolder(clientType, teamId, newPrj, fold, device);
+    }
+}
+
+export async function setProjectRequestSort(clientType : string, teamId : string, prj : string, method : string, uri : string, sort : number) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(REQUEST_PROJECT_SET_SORT_URL, {
+            prj, method, uri, sort,
+        });
+    }
+
+
     let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
     .where([ project_request_project, project_request_method, project_request_uri ])
-    .equals([ project, method, uri ])
+    .equals([ prj, method, uri ])
+    .reverse()
     .first();
     if (
         project_request === undefined || 
@@ -175,11 +230,42 @@ export async function setProjectRequestSort(project : string, method : string, u
     }
     project_request[project_request_sort] = sort;
 
-    console.debug("setSort", project_request);
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        project_request.upload_flg = 0;
+        project_request.team_id = "";
+    } else {
+        project_request.upload_flg = 1;
+        project_request.team_id = teamId;
+    }
 
     await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
-    
-    cb();
+
+    let project_requests = await window.db[TABLE_PROJECT_REQUEST_NAME]
+    .where([ project_request_delFlg, project_request_project, project_request_fold ])
+    .equals([ 0, prj, project_request[project_request_fold] ])
+    .filter(row => {
+        if (row[project_request_method] === method && row[project_request_uri] === uri) {
+            return false;
+        }
+        if (row[project_request_sort] < sort) {
+            return false;
+        }
+        return true;
+    })
+    .toArray();
+
+    for(let project_request of project_requests) {
+        let oldSort = Number(project_request[project_request_sort]);
+        project_request[project_request_sort] = oldSort + 1;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            project_request.upload_flg = 0;
+            project_request.team_id = "";
+        } else {
+            project_request.upload_flg = 1;
+            project_request.team_id = teamId;
+        }
+        await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
+    }
 }
 
 export async function getFolderProjectRequests(
@@ -226,7 +312,17 @@ export async function getFolderProjectRequests(
             .limit(pageSize)
             .toArray();
         mixedSort(datas, project_request_title);
-        datas = datas.sort((a, b) => a[project_request_sort] - b[project_request_sort]);
+        datas = datas.sort((a, b) => {
+            let asort = 0;
+            if (!Number.isNaN(a[project_request_sort])) {
+                asort = Number(a[project_request_sort]);
+            }
+            let bsort = 0;
+            if (!Number.isNaN(b[project_request_sort])) {
+                bsort = Number(b[project_request_sort]);
+            }
+            return asort - bsort;
+        });
     } else {
         let result = await sendTeamMessage(REQUEST_PROJECT_PAGE_FOLD_URL, Object.assign({}, pagination, {prj, fold, title, uri}));
         let count = result.count;
@@ -274,18 +370,33 @@ export async function getProjectRequests(clientType : string, project : string, 
     return project_requests;
 }
 
-export async function delProjectRequest(clientType : string, record, cb) {
-    let project = record[project_request_project];
+export async function delProjectRequest(clientType : string, teamId : string, record) {
+    let prj = record[project_request_project];
     let method = record[project_request_method];
     let uri = record[project_request_uri];
 
-    let project_request = await getProjectRequest(clientType, project, method, uri);
-    if (project_request !== undefined) {
-        project_request[project_request_delFlg] = 1;
-        console.debug("delProjectRequest", project_request);
-        await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
-        cb();
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(REQUEST_PROJECT_DEL_URL, {prj, method, uri});
     }
+
+    let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
+    .where([ project_request_project, project_request_method, project_request_uri ])
+    .equals([ prj, method, uri ])
+    .reverse()
+    .first();
+    if (project_request === undefined || project_request[project_request_delFlg] !== 0) {
+        return;
+    }
+
+    project_request[project_request_delFlg] = 1;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        project_request.upload_flg = 0;
+        project_request.team_id = "";
+    } else {
+        project_request.upload_flg = 1;
+        project_request.team_id = teamId;
+    }
+    await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
 }
 
 export async function editProjectRequest(

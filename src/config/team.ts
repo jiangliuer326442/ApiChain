@@ -92,6 +92,8 @@ export const REQUEST_VERSION_ITERATION_PAGE_FOLD_URL = "/requests/iteration/page
 
 export const REQUEST_PROJECT_ADD_URL = "/requests/project/add";
 
+export const REQUEST_PROJECT_DEL_URL = "/requests/project/del";
+
 export const REQUEST_PROJECT_EDIT_URL = "/requests/project/edit";
 
 export const REQUEST_PROJECT_QUERY_URL = "/requests/project/query";
@@ -99,6 +101,10 @@ export const REQUEST_PROJECT_QUERY_URL = "/requests/project/query";
 export const REQUEST_PROJECT_FIND_URL = "/requests/project/find";
 
 export const REQUEST_PROJECT_PAGE_FOLD_URL = "/requests/project/pageByFold";
+
+export const REQUEST_PROJECT_SET_SORT_URL = "/requests/project/set_sort";
+
+export const REQUEST_PROJECT_MOVE_PRJ_URL = "/requests/project/set_requests_prj";
 
 export const FOLDERS_PROJECT_ALL = "/folders/project/all";
 
