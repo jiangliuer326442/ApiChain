@@ -51,7 +51,7 @@ class FolderSelector extends Component {
             <Select
                 showSearch
                 allowClear
-                style={{minWidth: 260}}
+                style={{minWidth: 180}}
                 value={ this.props.value }
                 onChange={ value => {
                     this.props.setValue(value)
