@@ -3,7 +3,7 @@ import { cloneDeep } from 'lodash';
 
 import { getType, isJsonString, isStringEmpty } from './index';
 import { TABLE_JSON_FRAGEMENT_FIELDS } from '../../config/db';
-import { CONTENT_TYPE, DataTypeJsonObject } from '../../config/global_config';
+import { CONTENT_TYPE, DataTypeJsonObject, KEY_SEPARATOR } from '../../config/global_config';
 
 import { getJsonFragment } from '../actions/request_save';
 
@@ -207,7 +207,7 @@ async function innerParseJsonToChildrend(
 
     let obj : any = {};
     let type = _obj[TABLE_FIELD_TYPE];
-    obj["key"] = parentKeys.join(".") + (parentKey === "" ? "" : ".") + key;
+    obj["key"] = parentKeys.join(KEY_SEPARATOR) + (parentKey === "" ? "" : KEY_SEPARATOR) + key;
     obj[TABLE_FIELD_NAME] = key;
     obj[TABLE_FIELD_TYPE] = type;
     obj[TABLE_FIELD_NECESSARY] = necessary;

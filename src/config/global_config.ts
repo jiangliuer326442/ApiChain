@@ -40,6 +40,8 @@ export const VipTagDoc = "vip.tag.doc";
 
 export const VipTagMockServer = "vip.tag.mock";
 
+export const KEY_SEPARATOR = "__$$key$$__"
+
 export const FoldSourcePrj = "fold$$prj$$";
 
 export const FoldSourceIterator = "fold$$iterator$$";

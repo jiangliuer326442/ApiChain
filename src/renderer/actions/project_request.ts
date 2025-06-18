@@ -22,6 +22,7 @@ import {
 } from '@act/project_folders';
 
 import { isStringEmpty, mixedSort } from '@rutil/index';
+import { cloneDeep } from 'lodash';
 
 let project_request_project = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
 let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
@@ -418,7 +419,11 @@ export async function editProjectRequest(
 
     //未改动基础，只修改
     if (initMethod === method && initUri === uri) {
-        let project_request = await getProjectRequest(clientType, project, method, uri);
+        let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
+        .where([ project_request_project, project_request_method, project_request_uri ])
+        .equals([ project, method, uri ])
+        .reverse()
+        .first();
         project_request[project_request_title] = title;
         project_request[project_request_desc] = desc;
         project_request[project_request_fold] = fold;
@@ -439,7 +444,12 @@ export async function editProjectRequest(
     
         await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
     } else {
-        let project_request = await getProjectRequest(clientType, project, initMethod, initUri);
+        let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
+        .where([ project_request_project, project_request_method, project_request_uri ])
+        .equals([ project, initMethod, initUri ])
+        .reverse()
+        .first();
+        console.log(initMethod, initUri, cloneDeep(project_request));
         if (clientType === CLIENT_TYPE_SINGLE) {
             project_request.upload_flg = 0;
             project_request.team_id = "";

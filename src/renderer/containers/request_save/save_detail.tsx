@@ -38,6 +38,8 @@ import {
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST,
+    FoldSourcePrj,
+    FoldSourceIterator,
 } from '@conf/global_config';
 import JsonSaveTableComponent from "@comp/request_save/json_save_table";
 import FolderSelector from "@comp/folders/index";
@@ -124,7 +126,7 @@ class RequestSaveContainer extends Component {
             showFlg : false,
             versionIterator: iterator,
             versionIterationName: "",
-            selectedFolder: "",
+            selectedFolder: null,
             cname: "",
             ctime: 0,
             folders: [],
@@ -363,10 +365,17 @@ class RequestSaveContainer extends Component {
                                     versionIterator={ this.state.versionIterator }
                                     prj={ this.state.prj }
                                     value={ this.state.selectedFolder }
-                                    setValue={ value => this.setState({selectedFolder: value}) }
+                                    setValue={ value => {
+                                        if (this.state.type === "project") {
+                                            this.setState({selectedFolder: value.substring(FoldSourcePrj.length)})
+                                        }
+                                    }}
                                     refreshFolders={ async () => {
-                                        let folders = await getVersionIteratorFolders(this.state.versionIterator, this.state.prj);
-                                        this.setState({folders, selectedFolder: ""})
+                                        let folders;
+                                        if (this.state.type === "project") {
+                                            folders = await getProjectFolders(this.props.clientType, this.state.prj, null, null);
+                                        }
+                                        this.setState({folders, selectedFolder: null})
                                     }}
                                     folders={ this.state.folders }
                                 />
@@ -405,7 +414,7 @@ class RequestSaveContainer extends Component {
                         <>
                             <Divider orientation="left">{langTrans("request save response header")}</Divider>
                             <Flex>
-                                <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseHeadData} cb={obj=>this.setState({formResponseHeadData: obj})} />
+                                <JsonSaveTableComponent showNecessary={ false } readOnly={ true } object={this.state.formResponseHeadData} cb={obj=>this.setState({formResponseHeadData: obj})} />
                             </Flex>
                         </>
                         : null }
@@ -413,7 +422,7 @@ class RequestSaveContainer extends Component {
                         <>
                             <Divider orientation="left">{langTrans("request save response cookie")}</Divider>
                             <Flex>
-                                <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseCookieData} cb={obj=>this.setState({formResponseCookieData: obj})} />
+                                <JsonSaveTableComponent showNecessary={ false } readOnly={ true } object={this.state.formResponseCookieData} cb={obj=>this.setState({formResponseCookieData: obj})} />
                             </Flex>
                         </>
                         : null }
@@ -421,7 +430,7 @@ class RequestSaveContainer extends Component {
                         <>
                             <Divider orientation="left">{langTrans("request save response content")}</Divider>
                             <Flex>
-                                <JsonSaveTableComponent readOnly={ true } object={this.state.formResponseData} cb={obj=>this.setState({formResponseData: obj})} />
+                                <JsonSaveTableComponent showNecessary={ false } readOnly={ true } object={this.state.formResponseData} cb={obj=>this.setState({formResponseData: obj})} />
                             </Flex>
                         </>
                         : null}
