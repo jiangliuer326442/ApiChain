@@ -522,7 +522,12 @@ class RequestSendContainer extends Component {
           contentType={ this.state.contentType }
           obj={ this.state.requestHeadData } 
           tips={this.state.envKeys} 
-          cb={obj => this.state.requestHeadData = obj} 
+          cb={obj => {
+            this.state.requestHeadData = obj
+            if (obj[CONTENT_TYPE] !== this.state.contentType) {
+              this.setState({contentType: obj[CONTENT_TYPE]})
+            }
+          }} 
         />,
       },
       {

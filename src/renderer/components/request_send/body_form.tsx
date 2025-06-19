@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { cloneDeep } from 'lodash';
 import { DeleteOutlined } from '@ant-design/icons';
 import { 
-    Input, Flex, AutoComplete, Button, Select
+    Input, Flex, AutoComplete, Button, Select, Typography
 } from "antd";
 
 import { isStringEmpty, removeWithoutGap, isJsonString, getType } from "@rutil/index";
@@ -15,6 +15,7 @@ import { INPUTTYPE_TEXT, INPUTTYPE_FILE } from '@conf/global_config';
 import { prettyJson } from '@rutil/json';
 import { langTrans } from '@lang/i18n';
 
+const { Text, Link } = Typography;
 const { TextArea } = Input;
 
 class RequestSendBody extends Component {
@@ -26,47 +27,90 @@ class RequestSendBody extends Component {
             contentType: props.contentType,
             requestBodyData: props.obj,
             requestFileData: props.file,
+            bulkStr: "",
+            buckEditFlg: false,
         };
 
-        let obj = this.calculateFormBodyData(props.obj, props.file);
+        let ret = this.buildList();
+        Object.assign(this.state, this.state, {
+            rows : ret[0],
+            data : ret[1],
+        })
+    }
 
-        if (props.contentType === CONTENT_TYPE_JSON) {
-            let data = obj;
-            if (!isStringEmpty(data)) {
-                data = prettyJson(JSON.parse(data));
-            }
-            this.state = {
-                contentType: props.contentType,
-                requestBodyData: props.obj,
-                requestFileData: props.file,
-                buckEditFlg: false,
-                rows : 0,
-                data
-            }
+    async componentDidUpdate(prevProps) { 
+        if (this.props.contentType != prevProps.contentType) {
+            this.state.contentType = this.props.contentType;
+            let ret = this.buildList();
+            Object.assign(this.state, this.state, {
+                rows : ret[0],
+                data : ret[1],
+            })
+        }
+    }
+
+    buildList = () => {
+        let obj = this.calculateFormBodyData(this.state.requestBodyData, this.state.requestFileData);
+
+        if (this.state.contentType === CONTENT_TYPE_JSON) {
+            let data = this.innerPrettyJson(obj);
+            return [0, data];
         } else {
             let list = obj;
             for (let _item of list) {
                 if (_item.type === INPUTTYPE_FILE) {
 
-                    const blob = new Blob([props.file[_item.key].blob], { type: props.file[_item.key].type });  
+                    const blob = new Blob([this.state.requestFileData[_item.key].blob], { type: this.state.requestFileData[_item.key].type });  
   
                     // 使用Blob对象和文件名来创建一个File对象  
-                    const file = new File([blob], props.file[_item.key].name, {  
-                        type: props.file[_item.key].type,
+                    const file = new File([blob], this.state.requestFileData[_item.key].name, {  
+                        type: this.state.requestFileData[_item.key].type,
                     });
                     _item.value = file;
                 }
             }
-            this.state = {
-                contentType: props.contentType,
-                requestBodyData: props.obj,
-                requestFileData: props.file,
-                buckEditFlg: false,
-                rows: list.length,
-                data: list,
-            };
+            return [list.length, list];
         }
     }
+
+    innerPrettyJson = (jsonstr : string) : string => {
+        let data = jsonstr;
+        if (!isStringEmpty(data)) {
+            data = prettyJson(JSON.parse(data));
+        }
+        return data;
+    }
+
+    triggerBulkEdit = () => {
+        let bulkStr = "";
+        if (!this.state.buckEditFlg) {
+            for (let _bodyKey in this.state.requestBodyData) {
+                let _bodyVal = this.state.requestBodyData[_bodyKey];
+                bulkStr += _bodyKey + ": " + _bodyVal + "\n";
+            }
+        }
+        this.setState({buckEditFlg: !this.state.buckEditFlg, bulkStr});
+    };
+
+    handleBulkEditChange = (e) => { 
+        let content = e.target.value;
+        let newRequestBodyData : any = {};
+        for (const row of content.split("\n")) {
+            if (row.indexOf(":") < 0) {
+                continue;
+            }
+            let [_bodyKey, _bodyVal] = row.split(":");
+            newRequestBodyData[_bodyKey.trim()] = _bodyVal.trim();
+        }
+        this.state.requestBodyData = newRequestBodyData;
+        let ret = this.buildList();
+
+        this.setState({
+            bulkStr: content,
+            rows : ret[0],
+            data : ret[1],
+        });
+    };
 
     calculateFormBodyData = (requestBodyData, requestFileData) => {
         if (this.state.contentType === CONTENT_TYPE_JSON) {
@@ -80,12 +124,14 @@ class RequestSendBody extends Component {
                 item["type"] = INPUTTYPE_TEXT;
                 list.push(item);
             }
-            for (let _key in requestFileData) {
-                let item : any = {};
-                item["key"] = _key;
-                item["value"] = "";
-                item["type"] = INPUTTYPE_FILE;
-                list.push(item);
+            if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
+                for (let _key in requestFileData) {
+                    let item : any = {};
+                    item["key"] = _key;
+                    item["value"] = "";
+                    item["type"] = INPUTTYPE_FILE;
+                    list.push(item);
+                }
             }
             this.setRequestBodyData(list);
             return list;
@@ -94,7 +140,7 @@ class RequestSendBody extends Component {
 
     setRequestBodyData = (data: Array<any>) => {
         if (this.state.contentType === CONTENT_TYPE_JSON) {
-            this.state.requestBodyData = JSON.parse(data);
+            this.props.cb(JSON.parse(data), null);
         } else if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
             let obj : any = {};
             let file : any = {};
@@ -199,6 +245,9 @@ class RequestSendBody extends Component {
         } else {
             let row = this.state.data[i];
             row.value = value;
+            if (row.type === INPUTTYPE_TEXT) {
+                this.state.requestBodyData[row.key] = row.value;
+            }
             this.setRequestBodyData(this.state.data);
         }
     }
@@ -213,6 +262,11 @@ class RequestSendBody extends Component {
         } else {
             let row = this.state.data[i];
             row.type = value;
+            if (value === INPUTTYPE_FILE) {
+                delete this.state.requestBodyData[row.key];
+            } else if (value === INPUTTYPE_TEXT) {
+                this.state.requestBodyData[row.key] = row.value;
+            }
             this.setState({data: this.state.data});
             this.setRequestBodyData(this.state.data);
         }
@@ -220,6 +274,7 @@ class RequestSendBody extends Component {
 
     handleDel = (i) => {
         let data = cloneDeep(this.state.data);
+        delete this.state.requestBodyData[data[i].key];
         let newData = removeWithoutGap(data, i);
         this.setState({ data: newData, rows: this.state.rows - 1 });
         this.setRequestBodyData(newData);
@@ -252,7 +307,13 @@ class RequestSendBody extends Component {
     render() : ReactNode {
         return this.props.contentType === CONTENT_TYPE_JSON ? 
             (<Flex vertical gap="small">
-                <Flex>{langTrans("request send body form paste")}</Flex>
+                <Flex justify="space-between">
+                    <Text>{langTrans("request send body form paste")}</Text>
+                    <Link onClick={() => { 
+                        let data = this.innerPrettyJson(this.state.data);
+                        this.setState({data});
+                    }}>{langTrans("request format json")}</Link>
+                </Flex>
                 <Flex>
                     <TextArea
                         value={this.state.data}
@@ -272,20 +333,23 @@ class RequestSendBody extends Component {
                 <Flex>
                     <Flex><div style={{width: 20}}></div></Flex>
                     <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field1")}</Flex>
-                    <Flex flex={1} style={{paddingLeft: 100}}>{langTrans("request field2")}</Flex>
-                    <Flex><div style={{width: 80}}><Button type='link' onClick={()=>this.setState({buckEditFlg: true})}>{langTrans("request bulk edit")}</Button></div></Flex>
+                    <Flex flex={1} style={{paddingLeft: 150}}>{langTrans("request field2")}</Flex>
+                    <Flex>
+                        <div style={{width: 130}}>
+                            <Button 
+                                type='link' 
+                                onClick={this.triggerBulkEdit}>
+                                    {this.state.buckEditFlg ? langTrans("request single edit") : langTrans("request bulk edit")}
+                            </Button>
+                        </div>
+                    </Flex>
                 </Flex>
         {this.state.buckEditFlg ? 
                 <Flex>
                     <TextArea
-                        value={prettyJson(this.props.obj)}
-                        onChange={(e) => {
-                            let content = e.target.value;
-                            this.setState({ data: content });
-                            if (isJsonString(content)) {
-                                this.setRequestBodyData(content);
-                            }
-                        }}
+                        placeholder={langTrans("request bulk edit tips")}
+                        value={ this.state.bulkStr }
+                        onChange={ this.handleBulkEditChange }
                         autoSize={{ minRows: 10 }}
                     />
                 </Flex>
