@@ -459,6 +459,8 @@
     "quick link3": "發送請求",
     "quick link4": "點擊跳轉",
     "quick link5": "迭代單測",
+    "json save table placeholder": "範例資料",
+    "json save table json error": "範例資料不符合JSON規範",
     "team topup title": "客戶端類型設置",
     "team topup form1": "當前版本",
     "team topup form1 select1": "單機版",

@@ -90,7 +90,7 @@ class JsonSaveTableContainer extends Component {
                     } else {
                         return <TextArea 
                             allowClear
-                            placeholder="示例数据" 
+                            placeholder={ langTrans("json save table placeholder") }
                             value={demo} 
                             onChange={ event => this.handleSetContent(key, event.target.value) } 
                         />
@@ -136,7 +136,7 @@ class JsonSaveTableContainer extends Component {
         if (dataType === DataTypeJsonObject) {
             let value = obj[key][TABLE_FIELD_VALUE];
             if (!isJsonString(value)) {
-                message.error("示例数据不符合json规范");
+                message.error(langTrans("json save table json error"));
                 return;
             }
         }

@@ -459,6 +459,8 @@
     "quick link3": "Send Request",
     "quick link4": "Click to Enter",
     "quick link5": "Iterative Unit Testin",
+    "json save table placeholder": "Example Data",
+    "json save table json error": "Example data is not valid JSON",
     "team topup title": "Client Type Setting",
     "team topup form1": "Current Version",
     "team topup form1 select1": "Standalone Version",

@@ -117,15 +117,42 @@ class RequestSendContainer extends Component {
 
   constructor(props) {
     super(props);
+
+    let pathKey = props.match.path.split('/')[1];
+
+    let id = 0;
+    let showFlg = false;
+    let type = "project";
+    let iteratorId = "";
+    let prj = "";
+    let requestMethod = REQUEST_METHOD_POST;
+    let requestUri = "";
+    if(Object.keys(props.match.params).length === 0) {
+      showFlg = true;
+    } else if (pathKey === 'internet_request_send_by_history') {
+      id = Number(props.match.params.id);
+    } else if (pathKey === "internet_request_send_by_iterator") {
+      iteratorId = props.match.params.iteratorId;
+      showFlg = true;
+      type = "iterator";
+    } else if (pathKey === 'internet_request_send_by_api') {
+      iteratorId = props.match.params.iteratorId;
+      type = isStringEmpty(iteratorId) ? "project" : "iterator";
+      prj = props.match.params.prj;
+      requestMethod = this.props.match.params.method;
+      requestUri = decode(this.props.match.params.uri);
+    }
+
     this.state = {
-      id : 0, 
-      prj : "",
+      id, 
+      prj,
       env : "",
       requestHost: "",
-      requestUri: "",
+      requestUri,
       requestEnable: false,
-      showFlg: false,
-      requestMethod: REQUEST_METHOD_POST,
+      showFlg,
+      type,
+      requestMethod,
       contentType: CONTENT_TYPE_URLENCODE,
       defaultTabKey: "body",
       responseData: "",
@@ -140,7 +167,7 @@ class RequestSendContainer extends Component {
       requestFileData: {},
       requestPathVariableData: {},
       requestParamData: {},
-      iteratorId: "",
+      iteratorId,
       alertMessage: "",
       envKeys: [],
       statusCode: 0,
@@ -169,33 +196,34 @@ class RequestSendContainer extends Component {
 
   async componentDidMount() {
     let pathKey = this.props.match.path.split('/')[1];
+    let method = this.state.requestMethod;
+    let showFlg = true;
 
-    if(Object.keys(this.props.match.params).length === 0) {
-      this.setState({ showFlg:true });
-    } else if (pathKey === "internet_request_send_by_iterator") {
-      let iteratorId = this.props.match.params.iteratorId;
-      this.setState( { 
-        showFlg: true,
-        iteratorId,
-      } )
-    } else if (pathKey === 'internet_request_send_by_history') {
-      let key = Number(this.props.match.params.id);
-      let record = await getRequestHistory(key);
+    if (pathKey === 'internet_request_send_by_history') {
+      let type = "project";
+      let iteratorId = "";
+      let record = await getRequestHistory(this.state.id);
       if (record == null) {
         return;
       }
+      method = record[request_history_method];
+      if (!isStringEmpty(record[request_history_iterator])) {
+        type = "iterator";
+        iteratorId = record[request_history_iterator];
+      }
+
       let headerData = record[request_history_head];
       let contentType = headerData[CONTENT_TYPE];
-      let method = record[request_history_method];
-      this.setRequestMethod(method);
       this.setState({
-        id: key,
-        showFlg: true,
-        iteratorId: record[request_history_iterator],
+        showFlg,
+        type,
+        iteratorId,
+        requestMethod: method,
+        requestHeadData: headerData,
+        contentType,
         prj: record[request_history_micro_service],
         env: record[request_history_env],
         requestUri: record[request_history_uri],
-        requestMethod: method,
         responseCookie: record[request_history_response_cookie],
         responseHeader: record[request_history_response_header],
         responseData: record[request_history_response],
@@ -203,39 +231,24 @@ class RequestSendContainer extends Component {
         isResponseHtml: record[request_history_htmlFlg],
         isResponsePic: record[request_history_picFlg],
         isResponseFile: record[request_history_fileFlg],
-        requestHeadData: headerData,
-        contentType,
         requestBodyData: record[request_history_body],
         requestFileData: record[request_history_file],
         requestPathVariableData: record[request_history_path_variable],
         requestParamData: record[request_history_param],
       });
     } else if (pathKey === 'internet_request_send_by_api') {
-      let iteratorId = this.props.match.params.iteratorId;
-      let prj = this.props.match.params.prj;
-      let requestMethod = this.props.match.params.method;
-      let requestUri = decode(this.props.match.params.uri);
-      let uri = "";
-      let method = "";
       let body = {};
       let header : any = {};
       let requestParam = {};
       let requestPathVariable = {};
-      if (isStringEmpty(iteratorId)) {
-        iteratorId = "";
-        let record = await getProjectRequest(this.props.clientType, prj, requestMethod, requestUri);
-        prj = record[project_request_project];
-        uri = record[project_request_uri];
-        method = record[project_request_method];
+      if (this.state.type === "project") {
+        let record = await getProjectRequest(this.props.clientType, this.state.prj, this.state.requestMethod, this.state.requestUri);
         body = record[project_request_body];
         header = record[project_request_header];
         requestParam = record[project_request_param];
         requestPathVariable = record[project_request_path_variable];
-      } else {
-        let record = await getVersionIteratorRequest(this.props.clientType, iteratorId, prj, requestMethod, requestUri);
-        prj = record[iteration_request_prj];
-        uri = record[iteration_request_uri];
-        method = record[iteration_request_method];
+      } else if (this.state.type === "iterator") {
+        let record = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri);
         body = record[iteration_request_body];
         header = record[iteration_request_header];
         requestParam = record[iteration_request_param];
@@ -250,7 +263,6 @@ class RequestSendContainer extends Component {
           realBody[_key] = body[_key];
         }
       }
-      this.setRequestMethod(method);
       let requestBodyData = cleanJson(realBody);
       let requestHeadData = cleanJson(header);
       let requestParamData = cleanJson(requestParam);
@@ -258,12 +270,8 @@ class RequestSendContainer extends Component {
       let requestFileData = file;
       let contentType = requestHeadData[CONTENT_TYPE];
       this.setState({
-        showFlg: true,
-        iteratorId,
-        prj,
-        requestUri: uri,
+        showFlg,
         contentType,
-        requestMethod: method,
         requestHeadData,
         requestBodyData,
         requestFileData,
@@ -271,6 +279,8 @@ class RequestSendContainer extends Component {
         requestPathVariableData,
       });
     }
+
+    this.setRequestMethod(method);
   }
 
   setUri = (event : object) => {
@@ -278,6 +288,7 @@ class RequestSendContainer extends Component {
   };
 
   setRequestMethod = (value: string) => {
+    if (isStringEmpty(value)) return;
     let defaultKey;
     if (value === REQUEST_METHOD_GET) {
       defaultKey = "params";

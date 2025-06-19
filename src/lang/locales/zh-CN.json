@@ -459,6 +459,8 @@
 	"quick link3": "发送请求",
     "quick link4": "点击跳转",
     "quick link5": "迭代单测",
+    "json save table placeholder": "示例数据",
+    "json save table json error": "示例数据不符合json规范",
     "team topup title": "客户端类型设置",
     "team topup form1": "当前版本",
     "team topup form1 select1": "单机版",
