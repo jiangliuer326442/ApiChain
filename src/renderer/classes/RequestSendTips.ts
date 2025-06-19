@@ -1,8 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { cloneDeep } from 'lodash';
 
 import { 
-    ENV_VALUE_API_HOST,
     ENV_VALUE_RANDOM_STRING,
     ENV_VALUE_APP_VERSION,
     ENV_VALUE_EMAIL,
@@ -16,22 +14,15 @@ import {
     ENV_VALUE_CURRENT_TIMESTAMP_SECOND,
     ENV_VALUE_CURRENT_TIMESTAMP_MICRO,
 } from "@conf/envKeys";
-import {
-    DataTypeJsonObject
-} from '@conf/global_config'
 import { 
     getIteratorEnvValues, 
     getPrjEnvValues,
     getGlobalEnvValues,
 } from '@act/env_value';
 import { 
-    getType, 
     isStringEmpty, 
     getNowdayjs,
 } from '@rutil/index';
-import {
-    TABLE_FIELD_TYPE
-} from "@rutil/json";
 
 export default class {
 
@@ -118,24 +109,6 @@ export default class {
         }
     }
 
-    async getHost() : Promise<string> {
-        if (this.envKeyVarMap.size === 0) {
-            let env_vars = await this.getEnvValues(this.prj, this.env, this.iteration, "", "");
-            this.envKeyVarMap = env_vars;
-            this.cb(env_vars);
-            return this.getApiHost();
-        } else {
-            this.cb(this.envKeyVarMap);
-            return this.getApiHost();
-        }
-    }
-
-    iteratorGetVarByKey(postData : any, format : any) : any {
-        postData = cloneDeep (postData);
-        this.iteratorGetEnvValue(postData, format);
-        return postData;
-    }
-
     getVarByKey(key : string) : string | number | undefined {
         if (key === ENV_VALUE_RANDOM_STRING) {
             return "ApiChain_" + uuidv4();
@@ -203,55 +176,6 @@ export default class {
             let result = await getGlobalEnvValues(env, this.clientType);
             return result;
         }
-    }
-
-    private iteratorGetEnvValue(postData : any, format : any) {
-        for (let _key in postData) {
-            let value = postData[_key];
-            let isJsonString = false;
-            if (format != null && format.hasOwnProperty(_key)) {
-                if (format[_key][TABLE_FIELD_TYPE].toLowerCase() === DataTypeJsonObject.toLowerCase()) {
-                    isJsonString = true;
-                }
-            }
-            if (isJsonString && getType(value) === "String") {
-                value = JSON.parse(value);
-            }
-
-            if (getType(value) === "Array") {
-                for (let _index in value) {
-                    let _item = value[_index];
-                    if (getType(_item) === "Object") {
-                        this.iteratorGetEnvValue(_item, null);
-                    } else {
-                        let beginIndex = value[_index].indexOf("{{");
-                        let endIndex = value[_index].indexOf("}}");
-                        if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
-                            let envValueKey = value[_index].substring(beginIndex + 2, endIndex);
-                            value[_index] = this.getVarByKey(envValueKey);
-                        }
-                    }
-                }
-            } else if (getType(value) === "Object") {
-                this.iteratorGetEnvValue(value, null);
-            } else if (getType(value) === "String") {
-                let beginIndex = value.indexOf("{{");
-                let endIndex = value.indexOf("}}");
-                if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
-                    let envValueKey = value.substring(beginIndex + 2, endIndex);
-                    value = this.getVarByKey(envValueKey);
-                    postData[_key] = value;
-                }
-            }
-
-            if (isJsonString) {
-                postData[_key] = JSON.stringify(value);
-            }
-        }
-    }
-
-    private getApiHost() : string {
-        return this.envKeyVarMap.get(ENV_VALUE_API_HOST) as string;
     }
 
     private getTipsByEnvVars() : Set<string> {

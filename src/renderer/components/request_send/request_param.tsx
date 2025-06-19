@@ -4,18 +4,44 @@ import { cloneDeep } from 'lodash';
 import { Input, Flex, Button, AutoComplete } from "antd";
 import { DeleteOutlined } from '@ant-design/icons';
 
-import { isStringEmpty, removeWithoutGap } from "../../util";
+import { isStringEmpty, removeWithoutGap, getType } from "@rutil/index";
 import { langTrans } from '@lang/i18n';
 
 class RequestSendParam extends Component {
 
     constructor(props) {
         super(props);
-        let list = props.obj;
+        let list = this.calculateFormParamsData(props.obj);
         this.state = {
             rows: list.length,
             data: list,
         };
+    }
+
+    calculateFormParamsData = (requestParamsData) => {
+        let list = [];
+        for (let _key in requestParamsData) {
+            let item = {};
+            item["key"] = _key;
+            item["value"] = requestParamsData[_key];
+            list.push(item);
+        }
+        this.setRequestParamData(list);
+        return list;
+    }
+
+    setRequestParamData = (data: Array<any>) => {
+        let obj = {};
+        if (data.length > 0) {
+          for (let item of data) {
+            let value = item.value;
+            if (getType(value) === "Undefined") {
+              value = "";
+            }
+            obj[item.key] = value;
+          }
+        }
+        this.props.cb(obj);
     }
 
     setKey = (value, i) => {
@@ -24,13 +50,13 @@ class RequestSendParam extends Component {
             row.key = value;
             this.state.data.push(row);
             this.setState({rows : this.state.rows + 1});
-            this.props.cb(this.state.data);
+            this.setRequestParamData(this.state.data);
         } else {
             let data = cloneDeep(this.state.data);
             let row = data[i];
             row.key = value;
             this.setState({ data });
-            this.props.cb(data);
+            this.setRequestParamData(data);
         }
     }
 
@@ -47,11 +73,11 @@ class RequestSendParam extends Component {
             row.value = value;
             this.state.data.push(row);
             this.setState({rows : this.state.rows + 1});
-            this.props.cb(this.state.data);
+            this.setRequestParamData(this.state.data);
         } else {
             let row = this.state.data[i];
             row.value = value;
-            this.props.cb(this.state.data);
+            this.setRequestParamData(this.state.data);
         }
     }
 
@@ -59,7 +85,7 @@ class RequestSendParam extends Component {
         let data = cloneDeep(this.state.data);
         let newData = removeWithoutGap(data, i);
         this.setState({ data: newData, rows: this.state.rows - 1 });
-        this.props.cb(newData);
+        this.setRequestParamData(newData);
     }
 
     setOptions = (text, i) => {

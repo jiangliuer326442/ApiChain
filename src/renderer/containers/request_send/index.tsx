@@ -11,21 +11,19 @@ import JsonView from 'react-json-view';
 import { cloneDeep } from 'lodash';
 
 import { 
-  getType,
   isStringEmpty,
   paramToString,
   isJsonString,
+  getMapValueOrDefault,
 } from '@rutil/index';
 import {
   TABLE_FIELD_TYPE,
   TABLE_FIELD_VALUE,
   cleanJson,
+  getEnvVarsIterator,
 } from '@rutil/json';
 import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { getWikiSendRequest } from '@conf/url';
-import {
-  GET_ENV_VALS
-} from '@conf/redux'
 import { 
   TABLE_REQUEST_HISTORY_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
@@ -50,10 +48,14 @@ import {
   REQUEST_METHOD_GET,
   REQUEST_METHOD_POST,
   CONTENT_TYPE,
-  INPUTTYPE_TEXT,
-  INPUTTYPE_FILE,
 } from '@conf/global_config';
-import RequestSendTips from '@clazz/RequestSendTips';
+import {
+  getEnvHosts,
+  getPrjEnvValues,
+} from '@act/env_value';
+import {
+  getProjectKeys
+} from '@act/keys';
 import {
   getVersionIteratorRequest
 } from '@act/version_iterator_requests';
@@ -92,16 +94,10 @@ let request_history_htmlFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_HTMLFLG;
 let request_history_picFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_PICFLG;
 let request_history_fileFlg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_FILEFLG;
 
-let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
-let iteration_request_prj = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
-let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let iteration_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
 let iteration_request_path_variable = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let project_request_project = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
-let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
-let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 let project_request_header = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let project_request_body = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_BODY;
 let project_request_param = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
@@ -112,8 +108,6 @@ const { Text, Link } = Typography;
 const { TextArea } = Input;
 
 class RequestSendContainer extends Component {
-
-  private requestSendTip : RequestSendTips;
 
   constructor(props) {
     super(props);
@@ -174,8 +168,6 @@ class RequestSendContainer extends Component {
       costTime: 0,
       sendingFlg: false,
     }
-
-    this.requestSendTip = new RequestSendTips();
   }
 
   getClearState() : object {
@@ -270,6 +262,7 @@ class RequestSendContainer extends Component {
       let requestFileData = file;
       let contentType = requestHeadData[CONTENT_TYPE];
       this.setState({
+        requestEnable: true,
         showFlg,
         contentType,
         requestHeadData,
@@ -282,10 +275,6 @@ class RequestSendContainer extends Component {
 
     this.setRequestMethod(method);
   }
-
-  setUri = (event : object) => {
-    this.setState({requestUri: event.target.value})
-  };
 
   setRequestMethod = (value: string) => {
     if (isStringEmpty(value)) return;
@@ -301,177 +290,20 @@ class RequestSendContainer extends Component {
     this.setState(state);
   };
 
-  setRequestBodyData = (data: Array<any>) => {
-    if (this.state.contentType === CONTENT_TYPE_JSON) {
-      this.state.requestBodyData = JSON.parse(data);
-    } else if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
-      let obj : any = {};
-      let file : any = {};
-      let originFile : any = this.state.requestFileData;
-      if (data.length > 0) {
-        for (let item of data) {
-          let value = item.value;
-          if (isStringEmpty(item.type)) return;
-          if (isStringEmpty(item.key)) return;
-          if (item.type === INPUTTYPE_TEXT) {
-            if (getType(value) === "Undefined") {
-              value = "";
-            }
-            obj[item.key] = value;
-          } else if (item.type === INPUTTYPE_FILE) {
-            if (getType(value) === "File" && value.path) {
-              let _file : any = {};
-              _file.name = value.name;
-              _file.type = value.type;
-              _file.path = value.path;
-              file[item.key] = _file;
-              var reader = new FileReader();
-              reader.readAsArrayBuffer(value);
-              let that = this;
-              reader.onload = function(e) {
-                let _file = that.state.requestFileData[item.key];
-                let blob = e.target.result;
-                _file.blob = blob;
-              };
-            } else if (item.key in originFile) {
-              let _file = originFile[item.key];
-              file[item.key] = _file;
-            }
-          }
-        }
-
-        this.state.requestFileData = file;
-        this.state.requestBodyData = obj;
-      }
-    } else {
-      let obj = {};
-      if (data.length > 0) {
-        for (let item of data) {
-          let value = item.value;
-          if (getType(value) === "Undefined") {
-            value = "";
-          }
-          obj[item.key] = value;
-        }
-      }
-      this.state.requestBodyData = obj;
-    }
-  }
-
-  setRequestHeadData = (data: Array<any>) => {
-    let contentType = data.find(item => item.key === CONTENT_TYPE).value;
-    let obj = {};
-    if (data.length > 0) {
-      for (let item of data) {
-        let value = item.value;
-        if (getType(value) === "Undefined") {
-          value = "";
-        }
-        obj[item.key] = value;
-      }
-    }
-    if (contentType !== this.state.contentType) {
-      this.setState({contentType});
-    }
-    this.state.requestHeadData = obj;
-  }
-
-  setRequestParamData = (data: Array<any>) => {
-    let obj = {};
-    if (data.length > 0) {
-      for (let item of data) {
-        let value = item.value;
-        if (getType(value) === "Undefined") {
-          value = "";
-        }
-        obj[item.key] = value;
-      }
-    }
-    this.state.requestParamData = obj;
-  }
-
-  setRequestPathVariableData = (data: Array<any>) => {
-    let uri = this.state.requestUri;
-    let beginIndex = 0;
-    let endIndex = 0;
-    let keywords = new Set();
-    let dataKeys = new Set();
-    //从uri 中提取全部 uri 变量
-    if (uri.length > 4) {
-      for (let i = 0; i < uri.length; i++) {
-        if (i < uri.length - 4) {
-          if (uri[i] === "{" && uri[i + 1] === "{") {
-            beginIndex = i+2;
-            endIndex = 0;
-          }
-        }  
-        if (i <= uri.length - 2) {
-          if (uri[i] === "}" && uri[i + 1] === "}" && beginIndex > 0) {
-            endIndex = i;
-            keywords.add(uri.substring(beginIndex, endIndex));
-            beginIndex = 0;
-          }
-        }
-      }
-    }
-    let obj:any = {};
-    if (data.length > 0) {
-      for (let item of data) {
-        let value = item.value;
-        if (getType(value) === "Undefined") {
-          value = "";
-        }
-        if (isStringEmpty(item.key)) {
-          continue;
-        }
-        dataKeys.add(item.key);
-        obj[item.key] = value;
-      }
-    }
-
-    const appendSet = new Set([...dataKeys].filter(x => !keywords.has(x)));
-    const deleteSet = new Set([...keywords].filter(x => !dataKeys.has(x)));
-
-    for (let _newKeyword of appendSet) {
-      uri += "{{" + _newKeyword + "}}";
-    }
-
-    for (let _delKeyword of deleteSet) {
-      uri = uri.replaceAll("{{" + _delKeyword + "}}", "");
-    }
-
-    this.state.requestPathVariableData = obj;
-    this.state.requestUri = uri;
-  }
-
   getEnvValueData = async (prj: string, env: string) => {
     if (isStringEmpty(env)) return;
     this.setState(this.getClearState());
-    this.requestSendTip.init(prj, env, this.state.iteratorId, "", this.props.clientType, env_vars => {
-      if(env_vars.size === 0) {
-        this.setState({ alertMessage: "请到设置菜单配置项目和环境，否则无法发送请求" });
-        return;
-      }
-      this.setState({
-        requestEnable : true,
-        prj,
-        env,
-      });
-      this.props.dispatch({
-        type: GET_ENV_VALS,
-        prj: prj,
-        env: env,
-        iterator: this.state.iteratorId,
-        unittest: ""
-      });
-    });
-    let requestHost = await this.requestSendTip.getHost();
+    let ret = await getEnvHosts(this.props.clientType, prj, env);
+    let requestHost = getMapValueOrDefault(ret, env, "");
     if (isStringEmpty(requestHost)) {
-      this.setState({ alertMessage: "未配置环境变量" + ENV_VALUE_API_HOST + "的值，无法发送请求" });
+      this.setState({ alertMessage: langFormat("network table7", {"key": ENV_VALUE_API_HOST,}) });
       return;
     }
-    let envKeys = await this.requestSendTip.getTips();
-    this.setState({ requestHost, envKeys: [...envKeys] });
+    let envKeys;
+    if (this.state.type === "project") {
+      envKeys = await getProjectKeys(this.props.clientType, prj);
+    }
+    this.setState({ env, requestHost, envKeys: [...envKeys] });
   }
 
   sendRequest = async () => {
@@ -480,14 +312,16 @@ class RequestSendContainer extends Component {
     this.setState(state);
 
     let requestDefine = {};
-    if (isStringEmpty(this.state.iteratorId)) {
+    let envvars = new Map<string, string>();
+    if (this.state.type === "project") {
       requestDefine = await getProjectRequest(
         this.props.clientType,
         this.state.prj, 
         this.state.requestMethod, 
         this.state.requestUri
       );
-    } else {
+      envvars = await getPrjEnvValues(this.state.prj, this.state.env, this.props.clientType);
+    } else if (this.state.type === "iterator") {
       requestDefine = await getVersionIteratorRequest(
         this.props.clientType,
         this.state.iteratorId, 
@@ -505,7 +339,7 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
-        value = this.requestSendTip.getVarByKey(envValueKey);
+        value = getMapValueOrDefault(envvars, envValueKey, "");
       }
       url = url.replaceAll("{{" + _key + "}}", value);
     }
@@ -517,7 +351,7 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
-        value = this.requestSendTip.getVarByKey(envValueKey);
+        value = getMapValueOrDefault(envvars, envValueKey, "");
         paramData[_key] = value;
       }
     }
@@ -531,14 +365,15 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
-        value = this.requestSendTip.getVarByKey(envValueKey);
+        value = getMapValueOrDefault(envvars, envValueKey, "");
         headData[_key] = value;
       }
     }
     if (this.state.requestMethod === REQUEST_METHOD_POST) {
-      let postData = this.requestSendTip.iteratorGetVarByKey(
+      let postData = getEnvVarsIterator(
         this.state.requestBodyData, 
-        requestDefine?.body ?? null
+        requestDefine?.body ?? null,
+        envvars
       );
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
@@ -627,70 +462,6 @@ class RequestSendContainer extends Component {
     });
   }
 
-  calculateFormBodyData = (requestBodyData, requestFileData) => {
-    if (this.state.contentType === CONTENT_TYPE_JSON) {
-      return JSON.stringify(requestBodyData);
-    } else {
-      let list = [];
-      for (let _key in requestBodyData) {
-          let item : any = {};
-          item["key"] = _key;
-          item["value"] = requestBodyData[_key];
-          item["type"] = INPUTTYPE_TEXT;
-          list.push(item);
-      }
-      for (let _key in requestFileData) {
-        let item : any = {};
-        item["key"] = _key;
-        item["value"] = "";
-        item["type"] = INPUTTYPE_FILE;
-        list.push(item);
-      }
-      this.setRequestBodyData(list);
-      return list;
-    }
-  }
-
-  calculateFormHeadData = (requestHeadData) => {
-    let list = [];
-    for (let _key in requestHeadData) {
-        let item = {};
-        item["key"] = _key;
-        item["value"] = requestHeadData[_key];
-        list.push(item);
-    }
-    let data = list.length === 0 ? [{
-        key: CONTENT_TYPE,
-        value: this.state.contentType,
-    }] : list;
-    this.setRequestHeadData(data);
-    return data;
-  }
-
-  calculateFormParamsData = (requestParamsData) => {
-    let list = [];
-    for (let _key in requestParamsData) {
-        let item = {};
-        item["key"] = _key;
-        item["value"] = requestParamsData[_key];
-        list.push(item);
-    }
-    this.setRequestParamData(list);
-    return list;
-  }
-
-  calculatePathVariableData = (requestPathVariableData) => {
-    let list = [];
-    for (let _key in requestPathVariableData) {
-        let item : any = {};
-        item["key"] = _key;
-        item["value"] = requestPathVariableData[_key];
-        list.push(item);
-    }
-    this.setRequestPathVariableData(list);
-    return list;
-  }
-
   getHeaders = () : DescriptionsProps['items'] => {
     let headerArr = [];
     for (let i = 0; i < Object.keys(this.state.responseHeader).length; i++) {
@@ -722,31 +493,53 @@ class RequestSendContainer extends Component {
       {
         key: 'uri',
         label: langTrans("network tab1"),
-        children: <RequestSendPathVariable obj={ this.calculatePathVariableData(this.state.requestPathVariableData) } tips={this.state.envKeys} cb={this.setRequestPathVariableData} />,
+        forceRender: true,
+        children: <RequestSendPathVariable 
+          requestUri={ this.state.requestUri }
+          obj={ this.state.requestPathVariableData } 
+          tips={ this.state.envKeys } 
+          cb={(obj, uri) => {
+            this.state.requestPathVariableData = obj;
+            this.state.requestUri = uri;
+          }} 
+        />,
       },
       {
         key: 'params',
         label: langTrans("network tab2"),
-        children: <RequestSendParam obj={ this.calculateFormParamsData(this.state.requestParamData) } tips={this.state.envKeys} cb={this.setRequestParamData} />,
+        forceRender: true,
+        children: <RequestSendParam 
+          obj={ this.state.requestParamData } 
+          tips={ this.state.envKeys } 
+          cb={obj => this.state.requestParamData = obj} 
+        />,
       },
       {
         key: 'headers',
         label: langTrans("network tab3"),
+        forceRender: true,
         children: <RequestSendHead 
-          obj={ this.calculateFormHeadData(this.state.requestHeadData) } 
+          contentType={ this.state.contentType }
+          obj={ this.state.requestHeadData } 
           tips={this.state.envKeys} 
-          cb={this.setRequestHeadData} 
-          />,
+          cb={obj => this.state.requestHeadData = obj} 
+        />,
       },
       {
         key: 'body',
         label: langTrans("network tab4"),
+        forceRender: true,
         children: <RequestSendBody 
-          obj={ this.calculateFormBodyData(this.state.requestBodyData, this.state.requestFileData) } 
+          obj={ this.state.requestBodyData }
           file={ this.state.requestFileData }
           tips={ this.state.envKeys } 
           contentType={ this.state.contentType }
-          cb={this.setRequestBodyData} 
+          cb={(obj, file) => {
+            this.state.requestBodyData = obj;
+            if (file !== null) {
+              this.state.requestFileData = file;
+            }
+          }} 
         />,
       },
     ];
@@ -795,7 +588,7 @@ class RequestSendContainer extends Component {
                       onFocus={e => {
                         this.setState({requesrequestUri: this.state.requestUri})
                       }}
-                      onChange={this.setUri} 
+                      onChange={event => this.setState({requestUri: event.target.value})} 
                       value={ this.state.requestUri } 
                       size='large' />
                     <Button 

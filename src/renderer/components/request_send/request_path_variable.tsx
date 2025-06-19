@@ -1,21 +1,89 @@
 import { Component, ReactNode } from 'react';
-import { connect } from 'react-redux';
 import { cloneDeep } from 'lodash';
 import { Input, Flex, Button, AutoComplete } from "antd";
 import { DeleteOutlined } from '@ant-design/icons';
 
-import { isStringEmpty, removeWithoutGap } from "../../util";
+import { isStringEmpty, removeWithoutGap, getType } from "@rutil/index";
 import { langTrans } from '@lang/i18n';
 
-class RequestSendPathVariable extends Component {
+export default class extends Component {
 
     constructor(props) {
         super(props);
-        let list = props.obj;
+        this.state = {
+            requestUri: props.requestUri,
+        };
+        let list = this.calculatePathVariableData(props.obj);
         this.state = {
             rows: list.length,
             data: list,
+            requestUri: props.requestUri,
         };
+    }
+
+    calculatePathVariableData = (requestPathVariableData) => {
+        let list = [];
+        for (let _key in requestPathVariableData) {
+            let item : any = {};
+            item["key"] = _key;
+            item["value"] = requestPathVariableData[_key];
+            list.push(item);
+        }
+        this.setRequestPathVariableData(list);
+        return list;
+    }
+
+    setRequestPathVariableData = (data: Array<any>) => {
+        let uri = this.state.requestUri;
+        let beginIndex = 0;
+        let endIndex = 0;
+        let keywords = new Set();
+        let dataKeys = new Set();
+        //从uri 中提取全部 uri 变量
+        if (uri.length > 4) {
+          for (let i = 0; i < uri.length; i++) {
+            if (i < uri.length - 4) {
+              if (uri[i] === "{" && uri[i + 1] === "{") {
+                beginIndex = i+2;
+                endIndex = 0;
+              }
+            }  
+            if (i <= uri.length - 2) {
+              if (uri[i] === "}" && uri[i + 1] === "}" && beginIndex > 0) {
+                endIndex = i;
+                keywords.add(uri.substring(beginIndex, endIndex));
+                beginIndex = 0;
+              }
+            }
+          }
+        }
+        let obj:any = {};
+        if (data.length > 0) {
+          for (let item of data) {
+            let value = item.value;
+            if (getType(value) === "Undefined") {
+              value = "";
+            }
+            if (isStringEmpty(item.key)) {
+              continue;
+            }
+            dataKeys.add(item.key);
+            obj[item.key] = value;
+          }
+        }
+    
+        const appendSet = new Set([...dataKeys].filter(x => !keywords.has(x)));
+        const deleteSet = new Set([...keywords].filter(x => !dataKeys.has(x)));
+    
+        for (let _newKeyword of appendSet) {
+          uri += "{{" + _newKeyword + "}}";
+        }
+    
+        for (let _delKeyword of deleteSet) {
+          uri = uri.replaceAll("{{" + _delKeyword + "}}", "");
+        }
+
+        this.props.cb(obj, uri);
     }
 
     setKey = (value, i) => {
@@ -24,13 +92,13 @@ class RequestSendPathVariable extends Component {
             row.key = value;
             this.state.data.push(row);
             this.setState({rows : this.state.rows + 1});
-            this.props.cb(this.state.data);
+            this.setRequestPathVariableData(this.state.data);
         } else {
             let data = cloneDeep(this.state.data);
             let row = data[i];
             row.key = value;
             this.setState({ data });
-            this.props.cb(data);
+            this.setRequestPathVariableData(data);
         }
     }
 
@@ -47,11 +115,11 @@ class RequestSendPathVariable extends Component {
             row.value = value;
             this.state.data.push(row);
             this.setState({rows : this.state.rows + 1});
-            this.props.cb(this.state.data);
+            this.setRequestPathVariableData(this.state.data);
         } else {
             let row = this.state.data[i];
             row.value = value;
-            this.props.cb(this.state.data);
+            this.setRequestPathVariableData(this.state.data);
         }
     }
 
@@ -59,7 +127,7 @@ class RequestSendPathVariable extends Component {
         let data = cloneDeep(this.state.data);
         let newData = removeWithoutGap(data, i);
         this.setState({ data: newData, rows: this.state.rows - 1 });
-        this.props.cb(newData);
+        this.setRequestPathVariableData(newData);
     }
 
     setOptions = (text, i) => {
@@ -131,10 +199,3 @@ class RequestSendPathVariable extends Component {
     }
 
 }
-
-function mapStateToProps (state) {
-    return {
-    }
-}
-  
-export default connect(mapStateToProps)(RequestSendPathVariable);

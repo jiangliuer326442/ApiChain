@@ -54,6 +54,21 @@ export function isNumeric(str) {
   return /^-?\d+(\.\d+)?$/.test(str);
 }
 
+export function getMapValueOrDefault(map : Map<string, string>, key : string, defaultValue : string) : string {
+  return map.get(key) || defaultValue;
+}
+
+export function moveKeyValListByKey(keyValList, targetKey) {
+
+  // 找到目标元素
+  const targetElement = keyValList.find(item => item.key === targetKey);
+
+  // 移除目标元素并重新构建数组
+  const updatedArray = [targetElement, ...keyValList.filter(item => item.key !== targetKey)];
+
+  return updatedArray;
+}
+
 export function getNowdayjs() : dayjs.Dayjs {
   dayjs.locale('zh-cn'); 
   dayjs.extend(weekday)

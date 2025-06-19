@@ -6,13 +6,21 @@ import {
 } from "antd";
 import { DeleteOutlined } from '@ant-design/icons';
 
-import { isStringEmpty, removeWithoutGap } from "../../util";
+import { 
+    isStringEmpty, 
+    removeWithoutGap, 
+    getType,
+    moveKeyValListByKey
+} from "@rutil/index";
 
+import {
+    CONTENT_TYPE
+} from "@conf/global_config";
 import { 
     CONTENT_TYPE_URLENCODE,
     CONTENT_TYPE_FORMDATA,
     CONTENT_TYPE_JSON,
-} from "../../../config/contentType"
+} from "@conf/contentType"
 import { langTrans } from '@lang/i18n';
 
 class RequestSendHead extends Component {
@@ -20,9 +28,48 @@ class RequestSendHead extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            rows: props.obj.length,
-            data: props.obj,
+            contentType: props.contentType,
         };
+        let list = this.calculateFormHeadData(props.obj);
+        this.state = {
+            rows: list.length,
+            data: list,
+            contentType: props.contentType,
+        };
+    }
+
+    calculateFormHeadData = (requestHeadData) => {
+        let list = [];
+        for (let _key in requestHeadData) {
+            let item : any = {};
+            item["key"] = _key;
+            item["value"] = requestHeadData[_key];
+            list.push(item);
+        }
+        let data = list.length === 0 ? [{
+            key: CONTENT_TYPE,
+            value: this.state.contentType,
+        }] : moveKeyValListByKey(list, CONTENT_TYPE);
+        this.setRequestHeadData(data);
+        return data;
+    }
+
+    setRequestHeadData = (data: Array<any>) => {
+        let contentType = data.find(item => item.key === CONTENT_TYPE).value;
+        let obj : any = {};
+        if (data.length > 0) {
+          for (let item of data) {
+            let value = item.value;
+            if (getType(value) === "Undefined") {
+              value = "";
+            }
+            obj[item.key] = value;
+          }
+        }
+        if (contentType !== this.state.contentType) {
+          this.setState({contentType});
+        }
+        this.props.cb(obj)
     }
 
     setKey = (value, i) => {
@@ -31,13 +78,13 @@ class RequestSendHead extends Component {
             row.key = value;
             this.state.data.push(row);
             this.setState({rows : this.state.rows + 1});
-            this.props.cb(this.state.data);
+            this.setRequestHeadData(this.state.data);
         } else {
             let data = cloneDeep(this.state.data);
             let row = data[i];
             row.key = value;
             this.setState({ data });
-            this.props.cb(data);
+            this.setRequestHeadData(data);
         }
     }
  
@@ -58,11 +105,11 @@ class RequestSendHead extends Component {
             row.value = value;
             this.state.data.push(row);
             this.setState({rows : this.state.rows + 1});
-            this.props.cb(this.state.data);
+            this.setRequestHeadData(this.state.data);
         } else {
             let row = this.state.data[i];
             row.value = value;
-            this.props.cb(this.state.data);
+            this.setRequestHeadData(this.state.data);
         }
     }
 
@@ -70,8 +117,7 @@ class RequestSendHead extends Component {
         let data = cloneDeep(this.state.data);
         let newData = removeWithoutGap(data, i);
         this.setState({ data: newData, rows: this.state.rows - 1 });
-        console.debug(newData);
-        this.props.cb(newData);
+        this.setRequestHeadData(newData);
     }
 
     setOptions = (text, i) => {

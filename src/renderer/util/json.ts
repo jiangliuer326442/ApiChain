@@ -1,7 +1,7 @@
 import md5 from 'js-md5';
 import { cloneDeep } from 'lodash';
 
-import { getType, isJsonString, isStringEmpty } from './index';
+import { getType, isJsonString, isStringEmpty, getMapValueOrDefault } from './index';
 import { TABLE_JSON_FRAGEMENT_FIELDS } from '../../config/db';
 import { CONTENT_TYPE, DataTypeJsonObject, KEY_SEPARATOR } from '../../config/global_config';
 
@@ -19,6 +19,12 @@ export const TABLE_FIELD_VALUE = "$$value$$";
 export const TABLE_FIELD_TYPE_REF = "Ref";
 
 let json_fragement_fields = TABLE_JSON_FRAGEMENT_FIELDS.FIELD_FIELDS;
+
+export function getEnvVarsIterator(data : any, format : any, envvars : Map<string, string>) {
+    data = cloneDeep (data);
+    innterGetEnvVarsIterator(data, format, envvars);
+    return data;
+}
 
 export function retShortJsonContent(jsonObject : object) : object {
     let shortJsonObject = {};
@@ -367,4 +373,48 @@ function innerCleanJson(outJsonObject : any, inJsonObject : any) {
             }
         }
 	}
+}
+
+function innterGetEnvVarsIterator(data : any, format : any, envvars : Map<string, string>) {
+    for (let _key in data) {
+        let value = data[_key];
+        let isJsonString = false;
+        if (format != null && format.hasOwnProperty(_key)) {
+            if (format[_key][TABLE_FIELD_TYPE].toLowerCase() === DataTypeJsonObject.toLowerCase()) {
+                isJsonString = true;
+            }
+        }
+        if (isJsonString && getType(value) === "String") {
+            value = JSON.parse(value);
+        }
+
+        if (getType(value) === "Array") {
+            for (let _index in value) {
+                let _item = value[_index];
+                if (getType(_item) === "Object") {
+                    innterGetEnvVarsIterator(_item, null, envvars);
+                } else {
+                    let beginIndex = value[_index].indexOf("{{");
+                    let endIndex = value[_index].indexOf("}}");
+                    if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
+                        let envValueKey = value[_index].substring(beginIndex + 2, endIndex);
+                        value[_index] = getMapValueOrDefault(envvars, envValueKey, "");
+                    }
+                }
+            }
+        } else if (getType(value) === "Object") {
+            innterGetEnvVarsIterator(value, null, envvars);
+        } else if (getType(value) === "String") {
+            let beginIndex = value.indexOf("{{");
+            let endIndex = value.indexOf("}}");
+            if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
+                let envValueKey = value.substring(beginIndex + 2, endIndex);
+                data[_key] = getMapValueOrDefault(envvars, envValueKey, "");
+            }
+        }
+
+        if (isJsonString) {
+            data[_key] = JSON.stringify(value);
+        }
+    }
 }

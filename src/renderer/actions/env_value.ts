@@ -144,44 +144,6 @@ export async function getEnvHosts(clientType : string, prj : string, env : strin
     return new Map(Object.entries(datas));
 }
 
-export async function getKeys(prj, iteration) {
-    let envKeys = await window.db[TABLE_ENV_KEY_NAME]
-    .where('[' + env_key_delFlg + '+' + env_key_prj + ']')
-    .equals([0, prj])
-    .toArray();
-
-    let prjKeyArr = new Set<String>(envKeys.map(envKey => envKey[env_key_pname]));
-    let iterationKeyArr = new Set<String>();
-
-    if (iteration) {
-        let iterationKeys = await window.db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_micro_service + '+' + env_var_iteration + ']')
-        .equals(['', iteration])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return true;
-        })
-        .toArray();
-        iterationKeyArr = new Set(iterationKeys.map(iterationKey => iterationKey[env_var_pname]));
-    }
-
-    let globalArrays = await db[TABLE_ENV_VAR_NAME]
-    .where('[' + env_var_micro_service + '+' + env_var_iteration + ']')
-    .equals(["", ""])
-    .filter(row => {
-        if (row[env_var_delFlg]) {
-            return false;
-        }
-        return true;
-    })
-    .toArray();  
-    let globalKeyArr = new Set<String>(globalArrays.map(item => ( item[env_var_pname])));
-
-    return union(prjKeyArr, iterationKeyArr, globalKeyArr);
-}
-
 export async function batchCopyGlobalEnvValues(clientType : string, teamId : string, oldEnv : string, newEnv : string, pnameArr : Array<string>) {
     if (clientType === CLIENT_TYPE_TEAM) {
         await sendTeamMessage(ENV_VARS_GLOBAL_COPY_URL, {pnamesStr: pnameArr.join(","), oldEnv, newEnv});
