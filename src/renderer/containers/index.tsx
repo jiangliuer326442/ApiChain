@@ -117,7 +117,7 @@ class MyRouter extends Component {
 
         window.db.on('ready', () => {
             if (!this.state.initNavFlg) {
-            this.cb();
+                this.cb();
             }
         });
 

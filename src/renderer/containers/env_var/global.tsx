@@ -114,7 +114,7 @@ class EnvVar extends Component {
   
     componentDidMount(): void {
       this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
-      if(this.props.envs.length === 0) {
+      if (this.props.envs.length === 0) {
         getEnvs(this.props.clientType, this.props.dispatch);
       }
     }

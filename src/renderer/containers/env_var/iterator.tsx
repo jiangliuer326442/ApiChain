@@ -33,9 +33,6 @@ import {
   batchCopyEnvVales,
   batchMoveIteratorEnvValue,
 } from '@act/env_value';
-import { 
-  getRemoteVersionIterator, getOpenVersionIterators
-} from '@act/version_iterator';
 import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
@@ -134,8 +131,6 @@ class EnvVar extends Component {
         }
       ],
       iterator: iteratorId,
-      versionIteration: {}, //当前迭代信息
-      versionIterators: [], //所有迭代列表
       tips: [],
       pkeys: [],
       env: "",
@@ -153,9 +148,6 @@ class EnvVar extends Component {
   
     async componentDidMount(): void {
       this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
-      let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iterator);
-      let versionIterations = await this.getMovedIteratos();
-      this.setState({ versionIterators: versionIterations, versionIteration });
       if (this.props.envs.length === 0) {
         getEnvs(this.props.clientType, this.props.dispatch);
       }
@@ -166,20 +158,7 @@ class EnvVar extends Component {
       if (this.state.iterator !== iteratorId) {
         this.state.iterator = iteratorId;
         this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
-        let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
-        let versionIterations = await this.getMovedIteratos();
-        this.setState({ versionIterators: versionIterations, versionIteration });
-        this.setState( { versionIteration });
       }
-    }
-
-    getMovedIteratos = async () => {
-      let versionIterators = (await getOpenVersionIterators(this.props.clientType, this.props.dispatch))
-      .filter(item => item[version_iterator_uuid] != this.state.iterator)
-      .map(item => {
-          return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
-      });
-      return versionIterators;
     }
 
     setEnvironmentChange = (value: string) => {
@@ -257,8 +236,10 @@ class EnvVar extends Component {
                   <Form.Item label={langTrans("envvar select tip4")}>
                       <Select
                           allowClear
-                          style={{ width: 180 }}
-                          options={(this.state.versionIteration[version_iterator_prjs] && this.props.prjs.length > 0) ? this.state.versionIteration[version_iterator_prjs].map(item => {
+                          style={{ width: 200 }}
+                          options={
+                            (this.props.iterators.find(item => item[version_iterator_uuid] === this.state.iterator) && this.props.prjs.length > 0) ? 
+                            this.props.iterators.find(item => item[version_iterator_uuid] === this.state.iterator)[version_iterator_prjs].map(item => {
                               return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : ""}
                           }) : []}
                           onChange={ value => {
@@ -282,6 +263,7 @@ class EnvVar extends Component {
                   <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar select tip2")}>
                       <AutoComplete 
                           allowClear={{ clearIcon: <CloseSquareFilled /> }} 
+                          style={{ width: 200 }}
                           options={this.state.pkeys} 
                           filterOption={(inputValue, option) =>
                             (inputValue && option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1) || (!inputValue)
@@ -315,7 +297,7 @@ class EnvVar extends Component {
                   </Form.Item>
                   <Form.Item label={langTrans("envvar select tip5")}>
                       <Select allowClear
-                          style={{minWidth: 130}}
+                          style={{minWidth: 200}}
                           onChange={ newIterator => {
                             if (isStringEmpty(newIterator)) {
                               return;
@@ -329,7 +311,12 @@ class EnvVar extends Component {
                                 this.getEnvValueData(this.state.prj, this.state.iterator, (this.state.env ? this.state.env : this.props.env), "");
                               });
                           }}
-                          options={ this.state.versionIterators }
+                          options={
+                            this.props.iterators.filter(item => item[version_iterator_uuid] != this.state.iterator)
+                            .map(item => {
+                                return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
+                            }) 
+                          }
                       />
                   </Form.Item>
                   <Form.Item>
@@ -374,6 +361,7 @@ function mapStateToProps (state) {
   return {
       env: state.env_var.env,
       prjs: state.prj.list,
+      iterators: state.version_iterator.list,
       device : state.device,
       envs: state.env.list,
       clientType: state.device.clientType,
