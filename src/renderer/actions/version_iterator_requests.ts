@@ -226,7 +226,15 @@ export async function getSimpleVersionIteratorRequests(clientType : string, iter
     return version_iteration_requests;
 }
 
-export async function getFolderIteratorRequests(clientType : string, iterator : string, prj : string, fold : string, pagination : any) {
+export async function getFolderIteratorRequests(
+    clientType : string, 
+    iterator : string, 
+    prj : string, 
+    fold : string, 
+    title: string | null,
+    uri: string | null,
+    pagination : any
+) {
     let datas = [];
     let page = pagination.current;
     let pageSize = pagination.pageSize;
@@ -236,19 +244,41 @@ export async function getFolderIteratorRequests(clientType : string, iterator : 
         let count = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
             .where([ iteration_request_delFlg, iteration_request_iteration_uuid, iteration_request_fold ])
             .equals([ 0, iterator, fold ])
-            .filter(row => (row[iteration_request_project] === prj))
+            .filter(row => {
+                if (row[iteration_request_project] !== prj) {
+                    return false;
+                }
+                if (!isStringEmpty(title) && row[iteration_request_title].indexOf(title) < 0) {
+                    return false;
+                }
+                if (!isStringEmpty(uri) && row[iteration_request_uri].indexOf(uri) < 0) {
+                    return false;
+                }
+                return true;
+            })
             .count();
         pagination.total = count;
         datas = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
             .where([ iteration_request_delFlg, iteration_request_iteration_uuid, iteration_request_fold ])
             .equals([ 0, iterator, fold ])
-            .filter(row => (row[iteration_request_project] === prj))
+            .filter(row => {
+                if (row[iteration_request_project] !== prj) {
+                    return false;
+                }
+                if (!isStringEmpty(title) && row[iteration_request_title].indexOf(title) < 0) {
+                    return false;
+                }
+                if (!isStringEmpty(uri) && row[iteration_request_uri].indexOf(uri) < 0) {
+                    return false;
+                }
+                return true;
+            })
             .offset(offset)
             .limit(pageSize)
             .reverse()
             .toArray();
     } else {
-        let result = await sendTeamMessage(REQUEST_VERSION_ITERATION_PAGE_FOLD_URL, Object.assign({}, pagination, {iterator, prj, fold}));
+        let result = await sendTeamMessage(REQUEST_VERSION_ITERATION_PAGE_FOLD_URL, Object.assign({}, pagination, {iterator, prj, fold, title, uri}));
         let count = result.count;
         pagination.total = count;
         datas = result.list;

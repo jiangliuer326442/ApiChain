@@ -29,6 +29,7 @@ import {
     ENV_VARS_ITERATOR_PAGE_URL,
     ENV_VARS_ITERATOR_SET_URL,
     ENV_VARS_ITERATOR_DEL_URL,
+    ENV_VARS_ITERATION_COPY_URL,
     ENV_VARS_PROJECT_COPY_URL,
     PRJ_HOST_URL,
 } from '@conf/team';
@@ -192,6 +193,50 @@ export async function batchCopyProjectEnvValues(
         let envVarItem = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
         .equals([oldEnv, project, "", "", pname])
+        .first();
+        if (
+            envVarItem === undefined || 
+            envVarItem[env_var_delFlg] !== 0 ||
+            envVarItem[env_var_env] === newEnv
+        ) {
+            continue;
+        }
+        envVarItem[env_var_env] = newEnv;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            envVarItem.upload_flg = 0;
+            envVarItem.team_id = "";
+        } else {
+            envVarItem.upload_flg = 1;
+            envVarItem.team_id = teamId;
+        }
+    
+        await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
+    }
+}
+
+export async function batchCopyIteratorEnvValues(
+    clientType : string, 
+    teamId : string, 
+    iterator : string,
+    project : string, 
+    oldEnv : string, 
+    newEnv : string, 
+    pnameArr : Array<string>
+) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENV_VARS_ITERATION_COPY_URL, {
+            iteration: iterator,
+            project,
+            pnamesStr: pnameArr.join(","), 
+            oldEnv, newEnv
+        });
+    } 
+
+    for (let pname of pnameArr) {
+        let envVarItem = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+        .equals([oldEnv, project, iterator, '', pname])
+        .reverse()
         .first();
         if (
             envVarItem === undefined || 
@@ -701,7 +746,7 @@ export async function delPrjEnvValues(prj : string, env : string, pname : string
     }
 }
 
-export async function delIterationEnvValues(iterator : string, prj : string, env : string, pname : string, clientType : string, teamId : string) {
+export async function delIterationEnvValues(clientType : string, teamId : string, iterator : string, prj : string, env : string, pname : string) {
     if (clientType === CLIENT_TYPE_TEAM) {
         await sendTeamMessage(ENV_VARS_ITERATOR_DEL_URL, {iterator, prj, env, pname});
     }

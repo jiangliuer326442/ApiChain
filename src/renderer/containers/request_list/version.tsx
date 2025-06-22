@@ -30,9 +30,7 @@ import {
     SendOutlined,
 } from '@ant-design/icons';
 import { TinyColor } from '@ctrl/tinycolor';
-import type { FormProps } from 'antd';
 import { encode } from 'base-64';
-import { cloneDeep } from 'lodash';
 
 import RequestListCollapse from '@comp/requests_list_collapse';
 import MarkdownView from '@comp/markdown/show';
@@ -45,8 +43,8 @@ import {
     GET_ITERATOR
 } from '@conf/redux';
 import { 
-    getdayjs, 
-    isStringEmpty 
+    getdayjs,
+    isStringEmpty, 
 } from '@rutil/index';
 import { getPrjs } from '@act/project';
 import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from '@act/version_iterator';
@@ -159,6 +157,8 @@ class RequestListVersion extends Component {
             folders: [],
             prj: "",
             folder: null,
+            filterTitle: "",
+            filterUri: "",
             movedRequests: [],
         }
     }
@@ -166,33 +166,29 @@ class RequestListVersion extends Component {
     async componentWillReceiveProps(nextProps) {
         let iteratorId = nextProps.match.params.id;
         if (this.state.iteratorId !== iteratorId) {
-            let folders = await getIteratorFolders(this.props.clientType, iteratorId);
-            let versionIteration = await getRemoteVersionIterator(this.props.clientType, iteratorId);
+            this.state.iteratorId = iteratorId;
+            let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
             this.setState( { 
-                iteratorId, 
                 versionIteration,
-                folders,
             } );
             this.props.dispatch({
                 type: GET_ITERATOR,
                 iterator: iteratorId,
                 unittest: ""
             });
+            this.onFinish({});
         }
     }
 
     async componentDidMount() {
-        if(this.props.prjs.length === 0) {
-            getPrjs(this.props.clientType, this.props.dispatch);
-        }
-        let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId);
         let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
-        this.setState( { versionIteration, folders, formReadyFlg : true } )
+        this.setState( { versionIteration, formReadyFlg : true } )
         this.props.dispatch({
             type: GET_ITERATOR,
             iterator: this.state.iteratorId,
             unittest: ""
         });
+        this.onFinish({});
     }
 
     setApiSort = async (prj : string, method : string, uri : string, sort : number) => {
@@ -221,6 +217,20 @@ class RequestListVersion extends Component {
                     <Button danger type="link" icon={<DeleteOutlined />} />
                 </Popconfirm>,
             }]};
+    }
+
+    onFinish = async (values) => {
+        let title = values?.title;
+        let uri = values?.uri;
+        if (isStringEmpty(uri) && isStringEmpty(title)) {
+            let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, title, uri);
+            this.setState({
+                folders,
+                filterTitle: "",
+                filterUri: ""
+            })
+            return;
+        }
     }
 
     render() : ReactNode {
@@ -347,6 +357,12 @@ class RequestListVersion extends Component {
                                 <RequestListCollapse 
                                     metadata={this.state.iteratorId+"$$"+prj}
                                     folders={this.state.folders[prj]} 
+                                    filterTitle={this.state.filterTitle}
+                                    filterUri={this.state.filterUri}
+                                    refreshCallback={() => this.onFinish({
+                                        title: this.state.filterTitle,
+                                        uri: this.state.filterUri
+                                    })}
                                 />
                             </div>
                         : null)

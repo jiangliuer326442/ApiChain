@@ -62,6 +62,10 @@ export const ENV_VARS_ITERATOR_SET_URL = "/envvars/iteration/set";
 
 export const ENV_VARS_ITERATOR_DEL_URL = "/envvars/iteration/del";
 
+export const ENV_VARS_ITERATOR_KEYS_URL = "/envvars/iteration/keys";
+
+export const ENV_VARS_ITERATION_COPY_URL = "/envvars/iteration/copy";
+
 export const VERSION_ITERATIONS_PAGE_URL = "/version_iterations/page";
 
 export const VERSION_ITERATIONS_OPENS_URL = "/version_iterations/opens";

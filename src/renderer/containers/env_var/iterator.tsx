@@ -9,7 +9,6 @@ import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/ico
 import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
-import RequestSendTips from '@clazz/RequestSendTips';
 import AddEnvVarComponent from '@comp/env_var/add_env_var';
 import { getWikiEnv } from '@conf/url';
 import { 
@@ -27,11 +26,11 @@ import {
 import { 
   getEnvs 
 } from '@act/env';
+import { getIteratorKeys } from '@act/keys';
 import { 
   getIteratorEnvValuesByPage, 
   delIterationEnvValues,
-  batchCopyEnvVales,
-  batchMoveIteratorEnvValue,
+  batchCopyIteratorEnvValues,
 } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
 
@@ -45,7 +44,6 @@ let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
-let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 class EnvVar extends Component {
 
@@ -83,7 +81,7 @@ class EnvVar extends Component {
         {
           title: langTrans("envvar global table4"),
           dataIndex: UNAME,
-          width: 100,
+          width: 120,
           ellipsis: true,
         },
         {
@@ -97,6 +95,15 @@ class EnvVar extends Component {
           key: 'operater',
           width: 100,
           render: (_, record) => {
+            if (this.state.prj) {
+              if (record.source !== "iterator_prj") {
+                this.state.disabledKeys.push(record[pname]);
+              }
+            } else {
+              if (record.source !== "iterator") {
+                this.state.disabledKeys.push(record[pname]);
+              }
+            }
             return (
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
@@ -106,12 +113,12 @@ class EnvVar extends Component {
                   description={langTrans("envvar iterator del desc")}
                   onConfirm={async e => {
                     await delIterationEnvValues(
+                      this.props.clientType, 
+                      this.props.teamId,
                       this.state.iterator, 
                       this.state.prj, 
                       (this.state.env ? this.state.env : this.props.env), 
                       record[pname], 
-                      this.props.clientType, 
-                      this.props.teamId
                     );
                     this.getEnvValueData(
                       this.state.prj, 
@@ -131,13 +138,12 @@ class EnvVar extends Component {
         }
       ],
       iterator: iteratorId,
-      tips: [],
       pkeys: [],
       env: "",
       prj: "",
       copiedKeys: [],
+      disabledKeys: [],
       showCurrent: true,
-      list: [],
       listDatas: [],
       pagination: {
         current: 1,
@@ -157,6 +163,18 @@ class EnvVar extends Component {
       let iteratorId = nextProps.match.params.iteratorId;
       if (this.state.iterator !== iteratorId) {
         this.state.iterator = iteratorId;
+        this.setState({
+          pkeys: [],
+          prj: "",
+          copiedKeys: [],
+          disabledKeys: [],
+          showCurrent: true,
+          listDatas: [],
+          pagination: {
+            current: 1,
+            pageSize: 10,
+          },
+        });
         this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
       }
     }
@@ -192,35 +210,25 @@ class EnvVar extends Component {
     }
 
     getEnvValueData = async (prj: string, iterator: string, env: string, paramName: string) => {
-      let requestSendTip = new RequestSendTips();
-      requestSendTip.initIterator(prj, env, iterator, this.props.clientType);
-      requestSendTip.getTips(envKeys => {
-        let tips = [];
-        for(let envKey of envKeys) {
-          tips.push( {value: envKey} );
-        }
-        this.setState( { prj, tips } );
-      });
+      let pkeys = await getIteratorKeys(this.props.clientType, iterator, prj);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
-        let envVars = await getIteratorEnvValuesByPage(iterator, prj, env, paramName, this.props.clientType, pagination);
+        let listDatas = await getIteratorEnvValuesByPage(iterator, prj, env, paramName, this.props.clientType, pagination);
         if (this.state.showCurrent) {
-          envVars = envVars.filter(envVar => (envVar.source === "iterator_prj" || envVar.source === "iterator"));
+          listDatas = listDatas.filter(envVar => (envVar.source === "iterator_prj" || envVar.source === "iterator"));
         }
-        envVars.map(envVar => {
-          envVar.key = envVar[pname];
+        this.setState({
+          prj, 
+          listDatas, 
+          pagination,
+          pkeys: !paramName ? pkeys : [],
         });
-        let extend = [];
-        if (!paramName) {
-          extend = {pkeys: envVars.map(item => ({ value: item[pname] }))};
-        }
-        let newState = Object.assign({}, { list: envVars }, extend);
-        this.setState(newState);
       }
     }
     
     setCopiedKeys = copiedKeys => {
-      this.setState({copiedKeys});
+      let handledCopiedKeys = copiedKeys.filter(key => !this.state.disabledKeys.includes(key));
+      this.setState({copiedKeys: handledCopiedKeys});
     }
   
     render() : ReactNode {
@@ -264,7 +272,10 @@ class EnvVar extends Component {
                       <AutoComplete 
                           allowClear={{ clearIcon: <CloseSquareFilled /> }} 
                           style={{ width: 200 }}
-                          options={this.state.pkeys} 
+                          options={this.state.pkeys.map(item => ({
+                            value: item,
+                            label: item
+                          }))}
                           filterOption={(inputValue, option) =>
                             (inputValue && option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1) || (!inputValue)
                           }
@@ -278,11 +289,16 @@ class EnvVar extends Component {
                     <Select
                         onChange={ async value => {
                           if (this.state.copiedKeys.length === 0) return;
-                          await batchCopyEnvVales(
+                          await batchCopyIteratorEnvValues(
+                            this.props.clientType,
+                            this.props.teamId,
+                            this.state.iterator, 
                             this.state.prj, 
-                            (this.state.env ? this.state.env : this.props.env), this.state.iterator, "", this.state.copiedKeys, value);
+                            (this.state.env ? this.state.env : this.props.env),
+                            value,
+                            this.state.copiedKeys);
                           this.state.copiedKeys = [];
-                          message.success("环境变量拷贝成功");
+                          message.success(langTrans("envvar global copy success"));
                           this.setEnvironmentChange(value);
                         }}
                         style={{ width: 120 }}
@@ -294,30 +310,6 @@ class EnvVar extends Component {
                         }
                         allowClear
                     />
-                  </Form.Item>
-                  <Form.Item label={langTrans("envvar select tip5")}>
-                      <Select allowClear
-                          style={{minWidth: 200}}
-                          onChange={ newIterator => {
-                            if (isStringEmpty(newIterator)) {
-                              return;
-                            }
-                            batchMoveIteratorEnvValue(
-                              this.state.prj, 
-                              (this.state.env ? this.state.env : this.props.env), 
-                              this.state.iterator, this.state.copiedKeys, newIterator, () => {
-                                this.state.selectedUnittests = [];
-                                message.success("移动迭代成功");
-                                this.getEnvValueData(this.state.prj, this.state.iterator, (this.state.env ? this.state.env : this.props.env), "");
-                              });
-                          }}
-                          options={
-                            this.props.iterators.filter(item => item[version_iterator_uuid] != this.state.iterator)
-                            .map(item => {
-                                return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
-                            }) 
-                          }
-                      />
                   </Form.Item>
                   <Form.Item>
                     <Checkbox checked={this.state.showCurrent} onChange={e => {
@@ -334,13 +326,13 @@ class EnvVar extends Component {
                   </Form.Item>
               </Form>
               <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
-              <AddEnvVarComponent tips={this.state.tips} cb={()=>{
+              <AddEnvVarComponent cb={()=>{
                 this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
               }} />
             </Flex>
             <Table 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
-              dataSource={this.state.list} 
+              dataSource={this.state.listDatas} 
               rowKey={(record) => record[pname]}
               columns={this.state.listColumn} 
               pagination={this.state.pagination}

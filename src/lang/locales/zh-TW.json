@@ -253,6 +253,8 @@
     "envvar prj doc": "項目環境變量是什麼",  
     "envvar prj api": "接口域名及前缀",
     "envvar prj add env": "添加服务器環境",
+    "envvar prj host check1": "接口地址只能是 http:// 或者 https:// 開頭",
+    "envvar prj host check2": "接口地址只能是 / 結尾",
     "unittest add title": "新增單元測試",    
     "unittest edit title": "編輯單元測試",    
     "unittest add form1": "測試案例名稱",    

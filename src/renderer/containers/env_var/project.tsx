@@ -84,6 +84,9 @@ class EnvVar extends Component {
           key: 'operater',
           width: 100,
           render: (_, record) => {
+            if (record.source !== 'prj') {
+              this.state.disabledKeys.push(record[pname]);
+            }
             return (
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
@@ -115,6 +118,7 @@ class EnvVar extends Component {
       pkeys: [],
       env: "",
       copiedKeys: [],
+      disabledKeys: [],
     }
   }
   
@@ -128,6 +132,17 @@ class EnvVar extends Component {
   async componentWillReceiveProps(nextProps) {
     let nextPrj = nextProps.match.params.prj;
     if (this.state.prj !== nextPrj) {
+      this.setState({
+        listDatas:[],
+        pagination: {
+          current: 1,
+          pageSize: 10,
+        },
+        tips: [],
+        pkeys: [],
+        copiedKeys: [],
+        disabledKeys: [],
+      });
       this.getEnvValueData(nextPrj, this.state.env ? this.state.env : this.props.env, "");
     }
   }
@@ -196,7 +211,8 @@ class EnvVar extends Component {
     }
     
     setCopiedKeys = copiedKeys => {
-      this.setState({copiedKeys});
+      let handledCopiedKeys = copiedKeys.filter(key => !this.state.disabledKeys.includes(key));
+      this.setState({copiedKeys: handledCopiedKeys});
     }
   
     render() : ReactNode {

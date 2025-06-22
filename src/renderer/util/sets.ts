@@ -3,7 +3,7 @@ export function sub(set1 : Set<String>, set2 : Set<String>) : Set<String> {
     return difference;
 }
 
-export function union(set1 : Set<String>, set2 : Set<String>, set3 : Set<String>) : Set<String> {
+export function union(set1 : Set<string>, set2 : Set<string>, set3 : Set<string>) : Set<string> {
     let unionSet = new Set([...set1, ...set2, ...set3]);
     return unionSet;
 }

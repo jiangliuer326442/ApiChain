@@ -253,6 +253,8 @@
     "envvar prj doc": "What are Project Environment Variables",
     "envvar prj api": "API endpoint and prefix",
     "envvar prj add env": "Add server environment",
+    "envvar prj host check1": "The API address must start with either http:// or https://",
+    "envvar prj host check2": "The API address must end with /",
     "unittest add title": "Add Unit Test",    
     "unittest edit title": "Edit Unit Test",    
     "unittest add form1": "Test Case Name",    

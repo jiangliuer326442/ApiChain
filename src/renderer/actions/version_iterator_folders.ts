@@ -24,6 +24,8 @@ let version_iteration_folder_cuid = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_CU
 let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELFLG;
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
+let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 
 let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
@@ -71,23 +73,56 @@ export async function delFolder(version_iterator : string, project : string, fol
     });
 }
 
-export async function getIteratorFolders(clientType : string, version_iterator : string) {
+export async function getIteratorFolders(clientType : string, version_iterator : string, title : string|null, uri : string|null) {
     let prjfolders = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
+        let filterFolders : any = {};
+        let interation_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+            .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
+            .equals([ 0, version_iterator ])
+            .filter(row => {
+                if (!isStringEmpty(title) && row[iteration_request_title].indexOf(title) < 0) {
+                    return false;
+                }
+                if (!isStringEmpty(uri) && row[iteration_request_uri].indexOf(uri) < 0) {
+                    return false;
+                }
+                return true;
+            })
+            .toArray();
+        for (let interation_request of interation_requests) {
+            let projectName = interation_request[iteration_request_project];
+            let folderName = interation_request[iteration_request_fold];
+            if (!folderName) continue;
+            if (! (projectName in filterFolders)) {
+                filterFolders[projectName] = new Set<string>();
+            }
+            filterFolders[projectName].add(folderName);
+        }
+
+
         let version_iteration_folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
         .where([version_iteration_folder_delFlg, version_iteration_folder_uuid])
         .equals([0, version_iterator])
         .toArray();
-        for (let version_iteration_folder of version_iteration_folders) {
-            let folderName = version_iteration_folder[version_iteration_folder_name];
-            if (folders.has(FoldSourcePrj + folderName) || folders.has(FoldSourceIterator + folderName) || isStringEmpty(folderName)){
-                continue;
+
+        for (let _prj in filterFolders) {
+            let filterFoldersSet = filterFolders[_prj];
+            for (let version_iteration_folder of version_iteration_folders) {
+                let folderName = version_iteration_folder[version_iteration_folder_name];
+                if (filterFoldersSet.has(FoldSourcePrj + folderName) || filterFoldersSet.has(FoldSourceIterator + folderName)){
+                    continue;
+                }
+                if (! (_prj in prjfolders)) {
+                    prjfolders[_prj] = [];
+                }
+                prjfolders[_prj].push(folderName);
+
             }
-            prjfolders.add(FoldSourceIterator + folderName);
         }
     } else {
-        let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iterator: version_iterator});
+        let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iterator: version_iterator, title, uri});
         prjfolders = ret;
     }
 

@@ -51,11 +51,11 @@ class AddEnvVarComponent extends Component {
 
         if(pname === ENV_VALUE_API_HOST) {
             if(!(pvalue.indexOf("http://") === 0 || pvalue.indexOf("https://") === 0)) {
-                message.error('接口地址只能是 http:// 或者 https:// 开头');
+                message.error(langTrans("envvar prj host check1"));
                 return;
             }
             if(!pvalue.endsWith("/")) {
-                message.error('接口地址只能是 / 结尾');
+                message.error(langTrans("envvar prj host check2"));
                 return;
             }
         }
