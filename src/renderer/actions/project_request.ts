@@ -449,7 +449,6 @@ export async function editProjectRequest(
         .equals([ project, initMethod, initUri ])
         .reverse()
         .first();
-        console.log(initMethod, initUri, cloneDeep(project_request));
         if (clientType === CLIENT_TYPE_SINGLE) {
             project_request.upload_flg = 0;
             project_request.team_id = "";

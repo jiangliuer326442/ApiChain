@@ -48,6 +48,7 @@ class RequestListCollapseChildren extends Component {
 
     constructor(props) {
       super(props);
+      console.log("filterTitle4", props.filterTitle)
       this.state = {
         selectedApi: [],
         pagination: {
@@ -120,6 +121,7 @@ class RequestListCollapseChildren extends Component {
     }
 
     componentDidMount() {
+        console.log("filterTitle3", this.props.filterTitle)
         let pagination = cloneDeep(this.state.pagination);
         this.getDatas(pagination);
     }
@@ -195,6 +197,7 @@ class RequestListCollapseChildren extends Component {
     }
 
     getDatas = async (pagination) => {
+        console.log("filterTitle2", this.props.filterTitle)
         let folders = this.props.folders.filter(row => row.value !== this.props.folder);
         if (this.props.type === "prj") {
             let folder  = this.props.folder.substring(FoldSourcePrj.length);
@@ -205,7 +208,7 @@ class RequestListCollapseChildren extends Component {
             let folder  = this.props.folder.substring(FoldSourceIterator.length);
             let iteratorId = this.props.metadata.split("$$")[0];
             let prj = this.props.metadata.split("$$")[1];
-            let datas = await getFolderIteratorRequests(this.props.clientType, iteratorId, prj, folder, pagination);
+            let datas = await getFolderIteratorRequests(this.props.clientType, iteratorId, prj, folder, this.props.filterTitle, this.props.filterUri, pagination);
             this.setState({listDatas: datas, pagination, iteratorId, prj, folders});
         }
     }

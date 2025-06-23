@@ -78,6 +78,12 @@ class RequestListProject extends Component {
             })
             return;
         }
+        if (title === undefined) {
+            title = ""
+        }
+        if (uri === undefined) {
+            uri = "";
+        }
         let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, title, uri);
         this.setState({
             folders,

@@ -37,6 +37,8 @@ class RequestListCollapse extends Component {
         if (currentFolders === undefined) {
             currentFolders = [];
         }
+        let filterTitle = this.props.filterTitle;
+        let filterUri = this.props.filterUri;
         let items = [];
         for (let _fold of currentFolders) {
             let type = "";
@@ -52,8 +54,8 @@ class RequestListCollapse extends Component {
             item.children = <RequestListCollapseChildren 
                 folders={this.props.folders}
                 metadata={this.props.metadata} 
-                filterTitle={this.props.filterTitle}
-                filterUri={this.props.filterUri}
+                filterTitle={filterTitle}
+                filterUri={filterUri}
                 folder={_fold.value} 
                 type={ type }
                 refreshCallback={() => this.props.refreshCallback()}

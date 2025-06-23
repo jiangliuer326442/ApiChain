@@ -154,7 +154,5 @@ tables[TABLE_UNITTEST_EXECUTOR_NAME] = "&[" + unittest_executor_iterator + "+" +
 tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_batch + "], " 
 + "[" + unittest_report_delFlg + "+" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_env + "+" + unittest_report_ctime + "]";
 
-console.log(tables);
-
 window.db.version(201).stores(tables).upgrade (async trans => {
 });

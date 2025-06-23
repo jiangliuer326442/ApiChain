@@ -6,36 +6,21 @@ import {
     Flex, 
     ConfigProvider, 
     FloatButton, 
-    Collapse, 
-    Popconfirm, 
-    InputNumber, 
-    Dropdown, 
     Descriptions, 
     Form, 
-    Tooltip, 
     Select, 
     Divider, 
-    Table, 
-    message, 
     Input, 
-    Space, 
     Button 
 } from "antd";
-import type { MenuProps } from 'antd';
 import { 
-    EyeOutlined, 
-    DeleteOutlined, 
     FileTextOutlined, 
-    MoreOutlined,
-    SendOutlined,
 } from '@ant-design/icons';
 import { TinyColor } from '@ctrl/tinycolor';
-import { encode } from 'base-64';
 
 import RequestListCollapse from '@comp/requests_list_collapse';
 import MarkdownView from '@comp/markdown/show';
 import { 
-    TABLE_VERSION_ITERATION_REQUEST_FIELDS, 
     TABLE_VERSION_ITERATION_FIELDS,
     UNAME,
 } from '@conf/db';
@@ -46,15 +31,10 @@ import {
     getdayjs,
     isStringEmpty, 
 } from '@rutil/index';
-import { getPrjs } from '@act/project';
-import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from '@act/version_iterator';
+import { getRemoteVersionIterator } from '@act/version_iterator';
 import { 
     getIteratorFolders, 
 } from '@act/version_iterator_folders';
-import { 
-    delVersionIteratorRequest, 
-    setVersionIterationRequestSort,
-} from '@act/version_iterator_requests';
 import { langFormat, langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
@@ -74,16 +54,10 @@ const getActiveColors = (colors: string[]) =>
     colors.map((color) => new TinyColor(color).darken(5).toString());
 
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
-let iteration_request_sort = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_SORT;
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let version_iterator_content = TABLE_VERSION_ITERATION_FIELDS.FIELD_CONTENT;
 let version_iterator_openflg = TABLE_VERSION_ITERATION_FIELDS.FIELD_OPENFLG;
 let version_iterator_ctime = TABLE_VERSION_ITERATION_FIELDS.FIELD_CTIME;
-
-let iteration_request_prj = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
-let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
-let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
-let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
 
 class RequestListVersion extends Component {
 
@@ -93,73 +67,12 @@ class RequestListVersion extends Component {
         this.state = {
             iteratorId,
             versionIteration: {},
-            listColumn: [
-                {
-                    title: langTrans("prj doc table field1"),
-                    dataIndex: iteration_request_uri,
-                    width: 150,
-                    render: (uri) => { 
-                        if (uri.length > 50) {
-                            return <Tooltip title={ uri } placement='right'>
-                                {"..." + uri.substring(uri.length - 50, uri.length)}
-                                </Tooltip>;
-                        } else {
-                            return uri;
-                        }
-                    }
-                },
-                {
-                    title: langTrans("prj doc table field2"),
-                    dataIndex: iteration_request_title,
-                    width: 150,
-                },
-                {
-                    title: langTrans("prj doc table field3"),
-                    dataIndex: iteration_request_sort,
-                    width: 50,
-                    render: (sort, record) => {
-                        let prj = record[iteration_request_prj];
-                        let method = record[iteration_request_method];
-                        let uri = record[iteration_request_uri];
-                        if (sort === undefined) {
-                            return <InputNumber style={{width: 65}} value={0} onBlur={event => this.setApiSort(prj, method, uri, event.target.value)} />;
-                        } else {
-                            return <InputNumber style={{width: 65}} value={sort} onBlur={event => this.setApiSort(prj, method, uri, event.target.value)} />;
-                        }
-                    }
-                },
-                {
-                    title: langTrans("prj doc table field4"),
-                    key: 'operater',
-                    width: 50,
-                    render: (_, record) => {
-                        let docDetailUrl = "#/version_iterator_request/" + this.state.iteratorId + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
-                        let sendRequestUrl = "#/internet_request_send_by_api/" + this.state.iteratorId + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
-                        return (
-                            <Space size="middle">
-                                <Tooltip title={langTrans("prj doc table act1")}>
-                                    <Button type="link" icon={<SendOutlined />} href={ sendRequestUrl } />
-                                </Tooltip>
-                                <Tooltip title={langTrans("prj doc table act2")}>
-                                    <Button type="link" icon={<EyeOutlined />} href={ docDetailUrl } />
-                                </Tooltip>
-                                { this.state.versionIteration[version_iterator_openflg] === 1 ? 
-                                <Dropdown menu={this.getMore(record)}>
-                                    <Button type="text" icon={<MoreOutlined />} />
-                                </Dropdown>
-                                : null}
-                            </Space>
-                        );
-                    },
-                }
-            ],
             formReadyFlg: false,
             folders: [],
             prj: "",
             folder: null,
             filterTitle: "",
             filterUri: "",
-            movedRequests: [],
         }
     }
 
@@ -191,39 +104,11 @@ class RequestListVersion extends Component {
         this.onFinish({});
     }
 
-    setApiSort = async (prj : string, method : string, uri : string, sort : number) => {
-        setVersionIterationRequestSort(this.state.iteratorId, prj, method, uri, sort, () => {
-        });
-    }
-
-    setMovedRequests = newMovedRequestKeys => {
-        this.state.movedRequests = newMovedRequestKeys;
-    }
-
-    getMore = (record : any) : MenuProps => {
-            return {'items': [{
-                key: "1",
-                danger: true,
-                label: <Popconfirm
-                    title={langTrans("prj doc del title")}
-                    description={langTrans("prj doc del desc")}
-                    onConfirm={e => {
-                        delVersionIteratorRequest(record, ()=>{
-                        });
-                    }}
-                    okText={langTrans("prj doc del sure")}
-                    cancelText={langTrans("prj doc del cancel")}
-                >
-                    <Button danger type="link" icon={<DeleteOutlined />} />
-                </Popconfirm>,
-            }]};
-    }
-
     onFinish = async (values) => {
         let title = values?.title;
         let uri = values?.uri;
         if (isStringEmpty(uri) && isStringEmpty(title)) {
-            let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, title, uri);
+            let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, null, null);
             this.setState({
                 folders,
                 filterTitle: "",
@@ -231,6 +116,19 @@ class RequestListVersion extends Component {
             })
             return;
         }
+        if (title === undefined) {
+            title = ""
+        }
+        if (uri === undefined) {
+            uri = "";
+        }
+
+        let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, title, uri);
+        this.setState({
+            folders,
+            filterTitle: title,
+            filterUri: uri
+        })
     }
 
     render() : ReactNode {
