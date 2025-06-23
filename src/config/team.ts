@@ -84,6 +84,8 @@ export const VERSION_ITERATION_DEL_URL = "/version_iterations/del";
 
 export const REQUEST_VERSION_ITERATION_ADD_URL = "/requests/iteration/add";
 
+export const REQUEST_VERSION_ITERATION_DEL_URL = "/requests/iteration/del";
+
 export const REQUEST_VERSION_ITERATION_EDIT_URL = "/requests/iteration/edit";
 
 export const REQUEST_VERSION_ITERATION_QUERY_URL = "/requests/iteration/query";
@@ -121,6 +123,8 @@ export const FOLDERS_PROJECT_DEL = "/folders/project/del";
 export const FOLDERS_ITERATOR_ALL = "/folders/iterator/all";
 
 export const FOLDERS_ITERATOR_ADD_URL = "/folders/iterator/add";
+
+export const FOLDERS_ITERATOR_SET_REQUEST = "/folders/iterator/set_requests_fold";
 
 export const FOLDERS_ITERATOR_DEL_URL = "/folders/iterator/del";
 

@@ -13,6 +13,7 @@ class RequestListCollapseExtra extends Component {
                     let folder  = this.props.folder.substring(FoldSourcePrj.length);
                     let prj = this.props.metadata;
                     await delProjectFolder(this.props.clientType, this.props.teamId, prj, folder)
+                } else if (this.props.type === "iterator") {
                 }
                 this.props.refreshCallback();
                 event.stopPropagation();

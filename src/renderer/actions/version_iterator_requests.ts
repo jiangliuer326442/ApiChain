@@ -10,6 +10,7 @@ import {
     REQUEST_VERSION_ITERATION_EDIT_URL,
     REQUEST_VERSION_ITERATION_QUERY_URL,
     REQUEST_VERSION_ITERATION_EXPORT_URL,
+    REQUEST_VERSION_ITERATION_DEL_URL,
     REQUEST_VERSION_ITERATION_PAGE_FOLD_URL,
     REQUEST_VERSION_ITERATION_FIND_URL,
 } from '@conf/team';
@@ -70,18 +71,32 @@ export async function getVersionIteratorRequest(clientType : string, iteratorId 
     return version_iteration_request;
 }
 
-export async function delVersionIteratorRequest(clientType, record, cb) {
-    let iteration_uuid = record[iteration_request_iteration_uuid];
+export async function delVersionIteratorRequest(clientType : string, teamId : string, iteration_uuid : string, record) {
     let project = record[iteration_request_project];
     let method = record[iteration_request_method];
     let uri = record[iteration_request_uri];
 
-    let version_iteration_request = await getVersionIteratorRequest(clientType, iteration_uuid, project, method, uri);
-    if (version_iteration_request !== undefined) {
-        version_iteration_request[iteration_request_delFlg] = 1;
-        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
-        cb();
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(REQUEST_VERSION_ITERATION_DEL_URL, {iterator: iteration_uuid, prj: project, method, uri});
     }
+
+    let version_iteration_request = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+    .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])
+    .equals([ iteration_uuid, project, method, uri ])
+    .reverse()
+    .first();
+    if (version_iteration_request === undefined || version_iteration_request[iteration_request_delFlg] !== 0) {
+        return;
+    }
+    version_iteration_request[iteration_request_delFlg] = 1;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        version_iteration_request.upload_flg = 0;
+        version_iteration_request.team_id = "";
+    } else {
+        version_iteration_request.upload_flg = 1;
+        version_iteration_request.team_id = teamId;
+    }
+    await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
 }
 
 export async function getUnitTestRequests(clientType : string, project : string, iteration_uuid : string, uri : string) {

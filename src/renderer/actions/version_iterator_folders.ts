@@ -6,10 +6,13 @@ import {
 import {
     CLIENT_TYPE_TEAM,
     CLIENT_TYPE_SINGLE,
-    FOLDERS_ITERATOR_ALL, FOLDERS_ITERATOR_ADD_URL, FOLDERS_ITERATOR_DEL_URL,
+    FOLDERS_ITERATOR_ALL, 
+    FOLDERS_ITERATOR_ADD_URL, 
+    FOLDERS_ITERATOR_SET_REQUEST,
+    FOLDERS_ITERATOR_DEL_URL,
 } from '@conf/team';
 import {
-    FoldSourcePrj, FoldSourceIterator
+    FoldSourceIterator
 } from '@conf/global_config';
 import { isStringEmpty } from '@rutil/index';
 import { sendTeamMessage } from '@act/message'
@@ -25,6 +28,7 @@ let iteration_request_delFlg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DELF
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
 
@@ -73,8 +77,19 @@ export async function delFolder(version_iterator : string, project : string, fol
     });
 }
 
-export async function getIteratorFolders(clientType : string, version_iterator : string, title : string|null, uri : string|null) {
+export async function getIteratorFolders(
+    clientType : string, 
+    version_iterator : string, 
+    title : string|null, 
+    uri : string|null, 
+    prj : string|null, 
+    folder : string|null
+) {
     let prjfolders = {};
+
+    if (!isStringEmpty(folder)) {
+        folder = folder.substring(FoldSourceIterator.length);
+    }
 
     if (clientType === CLIENT_TYPE_SINGLE) {
         let filterFolders : any = {};
@@ -88,13 +103,18 @@ export async function getIteratorFolders(clientType : string, version_iterator :
                 if (!isStringEmpty(uri) && row[iteration_request_uri].indexOf(uri) < 0) {
                     return false;
                 }
+                if (!isStringEmpty(prj) && row[iteration_request_project] !== prj) {
+                    return false;
+                }
+                if (folder !== null && row[iteration_request_fold] !== folder) {
+                    return false;
+                }
                 return true;
             })
             .toArray();
         for (let interation_request of interation_requests) {
             let projectName = interation_request[iteration_request_project];
             let folderName = interation_request[iteration_request_fold];
-            if (!folderName) continue;
             if (! (projectName in filterFolders)) {
                 filterFolders[projectName] = new Set<string>();
             }
@@ -111,18 +131,20 @@ export async function getIteratorFolders(clientType : string, version_iterator :
             let filterFoldersSet = filterFolders[_prj];
             for (let version_iteration_folder of version_iteration_folders) {
                 let folderName = version_iteration_folder[version_iteration_folder_name];
-                if (filterFoldersSet.has(FoldSourcePrj + folderName) || filterFoldersSet.has(FoldSourceIterator + folderName)){
+                if (!filterFoldersSet.has(folderName)){
                     continue;
                 }
                 if (! (_prj in prjfolders)) {
                     prjfolders[_prj] = [];
                 }
-                prjfolders[_prj].push(folderName);
+                if (!prjfolders[_prj].includes(folderName)) {
+                    prjfolders[_prj].push(folderName);
+                }
 
             }
         }
     } else {
-        let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iterator: version_iterator, title, uri});
+        let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iterator: version_iterator, title, uri, prj, folder});
         prjfolders = ret;
     }
 
@@ -166,4 +188,36 @@ export async function addIteratorFolder(
             version_iteration_folder.team_id = teamId;
         }
         await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(version_iteration_folder);
+}
+
+export async function batchSetIteratorRequestFold(clientType : string, teamId : string, iterator : string, project : string, methodUriArr : Array<string>, fold : string) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(FOLDERS_ITERATOR_SET_REQUEST, {iterator, prj: project, methodUris: methodUriArr.join(","), fold});
+    }
+
+    for (let _methodUriRow of methodUriArr) {
+        let [method, uri] = _methodUriRow.split("$$");
+
+        let iteration_request = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+        .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])
+        .equals([ iterator, project, method, uri ])
+        .first();
+        if (
+            iteration_request === undefined || 
+            iteration_request[iteration_request_delFlg] !== 0 ||
+            iteration_request[iteration_request_fold] === fold
+        ) {
+            continue;
+        }
+        iteration_request[iteration_request_delFlg] = fold;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            iteration_request.upload_flg = 0;
+            iteration_request.team_id = "";
+        } else {
+            iteration_request.upload_flg = 1;
+            iteration_request.team_id = teamId;
+        }
+    
+        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(iteration_request);
+    }
 }

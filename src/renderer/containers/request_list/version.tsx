@@ -73,20 +73,23 @@ class RequestListVersion extends Component {
             folder: null,
             filterTitle: "",
             filterUri: "",
+            filterPrj: "",
+            filterFold: null,
         }
     }
 
-    async componentWillReceiveProps(nextProps) {
-        let iteratorId = nextProps.match.params.id;
-        if (this.state.iteratorId !== iteratorId) {
-            this.state.iteratorId = iteratorId;
+    async componentDidUpdate(prevProps, prevState) {
+        let newIteratorId = this.props.match.params.id;
+        let oldIteratorId = prevProps.match.params.id;
+        if (newIteratorId !== oldIteratorId) {
+            this.state.iteratorId = newIteratorId;
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
             this.setState( { 
                 versionIteration,
             } );
             this.props.dispatch({
                 type: GET_ITERATOR,
-                iterator: iteratorId,
+                iterator: newIteratorId,
                 unittest: ""
             });
             this.onFinish({});
@@ -107,12 +110,16 @@ class RequestListVersion extends Component {
     onFinish = async (values) => {
         let title = values?.title;
         let uri = values?.uri;
-        if (isStringEmpty(uri) && isStringEmpty(title)) {
-            let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, null, null);
+        let prj = values?.prj;
+        let folder = values?.folder;
+        if (isStringEmpty(uri) && isStringEmpty(title) && isStringEmpty(prj) && isStringEmpty(folder)) {
+            let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, null, null, null, null);
             this.setState({
                 folders,
                 filterTitle: "",
-                filterUri: ""
+                filterUri: "",
+                filterPrj: "",
+                filterFold: null,
             })
             return;
         }
@@ -122,12 +129,19 @@ class RequestListVersion extends Component {
         if (uri === undefined) {
             uri = "";
         }
-
-        let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, title, uri);
+        if (prj === undefined) {
+            prj = ""
+        }
+        if (folder === undefined) {
+            folder = null;
+        }
+        let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, title, uri, prj, folder);
         this.setState({
             folders,
             filterTitle: title,
-            filterUri: uri
+            filterUri: uri,
+            filterPrj: prj,
+            filterFold: folder,
         })
     }
 
@@ -173,15 +187,16 @@ class RequestListVersion extends Component {
                             autoComplete="off"
                         >
                             <Form.Item<FieldType> style={{paddingBottom: 20}} label={langTrans("prj doc operator1")} name="uri" rules={[{ required: false }]}>
-                                <Input />
+                                <Input allowClear />
                             </Form.Item>
 
                             <Form.Item<FieldType> label={langTrans("prj doc operator2")} name="title" rules={[{ required: false }]}>
-                                <Input />
+                                <Input allowClear />
                             </Form.Item>
 
                             <Form.Item<FieldType> label={langTrans("version doc operator1")} name="prj" rules={[{ required:  false }]}>
                                 <Select
+                                    allowClear
                                     style={{ width: 180 }}
                                     options={this.state.versionIteration[version_iterator_prjs].map(item => {
                                         return {value: item, label: this.props.prjs.find(row => row.value=== item) ? this.props.prjs.find(row => row.value === item).label : ""}
@@ -192,12 +207,15 @@ class RequestListVersion extends Component {
                                 />
                             </Form.Item>                           
 
+                            {this.state.prj ? 
                             <Form.Item<FieldType> label={langTrans("version doc operator2")} name="folder" rules={[{ required:  false }]}>
                                 <Select
+                                    allowClear
                                     style={{ width: 180 }}
                                     options={ this.state.folders[this.state.prj] }
                                 />
                             </Form.Item>
+                            : null}
 
                             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                 <Button htmlType="submit">
@@ -257,6 +275,8 @@ class RequestListVersion extends Component {
                                     folders={this.state.folders[prj]} 
                                     filterTitle={this.state.filterTitle}
                                     filterUri={this.state.filterUri}
+                                    filterPrj={this.state.filterPrj}
+                                    filterFold={this.state.filterFold}
                                     refreshCallback={() => this.onFinish({
                                         title: this.state.filterTitle,
                                         uri: this.state.filterUri

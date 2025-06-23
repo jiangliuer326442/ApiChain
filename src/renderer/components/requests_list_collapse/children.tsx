@@ -32,8 +32,12 @@ import {
     batchSetProjectRequestFold
 } from '@act/project_folders';
 import {
-    getFolderIteratorRequests
+    getFolderIteratorRequests,
+    delVersionIteratorRequest
 } from '@act/version_iterator_requests';
+import {
+    batchSetIteratorRequestFold
+} from '@act/version_iterator_folders';
 import { langTrans } from '@lang/i18n';
 import FolderSelector from "@comp/folders";
 import { TABLE_PROJECT_REQUEST_FIELDS } from '@conf/db';
@@ -48,7 +52,6 @@ class RequestListCollapseChildren extends Component {
 
     constructor(props) {
       super(props);
-      console.log("filterTitle4", props.filterTitle)
       this.state = {
         selectedApi: [],
         pagination: {
@@ -121,7 +124,6 @@ class RequestListCollapseChildren extends Component {
     }
 
     componentDidMount() {
-        console.log("filterTitle3", this.props.filterTitle)
         let pagination = cloneDeep(this.state.pagination);
         this.getDatas(pagination);
     }
@@ -153,6 +155,9 @@ class RequestListCollapseChildren extends Component {
                 onConfirm={async e => {
                     if (this.props.type === "prj") {
                         await delProjectRequest(this.props.clientType, this.props.teamId, record);
+                    } else if (this.props.type === "iterator") {
+                        let iteratorId = this.props.metadata.split("$$")[0];
+                        await delVersionIteratorRequest(this.props.clientType, this.props.teamId, iteratorId, record);
                     }
                     let pagination = cloneDeep(this.state.pagination);
                     this.getDatas(pagination);
@@ -197,7 +202,6 @@ class RequestListCollapseChildren extends Component {
     }
 
     getDatas = async (pagination) => {
-        console.log("filterTitle2", this.props.filterTitle)
         let folders = this.props.folders.filter(row => row.value !== this.props.folder);
         if (this.props.type === "prj") {
             let folder  = this.props.folder.substring(FoldSourcePrj.length);
@@ -233,6 +237,11 @@ class RequestListCollapseChildren extends Component {
                                     let prj = this.props.metadata;
                                     folderName = value.substring(FoldSourcePrj.length);
                                     await batchSetProjectRequestFold(this.props.clientType, this.props.teamId, prj, this.state.selectedApi, folderName);
+                                } else if (this.props.type === "iterator") {
+                                    let iteratorId = this.props.metadata.split("$$")[0];
+                                    let prj = this.props.metadata.split("$$")[1];
+                                    folderName = value.substring(FoldSourceIterator.length);
+                                    await batchSetIteratorRequestFold(this.props.clientType, this.props.teamId, iteratorId, prj, this.state.selectedApi, folderName);
                                 }
                                 this.setState({selectedFolder: value})
                                 let pagination = cloneDeep(this.state.pagination);
@@ -244,6 +253,7 @@ class RequestListCollapseChildren extends Component {
                             folders={ this.state.folders }
                         />
                     </Form.Item>
+                {this.props.type === "prj" ? 
                     <Form.Item label={ langTrans("prj doc operator4") }>
                         <Select 
                             showSearch
@@ -254,6 +264,7 @@ class RequestListCollapseChildren extends Component {
                             onChange={ this.moveApiPrj }
                         />
                     </Form.Item>
+                : null}
                 </Form>
                 <Table 
                     rowKey={(record) => record[project_request_method] + "$$" + record[project_request_uri]}
