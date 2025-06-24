@@ -7,6 +7,7 @@ import RequestListCollapseExtra from '@comp/requests_list_collapse/extra';
 
 function buildFolders(
     currentFolders,
+    allFolders,
     filterTitle,
     filterUri,
     metadata,
@@ -28,7 +29,7 @@ function buildFolders(
         item.key = _fold.value;
         item.label = _fold.label;
         item.children = <RequestListCollapseChildren 
-            folders={currentFolders}
+            folders={allFolders}
             metadata={metadata} 
             filterTitle={filterTitle}
             filterUri={filterUri}
@@ -62,6 +63,7 @@ class RequestListCollapse extends Component {
     async componentDidMount() {
         let items = buildFolders(
             this.props.folders,
+            this.props.allFolders,
             this.props.filterTitle,
             this.props.filterUri,
             this.props.metadata,
@@ -76,6 +78,7 @@ class RequestListCollapse extends Component {
         if (nextProps.filterTitle !== prevState.someProp || nextProps.filterUri !== prevState.filterUri) {
             let items = buildFolders(
                 nextProps.folders,
+                nextProps.allFolders,
                 nextProps.filterTitle,
                 nextProps.filterUri,
                 nextProps.metadata,

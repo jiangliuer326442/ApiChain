@@ -6,9 +6,10 @@ import {
 import {
     CLIENT_TYPE_TEAM,
     CLIENT_TYPE_SINGLE,
-    FOLDERS_ITERATOR_ALL, 
+    FOLDERS_ITERATOR_BY_PROJECT, 
     FOLDERS_ITERATOR_ADD_URL, 
     FOLDERS_ITERATOR_SET_REQUEST,
+    FOLDERS_ITERATOR_ALL,
     FOLDERS_ITERATOR_DEL_URL,
 } from '@conf/team';
 import {
@@ -75,6 +76,24 @@ export async function delFolder(version_iterator : string, project : string, fol
     
         cb();
     });
+}
+
+export async function allFolders(clientType : string, iterator : string) {
+    let folders;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        folders = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
+        .where([version_iteration_folder_delFlg, version_iteration_folder_uuid])
+        .equals([0, iterator])
+        .toArray();
+    } else {
+        let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iteratorId: iterator});
+        folders = ret.list;
+    }
+    let result = folders.map(item => ({
+        label: "/" + item,
+        value: FoldSourceIterator + item
+    }));
+    return result
 }
 
 export async function getIteratorFolders(
@@ -144,7 +163,7 @@ export async function getIteratorFolders(
             }
         }
     } else {
-        let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iterator: version_iterator, title, uri, prj, folder});
+        let ret = await sendTeamMessage(FOLDERS_ITERATOR_BY_PROJECT, {iterator: version_iterator, title, uri, prj, folder});
         prjfolders = ret;
     }
 

@@ -33,6 +33,7 @@ import {
 } from '@rutil/index';
 import { getRemoteVersionIterator } from '@act/version_iterator';
 import { 
+    allFolders,
     getIteratorFolders, 
 } from '@act/version_iterator_folders';
 import { langFormat, langTrans } from '@lang/i18n';
@@ -69,6 +70,7 @@ class RequestListVersion extends Component {
             versionIteration: {},
             formReadyFlg: false,
             folders: [],
+            allFolders: [],
             prj: "",
             folder: null,
             filterTitle: "",
@@ -84,7 +86,9 @@ class RequestListVersion extends Component {
         if (newIteratorId !== oldIteratorId) {
             this.state.iteratorId = newIteratorId;
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
+            let allFoldersRet = await allFolders(this.props.clientType, this.state.iteratorId);
             this.setState( { 
+                allFolders: allFoldersRet,
                 versionIteration,
             } );
             this.props.dispatch({
@@ -98,7 +102,12 @@ class RequestListVersion extends Component {
 
     async componentDidMount() {
         let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
-        this.setState( { versionIteration, formReadyFlg : true } )
+        let allFoldersRet = await allFolders(this.props.clientType, this.state.iteratorId);
+        this.setState( { 
+            allFolders: allFoldersRet,
+            versionIteration, 
+            formReadyFlg : true 
+        } )
         this.props.dispatch({
             type: GET_ITERATOR,
             iterator: this.state.iteratorId,
@@ -273,6 +282,7 @@ class RequestListVersion extends Component {
                                 <RequestListCollapse 
                                     metadata={this.state.iteratorId+"$$"+prj}
                                     folders={this.state.folders[prj]} 
+                                    allFolders={this.state.allFolders} 
                                     filterTitle={this.state.filterTitle}
                                     filterUri={this.state.filterUri}
                                     filterPrj={this.state.filterPrj}

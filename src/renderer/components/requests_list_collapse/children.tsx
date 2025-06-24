@@ -134,8 +134,6 @@ class RequestListCollapseChildren extends Component {
             || 
             this.props.filterUri != prevProps.filterUri
             ||
-            this.props.folders.length != prevProps.folders.length
-            ||
             this.props.metadata !== prevProps.metadata
         ) {
             this.setState({selectedApi: [], selectedFolder: null, movedPrj: ""})
@@ -183,15 +181,13 @@ class RequestListCollapseChildren extends Component {
     }
 
     moveApiPrj = async (newPrj) => {
+        let prj = this.props.metadata;
         if (newPrj === undefined) {
             this.setState({movedPrj: ""})
             return;
         }
         if (this.state.selectedApi.length === 0) return;
-        if (this.props.type === "prj") {
-            let prj = this.props.metadata;
-            await batchMoveProjectRequestPrj(this.props.clientType, this.props.teamId, prj, this.state.selectedApi, newPrj, this.props.device);
-        }
+        await batchMoveProjectRequestPrj(this.props.clientType, this.props.teamId, prj, this.state.selectedApi, newPrj, this.props.device);
         this.setState({movedPrj: newPrj})
         let pagination = cloneDeep(this.state.pagination);
         this.getDatas(pagination);
@@ -246,6 +242,9 @@ class RequestListCollapseChildren extends Component {
                                 this.setState({selectedFolder: value})
                                 let pagination = cloneDeep(this.state.pagination);
                                 this.getDatas(pagination);
+                                if (this.props.type === "iterator") {
+                                    this.props.refreshCallback();
+                                }
                             } }
                             refreshFolders={ async () => {
                                 this.props.refreshCallback();

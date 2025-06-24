@@ -122,6 +122,8 @@ export const FOLDERS_PROJECT_DEL = "/folders/project/del";
 
 export const FOLDERS_ITERATOR_ALL = "/folders/iterator/all";
 
+export const FOLDERS_ITERATOR_BY_PROJECT = "/folders/iterator/by_project";
+
 export const FOLDERS_ITERATOR_ADD_URL = "/folders/iterator/add";
 
 export const FOLDERS_ITERATOR_SET_REQUEST = "/folders/iterator/set_requests_fold";

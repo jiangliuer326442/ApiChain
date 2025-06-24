@@ -137,6 +137,7 @@ class RequestListProject extends Component {
                                 <RequestListCollapse 
                                     metadata={this.state.projectLabel}
                                     folders={this.state.folders} 
+                                    allFolders={this.state.folders} 
                                     filterTitle={this.state.filterTitle}
                                     filterUri={this.state.filterUri}
                                     refreshCallback={() => this.onFinish({
