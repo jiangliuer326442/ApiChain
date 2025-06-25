@@ -54,7 +54,8 @@ import {
   getPrjEnvValues,
 } from '@act/env_value';
 import {
-  getProjectKeys
+  getProjectKeys,
+  getIteratorKeys
 } from '@act/keys';
 import {
   getVersionIteratorRequest
@@ -302,6 +303,8 @@ class RequestSendContainer extends Component {
     let envKeys;
     if (this.state.type === "project") {
       envKeys = await getProjectKeys(this.props.clientType, prj);
+    } else if (this.state.type === "iterator") {
+      envKeys = await getIteratorKeys(this.props.clientType, this.state.iteratorId, prj);
     }
     this.setState({ env, requestHost, envKeys: [...envKeys] });
   }

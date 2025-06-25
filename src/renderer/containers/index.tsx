@@ -51,7 +51,6 @@ import {
     REQUEST_PROJECT_DETAIL_ROUTE,
     REQUEST_ITERATOR_LIST_ROUTE,
     REQUEST_HISTORY,
-    VERSION_ITERATOR_DOC_ROUTE,
     REQUEST_PROJECT_LIST_ROUTE,
     UNITTEST_ITERATOR_LIST_ROUTE,
     UNITTEST_PROJECT_LIST_ROUTE,
@@ -175,7 +174,6 @@ class MyRouter extends Component {
                             <Route path={ REQUEST_ITERATOR_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
                             <Route path={ REQUEST_PROJECT_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
                             <Route path={ REQUEST_ITERATOR_LIST_ROUTE } component={VersionIteratorRequestListPage} />
-                            <Route path={ VERSION_ITERATOR_DOC_ROUTE } component={VersionIteratorDocPage} />
                             <Route path={ REQUEST_PROJECT_LIST_ROUTE } component={ProjectRequestListPage} />
                             <Route path={ UNITTEST_ITERATOR_LIST_ROUTE } component={UnittestListVersionPage} />
                             <Route path={ UNITTEST_PROJECT_LIST_ROUTE } component={UnittestListProjectPage} />

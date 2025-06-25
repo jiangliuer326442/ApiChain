@@ -14,13 +14,16 @@ import {
     Button 
 } from "antd";
 import { 
-    FileTextOutlined, 
+    ExportOutlined, 
+    Html5Outlined,
+    FileMarkdownOutlined,
 } from '@ant-design/icons';
 import { TinyColor } from '@ctrl/tinycolor';
 
 import RequestListCollapse from '@comp/requests_list_collapse';
 import MarkdownView from '@comp/markdown/show';
 import { 
+    TABLE_MICRO_SERVICE_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
     UNAME,
 } from '@conf/db';
@@ -28,10 +31,19 @@ import {
     GET_ITERATOR
 } from '@conf/redux';
 import { 
+    ChannelsMarkdownStr, 
+    ChannelsMarkdownSaveMarkdownStr, 
+    ChannelsMarkdownSaveHtmlStr,
+} from '@conf/channel';
+import { 
     getdayjs,
     isStringEmpty, 
 } from '@rutil/index';
 import { getRemoteVersionIterator } from '@act/version_iterator';
+import { getEnvs } from '@act/env';
+import { getPrjs } from '@act/project';
+import { getExportVersionIteratorRequests } from '@act/version_iterator_requests';
+import { getEnvHosts } from '@act/env_value';
 import { 
     allFolders,
     getIteratorFolders, 
@@ -47,7 +59,7 @@ type FieldType = {
     uri?: string;
 };
 
-const colorsAddRequestApi = ['#fc6076', '#ff9a44', '#ef9d43', '#e75516'];
+// const colorsAddRequestApi = ['#fc6076', '#ff9a44', '#ef9d43', '#e75516'];
 const colorsSendRequestApi = ['#6253e1', '#04befe'];
 const getHoverColors = (colors: string[]) =>
     colors.map((color) => new TinyColor(color).lighten(5).toString());
@@ -59,6 +71,9 @@ let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let version_iterator_content = TABLE_VERSION_ITERATION_FIELDS.FIELD_CONTENT;
 let version_iterator_openflg = TABLE_VERSION_ITERATION_FIELDS.FIELD_OPENFLG;
 let version_iterator_ctime = TABLE_VERSION_ITERATION_FIELDS.FIELD_CTIME;
+let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
+
+let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 
 class RequestListVersion extends Component {
 
@@ -77,6 +92,10 @@ class RequestListVersion extends Component {
             filterUri: "",
             filterPrj: "",
             filterFold: null,
+            requests: [],
+            prjs: [],
+            envs: [],
+            envVars: {},
         }
     }
 
@@ -86,7 +105,8 @@ class RequestListVersion extends Component {
         if (newIteratorId !== oldIteratorId) {
             this.state.iteratorId = newIteratorId;
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
-            this.setState( {  versionIteration,} );
+            this.state.versionIteration = versionIteration;
+            this.loadMarkDownFromElectron(this.state.iteratorId);
             this.props.dispatch({
                 type: GET_ITERATOR,
                 iterator: newIteratorId,
@@ -98,7 +118,9 @@ class RequestListVersion extends Component {
 
     async componentDidMount() {
         let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
-        this.setState( {  versionIteration, formReadyFlg : true } )
+        this.state.versionIteration = versionIteration;
+        this.loadMarkDownFromElectron(this.state.iteratorId);
+        this.setState( {  formReadyFlg : true } )
         this.props.dispatch({
             type: GET_ITERATOR,
             iterator: this.state.iteratorId,
@@ -146,6 +168,22 @@ class RequestListVersion extends Component {
             filterPrj: prj,
             filterFold: folder,
         })
+    }
+
+    loadMarkDownFromElectron = async (iteratorId : string) => {
+        let envs = await getEnvs(this.props.clientType, null);
+        let prjs = await getPrjs(this.props.clientType, null);
+        let versionIterationPrjs = this.state.versionIteration[version_iterator_projects];
+        let requests = await getExportVersionIteratorRequests(this.props.clientType, iteratorId);
+        prjs = prjs.filter(_prj => versionIterationPrjs.includes(_prj[prj_label]));
+        let envVars : any = {};
+        for (let _prj of prjs) {
+            let projectLabel = _prj[prj_label];
+            const envVarItems = await getEnvHosts(this.props.clientType, projectLabel, null);
+            envVars[projectLabel] = Object.fromEntries(envVarItems);
+        }
+
+        this.setState({prjs, envs, envVars, requests});
     }
 
     render() : ReactNode {
@@ -282,12 +320,30 @@ class RequestListVersion extends Component {
                         content={ this.state.versionIteration[version_iterator_content] } 
                         width={ 630 }
                         />
-                    <FloatButton 
-                        icon={<FileTextOutlined />}
-                        description={langTrans("doc btn1")}
+                    <FloatButton.Group
+                        trigger="click"
+                        description={langTrans("doc btn2")}
                         shape="square"
-                        style={{right: 24, width: 60}}
-                        onClick={() => window.location.href = "#/version_iterator_doc/" + this.state.iteratorId} />
+                        type="primary"
+                        style={{ right: 96 }}
+                        icon={<ExportOutlined />}
+                        >
+                        <FloatButton 
+                            icon={<Html5Outlined/>} 
+                            description="html"
+                            shape="square"
+                            onClick={() => window.electron.ipcRenderer.sendMessage(
+                                ChannelsMarkdownStr, ChannelsMarkdownSaveHtmlStr, 
+                                this.state.iteratorId, this.state.requests, this.state.prjs, this.state.envs, this.state.envVars)} 
+                        />
+                        <FloatButton 
+                            icon={<FileMarkdownOutlined />} 
+                            description="md"
+                            shape="square"
+                            onClick={ () => window.electron.ipcRenderer.sendMessage(ChannelsMarkdownStr, ChannelsMarkdownSaveMarkdownStr, 
+                                this.state.iteratorId, this.state.requests, this.state.prjs, this.state.envs, this.state.envVars) } 
+                        />
+                    </FloatButton.Group>
                 </Content>
                 : null}
                 <Footer style={{ textAlign: 'center' }}>

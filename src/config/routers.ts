@@ -46,8 +46,6 @@ export const UNITTEST_STEP_ADD_ROUTE = "/version_iterator_tests_step_add/:iterat
 export const UNITTEST_STEP_EDIT_ROUTE = "/version_iterator_tests_step_edit/:iteratorId/:unitTestUuid/:unitTestStepUuid"
 //请求历史
 export const REQUEST_HISTORY = "/request_history";
-//迭代文档
-export const VERSION_ITERATOR_DOC_ROUTE = "/version_iterator_doc/:uuid";
 //项目环境变量管理
 export const ENVVAR_PRJ_LIST_ROUTE = "/prj_envvars/:prj";
 //项目接口列表

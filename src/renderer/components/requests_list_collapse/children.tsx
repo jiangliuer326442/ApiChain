@@ -42,13 +42,19 @@ import {
 } from '@act/version_iterator_folders';
 import { langTrans } from '@lang/i18n';
 import FolderSelector from "@comp/folders";
-import { TABLE_PROJECT_REQUEST_FIELDS, TABLE_VERSION_ITERATION_FIELDS } from '@conf/db';
+import { TABLE_PROJECT_REQUEST_FIELDS, TABLE_VERSION_ITERATION_REQUEST_FIELDS, TABLE_VERSION_ITERATION_FIELDS } from '@conf/db';
 
 let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 let project_request_title = TABLE_PROJECT_REQUEST_FIELDS.FIELD_TITLE;
 let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let project_request_sort = TABLE_PROJECT_REQUEST_FIELDS.FIELD_SORT;
 let project_request_prj = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
+
+let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
+let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
+let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
+let iteration_request_sort = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_SORT;
+let iteration_request_prj = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
@@ -66,7 +72,7 @@ class RequestListCollapseChildren extends Component {
         listColumn: [
             {
                 title: langTrans("prj doc table field1"),
-                dataIndex: project_request_uri,
+                dataIndex: props.type === "prj" ? project_request_uri : iteration_request_uri,
                 render: (uri) => { 
                     if (uri.length > 50) {
                         return <Tooltip title={ uri } placement='right'>{ "..." + uri.substring(uri.length - 50, uri.length) }</Tooltip>;
@@ -77,17 +83,20 @@ class RequestListCollapseChildren extends Component {
             },
             {
                 title: langTrans("prj doc table field2"),
-                dataIndex: project_request_title,
+                dataIndex: props.type === "prj" ? project_request_title : iteration_request_title,
             },
             {
                 title: langTrans("prj doc table field3"),
-                dataIndex: project_request_sort,
+                dataIndex: props.type === "prj" ? project_request_sort : iteration_request_sort,
                 render: (sort, record) => {
                     let method;
                     let uri;
                     if (this.props.type === "prj") {
                         method = record[project_request_method];
                         uri = record[project_request_uri];
+                    } else if (this.props.type === "iterator") {
+                        method = record[iteration_request_method];
+                        uri = record[iteration_request_uri];
                     }
                     if (sort === undefined || Number.isNaN(sort)) {
                         sort = 0;
@@ -101,8 +110,15 @@ class RequestListCollapseChildren extends Component {
                 title: langTrans("prj doc table field4"),
                 key: 'operater',
                 render: (_, record) => {
-                    let sendRequestUrl = "#/internet_request_send_by_api/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
-                    let docDetailUrl = "#/version_iterator_request/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
+                    let sendRequestUrl;
+                    let docDetailUrl;
+                    if (this.props.type === "prj") {
+                        sendRequestUrl = "#/internet_request_send_by_api/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
+                        docDetailUrl = "#/version_iterator_request/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
+                    } else if (this.props.type === "iterator") {
+                        sendRequestUrl = "#/internet_request_send_by_api/" + this.props.metadata.split("$$")[0] + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
+                        docDetailUrl = "#/version_iterator_request/" + this.props.metadata.split("$$")[0] + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
+                    }
                     return (
                         <Space size="middle">
                             <Tooltip title={langTrans("prj doc table act1")}>
@@ -307,7 +323,9 @@ class RequestListCollapseChildren extends Component {
                 : null}
                 </Form>
                 <Table 
-                    rowKey={(record) => record[project_request_method] + "$$" + record[project_request_uri]}
+                    rowKey={(record) => this.props.type === "prj" ? 
+                        (record[project_request_method] + "$$" + record[project_request_uri]) : 
+                        (record[iteration_request_method] + "$$" + record[iteration_request_uri])}
                     rowSelection={{selectedRowKeys: this.state.selectedApi, onChange: this.setSelectedApi}}
                     dataSource={this.state.listDatas} 
                     pagination={this.state.pagination}

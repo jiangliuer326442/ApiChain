@@ -68,6 +68,15 @@ class PrjEnvSelect extends Component {
     }
 
     render() : ReactNode {
+        let prjOptions = this.state.versionIteration[version_iterator_prjs] ? 
+            this.state.versionIteration[version_iterator_prjs].map(item => {
+                let label = this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : "";
+                return {value: item + "$$" + label, label }
+            }) : 
+            this.props.prjs.map(item => {
+                return {value: item.value + "$$" + item.label , label: item.label}
+            });
+        let selectedPrj = isStringEmpty(this.state.prj) ? "" : prjOptions.find(item => item.value.startsWith(`${this.state.prj}$$`))?.value ?? "";
         return (
             <Form layout="inline">
                 {!isStringEmpty(this.state.iteratorId) ? 
@@ -80,17 +89,10 @@ class PrjEnvSelect extends Component {
                     <Select
                         showSearch
                         allowClear
-                        value={ isStringEmpty(this.state.prj) ? "" : (
-                            this.state.prj + "$$" + (this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : "")
-                        ) }
+                        value={ selectedPrj }
                         onChange={this.setProjectChange}
                         style={{ width: 170 }}
-                        options={this.state.versionIteration[version_iterator_prjs] ? this.state.versionIteration[version_iterator_prjs].map(item => {
-                            let label = this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : "";
-                            return {value: item + "$$" + label, label }
-                        }) : this.props.prjs.map(item => {
-                            return {value: item.value + "$$" + item.label , label: item.label}
-                        })}
+                        options={ prjOptions }
                     />
                     : 
                     <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>{langTrans("prj add")}</Button>
