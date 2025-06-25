@@ -33,20 +33,25 @@ import {
 } from '@act/project_folders';
 import {
     getFolderIteratorRequests,
-    delVersionIteratorRequest
+    delVersionIteratorRequest,
+    setVersionIterationRequestSort,
+    batchMoveIteratorRequest,
 } from '@act/version_iterator_requests';
 import {
     batchSetIteratorRequestFold
 } from '@act/version_iterator_folders';
 import { langTrans } from '@lang/i18n';
 import FolderSelector from "@comp/folders";
-import { TABLE_PROJECT_REQUEST_FIELDS } from '@conf/db';
+import { TABLE_PROJECT_REQUEST_FIELDS, TABLE_VERSION_ITERATION_FIELDS } from '@conf/db';
 
 let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 let project_request_title = TABLE_PROJECT_REQUEST_FIELDS.FIELD_TITLE;
 let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let project_request_sort = TABLE_PROJECT_REQUEST_FIELDS.FIELD_SORT;
 let project_request_prj = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
+
+let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
+let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 class RequestListCollapseChildren extends Component {
 
@@ -117,9 +122,7 @@ class RequestListCollapseChildren extends Component {
         listDatas: [],
         selectedFolder: null,
         movedPrj: "",
-        iteratorId: "",
-        prj: "",
-        folders: [],
+        movedIterator: "",
       }
     }
 
@@ -136,7 +139,7 @@ class RequestListCollapseChildren extends Component {
             ||
             this.props.metadata !== prevProps.metadata
         ) {
-            this.setState({selectedApi: [], selectedFolder: null, movedPrj: ""})
+            this.setState({selectedApi: [], selectedFolder: null, movedPrj: "", movedIterator: ""})
             let pagination = cloneDeep(this.state.pagination);
             this.getDatas(pagination);
         }
@@ -175,6 +178,7 @@ class RequestListCollapseChildren extends Component {
         } else if (this.props.type === "iterator") {
             let iteratorId = this.props.metadata.split("$$")[0];
             let prj = this.props.metadata.split("$$")[1];
+            await setVersionIterationRequestSort(this.props.clientType, this.props.teamId, iteratorId, prj, method, uri, sort);
         }
         let pagination = cloneDeep(this.state.pagination);
         this.getDatas(pagination);
@@ -193,23 +197,44 @@ class RequestListCollapseChildren extends Component {
         this.getDatas(pagination);
     }
 
+    moveApiIterator = async (newIterator) => { 
+        let iteratorId = this.props.metadata.split("$$")[0];
+        let prj = this.props.metadata.split("$$")[1];
+        if (newIterator === undefined) {
+            this.setState({movedIterator: ""})
+            return;
+        }
+        if (this.state.selectedApi.length === 0) return;
+        await batchMoveIteratorRequest(
+            this.props.clientType, 
+            this.props.teamId, 
+            iteratorId, 
+            prj, 
+            this.state.selectedApi, 
+            newIterator, 
+            this.props.device
+        )
+        this.setState({movedIterator: newIterator})
+        let pagination = cloneDeep(this.state.pagination);
+        this.getDatas(pagination);
+    }
+
     setSelectedApi = newSelectedRowKeys => {
         this.setState({selectedApi: newSelectedRowKeys});
     }
 
     getDatas = async (pagination) => {
-        let folders = this.props.folders.filter(row => row.value !== this.props.folder);
         if (this.props.type === "prj") {
             let folder  = this.props.folder.substring(FoldSourcePrj.length);
             let prj = this.props.metadata;
             let datas = await getFolderProjectRequests(this.props.clientType, prj, folder, this.props.filterTitle, this.props.filterUri, pagination);
-            this.setState({listDatas: datas, pagination, prj, folders});
+            this.setState({listDatas: datas, pagination, prj});
         } else if (this.props.type === "iterator") {
             let folder  = this.props.folder.substring(FoldSourceIterator.length);
             let iteratorId = this.props.metadata.split("$$")[0];
             let prj = this.props.metadata.split("$$")[1];
             let datas = await getFolderIteratorRequests(this.props.clientType, iteratorId, prj, folder, this.props.filterTitle, this.props.filterUri, pagination);
-            this.setState({listDatas: datas, pagination, iteratorId, prj, folders});
+            this.setState({listDatas: datas, pagination, iteratorId, prj});
         }
     }
 
@@ -219,8 +244,8 @@ class RequestListCollapseChildren extends Component {
                 <Form layout="inline" style={{marginBottom: 16}}>
                     <Form.Item label={langTrans("prj doc operator3")}>
                         <FolderSelector 
-                            versionIterator={ this.state.iteratorId }
-                            prj={ this.state.prj }
+                            type={this.props.type}
+                            metadata={this.props.metadata}
                             value={ this.state.selectedFolder }
                             setValue={ async value => {
                                 if (value === undefined) {
@@ -249,7 +274,7 @@ class RequestListCollapseChildren extends Component {
                             refreshFolders={ async () => {
                                 this.props.refreshCallback();
                             }}
-                            folders={ this.state.folders }
+                            folders={ this.props.folders.filter(row => row.value !== this.props.folder) }
                         />
                     </Form.Item>
                 {this.props.type === "prj" ? 
@@ -261,6 +286,22 @@ class RequestListCollapseChildren extends Component {
                             style={ {minWidth: 260} }
                             options={ this.props.prjs.filter(item => item.value !== this.props.metadata) }
                             onChange={ this.moveApiPrj }
+                        />
+                    </Form.Item>
+                : null}
+                {this.props.type === "iterator" ? 
+                    <Form.Item label={ langTrans("version doc operator3") }>
+                        <Select 
+                            showSearch
+                            allowClear
+                            value={this.state.movedIterator}
+                            style={ {minWidth: 260} }
+                            options={ this.props.iterators.map(item => ({
+                                value: item[version_iterator_uuid],
+                                label: item[version_iterator_title]
+                            }))
+                            .filter(item => item.value !== this.props.metadata.split("$$")[0]) }
+                            onChange={ this.moveApiIterator }
                         />
                     </Form.Item>
                 : null}
@@ -285,6 +326,7 @@ function mapStateToProps (state) {
       teamId: state.device.teamId,
       clientType: state.device.clientType,
       prjs: state.prj.list,
+      iterators: state.version_iterator.list,
       device : state.device,
     }
 }

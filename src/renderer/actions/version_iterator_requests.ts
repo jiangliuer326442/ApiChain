@@ -10,6 +10,8 @@ import {
     REQUEST_VERSION_ITERATION_EDIT_URL,
     REQUEST_VERSION_ITERATION_QUERY_URL,
     REQUEST_VERSION_ITERATION_EXPORT_URL,
+    REQUEST_ITERATOR_MOVE_ITERATOR_URL,
+    REQUEST_VERSION_ITERATION_SET_SORT_URL,
     REQUEST_VERSION_ITERATION_DEL_URL,
     REQUEST_VERSION_ITERATION_PAGE_FOLD_URL,
     REQUEST_VERSION_ITERATION_FIND_URL,
@@ -18,6 +20,7 @@ import { isStringEmpty } from '@rutil/index';
 import { sendTeamMessage } from '@act/message';
 import { getProjectRequests } from '@act/project_request';
 import { getUsers } from '@act/user';
+import { addIteratorFolder } from './version_iterator_folders';
 
 let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_project = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -136,26 +139,45 @@ export async function batchSetProjectRequestFold(iterator : string, project : st
     }
 }
 
-export async function batchMoveIteratorRequest(oldIterator : string, project : string, requestArr : Array<string>, newIterator : string, cb : () => void) {
-    for (let _requestRow of requestArr) {
-        let [method, uri] = _requestRow.split("$$");
+export async function batchMoveIteratorRequest(
+    clientType : string, teamId : string, 
+    iterator : string, project : string, 
+    methodUriArr : Array<string>, 
+    newIterator : string, device : object) {
+    if (newIterator === iterator) return;
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(REQUEST_ITERATOR_MOVE_ITERATOR_URL, {
+            iterator,
+            prj: project, 
+            methodUris: methodUriArr.join(","), 
+            newIterator
+        });
+    }
+
+    for (let _methodUriRow of methodUriArr) {
+        let [method, uri] = _methodUriRow.split("$$");
         let version_iteration_request = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
         .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])
-        .equals([ oldIterator, project, method, uri ])
+        .equals([ iterator, project, method, uri ])
         .first();
         if (version_iteration_request === undefined || version_iteration_request[iteration_request_delFlg] !== 0) {
             continue;
         }
 
-        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
-        .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])
-        .equals([ oldIterator, project, method, uri ]).delete();
-
         version_iteration_request[iteration_request_iteration_uuid] = newIterator;
-    
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            version_iteration_request.upload_flg = 0;
+            version_iteration_request.team_id = "";
+        } else {
+            version_iteration_request.upload_flg = 1;
+            version_iteration_request.team_id = teamId;
+        }
         await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+
+        let fold = version_iteration_request[iteration_request_fold];
+        await addIteratorFolder(clientType, teamId, newIterator, project, fold, device);
     }
-    cb();
 }
 
 export async function getExportVersionIteratorRequests(clientType : string, iteration_uuid : string) {
@@ -489,17 +511,63 @@ export async function addVersionIteratorRequest(
     await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
 }
 
-export async function setVersionIterationRequestSort(iteratorId : string, project : string, method : string, uri : string, sort : number, cb : () => void) {
+export async function setVersionIterationRequestSort(
+    clientType : string, 
+    teamId : string, 
+    iteratorId : string, 
+    project : string, 
+    method : string, 
+    uri : string, 
+    sort : number) {
+        if (clientType === CLIENT_TYPE_TEAM) {
+            await sendTeamMessage(REQUEST_VERSION_ITERATION_SET_SORT_URL, {
+                iterator: iteratorId,
+                prj: project, 
+                method, uri, sort,
+            });
+        }
     let version_iteration_request = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
     .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])
     .equals([ iteratorId, project, method, uri ])
+    .reverse()
     .first();
-    if (version_iteration_request === undefined || version_iteration_request[iteration_request_delFlg] !== 0 || version_iteration_request[iteration_request_sort] == sort) {
+    if (version_iteration_request === undefined || 
+        version_iteration_request[iteration_request_delFlg] !== 0 || 
+        version_iteration_request[iteration_request_sort] == sort) {
         return;
     }
     version_iteration_request[iteration_request_sort] = sort;
-
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        version_iteration_request.upload_flg = 0;
+        version_iteration_request.team_id = "";
+    } else {
+        version_iteration_request.upload_flg = 1;
+        version_iteration_request.team_id = teamId;
+    }
     await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
-    
-    cb();
+    let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+    .where([ iteration_request_delFlg, iteration_request_iteration_uuid, iteration_request_fold ])
+    .equals([ 0, iteratorId, project, version_iteration_request[iteration_request_fold] ])
+    .filter(row => {
+        if (row[iteration_request_method] === method && row[iteration_request_uri] === uri) {
+            return false;
+        }
+        if (row[iteration_request_sort] < sort) {
+            return false;
+        }
+        return true;
+    })
+    .toArray();
+    for(let version_iteration_request of version_iteration_requests) {
+        let oldSort = Number(version_iteration_request[iteration_request_sort]);
+        version_iteration_request[iteration_request_sort] = oldSort + 1;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            version_iteration_request.upload_flg = 0;
+            version_iteration_request.team_id = "";
+        } else {
+            version_iteration_request.upload_flg = 1;
+            version_iteration_request.team_id = teamId;
+        }
+        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+    }
 }

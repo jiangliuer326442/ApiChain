@@ -92,6 +92,10 @@ export const REQUEST_VERSION_ITERATION_QUERY_URL = "/requests/iteration/query";
 
 export const REQUEST_VERSION_ITERATION_EXPORT_URL = "/requests/iteration/export";
 
+export const REQUEST_VERSION_ITERATION_SET_SORT_URL = "/requests/iteration/set_sort";
+
+export const REQUEST_ITERATOR_MOVE_ITERATOR_URL = "/requests/iteration/set_requests_iterator";
+
 export const REQUEST_VERSION_ITERATION_FIND_URL = "/requests/iteration/find";
 
 export const REQUEST_VERSION_ITERATION_PAGE_FOLD_URL = "/requests/iteration/pageByFold";

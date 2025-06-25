@@ -6,12 +6,12 @@ import { DeleteOutlined } from '@ant-design/icons';
 import { langTrans } from '@lang/i18n';
 import {
     addIteratorFolder,
+    delIteratorFolder,
 } from '@act/version_iterator_folders';
 import {
     addProjectFolder,
     delProjectFolder,
 } from '@act/project_folders';
-import { isStringEmpty } from '@rutil/index';
 import { FoldSourceIterator, FoldSourcePrj } from '@conf/global_config';
 
 class FolderSelector extends Component {
@@ -24,19 +24,21 @@ class FolderSelector extends Component {
     }
 
     handleCreateFolder = async () => {
-        if (isStringEmpty(this.props.versionIterator)) {
+        if (this.props.type === "prj") {
+            let prj = this.props.metadata;
             await addProjectFolder(
                 this.props.clientType,
                 this.props.teamId,
-                this.props.prj, 
+                prj, 
                 this.state.folderName, 
                 this.props.device
             );
         } else {
+            let iteratorId = this.props.metadata.split("$$")[0];
             await addIteratorFolder(
                 this.props.clientType,
                 this.props.teamId,
-                this.props.versionIterator, 
+                iteratorId, 
                 "", 
                 this.state.folderName, 
                 this.props.device
@@ -57,21 +59,28 @@ class FolderSelector extends Component {
                     this.props.setValue(value)
                 } }
                 optionRender={(option) => (
-                    <div>
-                        <span>{option.label} </span>
-                        <DeleteOutlined
-                        onClick={async (e) => {
-                            e.stopPropagation();
-                            if (isStringEmpty(this.props.versionIterator)) {
-                                let folder = option.value.substring(FoldSourcePrj.length);
-                                await delProjectFolder(this.props.clientType, this.props.teamId, this.props.prj, folder)
-                            } else {
-
-                            }
-                            this.props.refreshFolders()
-                        }}
-                        />
-                    </div>
+                        <div>
+                            <span>{option.label} </span>
+                        {option.value === FoldSourcePrj || option.value === FoldSourceIterator ? null : 
+                            <DeleteOutlined
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (this.props.type === "prj") {
+                                        let prj = this.props.metadata;
+                                        let folder = option.value.substring(FoldSourcePrj.length);
+                                        await delProjectFolder(this.props.clientType, this.props.teamId, prj, folder)
+                                    } else if (this.props.type === "iterator") {
+                                        let iteratorId = this.props.metadata.split("$$")[0];
+                                        let prj = this.props.metadata.split("$$")[1];
+                                        let folder = option.value.substring(FoldSourceIterator.length);
+                                        console.log("delIteratorFolder", iteratorId, prj, folder)
+                                        await delIteratorFolder(this.props.clientType, this.props.teamId, iteratorId, prj, folder);
+                                    }
+                                    this.props.refreshFolders()
+                                }}
+                            />
+                        }
+                        </div>
                 )}
                 dropdownRender={(menu) => (
                     <>

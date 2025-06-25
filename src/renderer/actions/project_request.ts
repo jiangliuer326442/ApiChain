@@ -230,7 +230,6 @@ export async function setProjectRequestSort(clientType : string, teamId : string
         return;
     }
     project_request[project_request_sort] = sort;
-
     if (clientType === CLIENT_TYPE_SINGLE) {
         project_request.upload_flg = 0;
         project_request.team_id = "";
@@ -238,7 +237,6 @@ export async function setProjectRequestSort(clientType : string, teamId : string
         project_request.upload_flg = 1;
         project_request.team_id = teamId;
     }
-
     await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
 
     let project_requests = await window.db[TABLE_PROJECT_REQUEST_NAME]

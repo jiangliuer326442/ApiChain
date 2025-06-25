@@ -86,11 +86,7 @@ class RequestListVersion extends Component {
         if (newIteratorId !== oldIteratorId) {
             this.state.iteratorId = newIteratorId;
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
-            let allFoldersRet = await allFolders(this.props.clientType, this.state.iteratorId);
-            this.setState( { 
-                allFolders: allFoldersRet,
-                versionIteration,
-            } );
+            this.setState( {  versionIteration,} );
             this.props.dispatch({
                 type: GET_ITERATOR,
                 iterator: newIteratorId,
@@ -102,12 +98,7 @@ class RequestListVersion extends Component {
 
     async componentDidMount() {
         let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
-        let allFoldersRet = await allFolders(this.props.clientType, this.state.iteratorId);
-        this.setState( { 
-            allFolders: allFoldersRet,
-            versionIteration, 
-            formReadyFlg : true 
-        } )
+        this.setState( {  versionIteration, formReadyFlg : true } )
         this.props.dispatch({
             type: GET_ITERATOR,
             iterator: this.state.iteratorId,
@@ -121,9 +112,11 @@ class RequestListVersion extends Component {
         let uri = values?.uri;
         let prj = values?.prj;
         let folder = values?.folder;
+        let allFoldersRet = await allFolders(this.props.clientType, this.state.iteratorId);
         if (isStringEmpty(uri) && isStringEmpty(title) && isStringEmpty(prj) && isStringEmpty(folder)) {
             let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, null, null, null, null);
             this.setState({
+                allFolders: allFoldersRet,
                 folders,
                 filterTitle: "",
                 filterUri: "",
@@ -147,6 +140,7 @@ class RequestListVersion extends Component {
         let folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, title, uri, prj, folder);
         this.setState({
             folders,
+            allFolders: allFoldersRet,
             filterTitle: title,
             filterUri: uri,
             filterPrj: prj,
@@ -238,23 +232,6 @@ class RequestListVersion extends Component {
                                 theme={{
                                     components: {
                                     Button: {
-                                        colorPrimary: `linear-gradient(90deg,  ${colorsAddRequestApi.join(', ')})`,
-                                        colorPrimaryHover: `linear-gradient(90deg, ${getHoverColors(colorsAddRequestApi).join(', ')})`,
-                                        colorPrimaryActive: `linear-gradient(90deg, ${getActiveColors(colorsAddRequestApi).join(', ')})`,
-                                        lineWidth: 0,
-                                    },
-                                    },
-                                }}
-                                >
-                                <Button type="primary" href={'#/interator_add_request/' + this.state.iteratorId} size="large">
-                                    {langTrans("version doc btn2")}
-                                </Button>
-                            </ConfigProvider>
-
-                            <ConfigProvider
-                                theme={{
-                                    components: {
-                                    Button: {
                                         colorPrimary: `linear-gradient(135deg,  ${colorsSendRequestApi.join(', ')})`,
                                         colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(colorsSendRequestApi).join(', ')})`,
                                         colorPrimaryActive: `linear-gradient(135deg, ${getActiveColors(colorsSendRequestApi).join(', ')})`,
@@ -271,7 +248,9 @@ class RequestListVersion extends Component {
                         </Flex>
                         : null}
                     </Flex>
-                    {this.state.versionIteration[version_iterator_prjs].map(prj => (
+                    {this.state.versionIteration[version_iterator_prjs]
+                    .filter(prj => isStringEmpty(this.state.filterPrj) || this.state.filterPrj === prj)
+                    .map(prj => (
                         (this.props.prjs.length > 0 && this.props.prjs.find(row => row.value === prj) ? 
                             <div key={prj}>
                                 <Divider orientation="left">

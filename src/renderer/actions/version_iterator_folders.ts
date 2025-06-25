@@ -15,7 +15,7 @@ import {
 import {
     FoldSourceIterator
 } from '@conf/global_config';
-import { isStringEmpty } from '@rutil/index';
+import { isStringEmpty, mixedSort } from '@rutil/index';
 import { sendTeamMessage } from '@act/message'
 
 let version_iteration_folder_uuid = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_ITERATOR_UUID;
@@ -32,50 +32,58 @@ let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 let iteration_request_fold = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_FOLD;
+export async function delIteratorFolder(
+    clientType : string, 
+    teamId : string, 
+    iteratorId : string, 
+    project : string, 
+    fold : string
+) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(FOLDERS_ITERATOR_DEL_URL, {iteratorId, prj: project, fold});
+    }
 
-let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
-let project_request_project = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
-let project_request_fold = TABLE_PROJECT_REQUEST_FIELDS.FIELD_FOLD;
+    let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+    .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
+    .equals([ 0, iteratorId ])
+    .filter(row => (row[iteration_request_project] === project && row[iteration_request_fold] === fold))
+    .toArray();
 
-export async function delFolder(version_iterator : string, project : string, fold : string, cb) {
-    window.db.transaction('rw',
-    window.db[TABLE_VERSION_ITERATION_FOLD_NAME],
-    window.db[TABLE_VERSION_ITERATION_REQUEST_NAME],
-    window.db[TABLE_PROJECT_REQUEST_NAME], async () => {
-        
-        if (isStringEmpty(version_iterator)) {
-            let project_requests = await window.db[TABLE_PROJECT_REQUEST_NAME]
-            .where([ project_request_delFlg, project_request_project ])
-            .equals([ 0, project ])
-            .filter(row => (row[project_request_fold] === fold))
-            .toArray();
-    
-            for(let project_request of project_requests) {
-                project_request[project_request_fold] = "";
-                await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
-            }
+    for(let version_iteration_request of version_iteration_requests) {
+        version_iteration_request[iteration_request_fold] = "";
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            version_iteration_request.upload_flg = 0;
+            version_iteration_request.team_id = "";
         } else {
-            let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
-            .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
-            .equals([ 0, version_iterator ])
-            .filter(row => (row[iteration_request_project] === project && row[iteration_request_fold] === fold))
-            .toArray();
-    
-            for(let version_iteration_request of version_iteration_requests) {
-                version_iteration_request[iteration_request_fold] = "";
-                await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
-            }
+            version_iteration_request.upload_flg = 1;
+            version_iteration_request.team_id = teamId;
         }
+        await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
+    }
 
-        let selectedFold = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
-            .where([version_iteration_folder_uuid, version_iteration_folder_project, version_iteration_folder_name])
-            .equals([version_iterator, project, fold])
-            .first();
-        selectedFold[version_iteration_folder_delFlg] = 1;
-        await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(selectedFold)
-    
-        cb();
-    });
+    let selectedFold = await window.db[TABLE_VERSION_ITERATION_FOLD_NAME]
+        .where([version_iteration_folder_uuid, version_iteration_folder_project, version_iteration_folder_name])
+        .equals([iteratorId, "", fold])
+        .filter(row => {
+            if (row[version_iteration_folder_delFlg] === 1) {
+                return false;
+            }
+            return true;
+        })
+        .reverse()
+        .first();
+    if (selectedFold === undefined) {
+        return;
+    }
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        selectedFold.upload_flg = 0;
+        selectedFold.team_id = "";
+    } else {
+        selectedFold.upload_flg = 1;
+        selectedFold.team_id = teamId;
+    }
+    selectedFold[version_iteration_folder_delFlg] = 1;
+    await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(selectedFold)
 }
 
 export async function allFolders(clientType : string, iterator : string) {
@@ -93,6 +101,7 @@ export async function allFolders(clientType : string, iterator : string) {
         label: "/" + item,
         value: FoldSourceIterator + item
     }));
+    mixedSort(result, "label");
     return result
 }
 
