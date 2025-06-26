@@ -154,6 +154,9 @@ export async function getIteratorFolders(
         .where([version_iteration_folder_delFlg, version_iteration_folder_uuid])
         .equals([0, version_iterator])
         .toArray();
+        let emptyFoldItem : any = {};
+        emptyFoldItem[version_iteration_folder_name] = "";
+        version_iteration_folders.push(emptyFoldItem);
 
         for (let _prj in filterFolders) {
             let filterFoldersSet = filterFolders[_prj];

@@ -165,8 +165,8 @@ class RequestSaveContainer extends Component {
                 cname: record[UNAME],
                 ctime: record[project_request_ctime],
             });
-        } else {
-            let folders = await getIteratorFolders(this.props.clientType, this.state.versionIterator, this.state.prj);
+        } else if (this.state.type === "iterator") {
+            let folders = await getIteratorFolders(this.props.clientType, this.state.versionIterator, null, null, null, null);
             let versionIterationName = (await getVersionIterators(this.props.clientType)).get(this.state.versionIterator);
             let record = await getVersionIteratorRequest(
                 this.props.clientType, 
@@ -195,7 +195,7 @@ class RequestSaveContainer extends Component {
                 responseDemo: record[iteration_response_demo],
                 cname: record[UNAME],
                 ctime: record[iteration_request_iteration_ctime],
-                isExportDoc: record[iteration_response_export_docFlg] ? true : false,
+                isExportDoc: (record[iteration_response_export_docFlg] || record[iteration_response_export_docFlg] === undefined) ? true : false,
                 versionIterationName
             });
         }

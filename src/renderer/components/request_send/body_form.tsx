@@ -8,6 +8,8 @@ import {
 
 import { isStringEmpty, removeWithoutGap, isJsonString, getType } from "@rutil/index";
 
+import CommonHeader from '@comp/request_send/common_header';
+import BulkEditBox from '@comp/request_send/bulk_edit_box';
 import {
     CONTENT_TYPE_JSON, CONTENT_TYPE_FORMDATA, 
 } from '@conf/contentType';
@@ -80,37 +82,6 @@ class RequestSendBody extends Component {
         }
         return data;
     }
-
-    triggerBulkEdit = () => {
-        let bulkStr = "";
-        if (!this.state.buckEditFlg) {
-            for (let _bodyKey in this.state.requestBodyData) {
-                let _bodyVal = this.state.requestBodyData[_bodyKey];
-                bulkStr += _bodyKey + ": " + _bodyVal + "\n";
-            }
-        }
-        this.setState({buckEditFlg: !this.state.buckEditFlg, bulkStr});
-    };
-
-    handleBulkEditChange = (e) => { 
-        let content = e.target.value;
-        let newRequestBodyData : any = {};
-        for (const row of content.split("\n")) {
-            if (row.indexOf(":") < 0) {
-                continue;
-            }
-            let [_bodyKey, _bodyVal] = row.split(":");
-            newRequestBodyData[_bodyKey.trim()] = _bodyVal.trim();
-        }
-        this.state.requestBodyData = newRequestBodyData;
-        let ret = this.buildList();
-
-        this.setState({
-            bulkStr: content,
-            rows : ret[0],
-            data : ret[1],
-        });
-    };
 
     calculateFormBodyData = (requestBodyData, requestFileData) => {
         if (this.state.contentType === CONTENT_TYPE_JSON) {
@@ -330,31 +301,25 @@ class RequestSendBody extends Component {
             </Flex>)
         : 
             (<Flex vertical gap="small">
-                <Flex>
-                    <Flex><div style={{width: 20}}></div></Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field1")}</Flex>
-                    <Flex flex={1} style={{paddingLeft: 150}}>{langTrans("request field2")}</Flex>
-                    <Flex>
-                        <div style={{width: 130}}>
-                            <Button 
-                                type='link' 
-                                onClick={this.triggerBulkEdit}>
-                                    {this.state.buckEditFlg ? langTrans("request single edit") : langTrans("request bulk edit")}
-                            </Button>
-                        </div>
-                    </Flex>
-                </Flex>
-        {this.state.buckEditFlg ? 
-                <Flex>
-                    <TextArea
-                        placeholder={langTrans("request bulk edit tips")}
-                        value={ this.state.bulkStr }
-                        onChange={ this.handleBulkEditChange }
-                        autoSize={{ minRows: 10 }}
+                <CommonHeader 
+                    data={this.state.requestBodyData}
+                    buckEditFlg={this.state.buckEditFlg} 
+                    cb={(buckEditFlg, bulkStr) => this.setState({buckEditFlg, bulkStr})} />
+                <BulkEditBox 
+                    content={this.state.bulkStr}
+                    buckEditFlg={this.state.buckEditFlg}
+                    cb={(content, data) => {
+                        this.state.requestBodyData = data;
+                        let ret = this.buildList();
+
+                        this.setState({
+                            bulkStr: content,
+                            rows : ret[0],
+                            data : ret[1],
+                        });
+                    }}
                     />
-                </Flex>
-        :
-            (Array.from({ length: this.state.rows+1 }, (_, i) => (
+            {!this.state.buckEditFlg && Array.from({ length: this.state.rows+1 }, (_, i) => (
                 <Flex key={i}>
                     <Flex>
                         <Button 
@@ -418,8 +383,7 @@ class RequestSendBody extends Component {
                     : null}
                     </Flex>
                 </Flex>
-            )))
-        }
+            ))}
             </Flex>)
     }
 

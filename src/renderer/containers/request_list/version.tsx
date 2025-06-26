@@ -220,7 +220,7 @@ class RequestListVersion extends Component {
                             children: getdayjs(this.state.versionIteration[version_iterator_ctime]).format("YYYY-MM-DD"),
                         },
                         ] } />
-                    <Flex justify="flex-start" align="center" gap="middle">
+                    <Flex justify="flex-start" align="center" style={{marginTop: 20}} gap="middle">
                         <Form 
                             layout="inline"
                             onFinish={ this.onFinish } 
@@ -332,14 +332,14 @@ class RequestListVersion extends Component {
                             shape="square"
                             onClick={() => window.electron.ipcRenderer.sendMessage(
                                 ChannelsMarkdownStr, ChannelsMarkdownSaveHtmlStr, 
-                                this.state.iteratorId, this.state.requests, this.state.prjs, this.state.envs, this.state.envVars)} 
+                                this.state.versionIteration, this.state.requests, this.state.prjs, this.state.envs, this.state.envVars)} 
                         />
                         <FloatButton 
                             icon={<FileMarkdownOutlined />} 
                             description="md"
                             shape="square"
                             onClick={ () => window.electron.ipcRenderer.sendMessage(ChannelsMarkdownStr, ChannelsMarkdownSaveMarkdownStr, 
-                                this.state.iteratorId, this.state.requests, this.state.prjs, this.state.envs, this.state.envVars) } 
+                                this.state.versionIteration, this.state.requests, this.state.prjs, this.state.envs, this.state.envVars) } 
                         />
                     </FloatButton.Group>
                 </Content>

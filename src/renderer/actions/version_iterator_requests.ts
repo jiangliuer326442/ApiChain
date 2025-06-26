@@ -16,7 +16,7 @@ import {
     REQUEST_VERSION_ITERATION_PAGE_FOLD_URL,
     REQUEST_VERSION_ITERATION_FIND_URL,
 } from '@conf/team';
-import { isStringEmpty } from '@rutil/index';
+import { isStringEmpty, mixedSort } from '@rutil/index';
 import { sendTeamMessage } from '@act/message';
 import { getProjectRequests } from '@act/project_request';
 import { getUsers } from '@act/user';
@@ -312,8 +312,19 @@ export async function getFolderIteratorRequests(
             })
             .offset(offset)
             .limit(pageSize)
-            .reverse()
             .toArray();
+        mixedSort(datas, iteration_request_title);
+        datas = datas.sort((a, b) => {
+            let asort = 0;
+            if (!Number.isNaN(a[iteration_request_sort])) {
+                asort = Number(a[iteration_request_sort]);
+            }
+            let bsort = 0;
+            if (!Number.isNaN(b[iteration_request_sort])) {
+                bsort = Number(b[iteration_request_sort]);
+            }
+            return asort - bsort;
+        });
     } else {
         let result = await sendTeamMessage(REQUEST_VERSION_ITERATION_PAGE_FOLD_URL, Object.assign({}, pagination, {iterator, prj, fold, title, uri}));
         let count = result.count;
@@ -547,8 +558,11 @@ export async function setVersionIterationRequestSort(
     await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
     let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
     .where([ iteration_request_delFlg, iteration_request_iteration_uuid, iteration_request_fold ])
-    .equals([ 0, iteratorId, project, version_iteration_request[iteration_request_fold] ])
+    .equals([ 0, iteratorId, version_iteration_request[iteration_request_fold] ])
     .filter(row => {
+        if (row[iteration_request_project] !== project) {
+            return false;
+        }
         if (row[iteration_request_method] === method && row[iteration_request_uri] === uri) {
             return false;
         }

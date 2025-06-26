@@ -191,6 +191,8 @@ class RequestSendContainer extends Component {
     let pathKey = this.props.match.path.split('/')[1];
     let method = this.state.requestMethod;
     let showFlg = true;
+    let requestEnable = true;
+    let state = {};
 
     if (pathKey === 'internet_request_send_by_history') {
       let type = "project";
@@ -207,8 +209,7 @@ class RequestSendContainer extends Component {
 
       let headerData = record[request_history_head];
       let contentType = headerData[CONTENT_TYPE];
-      this.setState({
-        showFlg,
+      state = {
         type,
         iteratorId,
         requestMethod: method,
@@ -228,7 +229,7 @@ class RequestSendContainer extends Component {
         requestFileData: record[request_history_file],
         requestPathVariableData: record[request_history_path_variable],
         requestParamData: record[request_history_param],
-      });
+      };
     } else if (pathKey === 'internet_request_send_by_api') {
       let body = {};
       let header : any = {};
@@ -262,19 +263,21 @@ class RequestSendContainer extends Component {
       let requestPathVariableData = cleanJson(requestPathVariable);
       let requestFileData = file;
       let contentType = requestHeadData[CONTENT_TYPE];
-      this.setState({
-        requestEnable: true,
-        showFlg,
+      state = {
         contentType,
         requestHeadData,
         requestBodyData,
         requestFileData,
         requestParamData,
         requestPathVariableData,
-      });
+      };
     }
 
     this.setRequestMethod(method);
+    this.setState(Object.assign({}, state, {
+      requestEnable,
+      showFlg,
+    }));
   }
 
   setRequestMethod = (value: string) => {

@@ -213,12 +213,14 @@ export default function (mainWindow : BrowserWindow){
         let iterationTitle = versionIteration[version_iterator_title];
 
         let filePath = dialog.showSaveDialogSync({
-            title: "保存迭代文档到 html",
+            title: langTrans("doc save method1"),
             defaultPath: app.getPath("desktop") + "/" + iterationTitle + ".html",
             filters: [
-                { name: "html 文件", extensions: ["html"] }
+                { name: langTrans("doc save filter1"), extensions: ["html"] }
             ]
         });
+
+        if (filePath === undefined) return;
 
         let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs, envs, envVars);
 
@@ -238,7 +240,7 @@ export default function (mainWindow : BrowserWindow){
 
         fs.writeFile(filePath, html, err => {
             if (err != null) {
-                log.error("保存文件到 html 失败", err);
+                log.error(langTrans("doc save failure1"), err);
             }
         });
     });
@@ -249,17 +251,19 @@ export default function (mainWindow : BrowserWindow){
         let iterationTitle = versionIteration[version_iterator_title];
 
         let filePath = dialog.showSaveDialogSync({
-            title: "保存迭代文档到 markdown",
+            title: langTrans("doc save method2"),
             defaultPath: app.getPath("desktop") + "/" + iterationTitle + ".md",
             filters: [
-                { name: "markdown 文件", extensions: ["md"] }
+                { name: langTrans("doc save filter2"), extensions: ["md"] }
             ]
         });
+
+        if (filePath === undefined) return;
 
         let markdownContent = getMarkDownContent(versionIteration, version_iteration_requests, prjs, envs, envVars);
         fs.writeFile(filePath, markdownContent, err => {
             if (err != null) {
-                log.error("保存文件到 markdown 失败", err);
+                log.error(langTrans("doc save failure2"), err);
             }
         });
     });

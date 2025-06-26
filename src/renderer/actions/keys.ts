@@ -97,7 +97,7 @@ export async function getProjectKeys(clientType : string, project : string) : Pr
         .toArray();  
         mixedSort(globalArrays1, env_key_pname);
         let sets4 = new Set<String>(globalArrays1.map(item => ( item[env_key_pname])));
-        datas = [...new Set(...sets3, ...sets4)]
+        datas = [...new Set([...sets3, ...sets4])]
     } else {
         datas = await sendTeamMessage(ENV_VARS_PROJECT_KEYS_URL, {project});
     }
@@ -118,6 +118,7 @@ export async function getIteratorKeys(clientType : string, iterator : string, pr
             return true;
         })
         .toArray(); 
+
         mixedSort(iteratorArrays1, env_var_pname);
         let sets1 = new Set<string>(iteratorArrays1.map(item => ( item[env_key_pname])));
 
@@ -135,7 +136,7 @@ export async function getIteratorKeys(clientType : string, iterator : string, pr
         let sets2 = new Set<string>(iteratorArrays2.map(item => ( item[env_key_pname])));
 
         let sets3 = await getProjectKeys(clientType, project)
-        datas = [...union(sets1, sets2, new Set<string>(...sets3))]
+        datas = [...union(sets1, sets2, new Set<string>([...sets3]))]
     } else {
         datas = await sendTeamMessage(ENV_VARS_ITERATOR_KEYS_URL, {iterator, project});
     }

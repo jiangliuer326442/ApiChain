@@ -6,8 +6,7 @@ import {
     PROJECT_LIST_ROUTE,
     ENV_LIST_ROUTE,
 } from "@conf/routers";
-import { 
-    TABLE_MICRO_SERVICE_FIELDS,
+import {
     TABLE_VERSION_ITERATION_FIELDS,
 } from '@conf/db';
 import { getEnvs } from '@act/env';
@@ -15,12 +14,7 @@ import { getVersionIterators, getRemoteVersionIterator } from "@act/version_iter
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 
-let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
-let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 class PrjEnvSelect extends Component {
 
@@ -29,23 +23,37 @@ class PrjEnvSelect extends Component {
         this.state = {
           prj: props.prj,
           env: props.env,
-          iteratorId: props.iteratorId,
-          versionIteration: {},
           versionIterators: new Map<string, string>(),
+          prjOptions: [],
         }
     }
 
-    componentDidMount(): void {
+    async componentDidMount() {
         if(this.props.envs.length === 0) {
           getEnvs(this.props.clientType, this.props.dispatch);
         }
-        if (!isStringEmpty(this.state.prj)) {
-            this.props.cb(this.state.prj, this.state.env);
+        let prjOptions;
+        if (!isStringEmpty(this.props.iteratorId)) {
+            let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.props.iteratorId);
+            prjOptions = versionIteration[version_iterator_prjs].map(item => {
+                let label = this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : "";
+                return {value: item + "$$" + label, label }
+            })
+        } else {
+            prjOptions = this.props.prjs.map(item => {
+                return {value: item.value + "$$" + item.label , label: item.label}
+            });
         }
-        if (!isStringEmpty(this.state.iteratorId)) {
-            getRemoteVersionIterator(this.props.clientType, this.state.iteratorId).then(versionIteration => this.setState( { versionIteration } ));
+        let prj = this.state.prj;
+        if (!prjOptions.find(item => item.value.startsWith(prj + "$$"))) {
+            prj = prjOptions[0].value.split("$$")[0];
         }
-        getVersionIterators(this.props.clientType).then(iterators => this.setState({versionIterators: iterators}))
+        
+        if (!isStringEmpty(prj)) {
+            this.props.cb(prj, this.state.env);
+        }
+        let versionIterators = await getVersionIterators(this.props.clientType);
+        this.setState({versionIterators, prjOptions, prj})
     }
 
     setProjectChange = (rawValue: string) => {
@@ -68,18 +76,9 @@ class PrjEnvSelect extends Component {
     }
 
     render() : ReactNode {
-        let prjOptions = this.state.versionIteration[version_iterator_prjs] ? 
-            this.state.versionIteration[version_iterator_prjs].map(item => {
-                let label = this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : "";
-                return {value: item + "$$" + label, label }
-            }) : 
-            this.props.prjs.map(item => {
-                return {value: item.value + "$$" + item.label , label: item.label}
-            });
-        let selectedPrj = isStringEmpty(this.state.prj) ? "" : prjOptions.find(item => item.value.startsWith(`${this.state.prj}$$`))?.value ?? "";
         return (
             <Form layout="inline">
-                {!isStringEmpty(this.state.iteratorId) ? 
+                {!isStringEmpty(this.props.iteratorId) ? 
                 <Form.Item label={langTrans("request select1")}>
                     { this.state.versionIterators.get(this.state.iteratorId, "") }
                 </Form.Item>
@@ -89,26 +88,26 @@ class PrjEnvSelect extends Component {
                     <Select
                         showSearch
                         allowClear
-                        value={ selectedPrj }
+                        value={ this.state.prj }
                         onChange={this.setProjectChange}
                         style={{ width: 170 }}
-                        options={ prjOptions }
+                        options={ this.state.prjOptions }
                     />
                     : 
                     <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>{langTrans("prj add")}</Button>
                     }
                 </Form.Item>
                 <Form.Item label={langTrans("request select3")}>
-                    {this.props.envs.length > 0 ?
+                {this.props.envs.length > 0 ?
                     <Select
                     value={ this.state.env }
                     onChange={this.setEnvironmentChange}
                     style={{ width: 120 }}
                     options={this.props.envs}
                     />
-                    :
+                :
                     <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("env add")}</Button>
-                    }
+                }
                 </Form.Item>
             </Form>
         );

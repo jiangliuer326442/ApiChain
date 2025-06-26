@@ -3,6 +3,8 @@ import { cloneDeep } from 'lodash';
 import { Input, Flex, Button, AutoComplete } from "antd";
 import { DeleteOutlined } from '@ant-design/icons';
 
+import CommonHeader from '@comp/request_send/common_header';
+import BulkEditBox from '@comp/request_send/bulk_edit_box';
 import { isStringEmpty, removeWithoutGap, getType } from "@rutil/index";
 import { langTrans } from '@lang/i18n';
 
@@ -12,13 +14,20 @@ export default class extends Component {
         super(props);
         this.state = {
             requestUri: props.requestUri,
+            requestPathVariableData: props.obj,
+            bulkStr: "",
+            buckEditFlg: false,
         };
-        let list = this.calculatePathVariableData(props.obj);
-        this.state = {
-            rows: list.length,
-            data: list,
-            requestUri: props.requestUri,
-        };
+        let ret = this.buildList();
+        Object.assign(this.state, this.state, {
+            rows : ret[0],
+            data : ret[1],
+        })
+    }
+
+    buildList = () => {
+        let list = this.calculatePathVariableData(this.state.requestPathVariableData);
+        return [list.length, list];
     }
 
     calculatePathVariableData = (requestPathVariableData) => {
@@ -119,6 +128,7 @@ export default class extends Component {
         } else {
             let row = this.state.data[i];
             row.value = value;
+            this.state.requestPathVariableData[row.key] = row.value;
             this.setRequestPathVariableData(this.state.data);
         }
     }
@@ -157,12 +167,25 @@ export default class extends Component {
     render() : ReactNode {
         return (
             <Flex vertical gap="small">
-                <Flex>
-                    <Flex><div style={{width: 20}}></div></Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field1")}</Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field2")}</Flex>
-                </Flex>
-                {Array.from({ length: this.state.rows+1 }, (_, i) => (
+                <CommonHeader 
+                    data={this.state.requestPathVariableData}
+                    buckEditFlg={this.state.buckEditFlg} 
+                    cb={(buckEditFlg, bulkStr) => this.setState({buckEditFlg, bulkStr})} />
+                <BulkEditBox 
+                    content={this.state.bulkStr}
+                    buckEditFlg={this.state.buckEditFlg}
+                    cb={(content, data) => {
+                        this.state.requestPathVariableData = data;
+                        let ret = this.buildList();
+
+                        this.setState({
+                            bulkStr: content,
+                            rows : ret[0],
+                            data : ret[1],
+                        });
+                    }}
+                    />
+                {!this.state.buckEditFlg && Array.from({ length: this.state.rows+1 }, (_, i) => (
                     <Flex key={i}>
                         <Flex>
                             <Button 

@@ -4,6 +4,8 @@ import { cloneDeep } from 'lodash';
 import { Input, Flex, Button, AutoComplete } from "antd";
 import { DeleteOutlined } from '@ant-design/icons';
 
+import CommonHeader from '@comp/request_send/common_header';
+import BulkEditBox from '@comp/request_send/bulk_edit_box';
 import { isStringEmpty, removeWithoutGap, getType } from "@rutil/index";
 import { langTrans } from '@lang/i18n';
 
@@ -11,11 +13,21 @@ class RequestSendParam extends Component {
 
     constructor(props) {
         super(props);
-        let list = this.calculateFormParamsData(props.obj);
         this.state = {
-            rows: list.length,
-            data: list,
-        };
+            requestParamData: props.obj,
+            bulkStr: "",
+            buckEditFlg: false,
+        }
+        let ret = this.buildList();
+        Object.assign(this.state, this.state, {
+            rows : ret[0],
+            data : ret[1],
+        })
+    }
+
+    buildList = () => {
+        let list = this.calculateFormParamsData(this.state.requestParamData);
+        return [list.length, list];
     }
 
     calculateFormParamsData = (requestParamsData) => {
@@ -77,6 +89,7 @@ class RequestSendParam extends Component {
         } else {
             let row = this.state.data[i];
             row.value = value;
+            this.state.requestParamData[row.key] = row.value;
             this.setRequestParamData(this.state.data);
         }
     }
@@ -115,12 +128,25 @@ class RequestSendParam extends Component {
     render() : ReactNode {
         return (
             <Flex vertical gap="small">
-                <Flex>
-                    <Flex><div style={{width: 20}}></div></Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field1")}</Flex>
-                    <Flex flex={1} style={{paddingLeft: 20}}>{langTrans("request field2")}</Flex>
-                </Flex>
-                {Array.from({ length: this.state.rows+1 }, (_, i) => (
+                <CommonHeader 
+                    data={this.state.requestParamData}
+                    buckEditFlg={this.state.buckEditFlg} 
+                    cb={(buckEditFlg, bulkStr) => this.setState({buckEditFlg, bulkStr})} />
+                <BulkEditBox 
+                    content={this.state.bulkStr}
+                    buckEditFlg={this.state.buckEditFlg}
+                    cb={(content, data) => {
+                        this.state.requestParamData = data;
+                        let ret = this.buildList();
+
+                        this.setState({
+                            bulkStr: content,
+                            rows : ret[0],
+                            data : ret[1],
+                        });
+                    }}
+                    />
+                {!this.state.buckEditFlg && Array.from({ length: this.state.rows+1 }, (_, i) => (
                     <Flex key={i}>
                         <Flex>
                             <Button 
