@@ -316,9 +316,7 @@ class RequestListVersion extends Component {
                         <Divider>{langTrans("version doc md title")}</Divider>
                     </Flex>
                     <MarkdownView 
-                        showNav={ true } 
                         content={ this.state.versionIteration[version_iterator_content] } 
-                        width={ 630 }
                         />
                     <FloatButton.Group
                         trigger="click"

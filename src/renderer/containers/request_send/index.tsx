@@ -563,13 +563,13 @@ class RequestSendContainer extends Component {
               <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("request bread1") }, { title: langTrans("request bread2") }]} />
               <Flex vertical gap="middle">
                 <Flex justify="space-between" align="center">
-                  {this.state.showFlg ? 
+                {this.state.showFlg ? 
                   <SelectPrjEnvComponent 
                     iteratorId={this.state.iteratorId} 
                     prj={ this.state.prj ? this.state.prj : this.props.prj } 
                     env={ this.state.env ? this.state.env : this.props.env } 
                     cb={this.getEnvValueData} />
-                  : null}
+                : null}
                   <Button 
                       type="primary" 
                       disabled={this.state.id === 0}

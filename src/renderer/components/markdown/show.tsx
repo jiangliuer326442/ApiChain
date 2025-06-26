@@ -4,15 +4,8 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import MarkNav from 'markdown-navbar';          // markdown 目录
 import 'github-markdown-css/github-markdown-dark.css';
-import 'markdown-navbar/dist/navbar.css';
-
-import { DOC_ITERATOR } from '@conf/storage';
-
 import Markdown from 'react-markdown';
-
-import "./less/show.less";
 
 export default class extends Component {
 
@@ -44,23 +37,7 @@ export default class extends Component {
         return (
             <Flex className='ReackMarkerContainer' gap={"middle"}>
                 <Flex>
-                    <div style={{ display: !this.props.showNav ? "none" : "block" }} className="ReackMarkerLeftSide">
-                        <MarkNav
-                            className="toc-list"
-                            source={ this.state.content }
-                            ordered={ true }
-                            updateHashAuto={ false }
-                            onNavItemClick={(event, element, hash) => {
-                                let iteratorId = sessionStorage.getItem(DOC_ITERATOR);
-                                setTimeout(() => {
-                                    window.location.href = "#/version_iterator_doc/" + iteratorId + "#" + hash;
-                                }, 800);
-                            }}
-                        />
-                    </div>
-                </Flex>
-                <Flex>
-                    <div className="ReackMarkerContent" style={{ width: this.props.width === undefined ? 750 : this.props.width}}>
+                    <div className="ReackMarkerContent" style={{ width: 920 }}>
                         <Markdown 
                             remarkPlugins={[remarkGfm]}
                             rehypePlugins={[rehypeRaw]}
