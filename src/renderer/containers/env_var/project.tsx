@@ -290,7 +290,7 @@ class EnvVar extends Component {
                 this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
               }}  />
             </Flex>
-            <Table 
+            <Table style={{marginTop: 25}}
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
               dataSource={this.state.listDatas} 
               rowKey={(record) => record[pname]}

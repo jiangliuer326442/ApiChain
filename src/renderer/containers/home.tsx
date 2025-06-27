@@ -35,10 +35,8 @@ import { IS_AUTO_UPGRADE } from '@conf/storage';
 import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
-  ChannelsAutoUpgradeNewVersionStr,
   ChannelsVipStr,
   ChannelsVipCloseCkCodeStr,
-  ChannelsAutoUpgradeDownloadStr,
 } from '@conf/channel';
 import {
   TABLE_VERSION_ITERATION_REQUEST_NAME,
@@ -89,6 +87,7 @@ let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 
 let argsObject = getStartParams();
+console.log("home argsObject", argsObject)
 let uuid = argsObject.uuid;
 
 class Home extends Component {
@@ -200,24 +199,6 @@ class Home extends Component {
   }
 
   updateOnLoad = () => {
-    window.electron.ipcRenderer.on(ChannelsAutoUpgradeStr, (action, newVersion) => {
-      if (action !== ChannelsAutoUpgradeNewVersionStr) {
-        return;
-      }
-      let items = newVersion.releaseNotes.split("\\n");
-      notification.open({
-        message: '版本 ' + newVersion.version + ' 已发布，是否更新？',
-        description:(<Card title={ "发现新版本" } style={{ width: 300 }}>
-          {items.map((item, index) => (
-            <p key={index}>{item}</p >
-          ))}
-        </Card>),
-        btn: this.renderBtn(),
-        key: 'newVersion',
-        duration: 0,
-      });
-    });
-
     //前端通知服务端进行版本更新检查
     if (this.state.checkAutoUpgrade == 1) {
       this.checkForUpgrade();
@@ -232,11 +213,6 @@ class Home extends Component {
 
   checkForUpgrade = () => {
     window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
-  }
-
-  handleAutoUpdate = () => {
-    window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeDownloadStr);
-    notification.destroy();
   }
 
   handleSearchProject = originPrj => {
@@ -342,19 +318,6 @@ class Home extends Component {
   }
   this.setState({searchResult: result});
  }
-
-  renderBtn() : ReactNode {
-    return (
-      <Space>
-        <Button type="link" size="small" onClick={() => notification.destroy()}>
-          取消
-        </Button>
-        <Button type="primary" size="small" onClick={this.handleAutoUpdate}>
-          更新
-        </Button>
-      </Space>
-    );
-  }
 
   render() : ReactNode {
     return (

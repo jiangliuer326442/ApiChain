@@ -12,17 +12,21 @@ import {
     TABLE_FIELD_REMARK,
     parseJsonToChildren,
     parseJsonToTable,
-} from '../../util/json';
+} from '@rutil/json';
+
+import { isJsonString } from '@rutil/index';
 
 import { 
     CONTENT_TYPE_JSON,
     CONTENT_TYPE_URLENCODE,
     CONTENT_TYPE_FORMDATA,
-} from '../../../config/contentType';
+} from '@conf/contentType';
 
 import {
-    CONTENT_TYPE
-} from '../../../config/global_config';
+    CONTENT_TYPE,
+    dataTypeSelect,
+    DataTypeJsonObject,
+} from '@conf/global_config';
 import { langTrans } from '@lang/i18n';
 
 class JsonSaveHeaderTableContainer extends Component {
@@ -44,6 +48,15 @@ class JsonSaveHeaderTableContainer extends Component {
                 {
                     title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
+                    render: (dtype : any, row : any) => {
+                        let key = row.key;
+                        return <Select
+                            value={ dtype }
+                            style={{ width: 170 }}
+                            onChange={ value => this.handleSetDataType(key, value) }
+                            options={ dataTypeSelect.map(_v => ({label: langTrans("datatype " + _v), value: _v})) }
+                        />
+                    }
                 },
                 {
                     title: langTrans("network table5"),
@@ -116,6 +129,21 @@ class JsonSaveHeaderTableContainer extends Component {
         if (!this.props.readOnly) {
             parseJsonToTable(this.state.object, this.state.rawJson);
         }
+        this.parseJsonToChildren();
+    }
+
+    handleSetDataType = (key, dataType) => {
+        let obj = this.state.object;
+        if (dataType === DataTypeJsonObject) {
+            let value = obj[key][TABLE_FIELD_VALUE];
+            if (!isJsonString(value)) {
+                message.error("示例数据不符合json规范");
+                return;
+            }
+        }
+        obj[key][TABLE_FIELD_TYPE] = dataType;
+        this.props.cb(this.state.object);
+
         this.parseJsonToChildren();
     }
 

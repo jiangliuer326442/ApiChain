@@ -16,7 +16,7 @@ import { getOpenVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
 
 let argsObject = getStartParams();
-console.log("argsObject", argsObject);
+console.log("containers argsObject", argsObject);
 let userCountry = argsObject.userCountry;
 let userLang = argsObject.userLang;
 let uuid = argsObject.uuid;

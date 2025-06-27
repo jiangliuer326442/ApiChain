@@ -52,6 +52,7 @@ import {
 import {
   getEnvHosts,
   getPrjEnvValues,
+  getIteratorEnvValues,
 } from '@act/env_value';
 import {
   getProjectKeys,
@@ -335,6 +336,7 @@ class RequestSendContainer extends Component {
         this.state.requestMethod, 
         this.state.requestUri
       )
+      envvars = await getIteratorEnvValues(this.state.iteratorId, this.state.prj, this.state.env, this.props.clientType);
     }
 
     let url = this.state.requestHost + this.state.requestUri;

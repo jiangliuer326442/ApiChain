@@ -29,7 +29,7 @@ import {
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
 import { isStringEmpty } from '@rutil/index';
-import { langFormat, langTrans } from '@lang/i18n';
+import { langTrans } from '@lang/i18n';
 
 const { Paragraph, Text, Link } = Typography;
 
@@ -162,6 +162,19 @@ class TeamModel extends Component {
         const tableNames = window.db.tables.map(table => table.name);
     
         for (const tableName of tableNames) {
+            let tables = [
+                'env',
+                'env_vars_241112001',
+                'microservices_keys',
+                'microservices',
+                'project_request',
+                'user',
+                'version_iteration',
+                'version_iteration_request',
+                'version_iteration_folders'
+            ];
+            if (!tables.includes(tableName)) continue;
+
             const table = window.db.table(tableName);
         
             // 获取所有记录

@@ -241,7 +241,7 @@ class EnvVar extends Component {
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar iterator bread1") }, { title: langTrans("envvar iterator bread2") }]} />
             <Flex justify="space-between" align="center" style={{marginBottom: 18}}>
               <Form layout="inline">
-                  <Form.Item label={langTrans("envvar select tip4")}>
+                  <Form.Item label={langTrans("envvar select tip4")} style={{marginBottom: 16}}>
                       <Select
                           allowClear
                           style={{ width: 200 }}

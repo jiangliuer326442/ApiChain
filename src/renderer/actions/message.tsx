@@ -1,5 +1,7 @@
 import IDBExportImport from 'indexeddb-export-import';
 
+import { Button, Card, notification, Space } from 'antd';
+
 import { getStartParams, isStringEmpty } from '@rutil/index';
 import {
     IS_AUTO_UPGRADE,
@@ -14,16 +16,15 @@ import {
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME,
     TABLE_UNITTEST_EXECUTOR_NAME,
 } from '@conf/db';
-import { 
-    ENV_VALUE_API_HOST 
-} from '@conf/envKeys';
 import {
     ChannelsDbLongStr, 
     ChannelsDbExportStr,
     ChannelsDbWriteStr,
     ChannelsDbImportStr,
     ChannelsDbTrunkStr,
+    ChannelsAutoUpgradeStr,
     ChannelsMarkdownLongStr,
+    ChannelsAutoUpgradeDownloadStr,
     ChannelsMarkdownQueryStr,
     ChannelsMarkdownQueryResultStr,
     ChannelsMockServerLongStr,
@@ -33,6 +34,7 @@ import {
     ChannelsAxioBreidgeSendStr, 
     ChannelsAxioBreidgeReplyStr,
     ChannelsAxioTeanSendStr,
+    ChannelsAutoUpgradeNewVersionStr,
     ChannelsAxioTeamReplyStr,
 } from '@conf/channel';
 
@@ -41,9 +43,10 @@ import { getPrjs } from '@act/project';
 import { getEnvs } from '@act/env';
 import { getRemoteVersionIterator } from '@act/version_iterator';
 import { getSimpleVersionIteratorRequests } from '@act/version_iterator_requests';
-import { langTrans } from '@lang/i18n';
+import { langFormat, langTrans } from '@lang/i18n';
 
 let argsObject = getStartParams();
+console.log("messages argsObject", argsObject)
 let clientType = argsObject.clientType;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
@@ -113,6 +116,34 @@ export function sendAjaxMessage(method : string, url : string, headData, postDat
  */
 export default function() : void {
     if('electron' in window) {
+
+        window.electron.ipcRenderer.on(ChannelsAutoUpgradeStr, (action, newVersion) => {
+            if (action !== ChannelsAutoUpgradeNewVersionStr) {
+              return;
+            }
+            let items = newVersion.releaseNotes.split("\\n");
+            notification.open({
+              message: langFormat("upgrade message", {"version": newVersion.version}),
+              description:(<Card title={ langTrans("upgrade title") } style={{ width: 300 }}>
+                {items.map((item, index) => (
+                  <p key={index}>{item}</p >
+                ))}
+              </Card>),
+              btn: <Space>
+                <Button type="link" size="small" onClick={() => notification.destroy()}>
+                    {langTrans("upgrade btn cancel")}
+                </Button>
+                <Button type="primary" size="small" onClick={() => {
+                    window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeDownloadStr);
+                    notification.destroy();
+                }}>
+                    {langTrans("upgrade btn sure")}
+                </Button>
+                </Space>,
+              key: 'newVersion',
+              duration: 0,
+            });
+        });
 
         //备份数据库
         window.electron.ipcRenderer.on(ChannelsDbLongStr, (action, path) => {
