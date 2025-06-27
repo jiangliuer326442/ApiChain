@@ -10,11 +10,12 @@ import {
     TABLE_VERSION_ITERATION_FIELDS,
 } from '@conf/db';
 import { getEnvs } from '@act/env';
-import { getVersionIterators, getRemoteVersionIterator } from "@act/version_iterator";
+import { getRemoteVersionIterator } from "@act/version_iterator";
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
+let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 class PrjEnvSelect extends Component {
 
@@ -23,7 +24,7 @@ class PrjEnvSelect extends Component {
         this.state = {
           prj: props.prj,
           env: props.env,
-          versionIterators: new Map<string, string>(),
+          iteratorName: "",
           prjOptions: [],
         }
     }
@@ -33,12 +34,14 @@ class PrjEnvSelect extends Component {
           getEnvs(this.props.clientType, this.props.dispatch);
         }
         let prjOptions;
+        let iteratorName = "";
         if (!isStringEmpty(this.props.iteratorId)) {
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.props.iteratorId);
             prjOptions = versionIteration[version_iterator_prjs].map(item => {
                 let label = this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : "";
                 return {value: item + "$$" + label, label }
             })
+            iteratorName = versionIteration[version_iterator_title];
         } else {
             prjOptions = this.props.prjs.map(item => {
                 return {value: item.value + "$$" + item.label , label: item.label}
@@ -52,8 +55,7 @@ class PrjEnvSelect extends Component {
         if (!isStringEmpty(prj)) {
             this.props.cb(prj, this.state.env);
         }
-        let versionIterators = await getVersionIterators(this.props.clientType);
-        this.setState({versionIterators, prjOptions, prj})
+        this.setState({iteratorName, prjOptions, prj})
     }
 
     setProjectChange = (rawValue: string) => {
@@ -80,7 +82,7 @@ class PrjEnvSelect extends Component {
             <Form layout="inline">
                 {!isStringEmpty(this.props.iteratorId) ? 
                 <Form.Item label={langTrans("request select1")}>
-                    { this.state.versionIterators.get(this.state.iteratorId, "") }
+                    { this.state.iteratorName }
                 </Form.Item>
                 : null}
                 <Form.Item label={langTrans("request select2")}>

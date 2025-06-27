@@ -133,6 +133,7 @@ class RequestSaveContainer extends Component {
         super(props);
 
         let iteratorId = props.match.params.versionIteratorId;
+        let type = iteratorId ? "iterator" : "project";
 
         this.state = {
             prj : null,
@@ -165,6 +166,7 @@ class RequestSaveContainer extends Component {
             stopFlg : true,
             showFlg : false,
             iteratorId,
+            type,
             prjsSelectector: [],
             selectedFolder: "",
             versionIteratorsSelector: [],
@@ -184,7 +186,7 @@ class RequestSaveContainer extends Component {
             prjs = await getPrjs(this.props.clientType, this.props.dispatch);
         }
         let prjsSelectector = [];
-        if (!isStringEmpty(this.state.iteratorId)) {
+        if (this.state.type === "iterator") {
             selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
             let selectVersionIterationPrjs = selectedVersionIterator[version_iterator_prjs];
             for(let _prj of selectVersionIterationPrjs) {
@@ -395,7 +397,7 @@ class RequestSaveContainer extends Component {
                         responseDemo,
                     });
                 } else {
-                    this.simpleBootByRequestHistoryRecord(record, prj, method, uri);
+                    this.simpleBootByRequestHistoryRecord(record, prj, method, uri, false);
                 }
             });
         }
@@ -404,9 +406,9 @@ class RequestSaveContainer extends Component {
     initByIteratorPrjEnv = async (iteratorId: string, prj: string, env: string) => {
         let folders;
         if (isStringEmpty(iteratorId)) {
-            folders = await getProjectFolders(this.props.clientType, prj);
+            folders = await getProjectFolders(this.props.clientType, prj, null, null);
         } else {
-            folders = await getIteratorFolders(this.props.clientType, iteratorId, prj);
+            folders = await getIteratorFolders(this.props.clientType, iteratorId, null, null, null, null);
         }
         this.setState({folders})
 
@@ -486,9 +488,9 @@ class RequestSaveContainer extends Component {
     handleRequestProject = async (prj) => {
         let folders;
         if (isStringEmpty(this.state.iteratorId)) {
-            folders = await getProjectFolders(this.props.clientType, prj);
+            folders = await getProjectFolders(this.props.clientType, prj, null, null);
         } else {
-            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, prj);
+            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, null, null, null, null);
         }
         this.setState({folders, prj})
     }
@@ -505,9 +507,9 @@ class RequestSaveContainer extends Component {
         this.state.iteratorId = value;
         let folders;
         if (isStringEmpty(this.state.iteratorId)) {
-            folders = await getProjectFolders(this.props.clientType, this.state.prj);
+            folders = await getProjectFolders(this.props.clientType, this.state.prj, null, null);
         } else {
-            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, this.state.prj);
+            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, null, null, null, null);
         }
         let selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, value);
         this.setState({selectedVersionIterator, folders})
@@ -809,22 +811,26 @@ class RequestSaveContainer extends Component {
                                     />
                                 </Form.Item>
                                 : null }
-                                <FolderSelector 
-                                    versionIterator={ this.state.iteratorId }
-                                    prj={ this.state.prj }
-                                    value={ this.state.selectedFolder }
-                                    setValue={ value => this.setState({selectedFolder: value}) }
-                                    refreshFolders={ async () => {
-                                        let folders;
-                                        if (isStringEmpty(this.state.iteratorId)) {
-                                            folders = await getProjectFolders(this.props.clientType, this.state.prj);
-                                        } else {
-                                            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, this.state.prj);
-                                        }
-                                        this.setState({folders, selectedFolder: ""})
-                                    }}
-                                    folders={ this.state.folders }
-                                />
+
+                                <Form.Item label={langTrans("unittest add form2")}>
+                                    <FolderSelector 
+                                        versionIterator={ this.state.iteratorId }
+                                        prj={ this.state.prj }
+                                        value={ this.state.selectedFolder }
+                                        setValue={ value => this.setState({selectedFolder: value}) }
+                                        refreshFolders={ async () => {
+                                            let folders;
+                                            if (isStringEmpty(this.state.iteratorId)) {
+                                                folders = await getProjectFolders(this.props.clientType, this.state.prj);
+                                            } else {
+                                                folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, this.state.prj);
+                                            }
+                                            this.setState({folders, selectedFolder: ""})
+                                        }}
+                                        folders={ this.state.folders }
+                                    />
+                                </Form.Item>
+
                                 {!isStringEmpty(this.state.iteratorId) ? 
                                 <Form.Item label={langTrans("request save checkbox1")}>
                                     <Checkbox checked={this.state.isExportDoc} onChange={e => this.setState({isExportDoc: e.target.checked})} />

@@ -309,7 +309,7 @@ class RequestSendContainer extends Component {
     } else if (this.state.type === "iterator") {
       envKeys = await getIteratorKeys(this.props.clientType, this.state.iteratorId, prj);
     }
-    this.setState({ env, requestHost, envKeys: [...envKeys] });
+    this.setState({ prj, env, requestHost, envKeys: [...envKeys] });
   }
 
   sendRequest = async () => {
@@ -449,7 +449,8 @@ class RequestSendContainer extends Component {
     } else {
       content = data;
     }
-    let historyId = await addRequestHistory(this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
+    let historyId = await addRequestHistory(
+      this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
       this.state.requestHeadData, this.state.requestBodyData, this.state.requestPathVariableData, this.state.requestParamData, this.state.requestFileData,
       content, headers, cookieObj,
       this.state.iteratorId, 
