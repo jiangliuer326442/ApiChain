@@ -13,10 +13,7 @@
     "迭代文档",
     "自动化测试"
   ],
-  "homepage": "https://github.com/jiangliuer326442/ApiChain",
-  "bugs": {
-    "url": "https://github.com/jiangliuer326442/ApiChain/issues"
-  },
+  "homepage": "https://apichain.app/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jiangliuer326442/ApiChain.git"
@@ -25,13 +22,13 @@
   "author": {
     "name": "方海亮",
     "email": "fanghailiang2016@gmail.com",
-    "url": "https://github.com/jiangliuer326442/ApiChain"
+    "url": "https://blog.csdn.net/fanghailiang2016"
   },
   "contributors": [
     {
       "name": "方海亮",
       "email": "fanghailiang2016@gmail.com",
-      "url": "https://github.com/jiangliuer326442/ApiChain"
+      "url": "https://blog.csdn.net/fanghailiang2016"
     }
   ],
   "main": "./src/main/main.ts",

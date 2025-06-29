@@ -1,16 +1,10 @@
 import { Component, ReactNode } from 'react';
-import { connect } from 'react-redux';
-import { cloneDeep } from 'lodash';
-import { Table, Input, Modal, Form, Checkbox, Button, message, Select, Space } from "antd";
-import { MinusOutlined } from "@ant-design/icons";
+import { Input, Modal, Form, Checkbox, Button, message, Select, Space } from "antd";
 
 import {
-    TABLE_FIELD_NAME,
     TABLE_FIELD_TYPE,
-    TABLE_FIELD_NECESSARY,
     TABLE_FIELD_VALUE,
     TABLE_FIELD_REMARK,
-    parseJsonToChildren,
     parseJsonToTable,
     shortJsonContent,
 } from '@rutil/json';
@@ -21,15 +15,13 @@ import {
 import {
     INPUTTYPE_TEXT,
     INPUTTYPE_FILE,
-    dataTypeSelect,
-    DataTypeJsonObject,
 } from '@conf/global_config';
+import JsonSaveCommonTable from '@comp/request_save/json_save_table_common';
 import { isStringEmpty, isJsonString } from '@rutil/index';
-import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
-class JsonSaveBodyTableContainer extends Component {
+export default class extends Component {
 
     constructor(props) {
         super(props);
@@ -41,196 +33,8 @@ class JsonSaveBodyTableContainer extends Component {
             addVal: "",
             object: props.object,
             jsonStr: JSON.stringify(props.object),
-            columns: [
-                {
-                    title: langTrans("network table1"),
-                    dataIndex: TABLE_FIELD_NAME,
-                },
-                {
-                    title: langTrans("network table2"),
-                    dataIndex: TABLE_FIELD_TYPE,
-                    render: (dtype : any, row : any) => {
-                        if (dtype === "Array" || dtype === "Object") {
-                            return <span>{dtype}</span>;
-                        } else {
-                            let key = row.key;
-                            return <Select
-                                value={ dtype }
-                                style={{ width: 170 }}
-                                onChange={ value => this.handleSetDataType(key, value) }
-                                options={ dataTypeSelect.map(_v => ({label: langTrans("datatype " + _v), value: _v})) }
-                            />
-                        }
-                    }
-                },
-                {
-                    title: langTrans("network table5"),
-                    dataIndex: TABLE_FIELD_NECESSARY,
-                    render: (necessary : number|undefined, row : any) => {
-                        let key = row.key;
-                        return <Checkbox checked={necessary == 1} onChange={event=> this.handleSetNecessary(key, event.target.checked) }></Checkbox>;
-                    }
-                },
-                {
-                    title: langTrans("network table3"),
-                    dataIndex: TABLE_FIELD_REMARK,
-                    render: (remark : any, row : any) => {
-                        let key = row.key;
-                        let keyArr = key.split(".");
-                        let obj : any = {};
-                        for (let _key of keyArr) {
-                            if (Object.keys(obj).length === 0){
-                                obj = this.state.object[_key];
-                            } else {
-                                obj = obj[_key];
-                            }
-                        }
-                        if (obj === undefined) {
-                            return <Input defaultValue="" value="" onChange={ event => this.handleSetRemark(key, event.target.value) } />;
-                        }
-                        return <Input defaultValue={ remark } value={ obj[TABLE_FIELD_REMARK] } onChange={ event => this.handleSetRemark(key, event.target.value) } />;
-                    }
-                },
-                {
-                    title: langTrans("network table6"),
-                    dataIndex: TABLE_FIELD_VALUE,
-                    render: (demoRaw : any, row : any) => {
-                        let type = row[TABLE_FIELD_TYPE];
-                        let key = row.key;
-                        let demo = cloneDeep(demoRaw);
-                        if (this.props.readOnly || this.props.contentType === CONTENT_TYPE_JSON) {
-                            if (type === "File") {
-                                let fileName = demo.name;
-                                if(fileName != null && fileName.length > 50) {
-                                    return fileName.substring(0, 50) + "...";
-                                }
-                                return fileName;
-                            } else {
-                                if(type !== DataTypeJsonObject && demo != null && demo.length > 50) {
-                                    return demo.substring(0, 50) + "...";
-                                }
-                                return demo;
-                            }
-                        } else {
-                            if (type === "File") {
-                                return (<>
-                                    <Button style={{width: "100%"}}>{
-                                        ((demo !== undefined) && ('name' in demo)) 
-                                        ? demo.name : "未选择任何文件"}</Button>
-                                    <Input 
-                                        type='file' 
-                                        onChange={event => this.handleSetFile(key, event.target.files[0])} 
-                                        style={{
-                                            position: 'absolute',
-                                            opacity: 0,  
-                                            cursor: 'pointer',
-                                            width: 365,
-                                            height: 32,
-                                            left: 0,
-                                        }}  
-                                    />
-                                </>);
-                            } else {
-                                return <Input value={demo} onChange={ event => this.handleSetValue(key, event.target.value) } />
-                            }
-                        }
-                    }
-                },
-            ],
-            datas: [],
             rawJson: {},
         }
-
-        if (!this.props.readOnly) {
-            this.state.columns.unshift(                {
-                title: langTrans("log field5"),
-                dataIndex: 'operator',
-                render: (_, row : any) => {
-                    return <Button onClick={ () => this.handleDelKey(row.key) } icon={<MinusOutlined />} />
-                }
-            });
-        }
-    }
-
-    async componentDidMount() {
-        this.parseJsonToChildren();
-    }
-
-    parseJsonToChildren = async () => {
-        let parseJsonToChildrenResult : Array<any> = [];
-        await parseJsonToChildren([], "", parseJsonToChildrenResult, this.state.object, async (parentKey, content) => undefined);
-        this.setState({ datas : parseJsonToChildrenResult })
-    }
-
-    handleSetDataType = (key, dataType) => {
-        let obj = this.state.object;
-        if (dataType === DataTypeJsonObject) {
-            let value = obj[key][TABLE_FIELD_VALUE];
-            if (!isJsonString(value)) {
-                message.error("示例数据不符合json规范");
-                return;
-            }
-        }
-        obj[key][TABLE_FIELD_TYPE] = dataType;
-        this.props.cb(this.state.object);
-
-        this.parseJsonToChildren();
-    }
-
-    handleSetNecessary = (key, checked) => {
-        let obj = this.state.object;
-        if (checked) {
-            obj[key][TABLE_FIELD_NECESSARY] = 1;
-        } else {
-            obj[key][TABLE_FIELD_NECESSARY] = 0;
-        }
-        this.props.cb(this.state.object);
-
-        this.parseJsonToChildren();
-    }
-
-    handleSetRemark = (key, value) => {
-        let keyArr = key.split(".");
-        let obj : any = {};
-        for (let _key of keyArr) {
-            if (Object.keys(obj).length === 0){
-                obj = this.state.object[_key];
-            } else {
-                obj = obj[_key];
-            }
-        }
-        obj[TABLE_FIELD_REMARK] = value;
-        this.props.cb(this.state.object);
-
-        let returnObject = cloneDeep(this.state.object);
-        this.setState({object: returnObject});
-    }
-
-    handleSetValue = (key, value) => {
-        let obj = this.state.object[key];
-        obj[TABLE_FIELD_VALUE] = value;
-        this.props.cb(this.state.object);
-
-        this.parseJsonToChildren();
-    }
-    
-    handleSetFile = (key, file) => {
-        let obj = this.state.object[key];
-        let name = file.name;
-        let type = file.type;
-        let path = file.path;
-        let addVal = {name, type, path};
-        obj[TABLE_FIELD_VALUE] = addVal;
-        this.props.cb(this.state.object);
-        this.parseJsonToChildren();
-    }
-
-    handleDelKey = (key : string) => {
-        let rawJson = this.state.rawJson;
-        delete rawJson[key];
-        delete this.state.object[key];
-        this.props.cb(this.state.object);
-        this.parseJsonToChildren();
     }
 
     handleSetJsonStr = () => {
@@ -245,7 +49,6 @@ class JsonSaveBodyTableContainer extends Component {
         let shortResponseJsonObject = {};
         shortJsonContent(shortResponseJsonObject, responseData);
         parseJsonToTable(this.state.object, shortResponseJsonObject);
-        this.parseJsonToChildren();
         this.props.cb(this.state.object);
         this.cleanPop();
     }
@@ -264,7 +67,6 @@ class JsonSaveBodyTableContainer extends Component {
             _item[TABLE_FIELD_VALUE] = addVal;
             this.state.object[addKey] = _item;
         }
-        this.parseJsonToChildren();
         this.props.cb(this.state.object);
 
         this.cleanPop();
@@ -359,20 +161,13 @@ class JsonSaveBodyTableContainer extends Component {
                     }
                 </>
                 : null}
-                <Table
-                    style={{width : "100%"}}
-                    columns={this.state.columns}
-                    dataSource={this.state.datas}
-                    pagination={ false }
+                <JsonSaveCommonTable 
+                    contentType={this.props.contentType}
+                    readOnly={this.props.readOnly}
+                    object={this.state.object}
+                    cb={this.props.cb}
                 />
             </Space>
         )
     }
 }
-
-function mapStateToProps (state) {
-    return {
-    }
-}
-  
-export default connect(mapStateToProps)(JsonSaveBodyTableContainer);

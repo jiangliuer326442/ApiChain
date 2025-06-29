@@ -22,7 +22,7 @@ class PrjEnvSelect extends Component {
     constructor(props) {
         super(props);
         this.state = {
-          prj: props.prj,
+          prj: "",
           env: props.env,
           iteratorName: "",
           prjOptions: [],
@@ -47,15 +47,31 @@ class PrjEnvSelect extends Component {
                 return {value: item.value + "$$" + item.label , label: item.label}
             });
         }
-        let prj = this.state.prj;
-        if (!prjOptions.find(item => item.value.startsWith(prj + "$$"))) {
-            prj = prjOptions[0].value.split("$$")[0];
+        let selectedValue = this.props.prj;
+        console.log("selectedValue", selectedValue);
+        if (!prjOptions.find(item => item.value.startsWith(selectedValue + "$$"))) {
+            selectedValue = this.props.prjs.length > 0 ? prjOptions[0].value : "";
+        } else {
+            selectedValue = prjOptions.find(item => item.value.startsWith(selectedValue + "$$")).value;
         }
         
-        if (!isStringEmpty(prj)) {
-            this.props.cb(prj, this.state.env);
+        if (!isStringEmpty(selectedValue)) {
+            this.props.cb(selectedValue.split("$$")[0], this.state.env);
         }
-        this.setState({iteratorName, prjOptions, prj})
+        this.setState({iteratorName, prjOptions, prj: selectedValue})
+    }
+
+    async componentDidUpdate(prevProps) { 
+        if (this.props.prjs.length !== prevProps.prjs.length && isStringEmpty(this.state.selectedValue)) {
+            let prjOptions = this.props.prjs.map(item => {
+                return {value: item.value + "$$" + item.label , label: item.label}
+            });
+            let selectedValue = prjOptions[0].value;
+            if (!isStringEmpty(selectedValue)) {
+                this.props.cb(selectedValue.split("$$")[0], this.state.env);
+            }
+            this.setState({prjOptions, prj: selectedValue})
+        }
     }
 
     setProjectChange = (rawValue: string) => {
@@ -64,16 +80,14 @@ class PrjEnvSelect extends Component {
             return;
         }
         let prj = rawValue.split("$$")[0];
-        this.setState({prj});
-        if (!isStringEmpty(prj)) {
-            this.props.cb(prj, this.state.env !== "" ? this.state.env : this.state.env);
-        }
+        this.setState({prj: rawValue});
+        this.props.cb(prj, this.state.env !== "" ? this.state.env : this.state.env);
     }
   
     setEnvironmentChange = (value: string) => {
         this.setState({env: value});
         if (!isStringEmpty(this.state.prj)) {
-            this.props.cb(this.state.prj, value);
+            this.props.cb(this.state.prj.split("$$")[0], value);
         }
     }
 

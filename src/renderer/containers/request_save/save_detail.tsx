@@ -143,6 +143,7 @@ class RequestSaveContainer extends Component {
             if (record === null) {
                 return;
             }
+            console.log("11111")
             this.setState({
                 showFlg: true,
                 folders,

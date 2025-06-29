@@ -1,22 +1,13 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { cloneDeep } from 'lodash';
-import { Table, Input, Modal, Form, Button, Space, message } from "antd";
+import { Input, Modal, Form, Button, Space, message } from "antd";
 
 import {
-    TABLE_FIELD_NAME,
-    TABLE_FIELD_TYPE,
-    TABLE_FIELD_VALUE,
-    TABLE_FIELD_REMARK,
-    parseJsonToChildren,
     parseJsonToTable,
-    genHash,
     shortJsonContent,
 } from '@rutil/json';
-
-import { getJsonFragment } from '@act/request_save';
-import { isStringEmpty, isJsonString, substr } from '@rutil/index';
-import { langTrans } from '@lang/i18n';
+import { isStringEmpty, isJsonString } from '@rutil/index';
+import JsonSaveCommonTable from '@comp/request_save/json_save_table_common';
 
 const { TextArea } = Input;
 
@@ -27,77 +18,8 @@ class JsonSaveResponseTableContainer extends Component {
         this.state = {
             open: false,
             object: props.object,
-            columns: [
-                {
-                    title: langTrans("network table1"),
-                    dataIndex: TABLE_FIELD_NAME,
-                },
-                {
-                    title: langTrans("network table2"),
-                    dataIndex: TABLE_FIELD_TYPE,
-                },
-                {
-                    title: langTrans("network table3"),
-                    dataIndex: TABLE_FIELD_REMARK,
-                    render: (remark : any, row : any) => {
-                        let key = row.key;
-                        let keyArr = key.split(".");
-                        let obj : any = {};
-                        for (let _key of keyArr) {
-                            if (Object.keys(obj).length === 0){
-                                obj = props.object[_key];
-                            } else if (_key in obj) {
-                                obj = obj[_key];
-                            }
-                        }
-                        if (obj === undefined) {
-                            return <Input defaultValue="" value="" onChange={ event => this.handleSetRemark(key, event.target.value) } />;
-                        }
-                        return <Input defaultValue={ remark } value={ obj[TABLE_FIELD_REMARK] } onChange={ event => this.handleSetRemark(key, event.target.value) } />;
-                    }
-                },
-                {
-                    title: langTrans("network table6"),
-                    dataIndex: TABLE_FIELD_VALUE,
-                    render: (demoRaw : any, row : any) => {
-                        return substr(cloneDeep(demoRaw), 50);
-                    }
-                },
-            ],
-            datas: [],
             jsonStr: props.jsonStr,
         }
-    }
-
-    async componentDidMount() {
-        this.parseJsonToChildren();
-    }
-
-    parseJsonToChildren = async () => {
-        let parseJsonToChildrenResult : Array<any> = [];
-        await parseJsonToChildren([], "", parseJsonToChildrenResult, this.state.object, async (parentKey, content) => {
-            let hash = genHash(content);
-            let json_fragement = await getJsonFragment(parentKey, hash);
-            return json_fragement;
-        });
-        this.setState({ datas : parseJsonToChildrenResult })
-    }
-
-    handleSetRemark = (key, value) => {
-        let keyArr = key.split(".");
-        let obj = {};
-        for (let _key of keyArr) {
-            if (Object.keys(obj).length === 0){
-                obj = this.state.object[_key];
-            } else {
-                obj = obj[_key];
-            }
-        }
-        obj[TABLE_FIELD_REMARK] = value;
-        this.props.cb(this.state.object, this.state.jsonStr);
-
-        let returnObject = cloneDeep(this.state.object);
-        this.setState({object: returnObject});
     }
 
     handleSetJsonStr = () => {
@@ -159,11 +81,10 @@ class JsonSaveResponseTableContainer extends Component {
                     </Modal>
                 </>
                 : null}
-                <Table
-                    style={{width : "100%"}}
-                    columns={this.state.columns}
-                    dataSource={this.state.datas}
-                    pagination={ false }
+                <JsonSaveCommonTable
+                    readOnly={this.props.readOnly}
+                    object={this.state.object}
+                    cb={this.props.cb}
                 />
             </Space>
         )

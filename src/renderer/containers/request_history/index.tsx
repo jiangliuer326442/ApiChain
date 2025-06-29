@@ -16,6 +16,7 @@ import {
 import { 
     TABLE_REQUEST_HISTORY_FIELDS,
 } from '@conf/db';
+import { GET_ENV_VALS } from '@conf/redux';
 import { getRequestHistorys } from "@act/request_history";
 import SelectPrjEnvComponent from "@comp/env_var/select_prj_env";
 import { langTrans } from '@lang/i18n';
@@ -81,6 +82,13 @@ class RequestHistoryContainer extends Component {
     }
 
     onFinish: FormProps<FieldType>['onFinish'] = (values) => {
+        this.props.dispatch({
+            type: GET_ENV_VALS,
+            prj: this.state.prj,
+            env: this.state.env,
+            iterator: "",
+            unittest: ""
+        });
         getRequestHistorys(this.state.env, this.state.prj, this.state.btime, this.state.etime, values.uri, list => {
             let datas = [];
             list.map(item => {

@@ -49,6 +49,7 @@ import {
   REQUEST_METHOD_POST,
   CONTENT_TYPE,
 } from '@conf/global_config';
+import { GET_ENV_VALS } from '@conf/redux';
 import {
   getEnvHosts,
   getPrjEnvValues,
@@ -317,6 +318,13 @@ class RequestSendContainer extends Component {
     let state : any = this.getClearState();
     state.sendingFlg = true;
     this.setState(state);
+    this.props.dispatch({
+      type: GET_ENV_VALS,
+      prj: this.state.prj,
+      env: this.state.env,
+      iterator: this.state.type === "iterator" ? this.state.iteratorId : "",
+      unittest: ""
+    });
 
     let requestDefine = {};
     let envvars = new Map<string, string>();
