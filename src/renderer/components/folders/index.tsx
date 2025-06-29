@@ -73,7 +73,6 @@ class FolderSelector extends Component {
                                         let iteratorId = this.props.metadata.split("$$")[0];
                                         let prj = this.props.metadata.split("$$")[1];
                                         let folder = option.value.substring(FoldSourceIterator.length);
-                                        console.log("delIteratorFolder", iteratorId, prj, folder)
                                         await delIteratorFolder(this.props.clientType, this.props.teamId, iteratorId, prj, folder);
                                     }
                                     this.props.refreshFolders()

@@ -46,7 +46,7 @@ import FolderSelector from "@comp/folders/index";
 import { getPrjs } from '@act/project';
 import { addJsonFragement } from '@act/request_save';
 import { 
-    getIteratorFolders
+    allFolders
 } from '@act/version_iterator_folders';
 import {
     getProjectFolders
@@ -98,7 +98,7 @@ class RequestSaveContainer extends Component {
     constructor(props) {
         super(props);
         let iterator = props.match.params.iteratorId ? props.match.params.iteratorId : "";
-        let type = iterator ? "iterator" : "project";
+        let type = iterator ? "iterator" : "prj";
         this.state = {
             prj : props.match.params.prj,
             title : "",
@@ -137,13 +137,12 @@ class RequestSaveContainer extends Component {
         if(this.props.prjs.length === 0) {
             getPrjs(this.props.clientType, this.props.dispatch);
         }
-        if (this.state.type === "project") {
+        if (this.state.type === "prj") {
             let folders = await getProjectFolders(this.props.clientType, this.state.prj, null, null);
             let record = await getProjectRequest(this.props.clientType, this.state.prj, this.state.initRequestMethod, this.state.initRequestUri);
             if (record === null) {
                 return;
             }
-            console.log("11111")
             this.setState({
                 showFlg: true,
                 folders,
@@ -166,7 +165,7 @@ class RequestSaveContainer extends Component {
                 ctime: record[project_request_ctime],
             });
         } else if (this.state.type === "iterator") {
-            let folders = await getIteratorFolders(this.props.clientType, this.state.versionIterator, null, null, null, null);
+            let folders = await allFolders(this.props.clientType, this.state.versionIterator);
             let versionIterationName = (await getVersionIterators(this.props.clientType)).get(this.state.versionIterator);
             let record = await getVersionIteratorRequest(
                 this.props.clientType, 
@@ -204,7 +203,7 @@ class RequestSaveContainer extends Component {
     handleSetVersionIterator = async (value) => {
         this.state.versionIterator = value;
         if (this.props.folders[this.state.versionIterator] === undefined) {
-            let folders = await getIteratorFolders(this.props.clientType, value, this.state.prj);
+            let folders = await allFolders(this.props.clientType, value);
             this.setState({folders})
         }
     }
@@ -227,12 +226,16 @@ class RequestSaveContainer extends Component {
             this.parseJsonToStruct(whitekeys, [], "", formResponseDataCopy, formResponseDataCopy);
             if(this.state.stopFlg) break;
         }
-        if (this.state.type === "project"){
+
+        let folderName = this.state.selectedFolder;
+        let simpleFolderName = folderName.replaceAll(FoldSourcePrj, "").replaceAll(FoldSourceIterator, "");
+
+        if (this.state.type === "prj"){
             await editProjectRequest(
                 this.props.clientType, this.props.teamId,
                 this.state.initRequestMethod, this.state.initRequestUri, 
                 this.state.prj, this.state.requestMethod, this.state.requestUri,
-                this.state.title, this.state.description, this.state.selectedFolder, 
+                this.state.title, this.state.description, simpleFolderName, 
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData
             );
@@ -243,7 +246,7 @@ class RequestSaveContainer extends Component {
                 this.props.clientType, this.props.teamId,
                 this.state.initRequestMethod, this.state.initRequestUri, 
                 this.state.versionIterator, this.state.prj, this.state.requestMethod, this.state.requestUri,
-                this.state.title, this.state.description, this.state.selectedFolder, 
+                this.state.title, this.state.description, simpleFolderName, 
                 this.state.formRequestHeadData, this.state.formRequestBodyData, this.state.formRequestParamData, this.state.formRequestPathVariableData, 
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData, this.state.isExportDoc
             );
@@ -362,18 +365,16 @@ class RequestSaveContainer extends Component {
                             </Form.Item>
                             <Form.Item label={langTrans("unittest add form2")}>
                                 <FolderSelector 
-                                    versionIterator={ this.state.versionIterator }
-                                    prj={ this.state.prj }
+                                    type={this.state.type}
+                                    metadata={this.state.type === "prj" ? this.state.prj : this.state.versionIterator + "$$" + this.state.prj}
                                     value={ this.state.selectedFolder }
-                                    setValue={ value => {
-                                        if (this.state.type === "project") {
-                                            this.setState({selectedFolder: value.substring(FoldSourcePrj.length)})
-                                        }
-                                    }}
+                                    setValue={ value => this.setState({selectedFolder: value})}
                                     refreshFolders={ async () => {
-                                        let folders;
-                                        if (this.state.type === "project") {
+                                        let folders = [];
+                                        if (this.state.type === "prj") {
                                             folders = await getProjectFolders(this.props.clientType, this.state.prj, null, null);
+                                        } else if (this.state.type === "iterator") {
+                                            folders = await allFolders(this.props.clientType, this.state.versionIterator);
                                         }
                                         this.setState({folders, selectedFolder: null})
                                     }}

@@ -17,6 +17,7 @@ import {
 } from '@conf/global_config';
 import { isStringEmpty, mixedSort } from '@rutil/index';
 import { sendTeamMessage } from '@act/message'
+import { cloneDeep } from 'lodash';
 
 let version_iteration_folder_uuid = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_ITERATOR_UUID;
 let version_iteration_folder_project = TABLE_VERSION_ITERATION_FOLD_FIELDS.FIELD_PROJECT;
@@ -93,6 +94,8 @@ export async function allFolders(clientType : string, iterator : string) {
         .where([version_iteration_folder_delFlg, version_iteration_folder_uuid])
         .equals([0, iterator])
         .toArray();
+
+        folders = folders.map(item => item[version_iteration_folder_name]);
     } else {
         let ret = await sendTeamMessage(FOLDERS_ITERATOR_ALL, {iteratorId: iterator});
         folders = ret.list;

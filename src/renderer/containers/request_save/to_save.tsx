@@ -1,7 +1,7 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Checkbox, Input, Divider, Select } from "antd";
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isNull } from 'lodash';
 import { encode } from 'base-64';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -54,7 +54,7 @@ import { getProjectRequest } from '@act/project_request';
 import { getRequestHistory } from '@act/request_history';
 import { addJsonFragement } from '@act/request_save';
 import {
-    getIteratorFolders 
+    allFolders 
 } from '@act/version_iterator_folders';
 import {
     getProjectFolders 
@@ -137,7 +137,7 @@ class RequestSaveContainer extends Component {
         super(props);
 
         let iteratorId = props.match.params.versionIteratorId;
-        let type = iteratorId ? "iterator" : "project";
+        let type = iteratorId ? "iterator" : "prj";
 
         this.state = {
             prj : null,
@@ -224,7 +224,7 @@ class RequestSaveContainer extends Component {
         let env = record[request_history_env];
 
         this.initByIteratorPrjEnv(this.state.iteratorId, prj, env);
-        if (!isStringEmpty(this.state.iteratorId)) {
+        if (this.state.type === "iterator") {
             let versionIterationRequest = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, prj, method, uri);
             if (versionIterationRequest !== null) {
                 let sort = versionIterationRequest[version_iterator_request_sort] === undefined ? 0 : versionIterationRequest[version_iterator_request_sort];
@@ -408,16 +408,16 @@ class RequestSaveContainer extends Component {
     }
 
     initByIteratorPrjEnv = async (iteratorId: string, prj: string, env: string) => {
-        let folders;
+        let folders = [];
         if (isStringEmpty(iteratorId)) {
             folders = await getProjectFolders(this.props.clientType, prj, null, null);
         } else {
-            folders = await getIteratorFolders(this.props.clientType, iteratorId, null, null, null, null);
+            folders = await allFolders(this.props.clientType, iteratorId);
         }
         this.setState({folders})
 
         this.getEnvValueData(prj, env);
-        if (isStringEmpty(this.state.iteratorId)) {
+        if (this.state.type === "prj") {
             this.refreshVersionIteratorData(prj);
         }
     }
@@ -455,8 +455,6 @@ class RequestSaveContainer extends Component {
             responseDemo = historyRecord[request_history_response_content];
         }
 
-        console.log("responseDemo1", responseDemo);
-
         let formResponseHeadData = {};
         let responseHead = historyRecord[request_history_response_head];
         parseJsonToTable(formResponseHeadData, responseHead);
@@ -493,11 +491,11 @@ class RequestSaveContainer extends Component {
     }
 
     handleRequestProject = async (prj) => {
-        let folders;
-        if (isStringEmpty(this.state.iteratorId)) {
+        let folders = [];
+        if (this.state.type === "iterator") {
+            folders = await allFolders(this.props.clientType, this.state.iteratorId);
+        } else if (this.state.type === "prj") {
             folders = await getProjectFolders(this.props.clientType, prj, null, null);
-        } else {
-            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, null, null, null, null);
         }
         this.setState({folders, prj})
     }
@@ -512,11 +510,11 @@ class RequestSaveContainer extends Component {
 
     handleSetVersionIterator = async (value) => {
         this.state.iteratorId = value;
-        let folders;
-        if (isStringEmpty(this.state.iteratorId)) {
+        let folders = [];
+        if (this.state.type === "prj") {
             folders = await getProjectFolders(this.props.clientType, this.state.prj, null, null);
-        } else {
-            folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, null, null, null, null);
+        } else if (this.state.type === "iterator") {
+            folders = await allFolders(this.props.clientType, this.state.iteratorId);
         }
         let selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, value);
         this.setState({selectedVersionIterator, folders})
@@ -594,7 +592,7 @@ class RequestSaveContainer extends Component {
             this.props.history.push("#/version_iterator_request/" + this.state.iteratorId + "/" + this.state.prj + "/" + this.state.requestMethod + "/" + encode(this.state.requestUri));
         } else {
             //编辑
-            if (isStringEmpty(this.state.iteratorId)){
+            if (this.state.type === "prj") {
                 //编辑项目接口
                 await addProjectRequest(
                     this.props.clientType, this.props.teamId, 
@@ -713,10 +711,10 @@ class RequestSaveContainer extends Component {
 
     getEnvValueData = async (prj: string, env: string) => {
         if(!(isStringEmpty(prj) || isStringEmpty(env))) {
-            let env_vars;
-            if (isStringEmpty(this.state.iteratorId)) {
+            let env_vars = [];
+            if (this.state.type === "prj") {
                 env_vars = await getPrjEnvValues(prj, env, this.props.clientType);
-            } else {
+            } else if (this.state.type === "iterator") {
                 env_vars = await getIteratorEnvValues(this.state.iteratorId, prj, env, this.props.clientType);
             }
             if(env_vars.length === 0) {
@@ -785,9 +783,9 @@ class RequestSaveContainer extends Component {
                                 (this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : ""),
                             },
                             {
-                                key: isStringEmpty(this.state.iteratorId) ? 'env' : 'iterator',
-                                label: isStringEmpty(this.state.iteratorId) ? langTrans("request save select2") : langTrans("request save select3"),
-                                children: isStringEmpty(this.state.iteratorId) ? 
+                                key: this.state.type === "prj" ? 'env' : 'iterator',
+                                label: this.state.type === "prj" ? langTrans("request save select2") : langTrans("request save select3"),
+                                children: this.state.type === "prj" ? 
                                 (this.props.envs.find(row => row.value === this.state.env) ? this.props.envs.find(row => row.value === this.state.env).label : "") 
                                 : 
                                 (Object.keys(this.state.selectedVersionIterator).length > 0 ? this.state.selectedVersionIterator[version_iterator_name] : ""),
@@ -800,7 +798,7 @@ class RequestSaveContainer extends Component {
                                     <Input value={this.state.title} onChange={event=>this.setState({title: event.target.value})} placeholder={langTrans("request save desc")} />
                                 </Form.Item>
 
-                                {isStringEmpty(this.state.iteratorId) ? 
+                                {this.state.type === "prj" ? 
                                 <Form.Item label={langTrans("request save select6")}>
                                     <Select
                                         showSearch
@@ -825,24 +823,24 @@ class RequestSaveContainer extends Component {
 
                                 <Form.Item label={langTrans("unittest add form2")}>
                                     <FolderSelector 
-                                        versionIterator={ this.state.iteratorId }
-                                        prj={ this.state.prj }
+                                        type={this.state.type}
+                                        metadata={this.state.type === "prj" ? this.state.prj : this.state.iteratorId + "$$" + this.state.prj}
                                         value={ this.state.selectedFolder }
                                         setValue={ value => this.setState({selectedFolder: value}) }
                                         refreshFolders={ async () => {
-                                            let folders;
-                                            if (isStringEmpty(this.state.iteratorId)) {
-                                                folders = await getProjectFolders(this.props.clientType, this.state.prj);
-                                            } else {
-                                                folders = await getIteratorFolders(this.props.clientType, this.state.iteratorId, this.state.prj);
+                                            let folders = [];
+                                            if (this.state.type === "prj") {
+                                                folders = await getProjectFolders(this.props.clientType, this.state.prj, null, null);
+                                            } else if (this.state.type === "iterator") {
+                                                folders = await allFolders(this.props.clientType, this.state.iteratorId);
                                             }
-                                            this.setState({folders, selectedFolder: ""})
+                                            this.setState({folders, selectedFolder: null})
                                         }}
                                         folders={ this.state.folders }
                                     />
                                 </Form.Item>
 
-                                {!isStringEmpty(this.state.iteratorId) ? 
+                                {this.state.type === "iterator" ? 
                                 <Form.Item label={langTrans("request save checkbox1")}>
                                     <Checkbox checked={this.state.isExportDoc} onChange={e => this.setState({isExportDoc: e.target.checked})} />
                                 </Form.Item>
