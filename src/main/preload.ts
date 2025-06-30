@@ -14,6 +14,8 @@ import {
   ChannelsAxioBreidge,
   ChannelsDbLong,
   ChannelsTeam,
+  ChannelsRestartApp,
+  ChannelsLoadApp,
 } from '../config/channel';
 
 const electronHandler = {
@@ -23,7 +25,8 @@ const electronHandler = {
       ChannelsDb | ChannelsDbLong |
       ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | 
       ChannelssMockServer | ChannelssMockServerLong |
-      ChannelsAxioBreidge | ChannelsTeam, ...args: unknown[]) {
+      ChannelsAxioBreidge | ChannelsTeam |
+      ChannelsRestartApp | ChannelsLoadApp, ...args: unknown[]) {
       ipcRenderer.send(channel, ...args);
     },
     on(channel: ChannelsUserInfo | ChannelsOpenWindow | 
@@ -31,7 +34,8 @@ const electronHandler = {
       ChannelsDb |  ChannelsDbLong |
       ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | 
       ChannelssMockServer |  ChannelssMockServerLong |
-      ChannelsAxioBreidge | ChannelsTeam, func: (...args: unknown[]) => void) {
+      ChannelsAxioBreidge | ChannelsTeam |
+      ChannelsRestartApp | ChannelsLoadApp, func: (...args: unknown[]) => void) {
       const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
         func(...args);
       ipcRenderer.on(channel, subscription);
@@ -45,7 +49,8 @@ const electronHandler = {
       ChannelsDb |  ChannelsDbLong |
       ChannelsPostman | ChannelsAutoUpgrade | ChannelsVip | 
       ChannelssMockServer |  ChannelssMockServerLong |
-      ChannelsAxioBreidge | ChannelsTeam, func: (...args: unknown[]) => void) {
+      ChannelsAxioBreidge | ChannelsTeam |
+      ChannelsRestartApp | ChannelsLoadApp, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
   },

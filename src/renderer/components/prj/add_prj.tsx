@@ -11,6 +11,7 @@ import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_PRJ_MODEL } from '@conf/redux';
 import { addPrj } from '@act/project';
 import { langTrans } from '@lang/i18n';
+import { ChannelsLoadAppStr } from '@conf/channel';
 
 class AddPrjComponent extends Component {
 
@@ -76,15 +77,7 @@ class AddPrjComponent extends Component {
             programValue, frameworkValue,
             this.props.device);
 
-        this.clearInput();
-        this.setState({
-            loadingFlg: false
-        });
-        this.props.dispatch({
-            type: SHOW_ADD_PRJ_MODEL,
-            open: false
-        });
-        this.props.cb();
+        window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
     };
 
     handleCancel = () => {

@@ -349,11 +349,7 @@ class Project extends Component {
             {langTrans("prj title")}
           </Header>
           <Content style={{ margin: '0 16px' }}>
-            <AddPrjComponent cb={async ()=>{
-              let pagination = cloneDeep(this.state.pagination);
-              let listDatas = await getPrjsByPage(this.props.clientType, pagination);
-              this.setState({listDatas, pagination});
-            }} />
+            <AddPrjComponent />
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("prj bread1") }, { title: langTrans("prj bread2") }]} />
             <Flex vertical>
               <Flex justify="space-between" align="center">

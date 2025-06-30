@@ -4,7 +4,6 @@ import {
     shell 
 } from 'electron';
 import path from 'path';
-import log from 'electron-log';
 import MenuBuilder from './menu';
 import bindIpcEvents from '../processInit';
 
@@ -46,7 +45,6 @@ export function createWindow(initParms : string[]) : BrowserWindow {
 }
 
 export function bindMainWindowEvents() {
-    log.info("serverStartFlg", isStarted());
     if (isStarted()) {
       mainWindow.loadURL(resolveHtmlPath('index.html'));
     }

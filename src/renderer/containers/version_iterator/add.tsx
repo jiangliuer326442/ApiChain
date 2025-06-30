@@ -13,6 +13,7 @@ import {
     VERSION_ITERATOR_LIST_ROUTE 
 } from "@conf/routers";
 import { TABLE_VERSION_ITERATION_FIELDS, UNAME } from '@conf/db';
+import { ChannelsLoadAppStr } from '@conf/channel';
 import { getPrjs } from '@act/project';
 import { 
     getRemoteVersionIterator,
@@ -69,11 +70,10 @@ class VersionIteratorAdd extends Component {
         let title = values.title.trim();
         if(isStringEmpty(this.state.uuid)) {
             await addVersionIterator(this.props.clientType, this.props.teamId, title, this.state.content, values.projects, this.props.device);
-            this.props.history.push(VERSION_ITERATOR_LIST_ROUTE);
         } else {
             await editVersionIterator(this.props.clientType, this.props.teamId, this.state.uuid, title, this.state.content, values.projects);
-            this.props.history.push(VERSION_ITERATOR_LIST_ROUTE);
         }
+        window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
     };
 
     render() : ReactNode {

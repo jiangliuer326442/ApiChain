@@ -91,6 +91,14 @@ export const ChannelsDbProjectExportResultStr = 'pipeline_database_projects_expo
 export const ChannelsDbProjectImportStr = 'pipeline_database_projects_import';
 export const ChannelsDbProjectImportResultStr = 'pipeline_database_projects_import_result';
 
+/**
+ * 应用刷新/重启
+ */
+export type ChannelsRestartApp = 'pipeline_restart';
+export const ChannelsRestartAppStr = 'pipeline_restart';
+export type ChannelsLoadApp = 'pipeline_reload';
+export const ChannelsLoadAppStr = 'pipeline_reload';
+
 
 export type ChannelsPostman = 'pipeline_postman';
 

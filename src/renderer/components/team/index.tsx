@@ -24,6 +24,7 @@ import {
     ChannelsTeamTestHostStr,
     ChannelsTeamTestHostResultStr,
     ChannelsTeamSetInfoStr,
+    ChannelsRestartAppStr,
     ChannelsTeamSetInfoResultStr,
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
@@ -94,14 +95,7 @@ class TeamModel extends Component {
     handleResponse = async (response) => {
         let teamId = response.teamId;
         await this.updateAllRecords(teamId);
-        this.props.dispatch({
-            type : SET_DEVICE_INFO,
-            clientType: this.state.clientType,
-            clientHost: this.state.clientHost,
-            teamName: response.teamName, 
-            teamId,
-        });
-        this.canelTeam();
+        window.electron.ipcRenderer.sendMessage(ChannelsRestartAppStr);
     }
 
     canelTeam = () => {
