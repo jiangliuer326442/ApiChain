@@ -46,7 +46,6 @@ import { getSimpleVersionIteratorRequests } from '@act/version_iterator_requests
 import { langFormat, langTrans } from '@lang/i18n';
 
 let argsObject = getStartParams();
-console.log("messages argsObject", argsObject)
 let clientType = argsObject.clientType;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;

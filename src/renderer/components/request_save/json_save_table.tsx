@@ -1,5 +1,4 @@
 import { Component, ReactNode } from 'react';
-import { connect } from 'react-redux';
 import { cloneDeep } from 'lodash';
 import { Table, Input, Checkbox, Select, message } from "antd";
 
@@ -17,6 +16,7 @@ import {
     TABLE_FIELD_REMARK,
     parseJsonToChildren,
     genHash,
+    prettyJson,
 } from '@rutil/json';
 
 import { getJsonFragment } from '@act/request_save';
@@ -25,7 +25,7 @@ import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
-class JsonSaveTableContainer extends Component {
+export default class extends Component {
 
     constructor(props) {
         super(props);
@@ -73,7 +73,12 @@ class JsonSaveTableContainer extends Component {
                             obj = obj[_key];
                         }
                     }
-                    return <Input defaultValue={ remark } value={ obj[TABLE_FIELD_REMARK] } onChange={ event => this.handleSetRemark(key, event.target.value) } />;
+                    return <TextArea 
+                        autoSize
+                        defaultValue={ remark } 
+                        value={ obj[TABLE_FIELD_REMARK] } 
+                        onChange={ event => this.handleSetRemark(key, event.target.value) } 
+                    />;
                 }
             },
             {
@@ -90,6 +95,7 @@ class JsonSaveTableContainer extends Component {
                     } else {
                         return <TextArea 
                             allowClear
+                            autoSize
                             placeholder={ langTrans("json save table placeholder") }
                             value={demo} 
                             onChange={ event => this.handleSetContent(key, event.target.value) } 
@@ -134,7 +140,7 @@ class JsonSaveTableContainer extends Component {
             }
         }
         if (dataType === DataTypeJsonObject) {
-            let value = obj[key][TABLE_FIELD_VALUE];
+            let value = obj[TABLE_FIELD_VALUE];
             if (!isJsonString(value)) {
                 message.error(langTrans("json save table json error"));
                 return;
@@ -202,10 +208,3 @@ class JsonSaveTableContainer extends Component {
         )
     }
 }
-
-function mapStateToProps (state) {
-    return {
-    }
-}
-  
-export default connect(mapStateToProps)(JsonSaveTableContainer);

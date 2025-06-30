@@ -101,6 +101,9 @@ export function removeWithoutGap(arr : Array<Object>, index : number) {
 }
 
 export function isJsonString(str : string) : boolean {
+  if (!str) {
+    return false;
+  }
   try {
       JSON.parse(str);
   } catch (e) {

@@ -31,7 +31,10 @@ import {
   getWikiWeatherReportUrl,
   getWikiUserRegisterUrl,
 } from '@conf/url';
-import { IS_AUTO_UPGRADE } from '@conf/storage';
+import { 
+  LAST_SHOWTEAM_TIME,
+  IS_AUTO_UPGRADE 
+} from '@conf/storage';
 import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
@@ -47,17 +50,24 @@ import {
   TABLE_PROJECT_REQUEST_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
 } from '@conf/db';
-import { CLIENT_TYPE_SINGLE } from '@conf/team';
+import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
 import { SET_DEVICE_INFO } from '@conf/redux';
+import {
+  SYNC_TABLES
+} from '@conf/global_config';
+import {
+  TEAM_DB_SYNC_URL
+} from '@conf/team';
 import { 
   getdayjs,
   isStringEmpty,
   substr,
   getStartParams,
+  getNowdayjs,
 } from '@rutil/index';
 import { addUser, getUser, setUserName as ac_setUserName, setUserCountryLangIp } from '@act/user';
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
-import registerMessageHook from '@act/message';
+import registerMessageHook, { sendTeamMessage } from '@act/message';
 import PayModel from '@comp/topup';
 import TeamModel from '@comp/team';
 import { getLang, langFormat, langTrans } from '@lang/i18n';
@@ -87,14 +97,12 @@ let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 
 let argsObject = getStartParams();
-console.log("home argsObject", argsObject)
 let uuid = argsObject.uuid;
 
 class Home extends Component {
 
   constructor(props) {
     super(props);
-    let checkAutoUpgrade = localStorage.getItem(IS_AUTO_UPGRADE);
     this.state = {
       user: {
         "uname": argsObject.uname,
@@ -102,9 +110,9 @@ class Home extends Component {
       },
       showPay: false,
       showPayWriteOff: false,
-      showTeam: this.props.clientType === CLIENT_TYPE_SINGLE,
+      showTeam: false,
       teamType: "create",
-      checkAutoUpgrade : checkAutoUpgrade === null ? 1 : checkAutoUpgrade,
+      checkAutoUpgrade : 0,
       searchPrj: "",
       searchKeywords: "",
       searchResult: [],
@@ -162,7 +170,19 @@ class Home extends Component {
   }
 
   async componentDidMount() {
-      this.updateOnLoad();
+      let showTeam = this.props.clientType === CLIENT_TYPE_SINGLE;
+      if (showTeam && !isStringEmpty(localStorage.getItem(LAST_SHOWTEAM_TIME)) && (getNowdayjs().unix() - parseInt(localStorage.getItem(LAST_SHOWTEAM_TIME))) < 43200 ) {
+        showTeam = false;
+      }
+      if (showTeam) {
+        localStorage.setItem(LAST_SHOWTEAM_TIME, getNowdayjs().unix() + "");
+      }
+      let checkAutoUpgrade = localStorage.getItem(IS_AUTO_UPGRADE);
+      checkAutoUpgrade = checkAutoUpgrade == null ? 1 : checkAutoUpgrade;
+      if (checkAutoUpgrade == 1) {
+        this.checkForUpgrade();
+      }
+
       registerMessageHook();
 
       let uname = argsObject.uname;
@@ -180,7 +200,35 @@ class Home extends Component {
       } else {
           await setUserCountryLangIp(this.props.clientType, this.props.teamId, uuid, userCountry, userLang, ip);
       }
-      this.setState({user})
+      this.setState({user, showTeam, checkAutoUpgrade})
+
+      //延迟两秒，团队模式同步数据
+      setTimeout(async () => {
+        if (this.props.clientType === CLIENT_TYPE_TEAM) {
+          let syncObjects = {};
+          const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
+          for (const tableName of tableNames) {
+            const table = window.db.table(tableName);
+        
+            // 获取所有记录
+            const records = await table.filter(item => item.upload_flg === 0).toArray();
+            if (records.length > 0) {
+              syncObjects[tableName] = records;
+            }
+          }
+          if (Object.keys(syncObjects).length > 0) {
+            await sendTeamMessage(TEAM_DB_SYNC_URL, {dbJson: JSON.stringify(syncObjects)})
+            for (const tableName in syncObjects) {
+              const table = window.db.table(tableName);
+              for (const record of syncObjects[tableName]) {
+                record.upload_flg = 1;
+                record.team_id = this.props.teamId;
+                await table.put(record);
+              }
+            }
+          }
+        }
+      }, 2000);
   }
 
   showCkCode = (e) => {
@@ -196,13 +244,6 @@ class Home extends Component {
       showCkCode : false,
   });
     this.state.closeShowPay = true;
-  }
-
-  updateOnLoad = () => {
-    //前端通知服务端进行版本更新检查
-    if (this.state.checkAutoUpgrade == 1) {
-      this.checkForUpgrade();
-    }
   }
 
   setUserName = async (newUserName) => {

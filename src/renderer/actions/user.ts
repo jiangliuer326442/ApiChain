@@ -58,6 +58,7 @@ export async function setUserName(teamId : string, clientType : string, uid : st
 
     let user = await window.db[TABLE_USER_NAME]
     .where(user_uid).equals(uid)
+    .reverse()
     .first();
     if (user === undefined || user[user_delFlg] === 1) {
         return;

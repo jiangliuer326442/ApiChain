@@ -12,6 +12,8 @@ export const TEAM_LIST_URL = "/team/teams";
 
 export const TEAM_QUERY_NAME = "/team/getTeamName";
 
+export const TEAM_DB_SYNC_URL = "/team/syncDb";
+
 export const ENVS_LIST_URL = "/envs/page";
 
 export const ENVS_ALL_LIST_URL = "/envs/all";

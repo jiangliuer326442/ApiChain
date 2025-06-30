@@ -1,3 +1,5 @@
+export const LAST_SHOWTEAM_TIME = "storage.team.showDialog.time";
+
 export const IS_AUTO_UPGRADE = "storage.checkAutoUpgrade";
 
 export const DOC_ITERATOR = "iterator_doc_iteratorId";

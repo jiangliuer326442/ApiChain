@@ -54,3 +54,15 @@ export const dataTypeSelect = [
     "Number",
     DataTypeJsonObject
 ];
+
+export const SYNC_TABLES = [
+    'env',
+    'env_vars_241112001',
+    'microservices_keys',
+    'microservices',
+    'project_request',
+    'user',
+    'version_iteration',
+    'version_iteration_request',
+    'version_iteration_folders'
+];

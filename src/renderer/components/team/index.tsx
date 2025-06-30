@@ -27,8 +27,8 @@ import {
     ChannelsRestartAppStr,
     ChannelsTeamSetInfoResultStr,
 } from '@conf/channel';
-import { SET_DEVICE_INFO } from '@conf/redux';
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
+import { SYNC_TABLES } from '@conf/global_config';
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 
@@ -153,22 +153,9 @@ class TeamModel extends Component {
     // 更新所有表的所有记录
     updateAllRecords = async (teamId : string) => {
         // 获取所有表的名称
-        const tableNames = window.db.tables.map(table => table.name);
+        const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
     
         for (const tableName of tableNames) {
-            let tables = [
-                'env',
-                'env_vars_241112001',
-                'microservices_keys',
-                'microservices',
-                'project_request',
-                'user',
-                'version_iteration',
-                'version_iteration_request',
-                'version_iteration_folders'
-            ];
-            if (!tables.includes(tableName)) continue;
-
             const table = window.db.table(tableName);
         
             // 获取所有记录
@@ -180,8 +167,6 @@ class TeamModel extends Component {
                 record.team_id = teamId;
                 await table.put(record);
             }
-        
-            console.log(`Updated records in ${tableName}`);
         }
     }
 

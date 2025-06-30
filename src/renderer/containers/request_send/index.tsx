@@ -644,7 +644,7 @@ class RequestSendContainer extends Component {
                   { this.state.isResponseJson ? 
                     <JsonView 
                     src={JSON.parse(this.state.responseData)}   
-                    name="response"
+                    name={ false }
                     theme={ "bright" }
                     collapsed={false}  
                     indentWidth={4}  
