@@ -7,6 +7,7 @@ import {
 } from "antd";
 import type { DescriptionsProps } from 'antd';
 import { decode } from 'base-64';
+import axios from 'axios';
 import JsonView from 'react-json-view';
 import { cloneDeep } from 'lodash';
 
@@ -22,7 +23,7 @@ import {
   cleanJson,
   getEnvVarsIterator,
 } from '@rutil/json';
-import { ENV_VALUE_API_HOST } from "@conf/envKeys";
+import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER } from "@conf/envKeys";
 import { getWikiSendRequest } from '@conf/url';
 import { 
   TABLE_REQUEST_HISTORY_FIELDS,
@@ -45,6 +46,10 @@ import {
   CONTENT_TYPE_FORMDATA,
 } from '@conf/contentType';
 import {
+  CLIENT_TYPE_TEAM,
+  NETWORK_REQUEST_URL
+} from '@conf/team';
+import {
   REQUEST_METHOD_GET,
   REQUEST_METHOD_POST,
   CONTENT_TYPE,
@@ -52,6 +57,7 @@ import {
 import { GET_ENV_VALS } from '@conf/redux';
 import {
   getEnvHosts,
+  getEnvRunModes,
   getPrjEnvValues,
   getIteratorEnvValues,
 } from '@act/env_value';
@@ -145,6 +151,7 @@ class RequestSendContainer extends Component {
       prj,
       env : "",
       requestHost: "",
+      runMode: ENV_VALUE_RUN_MODE_CLIENT,
       requestUri,
       requestEnable: false,
       showFlg,
@@ -301,6 +308,11 @@ class RequestSendContainer extends Component {
     this.setState(this.getClearState());
     let ret = await getEnvHosts(this.props.clientType, prj, env);
     let requestHost = getMapValueOrDefault(ret, env, "");
+    let runMode = ENV_VALUE_RUN_MODE_CLIENT;
+    if (this.props.clientType === CLIENT_TYPE_TEAM) {
+      let ret2 = await getEnvRunModes(this.props.clientType, prj, env);
+      runMode = getMapValueOrDefault(ret2, env, ENV_VALUE_RUN_MODE_CLIENT);
+    }
     if (isStringEmpty(requestHost)) {
       this.setState({ alertMessage: langFormat("network table7", {"key": ENV_VALUE_API_HOST,}) });
       return;
@@ -311,7 +323,7 @@ class RequestSendContainer extends Component {
     } else if (this.state.type === "iterator") {
       envKeys = await getIteratorKeys(this.props.clientType, this.state.iteratorId, prj);
     }
-    this.setState({ prj, env, requestHost, envKeys: [...envKeys] });
+    this.setState({ prj, env, requestHost, runMode, envKeys: [...envKeys] });
   }
 
   sendRequest = async () => {
@@ -374,6 +386,7 @@ class RequestSendContainer extends Component {
     if (!isStringEmpty(paramToString(paramData))) {
       url += "?" + paramToString(paramData);
     }
+
     let headData = cloneDeep(this.state.requestHeadData);
     for (let _key in headData) {
       let value = headData[_key];
@@ -385,6 +398,7 @@ class RequestSendContainer extends Component {
         headData[_key] = value;
       }
     }
+
     if (this.state.requestMethod === REQUEST_METHOD_POST) {
       let postData = getEnvVarsIterator(
         this.state.requestBodyData, 
@@ -393,14 +407,38 @@ class RequestSendContainer extends Component {
       );
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
-        sendAjaxMessage('post', url, headData, postData, this.state.requestFileData).then(response => {
-          this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
-          this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
-        }).catch(err => this.setState({
-          alertMessage: err.errorMessage, 
-          sendingFlg: false, 
-          statusCode: err.statusCode,
-        }));
+        if (this.state.runMode === ENV_VALUE_RUN_MODE_RUMMER) {
+          let formData = new FormData();
+          formData.append("url", url);
+          formData.append("headData", JSON.stringify(headData))
+          formData.append("bodyData", JSON.stringify(postData))
+          for (let _key in this.state.requestFileData) {
+              let _file = this.state.requestFileData[_key];
+              const blobFile = new Blob([_file.blob], { type: _file.type });  
+              formData.append(_key, blobFile, _file.name);
+          }
+          axios.post(this.props.clientHost + NETWORK_REQUEST_URL, formData, {
+              headers: {
+                CONTENT_TYPE: CONTENT_TYPE_FORMDATA,
+              },
+              maxRedirects: 0,
+          }).then(response => {
+            console.log(response.data.data);
+          }).catch(err => this.setState({
+            alertMessage: err.errorMessage, 
+            sendingFlg: false, 
+            statusCode: err.statusCode,
+          }));
+        } else if (this.state.runMode === ENV_VALUE_RUN_MODE_CLIENT) {
+          sendAjaxMessage('post', url, headData, postData, this.state.requestFileData).then(response => {
+            this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
+            this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
+          }).catch(err => this.setState({
+            alertMessage: err.errorMessage, 
+            sendingFlg: false, 
+            statusCode: err.statusCode,
+          }));
+        }
       } else {
         sendAjaxMessage('post', url, headData, postData, null).then(response => {
           this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
@@ -681,6 +719,7 @@ class RequestSendContainer extends Component {
 
 function mapStateToProps (state) {
   return {
+    clientHost: state.device.clientHost,
     clientType: state.device.clientType,
     teamId: state.device.teamId,
     prj: state.env_var.prj,

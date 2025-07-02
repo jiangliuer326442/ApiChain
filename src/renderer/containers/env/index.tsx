@@ -8,18 +8,21 @@ import {
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 
-import { TABLE_ENV_FIELDS } from '@conf/db';
+import { TABLE_ENV_FIELDS, TABLE_ENV_VAR_FIELDS } from '@conf/db';
+import { ENV_VALUE_RUN_MODE } from '@conf/envKeys';
 import { SHOW_ADD_ENV_MODEL, SHOW_EDIT_ENV_MODEL } from '@conf/redux';
 import AddEnvComponent from '@comp/env/add_env';
 import { langTrans } from '@lang/i18n';
 import { getEnvsByPage, delEnv } from '@act/env';
+import { getGlobalEnvValuesByPage } from '@act/env_value';
 import { isStringEmpty } from '@rutil/index';
 
 const { Header, Content, Footer } = Layout;
 
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
-let request_device = TABLE_ENV_FIELDS.FIELD_REQUEST_DEVICE;
+
+let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 
 class Env extends Component {
 
@@ -79,13 +82,18 @@ class Env extends Component {
     });
   }
 
-  editEnvClick = (record) => {
+  editEnvClick = async (record) => {
+    let savedValue = await getGlobalEnvValuesByPage(record[env_label], ENV_VALUE_RUN_MODE, this.props.clientType, {
+      current: 1,
+      pageSize: 1,
+    });
     this.props.dispatch({
         type: SHOW_EDIT_ENV_MODEL,
         open: true,
         env: record[env_label],
         remark: record[env_remark],
-        requestDevice: record[request_device] == undefined ? 0 : record[request_device],
+        requestDevice: (savedValue.length == 0 || isStringEmpty(savedValue[0][env_var_pvalue])) 
+        ? 'client' : savedValue[0][env_var_pvalue],
     });
   }
 

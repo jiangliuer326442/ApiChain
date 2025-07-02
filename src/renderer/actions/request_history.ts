@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import {
   TABLE_REQUEST_HISTORY_NAME,
   TABLE_REQUEST_HISTORY_FIELDS,
@@ -44,10 +45,12 @@ export async function getRequestHistory(id : number) : Promise<any> {
 
 export async function addRequestHistory(
     env : string, prj : string, uri : string, method : string,
-    head, body, pathVariable, param, file,
+    head, body, pathVariable, param, paramFile,
     responseContent : string, responseHead : any, responseCookie : any, 
     iteratorId : string,
     jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean) : Promise<number> {
+
+    let file = cloneDeep(paramFile);
 
     for (let _key in file) {
         delete file[_key].blob;

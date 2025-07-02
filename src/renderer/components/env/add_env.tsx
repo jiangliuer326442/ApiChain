@@ -11,6 +11,10 @@ import {
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_ENV_MODEL } from '@conf/redux';
 import { CLIENT_TYPE_SINGLE } from '@conf/team';
+import {
+    ENV_VALUE_RUN_MODE_RUMMER,
+    ENV_VALUE_RUN_MODE_CLIENT
+} from '@conf/envKeys';
 import { addEnv } from '@act/env';
 import { langTrans } from '@lang/i18n';
 
@@ -120,8 +124,8 @@ class AddEnvComponent extends Component {
                             disabled={ this.props.clientType === CLIENT_TYPE_SINGLE }
                             onChange={ event=>this.setState({requestDevice : event.target.value}) }
                             >
-                            <Radio value="1">runner</Radio>
-                            <Radio value="0">client</Radio>
+                            <Radio value={ENV_VALUE_RUN_MODE_RUMMER}>{ENV_VALUE_RUN_MODE_RUMMER}</Radio>
+                            <Radio value={ENV_VALUE_RUN_MODE_CLIENT}>{ENV_VALUE_RUN_MODE_CLIENT}</Radio>
                         </Radio.Group>
                     </Form.Item>
                 </Form>

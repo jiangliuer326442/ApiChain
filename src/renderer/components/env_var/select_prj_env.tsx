@@ -48,7 +48,6 @@ class PrjEnvSelect extends Component {
             });
         }
         let selectedValue = this.props.prj;
-        console.log("selectedValue", selectedValue);
         if (!prjOptions.find(item => item.value.startsWith(selectedValue + "$$"))) {
             selectedValue = this.props.prjs.length > 0 ? prjOptions[0].value : "";
         } else {

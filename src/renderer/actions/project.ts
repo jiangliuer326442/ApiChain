@@ -113,7 +113,6 @@ export async function addPrj(
     device : object
 ) {
     if (clientType === CLIENT_TYPE_TEAM) {
-        console.log("2222222222")
         await sendTeamMessage(PRJS_SET_URL, {
             label: prjName, remark, programming, framework
         });

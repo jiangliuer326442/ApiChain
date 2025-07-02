@@ -154,7 +154,6 @@ tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + 
 
 window.db.version(200).stores(tables).upgrade (async trans => {
     let unittestProjects = await db[TABLE_UNITTEST_NAME].filter(item => item[unittest_collectFlg] == 1).toArray();
-    console.log(unittestProjects);
     for (let unittestProject of unittestProjects) {
         let folderName = unittestProject[unittest_fold];
         let projects = unittestProject[unittest_projects];

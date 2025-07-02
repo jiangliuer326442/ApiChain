@@ -133,6 +133,7 @@ class RequestSendBody extends Component {
                             _file.type = value.type;
                             _file.path = value.path;
                             file[item.key] = _file;
+                            this.state.requestFileData[item.key] = _file;
                             var reader = new FileReader();
                             reader.readAsArrayBuffer(value);
                             let that = this;
@@ -140,6 +141,7 @@ class RequestSendBody extends Component {
                                 let _file = that.state.requestFileData[item.key];
                                 let blob = e.target.result;
                                 _file.blob = blob;
+                                that.props.cb(obj, file);
                             };
                         } else if (item.key in originFile) {
                             let _file = originFile[item.key];
@@ -195,6 +197,7 @@ class RequestSendBody extends Component {
             let row : any = {};
             row.value = value;
             row.type = INPUTTYPE_FILE;
+            this.state.data.push(row);
             this.setState({rows : this.state.rows + 1});
             this.setRequestBodyData(this.state.data);
         } else {
@@ -202,7 +205,7 @@ class RequestSendBody extends Component {
             row.value = value;
             let data = cloneDeep(this.state.data);
             this.setState({data});
-            this.setRequestBodyData(this.state.data);
+            this.setRequestBodyData(data);
         }
     }
 

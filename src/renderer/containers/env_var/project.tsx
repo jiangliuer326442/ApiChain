@@ -10,7 +10,7 @@ import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
-import { ENV_VALUE_API_HOST } from '@conf/envKeys';
+import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE } from '@conf/envKeys';
 import { ENV_LIST_ROUTE } from '@conf/routers';
 import { GET_ENV_VALS } from '@conf/redux';
 import { getWikiEnv } from '@conf/url';
@@ -90,7 +90,7 @@ class EnvVar extends Component {
             return (
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
-                {(record.source === 'prj' && record[pname] !== ENV_VALUE_API_HOST) ? 
+                {(record.source === 'prj' && record[pname] !== ENV_VALUE_API_HOST) && record[pname] !== ENV_VALUE_RUN_MODE ? 
                 <Popconfirm
                   title={langTrans("envvar prj del title")}
                   description={langTrans("envvar prj del desc")}
@@ -195,15 +195,24 @@ class EnvVar extends Component {
         });
 
         let hasApiHost = false;
+        let hasRunMode = false;
         for (let item of listDatas) {
-          if(item[pname] === ENV_VALUE_API_HOST) {
+          if (item[pname] === ENV_VALUE_API_HOST) {
             hasApiHost = true;
-            break;
+          }
+          if (item[pname] === ENV_VALUE_RUN_MODE) {
+            hasRunMode = true;
           }
         }
-        if(!hasApiHost) {
-          await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
+        if (!hasApiHost || !hasApiHost) {
+          if (!hasApiHost) {
+            await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
             ENV_VALUE_API_HOST, "", langTrans("envvar prj api"), this.props.device);
+          }
+          if (!hasRunMode) {
+            await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
+              ENV_VALUE_RUN_MODE, "client", langTrans("envvar prj run mode"), this.props.device);
+          }
           listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
           this.setState({listDatas, pagination});
         }

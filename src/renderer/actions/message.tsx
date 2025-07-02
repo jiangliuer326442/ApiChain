@@ -36,6 +36,7 @@ import {
     ChannelsAxioTeanSendStr,
     ChannelsAutoUpgradeNewVersionStr,
     ChannelsAxioTeamReplyStr,
+    ChannelsLoadAppStr,
 } from '@conf/channel';
 
 import { getEnvHosts } from '@act/env_value';
@@ -167,6 +168,7 @@ export default function() : void {
                       IDBExportImport.importFromJsonString(idbDatabase, jsonString, function(err) {
                         if (!err) {
                           alert(langTrans("db load success"));
+                          window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
                         }
                       });
                     }

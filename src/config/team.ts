@@ -56,6 +56,8 @@ export const ENV_VARS_PROJECT_COPY_URL = "/envvars/project/copy";
 
 export const PRJ_HOST_URL = "/envvars/project/apiHosts";
 
+export const PRJ_RUN_MODE_URL = "/envvars/project/runModes";
+
 export const ENV_VARS_ITERATOR_DATAS_URL = "/envvars/iteration/all";
 
 export const ENV_VARS_ITERATOR_PAGE_URL = "/envvars/iteration/page";
@@ -143,3 +145,5 @@ export const USERS_GET_URL = "/users/get";
 export const USERS_SET_MY_UNAME_URL = "/users/set_uname";
 
 export const USERS_SET_MY_INFO_URL = "/users/set_user_info";
+
+export const NETWORK_REQUEST_URL = "/network/request"

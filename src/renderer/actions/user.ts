@@ -93,6 +93,7 @@ export async function setUserCountryLangIp(clientType : string, teamId : string,
         await sendTeamMessage(USERS_SET_MY_INFO_URL, {ip, country, lang});
     }
     let user = await getUser(clientType, uid);
+    user[user_delFlg] = 0;
     user[user_country] = country;
     user[user_lang] = lang;
     user[user_ip] = ip;

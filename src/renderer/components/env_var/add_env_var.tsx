@@ -1,10 +1,10 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Form, Input, Modal, message } from "antd";
+import { Form, Input, Modal, Select, message } from "antd";
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_PROPERTY_MODEL } from '@conf/redux';
-import { ENV_VALUE_API_HOST } from '@conf/envKeys';
+import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER } from '@conf/envKeys';
 import { addEnvValues } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
 
@@ -112,10 +112,21 @@ class AddEnvVarComponent extends Component {
                             value={this.state.pname} onChange={ event=>this.setState({pname : event.target.value}) } />
                     </Form.Item>
                     <Form.Item>
-                        <TextArea allowClear rows={ 3 }
-                            placeholder={langTrans("envvar global add form2")} 
-                            value={this.state.pvalue} 
-                            onChange={ e=>this.setState({pvalue : e.target.value}) } />
+                        {
+                            this.state.pname === ENV_VALUE_RUN_MODE ? 
+                            <Select 
+                                value={this.state.pvalue} 
+                                onChange={value => this.setState({pvalue : value})}
+                                options={[
+                                    {label:{ENV_VALUE_RUN_MODE_CLIENT}, value:{ENV_VALUE_RUN_MODE_CLIENT}},
+                                    {label:{ENV_VALUE_RUN_MODE_RUMMER}, value:{ENV_VALUE_RUN_MODE_RUMMER}}
+                                ]} />
+                            :
+                            <TextArea allowClear rows={ 3 }
+                                placeholder={langTrans("envvar global add form2")} 
+                                value={this.state.pvalue} 
+                                onChange={ e=>this.setState({pvalue : e.target.value}) } />
+                        }
                     </Form.Item>
                     <Form.Item>
                         <TextArea allowClear 

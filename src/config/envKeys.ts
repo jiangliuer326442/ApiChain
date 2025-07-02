@@ -1,6 +1,14 @@
 //API_HOST
 export const ENV_VALUE_API_HOST = "api_host";
 
+//RUN MODE
+export const ENV_VALUE_RUN_MODE = "run_mode";
+
+//RUN MODE INSTANCE
+export const ENV_VALUE_RUN_MODE_RUMMER = "runner";
+
+export const ENV_VALUE_RUN_MODE_CLIENT = "client";
+
 //APP_VERSION
 export const ENV_VALUE_APP_VERSION = "$randomAppVersion";
 

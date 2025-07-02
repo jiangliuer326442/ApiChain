@@ -1,6 +1,10 @@
 import { TABLE_ENV_NAME, UNAME, TABLE_ENV_FIELDS } from '@conf/db';
 import { GET_ENVS } from '@conf/redux';
 import { 
+    ENV_VALUE_RUN_MODE,
+    ENV_VALUE_RUN_MODE_RUMMER
+} from '@conf/envKeys';
+import { 
     CLIENT_TYPE_SINGLE, 
     CLIENT_TYPE_TEAM, 
     ENVS_LIST_URL, 
@@ -8,11 +12,12 @@ import {
     ENVS_ALL_LIST_URL,
 } from '@conf/team';
 import { getUsers } from '@act/user';
+import { addEnvValues } from '@act/env_value';
 import { sendTeamMessage } from '@act/message';
+import { langTrans } from '@lang/i18n';
 
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
-let env_request_device = TABLE_ENV_FIELDS.FIELD_REQUEST_DEVICE;
 let env_cuid = TABLE_ENV_FIELDS.FIELD_CUID;
 let env_ctime = TABLE_ENV_FIELDS.FIELD_CTIME;
 let env_delFlg = TABLE_ENV_FIELDS.FIELD_DELFLG;
@@ -101,13 +106,12 @@ export async function delEnv(clientType: string, teamId : string, row) {
 
 export async function addEnv(clientType : string, teamId : string, environment : string, remark : string, requestDevice : string, device : object) {
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(ENVS_SET_URL, {label: environment, remark, requestDevice});
+        await sendTeamMessage(ENVS_SET_URL, {label: environment, remark, requestDevice: requestDevice === ENV_VALUE_RUN_MODE_RUMMER});
     }
 
     let env : any = {};
     env[env_label] = environment;
     env[env_remark] = remark;
-    env[env_request_device] = requestDevice;
     env[env_cuid] = device.uuid;
     env[env_ctime] = Date.now();
     env[env_delFlg] = 0;
@@ -119,4 +123,6 @@ export async function addEnv(clientType : string, teamId : string, environment :
         env.team_id = teamId;
     }
     await window.db[TABLE_ENV_NAME].put(env);
+
+    await addEnvValues(clientType, teamId, "", environment, "", "", ENV_VALUE_RUN_MODE, requestDevice, langTrans("envvar prj run mode"), device);
 }
