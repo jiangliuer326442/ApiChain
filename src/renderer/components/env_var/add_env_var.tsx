@@ -118,8 +118,8 @@ class AddEnvVarComponent extends Component {
                                 value={this.state.pvalue} 
                                 onChange={value => this.setState({pvalue : value})}
                                 options={[
-                                    {label:{ENV_VALUE_RUN_MODE_CLIENT}, value:{ENV_VALUE_RUN_MODE_CLIENT}},
-                                    {label:{ENV_VALUE_RUN_MODE_RUMMER}, value:{ENV_VALUE_RUN_MODE_RUMMER}}
+                                    {label:ENV_VALUE_RUN_MODE_CLIENT, value:ENV_VALUE_RUN_MODE_CLIENT},
+                                    {label:ENV_VALUE_RUN_MODE_RUMMER, value:ENV_VALUE_RUN_MODE_RUMMER}
                                 ]} />
                             :
                             <TextArea allowClear rows={ 3 }

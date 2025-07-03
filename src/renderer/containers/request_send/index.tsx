@@ -7,7 +7,6 @@ import {
 } from "antd";
 import type { DescriptionsProps } from 'antd';
 import { decode } from 'base-64';
-import axios from 'axios';
 import JsonView from 'react-json-view';
 import { cloneDeep } from 'lodash';
 
@@ -16,6 +15,7 @@ import {
   paramToString,
   isJsonString,
   getMapValueOrDefault,
+  getType,
 } from '@rutil/index';
 import {
   TABLE_FIELD_TYPE,
@@ -47,7 +47,6 @@ import {
 } from '@conf/contentType';
 import {
   CLIENT_TYPE_TEAM,
-  NETWORK_REQUEST_URL
 } from '@conf/team';
 import {
   REQUEST_METHOD_GET,
@@ -76,7 +75,8 @@ import {
   addRequestHistory 
 } from '@act/request_history';
 import {
-  sendAjaxMessage
+  sendAjaxMessageByClient,
+  sendAjaxMessageByRunner,
 } from '@act/message';
 import SelectPrjEnvComponent from "@comp/env_var/select_prj_env";
 import RequestSendBody from "@comp/request_send/body_form";
@@ -408,29 +408,16 @@ class RequestSendContainer extends Component {
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
         if (this.state.runMode === ENV_VALUE_RUN_MODE_RUMMER) {
-          let formData = new FormData();
-          formData.append("url", url);
-          formData.append("headData", JSON.stringify(headData))
-          formData.append("bodyData", JSON.stringify(postData))
-          for (let _key in this.state.requestFileData) {
-              let _file = this.state.requestFileData[_key];
-              const blobFile = new Blob([_file.blob], { type: _file.type });  
-              formData.append(_key, blobFile, _file.name);
-          }
-          axios.post(this.props.clientHost + NETWORK_REQUEST_URL, formData, {
-              headers: {
-                CONTENT_TYPE: CONTENT_TYPE_FORMDATA,
-              },
-              maxRedirects: 0,
-          }).then(response => {
-            console.log(response.data.data);
+          sendAjaxMessageByRunner(REQUEST_METHOD_POST, url, headData, postData, this.state.requestFileData).then(response => {
+            this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
+            this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
           }).catch(err => this.setState({
             alertMessage: err.errorMessage, 
             sendingFlg: false, 
             statusCode: err.statusCode,
           }));
         } else if (this.state.runMode === ENV_VALUE_RUN_MODE_CLIENT) {
-          sendAjaxMessage('post', url, headData, postData, this.state.requestFileData).then(response => {
+          sendAjaxMessageByClient(REQUEST_METHOD_POST, url, headData, postData, this.state.requestFileData).then(response => {
             this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
             this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
           }).catch(err => this.setState({
@@ -440,7 +427,38 @@ class RequestSendContainer extends Component {
           }));
         }
       } else {
-        sendAjaxMessage('post', url, headData, postData, null).then(response => {
+        if (this.state.runMode === ENV_VALUE_RUN_MODE_RUMMER) {
+          sendAjaxMessageByRunner(REQUEST_METHOD_POST, url, headData, postData, null).then(response => {
+            this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
+            this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
+          }).catch(err => this.setState({
+            alertMessage: err.errorMessage, 
+            sendingFlg: false, 
+            statusCode: err.statusCode,
+          }));
+        } else if (this.state.runMode === ENV_VALUE_RUN_MODE_CLIENT) {
+          sendAjaxMessageByClient(REQUEST_METHOD_POST, url, headData, postData, null).then(response => {
+            this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
+            this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
+          }).catch(err => this.setState({
+            alertMessage: err.errorMessage, 
+            sendingFlg: false, 
+            statusCode: err.statusCode,
+          }));
+        }
+      }
+    } else if (this.state.requestMethod === REQUEST_METHOD_GET) {
+      if (this.state.runMode === ENV_VALUE_RUN_MODE_RUMMER) {
+        sendAjaxMessageByRunner(REQUEST_METHOD_GET, url, headData, null, null).then(response => {
+          this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
+          this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
+        }).catch(err => this.setState({
+          alertMessage: err.errorMessage, 
+          sendingFlg: false, 
+          statusCode: err.statusCode,
+        }));
+      } else if (this.state.runMode === ENV_VALUE_RUN_MODE_CLIENT) {
+        sendAjaxMessageByClient(REQUEST_METHOD_GET, url, headData, null, null).then(response => {
           this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
           this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
         }).catch(err => this.setState({
@@ -449,19 +467,13 @@ class RequestSendContainer extends Component {
           statusCode: err.statusCode,
         }));
       }
-    } else if (this.state.requestMethod === REQUEST_METHOD_GET) {
-      sendAjaxMessage('get', url, headData, null, null).then(response => {
-        this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
-        this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
-      }).catch(err => this.setState({
-        alertMessage: err.errorMessage, 
-        sendingFlg: false, 
-        statusCode: err.statusCode,
-      }));
     }
   }
 
   handleResponse = async (url, cookieObj, headers, costTime, data) => {
+    if (getType(data) === "String" && isJsonString(data)) {
+        data = JSON.parse(data);
+    }
     let isResponseJson = false;
     let isResponseHtml = false;
     let isResponsePic = false;

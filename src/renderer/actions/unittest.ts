@@ -40,7 +40,7 @@ import {
 } from '@conf/unittest';
 import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 
-import { sendAjaxMessage } from '@act/message';
+import { sendAjaxMessageByClient } from '@act/message';
 import { getUsers } from '@act/user';
 import { addRequestHistory, getRequestHistory } from '@act/request_history';
 import { addProjectUnitTestFolder } from '@act/unittest_folders';
@@ -984,20 +984,20 @@ async function stepsExecutor(
         if (method === REQUEST_METHOD_POST) {
             if (contentType === CONTENT_TYPE_FORMDATA) {
                 try {
-                    response = await sendAjaxMessage("post", url, header, body, file);
+                    response = await sendAjaxMessageByClient("post", url, header, body, file);
                 } catch (err) {
                     errorMessage = err.errorMessage;
                 }
             } else {
                 try {
-                    response = await sendAjaxMessage("post", url, header, body, null);
+                    response = await sendAjaxMessageByClient("post", url, header, body, null);
                 } catch (err) {
                     errorMessage = err.errorMessage;
                 }
             }
         } else if (method === REQUEST_METHOD_GET) {
             try {
-                response = await sendAjaxMessage("get", url, header, null, null);
+                response = await sendAjaxMessageByClient("get", url, header, null, null);
             } catch (err) {
                 errorMessage = err.errorMessage;
             }

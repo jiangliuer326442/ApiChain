@@ -517,7 +517,7 @@ class RequestSaveContainer extends Component {
             folders = await allFolders(this.props.clientType, this.state.iteratorId);
         }
         let selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, value);
-        this.setState({selectedVersionIterator, folders})
+        this.setState({selectedVersionIterator, folders, type: "iterator"})
         if (!isStringEmpty(this.props.match.params.historyId)) {
             let historyId = Number(this.props.match.params.historyId);
             this.initFromRequestHistory(historyId);

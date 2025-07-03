@@ -1,4 +1,5 @@
 import IDBExportImport from 'indexeddb-export-import';
+import axios from 'axios';
 
 import { Button, Card, notification, Space } from 'antd';
 
@@ -38,6 +39,15 @@ import {
     ChannelsAxioTeamReplyStr,
     ChannelsLoadAppStr,
 } from '@conf/channel';
+import {
+    NETWORK_REQUEST_URL
+} from '@conf/team';
+import {
+    CONTENT_TYPE,
+} from '@conf/global_config';
+import {
+    CONTENT_TYPE_FORMDATA
+} from '@conf/contentType';
 
 import { getEnvHosts } from '@act/env_value';
 import { getPrjs } from '@act/project';
@@ -48,6 +58,7 @@ import { langFormat, langTrans } from '@lang/i18n';
 
 let argsObject = getStartParams();
 let clientType = argsObject.clientType;
+let clientHost = argsObject.clientHost;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -85,7 +96,7 @@ export function sendTeamMessage(url : string, postData) {
  * @param fileData 文件数据
  * @returns 
  */
-export function sendAjaxMessage(method : string, url : string, headData, postData, fileData) {
+export function sendAjaxMessageByClient(method : string, url : string, headData, postData, fileData) {
     return new Promise((resolve, reject) => {
 
         let messageSendListener = window.electron.ipcRenderer.on(ChannelsAxioBreidgeStr, (action, originUrl, targetUrl, statusCode, costTime, errorMessage, cookieObj, headers, data) => {
@@ -106,6 +117,51 @@ export function sendAjaxMessage(method : string, url : string, headData, postDat
         });
 
         window.electron.ipcRenderer.sendMessage(ChannelsAxioBreidgeStr, ChannelsAxioBreidgeSendStr, method, url, headData, postData, fileData);
+    });
+}
+
+export function sendAjaxMessageByRunner(method : string, url : string, headData, postData, fileData) {
+    let formData = new FormData();
+    formData.append("url", url);
+    formData.append("method", method);
+    formData.append("headData", JSON.stringify(headData))
+    if (postData !== null){
+        formData.append("bodyData", JSON.stringify(postData))
+    }
+    if (fileData !== null) {
+        for (let _key in fileData) {
+            let _file = fileData[_key];
+            const blobFile = new Blob([_file.blob], { type: _file.type });  
+            formData.append(_key, blobFile, _file.name);
+        }
+    }
+
+    return new Promise((resolve, reject) => {
+        axios.post(clientHost + NETWORK_REQUEST_URL, formData, {
+            headers: {
+                CONTENT_TYPE: CONTENT_TYPE_FORMDATA,
+            },
+            maxRedirects: 0,
+        }).then(response => {
+            let data = response.data.data;
+            let errorMessage = data[3];
+            let statusCode = data[1];
+            let originUrl = data[0];
+            let cookieObj = data[4];
+            let headers = data[5];
+            let costTime = data[2];
+            if (isStringEmpty(errorMessage) && statusCode == 200) {
+                resolve({originUrl, cookieObj, headers, costTime, data: data[6]});
+            } else {
+                if (statusCode === undefined) {
+                    statusCode = 500;
+                }
+                if (errorMessage === undefined) {
+                    errorMessage = "Internel Error";
+                }
+                reject({errorMessage, statusCode});
+            }
+        })
     });
 }
 

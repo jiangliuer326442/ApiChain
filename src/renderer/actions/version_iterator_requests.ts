@@ -60,6 +60,7 @@ export async function getVersionIteratorRequest(clientType : string, iteratorId 
 
     if (clientType === CLIENT_TYPE_TEAM) {
         version_iteration_request = await sendTeamMessage(REQUEST_VERSION_ITERATION_FIND_URL, {iteratorId, prj, method, uri});
+        if (version_iteration_request === null) return null;
     } else {
         version_iteration_request = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
         .where([ iteration_request_iteration_uuid, iteration_request_project, iteration_request_method, iteration_request_uri ])

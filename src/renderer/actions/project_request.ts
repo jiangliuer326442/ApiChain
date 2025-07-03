@@ -155,6 +155,7 @@ export async function getProjectRequest(clientType : string, prj : string, metho
 
     if (clientType === CLIENT_TYPE_TEAM) {
         project_request = await sendTeamMessage(REQUEST_PROJECT_FIND_URL, {prj, method, uri});
+        if (project_request === null) return null;
     } else {
         project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
         .where([ project_request_project, project_request_method, project_request_uri ])
