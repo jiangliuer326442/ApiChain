@@ -25,6 +25,17 @@ class RequestSendParam extends Component {
         })
     }
 
+    async componentDidUpdate(prevProps) { 
+        if (Object.keys(this.props.obj).length != Object.keys(prevProps.obj).length) {
+            this.state.requestParamData = this.props.obj;
+            let ret = this.buildList();
+            this.setState({
+                rows : ret[0],
+                data : ret[1],
+            });
+        }
+    }
+
     buildList = () => {
         let list = this.calculateFormParamsData(this.state.requestParamData);
         return [list.length, list];

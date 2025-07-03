@@ -21,6 +21,7 @@ import {
   TABLE_FIELD_TYPE,
   TABLE_FIELD_VALUE,
   cleanJson,
+  shortJsonContent,
   getEnvVarsIterator,
 } from '@rutil/json';
 import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER } from "@conf/envKeys";
@@ -175,6 +176,7 @@ class RequestSendContainer extends Component {
       alertMessage: "",
       envKeys: [],
       statusCode: 0,
+      initDatasFlg: false,
       costTime: 0,
       sendingFlg: false,
     }
@@ -201,7 +203,6 @@ class RequestSendContainer extends Component {
     let method = this.state.requestMethod;
     let showFlg = true;
     let requestEnable = true;
-    let state = {};
 
     if (pathKey === 'internet_request_send_by_history') {
       let type = "project";
@@ -218,8 +219,10 @@ class RequestSendContainer extends Component {
 
       let headerData = record[request_history_head];
       let contentType = headerData[CONTENT_TYPE];
-      state = {
+      this.setRequestMethod(method);
+      this.setState({
         type,
+        initDatasFlg: true,
         iteratorId,
         requestMethod: method,
         requestHeadData: headerData,
@@ -238,25 +241,21 @@ class RequestSendContainer extends Component {
         requestFileData: record[request_history_file],
         requestPathVariableData: record[request_history_path_variable],
         requestParamData: record[request_history_param],
-      };
-    } else if (pathKey === 'internet_request_send_by_api') {
-      let body = {};
-      let header : any = {};
-      let requestParam = {};
-      let requestPathVariable = {};
-      if (this.state.type === "project") {
-        let record = await getProjectRequest(this.props.clientType, this.state.prj, this.state.requestMethod, this.state.requestUri);
-        body = record[project_request_body];
-        header = record[project_request_header];
-        requestParam = record[project_request_param];
-        requestPathVariable = record[project_request_path_variable];
-      } else if (this.state.type === "iterator") {
-        let record = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, this.state.prj, this.state.requestMethod, this.state.requestUri);
-        body = record[iteration_request_body];
-        header = record[iteration_request_header];
-        requestParam = record[iteration_request_param];
-        requestPathVariable = record[iteration_request_path_variable];
-      }
+        requestEnable,
+        showFlg,
+      });
+    } else if (pathKey === 'internet_request_send_by_api' && this.state.type === "iterator") {
+      let record = await getVersionIteratorRequest(
+        this.props.clientType, 
+        this.state.iteratorId, 
+        this.state.prj, 
+        this.state.requestMethod, 
+        this.state.requestUri
+      );
+      let body = record[iteration_request_body];
+      let header = record[iteration_request_header];
+      let requestParam = record[iteration_request_param];
+      let requestPathVariable = record[iteration_request_path_variable];
       let file : any = {};
       let realBody : any = {};
       for (let _key in body) {
@@ -272,21 +271,21 @@ class RequestSendContainer extends Component {
       let requestPathVariableData = cleanJson(requestPathVariable);
       let requestFileData = file;
       let contentType = requestHeadData[CONTENT_TYPE];
-      state = {
+      this.setRequestMethod(method);
+      this.setState({
         contentType,
+        initDatasFlg: true,
         requestHeadData,
         requestBodyData,
         requestFileData,
         requestParamData,
         requestPathVariableData,
-      };
+        requestEnable,
+        showFlg,
+      });
+    } else if (pathKey === 'internet_request_send_by_api' && this.state.type === "project") {
+      this.initDataByProject(this.state.requestUri);
     }
-
-    this.setRequestMethod(method);
-    this.setState(Object.assign({}, state, {
-      requestEnable,
-      showFlg,
-    }));
   }
 
   setRequestMethod = (value: string) => {
@@ -302,6 +301,49 @@ class RequestSendContainer extends Component {
     state.defaultTabKey = defaultKey;
     this.setState(state);
   };
+
+  initDataByProject = async (url: string) => {
+    if (isStringEmpty(url)) return;
+    if (this.state.initDatasFlg) return;
+    let record = await getProjectRequest(
+      this.props.clientType, 
+      this.state.prj, 
+      this.state.requestMethod, 
+      url
+    );
+    if (record === null) return;
+    let body = record[project_request_body];
+    let header = record[project_request_header];
+    let requestParam = record[project_request_param];
+    let requestPathVariable = record[project_request_path_variable];
+    let file : any = {};
+    let realBody : any = {};
+    for (let _key in body) {
+      if (body[_key][TABLE_FIELD_TYPE] === "File") {
+        file[_key] = body[_key][TABLE_FIELD_VALUE];
+      } else {
+        realBody[_key] = body[_key];
+      }
+    }
+    let requestBodyData = cleanJson(realBody);
+    let requestHeadData = cleanJson(header);
+    let requestParamData = cleanJson(requestParam);
+    let requestPathVariableData = cleanJson(requestPathVariable);
+    let requestFileData = file;
+    let contentType = requestHeadData[CONTENT_TYPE];
+    this.setRequestMethod(this.state.requestMethod);
+    this.setState({
+      contentType,
+      initDatasFlg: true,
+      requestHeadData,
+      requestBodyData,
+      requestFileData,
+      requestParamData,
+      requestPathVariableData,
+      requestEnable: true,
+      showFlg: true,
+    });
+  }
 
   getEnvValueData = async (prj: string, env: string) => {
     if (isStringEmpty(env)) return;
@@ -509,10 +551,18 @@ class RequestSendContainer extends Component {
     } else {
       content = data;
     }
+    let shortResponseJsonContent = "";
+    if (isResponseJson) {
+      let shortResponseJsonObject = {};
+      shortJsonContent(shortResponseJsonObject, JSON.parse(content));
+      shortResponseJsonContent = JSON.stringify(shortResponseJsonObject);
+    } else {
+      shortResponseJsonContent = content;
+    }
     let historyId = await addRequestHistory(
       this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
       this.state.requestHeadData, this.state.requestBodyData, this.state.requestPathVariableData, this.state.requestParamData, this.state.requestFileData,
-      content, headers, cookieObj,
+      shortResponseJsonContent, headers, cookieObj,
       this.state.iteratorId, 
       isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
     this.setState({ 
@@ -661,6 +711,7 @@ class RequestSendContainer extends Component {
                         this.setState({requesrequestUri: this.state.requestUri})
                       }}
                       onChange={event => this.setState({requestUri: event.target.value})} 
+                      onBlur={event => this.initDataByProject(event.target.value)}
                       value={ this.state.requestUri } 
                       size='large' />
                     <Button 

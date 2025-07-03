@@ -12,6 +12,7 @@ import {
     SYS_LANG,
     SYS_TEAM,
     SYS_COUNTRY,
+    REQUEST_METHOD_POST,
     SYS_UID,
 } from '../../config/global_config'
 import {
@@ -71,7 +72,7 @@ async function postRequest2(clientHost : string, urlPrefix : string, postData : 
 
     let url = clientHost + urlPrefix;
 
-    let result = await doRequest("post", url, headData, postData, null, new Map());
+    let result = await doRequest(REQUEST_METHOD_POST, url, headData, postData, null, new Map());
 
     let response = result[1];
     let errorMessage = result[2];

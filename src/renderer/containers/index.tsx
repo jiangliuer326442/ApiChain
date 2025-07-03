@@ -14,6 +14,7 @@ import { SET_DEVICE_INFO } from '@conf/redux';
 import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
 import { getOpenVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
+import registerMessageHook from "@act/message";
 
 let argsObject = getStartParams();
 let userCountry = argsObject.userCountry;
@@ -76,7 +77,6 @@ import RequestToSaveContainerPage from '@contain/request_save/to_save';
 import RequestSaveDetailContainerPage from '@contain/request_save/save_detail';
 import VersionIteratorRequestListPage from "@contain/request_list/version";
 import ProjectRequestListPage from "@contain/request_list/project";
-import VersionIteratorDocPage from "@contain/iterator_doc";
 import UnittestListVersionPage from "@contain/unittest/version_iterator";
 import UnittestListProjectPage from "@contain/unittest/project";
 import UnittestExecutorListPage from "@contain/unittest_executor_list";
@@ -140,8 +140,9 @@ class MyRouter extends Component {
     async componentDidMount() {
         await window.db.open();
         if (!this.state.initNavFlg) {
-        this.cb();
+            this.cb();
         }
+        registerMessageHook();
     }
 
     cb = () => {

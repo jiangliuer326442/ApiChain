@@ -41,13 +41,22 @@ class RequestSendBody extends Component {
     }
 
     async componentDidUpdate(prevProps) { 
-        if (this.props.contentType != prevProps.contentType) {
+        if (this.props.contentType != prevProps.contentType ) {
             this.state.contentType = this.props.contentType;
             let ret = this.buildList();
-            Object.assign(this.state, this.state, {
+            this.setState({
                 rows : ret[0],
                 data : ret[1],
-            })
+            });
+        }
+        if (Object.keys(this.props.obj).length != Object.keys(prevProps.obj).length) {
+            this.state.requestBodyData = this.props.obj;
+            this.state.requestFileData = this.props.file;
+            let ret = this.buildList();
+            this.setState({
+                rows : ret[0],
+                data : ret[1],
+            });
         }
     }
 

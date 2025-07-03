@@ -67,7 +67,7 @@ import {
 } from '@rutil/index';
 import { addUser, getUser, setUserName as ac_setUserName, setUserCountryLangIp } from '@act/user';
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
-import registerMessageHook, { sendTeamMessage } from '@act/message';
+import { sendTeamMessage } from '@act/message';
 import PayModel from '@comp/topup';
 import TeamModel from '@comp/team';
 import { getLang, langFormat, langTrans } from '@lang/i18n';
@@ -182,8 +182,6 @@ class Home extends Component {
       if (checkAutoUpgrade == 1) {
         this.checkForUpgrade();
       }
-
-      registerMessageHook();
 
       let uname = argsObject.uname;
       let ip = argsObject.ip;

@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import axios from 'axios';
 import fs from 'fs-extra';
 
-import { GLobalPort } from '../../config/global_config';
+import { GLobalPort, REQUEST_METHOD_POST, REQUEST_METHOD_GET } from '../../config/global_config';
 
 export function getIpV4() {
   const interfacees = os.networkInterfaces();
@@ -94,7 +94,7 @@ export async function doRequest(method : any, url : string, headData : any, post
   let errorMessage = "";
   let hasError = false;
 
-  if (method === 'get') {
+  if (method === REQUEST_METHOD_GET) {
       response = await axios.get(url, {
           headers: headData,
           maxRedirects: 0,
@@ -110,7 +110,7 @@ export async function doRequest(method : any, url : string, headData : any, post
               return [url, error.response, error.message];
           }
       });
-  } else if (method === 'post') {
+  } else if (method === REQUEST_METHOD_POST) {
       if (fileData === null) {
           response = await axios.post(url, postData, {
               headers: headData,

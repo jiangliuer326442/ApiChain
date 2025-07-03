@@ -42,6 +42,17 @@ class RequestSendHead extends Component {
         })
     }
 
+    async componentDidUpdate(prevProps) { 
+        if (Object.keys(this.props.obj).length != Object.keys(prevProps.obj).length) {
+            this.state.requestHeadData = this.props.obj;
+            let ret = this.buildList();
+            this.setState({
+                rows : ret[0],
+                data : ret[1],
+            });
+        }
+    }
+
     buildList = () => {
         let list = this.calculateFormHeadData(this.state.requestHeadData);
         return [list.length, list];

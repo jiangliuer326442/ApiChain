@@ -33,15 +33,27 @@ class PrjEnvSelect extends Component {
         if(this.props.envs.length === 0) {
           getEnvs(this.props.clientType, this.props.dispatch);
         }
-        let prjOptions;
+        if (this.props.prjs.length > 0) {
+            this.intPrjOptions();
+        }
+    }
+
+    componentDidUpdate(prevProps) { 
+        if (this.props.prjs.length !== prevProps.prjs.length && isStringEmpty(this.state.selectedValue)) {
+            this.intPrjOptions();
+        }
+    }
+
+    intPrjOptions = async () => {
         let iteratorName = "";
+        let prjOptions;
         if (!isStringEmpty(this.props.iteratorId)) {
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.props.iteratorId);
+            iteratorName = versionIteration[version_iterator_title];
             prjOptions = versionIteration[version_iterator_prjs].map(item => {
                 let label = this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : "";
                 return {value: item + "$$" + label, label }
             })
-            iteratorName = versionIteration[version_iterator_title];
         } else {
             prjOptions = this.props.prjs.map(item => {
                 return {value: item.value + "$$" + item.label , label: item.label}
@@ -53,24 +65,10 @@ class PrjEnvSelect extends Component {
         } else {
             selectedValue = prjOptions.find(item => item.value.startsWith(selectedValue + "$$")).value;
         }
-        
         if (!isStringEmpty(selectedValue)) {
             this.props.cb(selectedValue.split("$$")[0], this.state.env);
         }
         this.setState({iteratorName, prjOptions, prj: selectedValue})
-    }
-
-    async componentDidUpdate(prevProps) { 
-        if (this.props.prjs.length !== prevProps.prjs.length && isStringEmpty(this.state.selectedValue)) {
-            let prjOptions = this.props.prjs.map(item => {
-                return {value: item.value + "$$" + item.label , label: item.label}
-            });
-            let selectedValue = prjOptions[0].value;
-            if (!isStringEmpty(selectedValue)) {
-                this.props.cb(selectedValue.split("$$")[0], this.state.env);
-            }
-            this.setState({prjOptions, prj: selectedValue})
-        }
     }
 
     setProjectChange = (rawValue: string) => {
