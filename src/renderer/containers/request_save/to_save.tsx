@@ -1,7 +1,7 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Descriptions, Breadcrumb, Flex, Layout, Tabs, Form, message, Button, Checkbox, Input, Divider, Select } from "antd";
-import { cloneDeep, isNull } from 'lodash';
+import { cloneDeep } from 'lodash';
 import { encode } from 'base-64';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -25,9 +25,7 @@ import {
 } from '@rutil/json';
 
 import { createWindow } from '@rutil/window';
-import { ENV_VALUE_API_HOST } from "@conf/envKeys";
 import { 
-    TABLE_ENV_VAR_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_FIELDS,
@@ -45,9 +43,7 @@ import {
     FoldSourceIterator,
 } from '@conf/global_config';
 import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
-import { getEnvs } from '@act/env';
 import { getPrjs } from '@act/project';
-import { getPrjEnvValues, getIteratorEnvValues } from '@act/env_value';
 import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from "@act/version_iterator";
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
@@ -74,7 +70,6 @@ import { langTrans } from '@lang/i18n';
 const { TextArea } = Input;
 const { Header, Content, Footer } = Layout;
 
-let request_history_env = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ENV_LABEL;
 let request_history_micro_service = TABLE_REQUEST_HISTORY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
 let request_history_method = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_METHOD;
@@ -125,9 +120,6 @@ let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_name = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 
-let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
-let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
-
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
@@ -141,10 +133,8 @@ class RequestSaveContainer extends Component {
 
         this.state = {
             prj : null,
-            env : "",
             title : "",
             description: "",
-            requestHost: "",
             requestUri: "",
             requestMethod: "",
             sort: 0,
@@ -171,7 +161,6 @@ class RequestSaveContainer extends Component {
             showFlg : false,
             iteratorId,
             type,
-            prjsSelectector: [],
             selectedFolder: "",
             versionIteratorsSelector: [],
             folders: [],
@@ -181,39 +170,14 @@ class RequestSaveContainer extends Component {
     }
 
     async componentDidMount(): Promise<void> {
-        let prjs = this.props.prjs;
         let selectedVersionIterator = {};
-        if(this.props.envs.length === 0) {
-            await getEnvs(this.props.clientType, this.props.dispatch);
-        }
-        if(prjs.length === 0) {
-            prjs = (await getPrjs(this.props.clientType, this.props.dispatch)).map(item => ({
-                value: item[prj_label],
-                label: item[prj_remark]
-            }));
-        }
-        let prjsSelectector = [];
         if (this.state.type === "iterator") {
             selectedVersionIterator = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
-            let selectVersionIterationPrjs = selectedVersionIterator[version_iterator_prjs];
-            for(let _prj of selectVersionIterationPrjs) {
-                let prjRemark = prjs.find(row => row.value === _prj).label;
-                prjsSelectector.push({label: prjRemark, value: _prj});
-            }
         }
+        let historyId = Number(this.props.match.params.historyId);
+        this.initFromRequestHistory(historyId);
 
-        this.setState({selectedVersionIterator, prjsSelectector})
-
-        if (!isStringEmpty(this.props.match.params.historyId)) {
-            let historyId = Number(this.props.match.params.historyId);
-            this.initFromRequestHistory(historyId);
-        } else {
-            this.setState({
-                showFlg: true,
-                requestMethod : REQUEST_METHOD_POST,
-                contentType: CONTENT_TYPE_URLENCODE,
-            });
-        }
+        this.setState({selectedVersionIterator})
     }
 
     initFromRequestHistory = async (historyId : number) => {
@@ -221,202 +185,199 @@ class RequestSaveContainer extends Component {
         let prj = record[request_history_micro_service];
         let method = record[request_history_method];
         let uri = record[request_history_uri];
-        let env = record[request_history_env];
 
-        this.initByIteratorPrjEnv(this.state.iteratorId, prj, env);
+        this.initFolders(this.state.iteratorId, prj);
+
+        let versionIterationRequest = null;
         if (this.state.type === "iterator") {
-            let versionIterationRequest = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, prj, method, uri);
-            if (versionIterationRequest !== null) {
-                let sort = versionIterationRequest[version_iterator_request_sort] === undefined ? 0 : versionIterationRequest[version_iterator_request_sort];
-                let isExportDoc = (getType(versionIterationRequest[version_iterator_request_exportdocflg]) === "String" && isStringEmpty(versionIterationRequest[version_iterator_request_exportdocflg])) ? true : versionIterationRequest[version_iterator_request_exportdocflg];
-                let requestHeadData = record[request_history_head];
-                let shortRequestHeadJsonObject = {};
-                shortJsonContent(shortRequestHeadJsonObject, requestHeadData);
-                let requestHeaderHash = iteratorGenHash(shortRequestHeadJsonObject);
-                let formRequestHeadData = {};
-                parseJsonToFilledTable(formRequestHeadData, shortRequestHeadJsonObject, versionIterationRequest[version_iterator_request_header]);
-                let requestBodyData = record[request_history_body];
-                let shortRequestBodyJsonObject = {};
-                shortJsonContent(shortRequestBodyJsonObject, requestBodyData);
-                let requestFileData = record[request_history_file];
-                let requestBodyHash = iteratorBodyGenHash(shortRequestBodyJsonObject, requestFileData);
-                let formRequestBodyData = {};
-                parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, versionIterationRequest[version_iterator_request_body]);
-                parseJsonToFilledTable(formRequestBodyData, requestFileData, versionIterationRequest[version_iterator_request_body]);
-                let requestParamData = record[request_history_param];
-                let shortRequestParamJsonObject = {};
-                shortJsonContent(shortRequestParamJsonObject, requestParamData);
-                let requestParamHash = iteratorGenHash(shortRequestParamJsonObject);
-                let formRequestParamData = {};
-                parseJsonToFilledTable(formRequestParamData, shortRequestParamJsonObject, versionIterationRequest[version_iterator_request_param]);
-                
-                let requestPathVariableData = record[request_history_path_variable];
-                let shortRequestPathVariableJsonObject = {};
-                shortJsonContent(shortRequestPathVariableJsonObject, requestPathVariableData);
-                let requestPathVariableHash = iteratorGenHash(shortRequestPathVariableJsonObject);
-                let formRequestPathVariableData = {};
-                parseJsonToFilledTable(formRequestPathVariableData, shortRequestPathVariableJsonObject, versionIterationRequest[version_iterator_request_path_variable]);
-                                        
-                let shortResponseJsonObject = {};
-                let formResponseData = {};
-                let responseHash = "";
-                let responseDemo = "";
-                if (record[version_iterator_request_jsonflg]) {
-                    let responseData = JSON.parse(record[request_history_response_content]);
-                    shortJsonContent(shortResponseJsonObject, responseData);
-                    responseHash = iteratorGenHash(shortResponseJsonObject);
-                    parseJsonToFilledTable(formResponseData, shortResponseJsonObject, versionIterationRequest[version_iterator_request_response_content]);
-                
-                    responseDemo = JSON.stringify(shortResponseJsonObject);
-                } else {
-                    responseDemo = record[request_history_response_content];
-                }
+            versionIterationRequest = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, prj, method, uri);
+        }
 
-                let shortResponseHeadJsonObject = {};
-                let formResponseHeadData = {};
-                let responseHead = record[request_history_response_head];
-                shortJsonContent(shortResponseHeadJsonObject, responseHead);
-                parseJsonToFilledTable(formResponseHeadData, shortResponseHeadJsonObject, versionIterationRequest[version_iterator_request_response_head]);
-
-                let shortResponseCookieJsonObject = {};
-                let formResponseCookieData = {};
-                let responseCookie = record[request_history_response_cookie];
-                shortJsonContent(shortResponseCookieJsonObject, responseCookie);
-                parseJsonToFilledTable(formResponseCookieData, shortResponseCookieJsonObject, versionIterationRequest[version_iterator_request_response_cookie]);
-                
-                this.setState({
-                    showFlg: true,
-                    prj,
-                    env: record[request_history_env],
-                    title: versionIterationRequest[version_iterator_request_title],
-                    description: versionIterationRequest[version_iterator_request_desc],
-                    selectedFolder: versionIterationRequest[version_iterator_request_fold],
-                    requestUri: uri,
-                    requestMethod: method,
-                    isResponseJson: record[version_iterator_request_jsonflg],
-                    isResponseHtml: record[version_iterator_request_htmlflg],
-                    isResponsePic: record[version_iterator_request_picflg],
-                    isResponseFile: record[version_iterator_request_fileflg],
-                    formRequestHeadData,
-                    requestHeaderHash,
-                    formRequestBodyData,
-                    requestBodyHash,
-                    formRequestParamData,
-                    formRequestPathVariableData,
-                    requestParamHash,
-                    requestPathVariableHash,
-                    formResponseData,
-                    formResponseHeadData,
-                    formResponseCookieData,
-                    responseHash,
-                    isExportDoc,
-                    sort,
-                    responseDemo,
-                });
+        if (this.state.type === "iterator" && versionIterationRequest !== null) {
+            let sort = versionIterationRequest[version_iterator_request_sort] === undefined ? 0 : versionIterationRequest[version_iterator_request_sort];
+            let isExportDoc = (getType(versionIterationRequest[version_iterator_request_exportdocflg]) === "String" && isStringEmpty(versionIterationRequest[version_iterator_request_exportdocflg])) ? true : versionIterationRequest[version_iterator_request_exportdocflg];
+            let requestHeadData = record[request_history_head];
+            let shortRequestHeadJsonObject = {};
+            shortJsonContent(shortRequestHeadJsonObject, requestHeadData);
+            let requestHeaderHash = iteratorGenHash(shortRequestHeadJsonObject);
+            let formRequestHeadData = {};
+            parseJsonToFilledTable(formRequestHeadData, shortRequestHeadJsonObject, versionIterationRequest[version_iterator_request_header]);
+            let requestBodyData = record[request_history_body];
+            let shortRequestBodyJsonObject = {};
+            shortJsonContent(shortRequestBodyJsonObject, requestBodyData);
+            let requestFileData = record[request_history_file];
+            let requestBodyHash = iteratorBodyGenHash(shortRequestBodyJsonObject, requestFileData);
+            let formRequestBodyData = {};
+            parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, versionIterationRequest[version_iterator_request_body]);
+            parseJsonToFilledTable(formRequestBodyData, requestFileData, versionIterationRequest[version_iterator_request_body]);
+            let requestParamData = record[request_history_param];
+            let shortRequestParamJsonObject = {};
+            shortJsonContent(shortRequestParamJsonObject, requestParamData);
+            let requestParamHash = iteratorGenHash(shortRequestParamJsonObject);
+            let formRequestParamData = {};
+            parseJsonToFilledTable(formRequestParamData, shortRequestParamJsonObject, versionIterationRequest[version_iterator_request_param]);
+            
+            let requestPathVariableData = record[request_history_path_variable];
+            let shortRequestPathVariableJsonObject = {};
+            shortJsonContent(shortRequestPathVariableJsonObject, requestPathVariableData);
+            let requestPathVariableHash = iteratorGenHash(shortRequestPathVariableJsonObject);
+            let formRequestPathVariableData = {};
+            parseJsonToFilledTable(formRequestPathVariableData, shortRequestPathVariableJsonObject, versionIterationRequest[version_iterator_request_path_variable]);
+                                    
+            let shortResponseJsonObject = {};
+            let formResponseData = {};
+            let responseHash = "";
+            let responseDemo = "";
+            if (record[version_iterator_request_jsonflg]) {
+                let responseData = JSON.parse(record[request_history_response_content]);
+                shortJsonContent(shortResponseJsonObject, responseData);
+                responseHash = iteratorGenHash(shortResponseJsonObject);
+                parseJsonToFilledTable(formResponseData, shortResponseJsonObject, versionIterationRequest[version_iterator_request_response_content]);
+            
+                responseDemo = JSON.stringify(shortResponseJsonObject);
             } else {
-                this.simpleBootByRequestHistoryRecord(record, prj, method, uri, true);
+                responseDemo = record[request_history_response_content];
             }
+
+            let shortResponseHeadJsonObject = {};
+            let formResponseHeadData = {};
+            let responseHead = record[request_history_response_head];
+            shortJsonContent(shortResponseHeadJsonObject, responseHead);
+            parseJsonToFilledTable(formResponseHeadData, shortResponseHeadJsonObject, versionIterationRequest[version_iterator_request_response_head]);
+
+            let shortResponseCookieJsonObject = {};
+            let formResponseCookieData = {};
+            let responseCookie = record[request_history_response_cookie];
+            shortJsonContent(shortResponseCookieJsonObject, responseCookie);
+            parseJsonToFilledTable(formResponseCookieData, shortResponseCookieJsonObject, versionIterationRequest[version_iterator_request_response_cookie]);
+            
+            this.setState({
+                showFlg: true,
+                prj,
+                title: versionIterationRequest[version_iterator_request_title],
+                description: versionIterationRequest[version_iterator_request_desc],
+                selectedFolder: versionIterationRequest[version_iterator_request_fold],
+                requestUri: uri,
+                requestMethod: method,
+                isResponseJson: record[version_iterator_request_jsonflg],
+                isResponseHtml: record[version_iterator_request_htmlflg],
+                isResponsePic: record[version_iterator_request_picflg],
+                isResponseFile: record[version_iterator_request_fileflg],
+                formRequestHeadData,
+                requestHeaderHash,
+                formRequestBodyData,
+                requestBodyHash,
+                formRequestParamData,
+                formRequestPathVariableData,
+                requestParamHash,
+                requestPathVariableHash,
+                formResponseData,
+                formResponseHeadData,
+                formResponseCookieData,
+                responseHash,
+                isExportDoc,
+                sort,
+                responseDemo,
+            });
+            return;
+        }
+        let projectRequest = await getProjectRequest(this.props.clientType, prj, method, uri);
+        if (projectRequest !== null) {
+            let requestHeadData = record[request_history_head];
+            let shortRequestHeadJsonObject = {};
+            shortJsonContent(shortRequestHeadJsonObject, requestHeadData);
+            let requestHeaderHash = iteratorGenHash(shortRequestHeadJsonObject);
+            let formRequestHeadData = {};
+            parseJsonToFilledTable(formRequestHeadData, shortRequestHeadJsonObject, projectRequest[project_request_header]);
+            let requestBodyData = record[request_history_body];
+            let shortRequestBodyJsonObject = {};
+            shortJsonContent(shortRequestBodyJsonObject, requestBodyData);
+            let requestFileData = record[request_history_file];
+            let requestBodyHash = iteratorBodyGenHash(shortRequestBodyJsonObject, requestFileData);
+            let formRequestBodyData : any = {};
+            parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, projectRequest[project_request_body]);
+            parseJsonToFilledTable(formRequestBodyData, requestFileData, projectRequest[project_request_body]);
+            let requestParamData = record[request_history_param];
+            let shortRequestParamJsonObject = {};
+            shortJsonContent(shortRequestParamJsonObject, requestParamData);
+            let requestParamHash = iteratorGenHash(shortRequestParamJsonObject);
+            let formRequestParamData = {};
+            parseJsonToFilledTable(formRequestParamData, shortRequestParamJsonObject, projectRequest[project_request_param]);
+            let requestPathVariableData = record[request_history_path_variable];
+            let shortRequestPathVariableJsonObject = {};
+            shortJsonContent(shortRequestPathVariableJsonObject, requestPathVariableData);
+            let requestPathVariableHash = iteratorGenHash(shortRequestPathVariableJsonObject);
+            let formRequestPathVariableData = {};
+            parseJsonToFilledTable(formRequestPathVariableData, shortRequestPathVariableJsonObject, projectRequest[project_request_path_variable]);
+            
+            let responseData = {};
+            let shortResponseJsonObject = {};
+            let responseHash = "";
+            let formResponseData = {};
+            let responseDemo = "";
+            if (record[project_request_jsonflg]) {
+                responseData = JSON.parse(record[request_history_response_content]);
+                shortJsonContent(shortResponseJsonObject, responseData);
+                responseHash = iteratorGenHash(shortResponseJsonObject);
+                parseJsonToFilledTable(formResponseData, shortResponseJsonObject, projectRequest[project_request_response_content]);
+
+                responseDemo = JSON.stringify(shortResponseJsonObject);
+            } else {
+                responseDemo = record[request_history_response_content];
+            }
+
+            let shortResponseHeadJsonObject = {};
+            let formResponseHeadData = {};
+            let responseHead = record[request_history_response_head];
+            shortJsonContent(shortResponseHeadJsonObject, responseHead);
+            parseJsonToFilledTable(formResponseHeadData, shortResponseHeadJsonObject, projectRequest[project_request_response_head]);
+
+            let shortResponseCookieJsonObject = {};
+            let formResponseCookieData = {};
+            let responseCookie = record[request_history_response_cookie];
+            shortJsonContent(shortResponseCookieJsonObject, responseCookie);
+            parseJsonToFilledTable(formResponseCookieData, shortResponseCookieJsonObject, projectRequest[project_request_response_cookie]);
+
+            this.setState({
+                showFlg: true,
+                prj,
+                title: projectRequest[project_request_title],
+                description: projectRequest[project_request_desc],
+                selectedFolder: projectRequest[project_request_fold],
+                requestUri: uri,
+                requestMethod: method,
+                isResponseJson: record[project_request_jsonflg],
+                isResponseHtml: record[request_history_htmlFlg],
+                isResponsePic: record[project_request_picflg],
+                isResponseFile: record[request_history_fileFlg],
+                formRequestHeadData,
+                requestHeaderHash,
+                formRequestBodyData,
+                requestBodyHash,
+                formRequestParamData,
+                requestParamHash,
+                formRequestPathVariableData,
+                requestPathVariableHash,
+                formResponseData,
+                formResponseHeadData,
+                formResponseCookieData,
+                responseHash,
+                responseDemo,
+            });
         } else {
-            let projectRequest = await getProjectRequest(this.props.clientType, prj, method, uri);
-            if (projectRequest !== null) {
-                let requestHeadData = record[request_history_head];
-                let shortRequestHeadJsonObject = {};
-                shortJsonContent(shortRequestHeadJsonObject, requestHeadData);
-                let requestHeaderHash = iteratorGenHash(shortRequestHeadJsonObject);
-                let formRequestHeadData = {};
-                parseJsonToFilledTable(formRequestHeadData, shortRequestHeadJsonObject, projectRequest[project_request_header]);
-                let requestBodyData = record[request_history_body];
-                let shortRequestBodyJsonObject = {};
-                shortJsonContent(shortRequestBodyJsonObject, requestBodyData);
-                let requestFileData = record[request_history_file];
-                let requestBodyHash = iteratorBodyGenHash(shortRequestBodyJsonObject, requestFileData);
-                let formRequestBodyData : any = {};
-                parseJsonToFilledTable(formRequestBodyData, shortRequestBodyJsonObject, projectRequest[project_request_body]);
-                parseJsonToFilledTable(formRequestBodyData, requestFileData, projectRequest[project_request_body]);
-                let requestParamData = record[request_history_param];
-                let shortRequestParamJsonObject = {};
-                shortJsonContent(shortRequestParamJsonObject, requestParamData);
-                let requestParamHash = iteratorGenHash(shortRequestParamJsonObject);
-                let formRequestParamData = {};
-                parseJsonToFilledTable(formRequestParamData, shortRequestParamJsonObject, projectRequest[project_request_param]);
-                let requestPathVariableData = record[request_history_path_variable];
-                let shortRequestPathVariableJsonObject = {};
-                shortJsonContent(shortRequestPathVariableJsonObject, requestPathVariableData);
-                let requestPathVariableHash = iteratorGenHash(shortRequestPathVariableJsonObject);
-                let formRequestPathVariableData = {};
-                parseJsonToFilledTable(formRequestPathVariableData, shortRequestPathVariableJsonObject, projectRequest[project_request_path_variable]);
-                
-                let responseData = {};
-                let shortResponseJsonObject = {};
-                let responseHash = "";
-                let formResponseData = {};
-                let responseDemo = "";
-                if (record[project_request_jsonflg]) {
-                    responseData = JSON.parse(record[request_history_response_content]);
-                    shortJsonContent(shortResponseJsonObject, responseData);
-                    responseHash = iteratorGenHash(shortResponseJsonObject);
-                    parseJsonToFilledTable(formResponseData, shortResponseJsonObject, projectRequest[project_request_response_content]);
-
-                    responseDemo = JSON.stringify(shortResponseJsonObject);
-                } else {
-                    responseDemo = record[request_history_response_content];
-                }
-
-                let shortResponseHeadJsonObject = {};
-                let formResponseHeadData = {};
-                let responseHead = record[request_history_response_head];
-                shortJsonContent(shortResponseHeadJsonObject, responseHead);
-                parseJsonToFilledTable(formResponseHeadData, shortResponseHeadJsonObject, projectRequest[project_request_response_head]);
-
-                let shortResponseCookieJsonObject = {};
-                let formResponseCookieData = {};
-                let responseCookie = record[request_history_response_cookie];
-                shortJsonContent(shortResponseCookieJsonObject, responseCookie);
-                parseJsonToFilledTable(formResponseCookieData, shortResponseCookieJsonObject, projectRequest[project_request_response_cookie]);
-
-                this.setState({
-                    showFlg: true,
-                    prj,
-                    env: record[request_history_env],
-                    title: projectRequest[project_request_title],
-                    description: projectRequest[project_request_desc],
-                    selectedFolder: projectRequest[project_request_fold],
-                    requestUri: uri,
-                    requestMethod: method,
-                    isResponseJson: record[project_request_jsonflg],
-                    isResponseHtml: record[request_history_htmlFlg],
-                    isResponsePic: record[project_request_picflg],
-                    isResponseFile: record[request_history_fileFlg],
-                    formRequestHeadData,
-                    requestHeaderHash,
-                    formRequestBodyData,
-                    requestBodyHash,
-                    formRequestParamData,
-                    requestParamHash,
-                    formRequestPathVariableData,
-                    requestPathVariableHash,
-                    formResponseData,
-                    formResponseHeadData,
-                    formResponseCookieData,
-                    responseHash,
-                    responseDemo,
-                });
-            } else {
-                this.simpleBootByRequestHistoryRecord(record, prj, method, uri, false);
-            }
+            this.simpleBootByRequestHistoryRecord(record, prj, method, uri, false);
         }
     }
 
-    initByIteratorPrjEnv = async (iteratorId: string, prj: string, env: string) => {
+    initFolders = async (iteratorId: string, prj: string) => {
         let folders = [];
         if (isStringEmpty(iteratorId)) {
             folders = await getProjectFolders(this.props.clientType, prj, null, null);
         } else {
             folders = await allFolders(this.props.clientType, iteratorId);
         }
-        this.setState({folders})
+        this.setState({folders});
 
-        this.getEnvValueData(prj, env);
         if (this.state.type === "prj") {
             this.refreshVersionIteratorData(prj);
         }
@@ -466,7 +427,6 @@ class RequestSaveContainer extends Component {
         this.setState({
             showFlg: true,
             prj,
-            env: historyRecord[request_history_env],
             requestUri: uri,
             requestMethod: method,
             isResponseJson: historyRecord[request_history_jsonFlg],
@@ -709,35 +669,6 @@ class RequestSaveContainer extends Component {
         ];
     }
 
-    getEnvValueData = async (prj: string, env: string) => {
-        if(!(isStringEmpty(prj) || isStringEmpty(env))) {
-            let env_vars = [];
-            if (this.state.type === "prj") {
-                env_vars = await getPrjEnvValues(prj, env, this.props.clientType);
-            } else if (this.state.type === "iterator") {
-                env_vars = await getIteratorEnvValues(this.state.iteratorId, prj, env, this.props.clientType);
-            }
-            if(env_vars.length === 0) {
-              message.error("项目和环境已被删除，该请求无法保存到迭代");
-              return;
-            }
-            for(let env_value : any of env_vars) {
-              if(env_value[env_var_pname] === ENV_VALUE_API_HOST) {
-                let requestHost = env_value[env_var_pvalue];
-                if (isStringEmpty(requestHost)) {
-                  message.error("环境变量" + ENV_VALUE_API_HOST + "项目和环境已被删除，该请求无法保存到迭代");
-                  return;
-                }
-                this.setState({
-                  requestHost,
-                  prj,
-                  env,
-                });
-              }
-            }
-        }
-    }
-
     refreshVersionIteratorData = async (prj : string) => {
         let versionIterators = await getOpenVersionIteratorsByPrj(this.props.clientType, prj);
         let versionIteratorsSelector = [];
@@ -754,6 +685,21 @@ class RequestSaveContainer extends Component {
     }
 
     render() : ReactNode {
+        let descriptions = [
+            {
+                key: 'prj',
+                label: langTrans("request save select1"),
+                children: this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : "",
+            }
+        ];
+        if (this.state.type === "iterator") {
+            descriptions.push({
+                key: 'iterator',
+                label: langTrans("request save select3"),
+                children: Object.keys(this.state.selectedVersionIterator).length > 0 ? this.state.selectedVersionIterator[version_iterator_name] : "",
+            });
+        }
+
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
@@ -767,30 +713,7 @@ class RequestSaveContainer extends Component {
                     ]} />
                     <Flex vertical gap="middle">
                         <Flex justify="space-between" align="center">
-                            <Descriptions items={ [
-                            {
-                                key: 'prj',
-                                label: langTrans("request save select1"),
-                                children: isStringEmpty(this.props.match.params.historyId) ? 
-                                <Select
-                                    value={this.state.prj}
-                                    placeholder={langTrans("request save tip1")}
-                                    style={{ width: 174 }}
-                                    options={ this.state.prjsSelectector }
-                                    onChange={ this.handleRequestProject }
-                                />
-                                : 
-                                (this.props.prjs.find(row => row.value === this.state.prj) ? this.props.prjs.find(row => row.value === this.state.prj).label : ""),
-                            },
-                            {
-                                key: this.state.type === "prj" ? 'env' : 'iterator',
-                                label: this.state.type === "prj" ? langTrans("request save select2") : langTrans("request save select3"),
-                                children: this.state.type === "prj" ? 
-                                (this.props.envs.find(row => row.value === this.state.env) ? this.props.envs.find(row => row.value === this.state.env).label : "") 
-                                : 
-                                (Object.keys(this.state.selectedVersionIterator).length > 0 ? this.state.selectedVersionIterator[version_iterator_name] : ""),
-                            }
-                            ] } />
+                            <Descriptions items={ descriptions } />
                         </Flex>
                         <Flex justify="flex-start" align="center" gap="middle">
                             <Form layout="inline">
@@ -859,7 +782,7 @@ class RequestSaveContainer extends Component {
                             </Select>
                             <Input 
                                 style={{borderRadius: 0}} 
-                                prefix={ isStringEmpty(this.state.requestHost) ? "{{" + ENV_VALUE_API_HOST + "}}" : this.state.requestHost } 
+                                prefix={"{{api_host}}" } 
                                 disabled={ !isStringEmpty(this.props.match.params.historyId) }
                                 value={ this.state.requestUri } 
                                 onChange={event => this.setState({requestUri: event.target.value})}
