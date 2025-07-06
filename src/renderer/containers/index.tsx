@@ -57,6 +57,7 @@ import {
     UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE,
     UNITTEST_STEP_ADD_ROUTE,
     UNITTEST_STEP_EDIT_ROUTE,
+    REQUEST_PROJECT_PARAMS,
     VIP_ITERATOR_LIST_ROUTE,
     ITERATOR_ADD_REQUEST_ROUTE,
     WELCOME_ROUTE 
@@ -77,6 +78,7 @@ import RequestToSaveContainerPage from '@contain/request_save/to_save';
 import RequestSaveDetailContainerPage from '@contain/request_save/save_detail';
 import VersionIteratorRequestListPage from "@contain/request_list/version";
 import ProjectRequestListPage from "@contain/request_list/project";
+import ParamsProjectPage from "@contain/request_send/params";
 import UnittestListVersionPage from "@contain/unittest/version_iterator";
 import UnittestListProjectPage from "@contain/unittest/project";
 import UnittestExecutorListPage from "@contain/unittest_executor_list";
@@ -131,6 +133,7 @@ class MyRouter extends Component {
         require('../reducers/db/20250102001');
         require('../reducers/db/20250614001');
         require('../reducers/db/20250614002');
+        require('../reducers/db/20250706001');
 
         this.state = {
             initNavFlg: false,
@@ -175,6 +178,7 @@ class MyRouter extends Component {
                             <Route path={ REQUEST_PROJECT_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
                             <Route path={ REQUEST_ITERATOR_LIST_ROUTE } component={VersionIteratorRequestListPage} />
                             <Route path={ REQUEST_PROJECT_LIST_ROUTE } component={ProjectRequestListPage} />
+                            <Route path={ REQUEST_PROJECT_PARAMS } component={ParamsProjectPage} />
                             <Route path={ UNITTEST_ITERATOR_LIST_ROUTE } component={UnittestListVersionPage} />
                             <Route path={ UNITTEST_PROJECT_LIST_ROUTE } component={UnittestListProjectPage} />
                             <Route path={ HISTORY_REQUEST_TO_ITERATOR_ROUTE } component={RequestToSaveContainerPage} />

@@ -17,6 +17,7 @@ import {
     TABLE_UNITTEST_EXECUTOR_NAME, TABLE_UNITTEST_EXECUTOR_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME, TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
+    TABLE_PROJECT_REQUEST_PARAMS_NAME, TABLE_PROJECT_REQUEST_PARAMS_FIELDS,
 } from '../../../config/db';
 
 let user_uid = TABLE_USER_FIELDS.FIELD_UID;
@@ -122,6 +123,10 @@ let unittest_report_batch = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_BATCH_UU
 let unittest_report_delFlg = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_DELFLG;
 let unittest_report_ctime = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_CTIME;
 
+let project_request_common_project = TABLE_PROJECT_REQUEST_PARAMS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
+let project_request_common_del_flg = TABLE_PROJECT_REQUEST_PARAMS_FIELDS.FIELD_DELFLG;
+let project_request_common_ctime = TABLE_PROJECT_REQUEST_PARAMS_FIELDS.FIELD_CTIME;
+
 let tables : any = {};
 tables[TABLE_USER_NAME] = "&" + user_uid + ", [" + user_delFlg + "+" + user_ctime + "]";
 tables[TABLE_ENV_NAME] = "&" + env_label + ", [" + env_delFlg + "+" + env_ctime + "]";
@@ -154,29 +159,9 @@ tables[TABLE_UNITTEST_EXECUTOR_NAME] = "&[" + unittest_executor_iterator + "+" +
 + "[" + unittest_executor_delFlg + "+" + unittest_executor_iterator + "+" + unittest_executor_unittest + "+" + unittest_executor_ctime + "]";
 tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_batch + "], " 
 + "[" + unittest_report_delFlg + "+" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_env + "+" + unittest_report_ctime + "]";
+tables[TABLE_PROJECT_REQUEST_PARAMS_NAME] = "&" + project_request_common_project + ", [" + project_request_common_del_flg + "+" + project_request_common_ctime + "]";
 
-window.db.version(207).stores(tables).upgrade (async trans => {
-    let projectRequests = await db[TABLE_PROJECT_REQUEST_NAME].filter(item => item[project_request_delFlg] == 0).toArray();
-    for (let projectRequest of projectRequests) {
-        let project_folder : any = {};
-        project_folder[version_iteration_folder_uuid] = "";
-        project_folder[version_iteration_folder_project] = projectRequest[project_request_project];
-        project_folder[version_iteration_folder_name] = projectRequest[project_request_fold];
-        project_folder[version_iteration_folder_cuid] = projectRequest[unittest_cuid];
-        project_folder[version_iteration_folder_ctime] = Date.now();
-        project_folder[version_iteration_folder_delFlg] = 0;
-        await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(project_folder);
-    }
-    let versionIterationRequests = await db[TABLE_VERSION_ITERATION_REQUEST_NAME].filter(item => item[iteration_request_delFlg] == 0).toArray();
-    for (let versionIterationRequest of versionIterationRequests) {
-        let iteration_folder : any = {};
-        iteration_folder[version_iteration_folder_uuid] = versionIterationRequest[iteration_request_iteration_uuid];
-        iteration_folder[version_iteration_folder_project] = "";
-        iteration_folder[version_iteration_folder_name] = versionIterationRequest[iteration_request_fold];
-        iteration_folder[version_iteration_folder_cuid] = versionIterationRequest[iteration_request_cuid];
-        iteration_folder[version_iteration_folder_ctime] = Date.now();
-        iteration_folder[version_iteration_folder_delFlg] = 0;
-        await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(iteration_folder);
-    }
-    return true;
+console.log(tables);
+
+window.db.version(208).stores(tables).upgrade (async trans => {
 });

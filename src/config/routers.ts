@@ -50,6 +50,8 @@ export const REQUEST_HISTORY = "/request_history";
 export const ENVVAR_PRJ_LIST_ROUTE = "/prj_envvars/:prj";
 //项目接口列表
 export const REQUEST_PROJECT_LIST_ROUTE = "/project_requests/:id";
+//项目全局参数
+export const REQUEST_PROJECT_PARAMS = "/project_params/:id";
 //项目单测列表
 export const UNITTEST_PROJECT_LIST_ROUTE = "/project_tests/:id";
 //迭代新增接口

@@ -266,3 +266,15 @@ export const TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS = {
     FIELD_DELFLG : "del_flg",
     FIELD_CTIME : "create_time",
 }
+
+export const TABLE_PROJECT_REQUEST_PARAMS_NAME = "project_request_common";
+export const TABLE_PROJECT_REQUEST_PARAMS_FIELDS = {
+    FIELD_MICRO_SERVICE_LABEL : "microservices",
+    FIELD_REQUEST_HEADER : "header",
+    FIELD_REQUEST_BODY : "body",
+    FIELD_REQUEST_PARAM : "param",
+    FIELD_REQUEST_PATH_VARIABLE : "path_variable",
+    FIELD_CUID : "create_uid",
+    FIELD_CTIME : "create_time",
+    FIELD_DELFLG : "del_flg",
+}

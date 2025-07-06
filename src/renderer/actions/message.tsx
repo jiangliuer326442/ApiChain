@@ -43,9 +43,6 @@ import {
     NETWORK_REQUEST_URL
 } from '@conf/team';
 import {
-    CONTENT_TYPE,
-} from '@conf/global_config';
-import {
     CONTENT_TYPE_FORMDATA
 } from '@conf/contentType';
 
@@ -248,7 +245,7 @@ export default function() : void {
                     localStorage.removeItem(UNITTEST_ENV);
                     localStorage.removeItem(PRJ);
                     localStorage.removeItem(ENV);
-                    alert("清空缓存成功!");
+                    alert(langTrans("db clean success"));
                 },
               );
             }

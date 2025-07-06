@@ -43,6 +43,14 @@ class RequestSendHead extends Component {
     }
 
     async componentDidUpdate(prevProps) { 
+        if (this.props.contentType != prevProps.contentType ) {
+            this.state.contentType = this.props.contentType;
+            let ret = this.buildList();
+            this.setState({
+                rows : ret[0],
+                data : ret[1],
+            });
+        }
         if (Object.keys(this.props.obj).length != Object.keys(prevProps.obj).length) {
             this.state.requestHeadData = this.props.obj;
             let ret = this.buildList();

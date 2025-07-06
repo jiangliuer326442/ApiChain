@@ -196,6 +196,10 @@ export default function (state = {
               label: <a href={"#/project_requests/" + prj[prj_label] } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
             },
             {
+              key: prj[prj_label] + "_params",
+              label: <a href={"#/project_params/" + prj[prj_label] } rel="noopener noreferrer">{langTrans("nav project params")}</a >
+            },
+            {
               key: prj[prj_label] + "_unittest",
               label: <a href={"#/project_tests/" + prj[prj_label] } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
             }

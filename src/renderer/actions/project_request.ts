@@ -22,7 +22,6 @@ import {
 } from '@act/project_folders';
 
 import { isStringEmpty, mixedSort } from '@rutil/index';
-import { cloneDeep } from 'lodash';
 
 let project_request_project = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
 let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
