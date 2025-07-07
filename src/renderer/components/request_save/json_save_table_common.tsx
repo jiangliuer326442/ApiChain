@@ -2,7 +2,7 @@ import { Component, ReactNode } from 'react';
 
 import { message, Button, Checkbox, Divider, Input, Select, Table } from 'antd';
 import { cloneDeep } from 'lodash';
-import { MinusOutlined } from "@ant-design/icons";
+import { MinusOutlined, DeleteOutlined } from "@ant-design/icons";
 import JsonView from 'react-json-view';
 
 import { 
@@ -44,6 +44,7 @@ export default class extends Component {
             rawJson[CONTENT_TYPE] = props.contentType;
         }
         this.state = {
+            appendSelectorValue: "",
             object: props.object,
             columns: [
                 {
@@ -64,20 +65,26 @@ export default class extends Component {
                                 obj = obj[_key];
                             }
                         }
-                        console.log("obj1", obj);
-                        console.log("dtype", dtype);
                         if (dtype === "Array" || dtype === "Object") {
                             return <span>{dtype}</span>;
                         } else {
                             let key = row.key;
                             if (dtype === DataTypeSelectValues || dtype.indexOf(DataTypeSelectValues + "|") > -1) {
+                                let options = [];
+                                if (dtype.indexOf(DataTypeSelectValues + "|") > -1) {
+                                    options = dtype.substring((DataTypeSelectValues + "|").length).split('|').map(pair => {
+                                        const [label, value] = pair.split(':');
+                                        return { label, value };
+                                    });
+                                    dtype = DataTypeSelectValues;
+                                }
                                 return <>
                                     <Select
                                         value={ dtype }
                                         style={{ width: 100 }}
                                         onChange={ value => this.handleSetDataType(key, value) }
                                         options={ dataTypeSelect.map(_v => {
-                                            if (_v.indexOf(DataTypeSelectValues + "|")) {
+                                            if (_v.indexOf(DataTypeSelectValues + "|") === 0) {
                                                 _v = DataTypeSelectValues;
                                             }
                                             return {label: langTrans("datatype " + _v), value: _v};
@@ -89,6 +96,16 @@ export default class extends Component {
                                         optionRender={(option) => (
                                             <div>
                                                 <span>{option.label} </span>
+                                                <DeleteOutlined
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        let handledDtype = DataTypeSelectValues + "|" + (options.filter(item => item.value !== option.value).map(item => `${item.label}:${item.value}`).join('|'))
+                                                        if (handledDtype === DataTypeSelectValues + "|") {
+                                                            handledDtype = DataTypeSelectValues;
+                                                        }
+                                                        this.handleSetDataType(key, handledDtype)
+                                                    }}
+                                                />
                                             </div>
                                         )}
                                         dropdownRender={(menu) => (
@@ -96,19 +113,21 @@ export default class extends Component {
                                                 {menu}
                                                 <Divider style={{ margin: '8px 0' }} />
                                                 <Input
+                                                    onChange={e => { this.setState({ appendSelectorValue: e.target.value }) }}
+                                                    value={this.state.appendSelectorValue}
                                                     placeholder="label:value"
                                                     onKeyDown={e => {
                                                         if (e.key === 'Enter') {
                                                             obj[TABLE_FIELD_TYPE] = obj[TABLE_FIELD_TYPE] + "|" + e.target.value;
-                                                            this.props.cb(obj);
-                                                            this.parseJsonToChildren();
-                                                            console.log("obj2", obj);
+                                                            this.setState({appendSelectorValue: ""})
+                                                            this.handleSetDataType(key, obj[TABLE_FIELD_TYPE])
                                                         }
                                                         e.stopPropagation()
                                                     }}
                                                 />
                                             </>
                                         )}
+                                        options={options}
                                     />
                                 </>
                             } else {

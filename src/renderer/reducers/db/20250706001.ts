@@ -163,5 +163,28 @@ tables[TABLE_PROJECT_REQUEST_PARAMS_NAME] = "&" + project_request_common_project
 
 console.log(tables);
 
-window.db.version(208).stores(tables).upgrade (async trans => {
+window.db.version(209).stores(tables).upgrade (async trans => {
+    let projectRequests = await db[TABLE_PROJECT_REQUEST_NAME].filter(item => item[project_request_delFlg] == 0).toArray();
+    for (let projectRequest of projectRequests) {
+        let project_folder : any = {};
+        project_folder[version_iteration_folder_uuid] = "";
+        project_folder[version_iteration_folder_project] = projectRequest[project_request_project];
+        project_folder[version_iteration_folder_name] = projectRequest[project_request_fold];
+        project_folder[version_iteration_folder_cuid] = projectRequest[unittest_cuid];
+        project_folder[version_iteration_folder_ctime] = Date.now();
+        project_folder[version_iteration_folder_delFlg] = 0;
+        await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(project_folder);
+    }
+    let versionIterationRequests = await db[TABLE_VERSION_ITERATION_REQUEST_NAME].filter(item => item[iteration_request_delFlg] == 0).toArray();
+    for (let versionIterationRequest of versionIterationRequests) {
+        let iteration_folder : any = {};
+        iteration_folder[version_iteration_folder_uuid] = versionIterationRequest[iteration_request_iteration_uuid];
+        iteration_folder[version_iteration_folder_project] = "";
+        iteration_folder[version_iteration_folder_name] = versionIterationRequest[iteration_request_fold];
+        iteration_folder[version_iteration_folder_cuid] = versionIterationRequest[iteration_request_cuid];
+        iteration_folder[version_iteration_folder_ctime] = Date.now();
+        iteration_folder[version_iteration_folder_delFlg] = 0;
+        await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(iteration_folder);
+    }
+    return true;
 });

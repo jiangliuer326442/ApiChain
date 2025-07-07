@@ -1,10 +1,12 @@
 import { Component, ReactNode } from 'react';
 import { cloneDeep } from 'lodash';
-import { Table, Input, Checkbox, Select, message } from "antd";
+import { Table, Divider, Input, Checkbox, Select, message } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
 
 import { 
     dataTypeSelect,
     DataTypeJsonObject,
+    DataTypeSelectValues,
     KEY_SEPARATOR,
 } from '@conf/global_config';
 
@@ -16,7 +18,6 @@ import {
     TABLE_FIELD_REMARK,
     parseJsonToChildren,
     genHash,
-    prettyJson,
 } from '@rutil/json';
 
 import { getJsonFragment } from '@act/request_save';
@@ -42,12 +43,84 @@ export default class extends Component {
                         return <span>{dtype}</span>;
                     } else {
                         let key = row.key;
-                        return <Select
-                            value={ dtype }
-                            style={{ width: 170 }}
-                            onChange={ value => this.handleSetDataType(key, value) }
-                            options={ dataTypeSelect.map(_v => ({label: langTrans("datatype " + _v), value: _v})) }
-                        />
+                        let keyArr = key.split(KEY_SEPARATOR);
+                        let obj : any = {};
+                        for (let _key of keyArr) {
+                            if (Object.keys(obj).length === 0){
+                                obj = this.state.object[_key];
+                            } else {
+                                obj = obj[_key];
+                            }
+                        }
+                        if (dtype === DataTypeSelectValues || dtype.indexOf(DataTypeSelectValues + "|") > -1) {
+                            let options = [];
+                            if (dtype.indexOf(DataTypeSelectValues + "|") > -1) {
+                                options = dtype.substring((DataTypeSelectValues + "|").length).split('|').map(pair => {
+                                    const [label, value] = pair.split(':');
+                                    return { label, value };
+                                });
+                                dtype = DataTypeSelectValues;
+                            }
+                            return <>
+                                <Select
+                                    value={ dtype }
+                                    style={{ width: 100 }}
+                                    onChange={ value => this.handleSetDataType(key, value) }
+                                    options={ dataTypeSelect.map(_v => {
+                                        if (_v.indexOf(DataTypeSelectValues + "|") === 0) {
+                                            _v = DataTypeSelectValues;
+                                        }
+                                        return {label: langTrans("datatype " + _v), value: _v};
+                                    }) }
+                                />
+                                <Select 
+                                    allowClear
+                                    style={{ width: 110 }}
+                                    optionRender={(option) => (
+                                        <div>
+                                            <span>{option.label} </span>
+                                            <DeleteOutlined
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    let handledDtype = DataTypeSelectValues + "|" + (options.filter(item => item.value !== option.value).map(item => `${item.label}:${item.value}`).join('|'))
+                                                    if (handledDtype === DataTypeSelectValues + "|") {
+                                                        handledDtype = DataTypeSelectValues;
+                                                    }
+                                                    this.handleSetDataType(key, handledDtype)
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                    dropdownRender={(menu) => (
+                                        <>
+                                            {menu}
+                                            <Divider style={{ margin: '8px 0' }} />
+                                            <Input
+                                                onChange={e => { this.setState({ appendSelectorValue: e.target.value }) }}
+                                                value={this.state.appendSelectorValue}
+                                                placeholder="label:value"
+                                                onKeyDown={e => {
+                                                    if (e.key === 'Enter') {
+                                                        obj[TABLE_FIELD_TYPE] = obj[TABLE_FIELD_TYPE] + "|" + e.target.value;
+                                                        this.setState({appendSelectorValue: ""})
+                                                        this.handleSetDataType(key, obj[TABLE_FIELD_TYPE])
+                                                    }
+                                                    e.stopPropagation()
+                                                }}
+                                            />
+                                        </>
+                                    )}
+                                    options={options}
+                                />
+                            </>
+                        } else {
+                            return <Select
+                                value={ dtype }
+                                style={{ width: 170 }}
+                                onChange={ value => this.handleSetDataType(key, value) }
+                                options={ dataTypeSelect.map(_v => ({label: langTrans("datatype " + _v), value: _v})) }
+                            />
+                        }
                     }
                 }
             },
@@ -92,6 +165,21 @@ export default class extends Component {
                             return demo.name.substring(0, 50) + "...";
                         }
                         return demo.name;
+                    } else if(row[TABLE_FIELD_TYPE] === DataTypeSelectValues || row[TABLE_FIELD_TYPE].indexOf(DataTypeSelectValues + "|") > -1) {
+                        let options = [];
+                        if (row[TABLE_FIELD_TYPE].indexOf(DataTypeSelectValues + "|") > -1) {
+                            options = row[TABLE_FIELD_TYPE].substring((DataTypeSelectValues + "|").length).split('|').map(pair => {
+                                const [label, value] = pair.split(':');
+                                return { label, value };
+                            });
+                        }
+                        return <Select 
+                            allowClear
+                            value={demo} 
+                            onChange={newValue => this.handleSetContent(key, newValue)}
+                            style={{ width: 265 }}
+                            options={options}
+                            />
                     } else {
                         return <TextArea 
                             allowClear

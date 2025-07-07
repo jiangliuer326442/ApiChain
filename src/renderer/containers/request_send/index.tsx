@@ -170,10 +170,14 @@ class RequestSendContainer extends Component {
       isResponseHtml: false,
       isResponsePic: false,
       isResponseFile: false,
+      header: {},
       requestHeadData: {},
+      realBody: {},
       requestBodyData: {},
       requestFileData: {},
+      requestPathVariable: {},
       requestPathVariableData: {},
+      requestParam: {},
       requestParamData: {},
       iteratorId,
       alertMessage: "",
@@ -283,6 +287,10 @@ class RequestSendContainer extends Component {
         requestFileData,
         requestParamData,
         requestPathVariableData,
+        header,
+        realBody,
+        requestParam,
+        requestPathVariable,
         requestEnable,
         showFlg,
       });
@@ -680,6 +688,7 @@ class RequestSendContainer extends Component {
         forceRender: true,
         children: <RequestSendBody 
           obj={ this.state.requestBodyData }
+          schema= { this.state.realBody }
           file={ this.state.requestFileData }
           tips={ this.state.envKeys } 
           contentType={ this.state.contentType }

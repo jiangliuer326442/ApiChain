@@ -33,9 +33,6 @@ import {
     TABLE_MICRO_SERVICE_FIELDS,
 } from '@conf/db';
 import {
-    CONTENT_TYPE_URLENCODE,
-} from '@conf/contentType';
-import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST,
     CONTENT_TYPE,
@@ -43,7 +40,6 @@ import {
     FoldSourceIterator,
 } from '@conf/global_config';
 import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
-import { getPrjs } from '@act/project';
 import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from "@act/version_iterator";
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
@@ -338,32 +334,62 @@ class RequestSaveContainer extends Component {
             shortJsonContent(shortResponseCookieJsonObject, responseCookie);
             parseJsonToFilledTable(formResponseCookieData, shortResponseCookieJsonObject, projectRequest[project_request_response_cookie]);
 
-            this.setState({
-                showFlg: true,
-                prj,
-                title: projectRequest[project_request_title],
-                description: projectRequest[project_request_desc],
-                selectedFolder: projectRequest[project_request_fold],
-                requestUri: uri,
-                requestMethod: method,
-                isResponseJson: record[project_request_jsonflg],
-                isResponseHtml: record[request_history_htmlFlg],
-                isResponsePic: record[project_request_picflg],
-                isResponseFile: record[request_history_fileFlg],
-                formRequestHeadData,
-                requestHeaderHash,
-                formRequestBodyData,
-                requestBodyHash,
-                formRequestParamData,
-                requestParamHash,
-                formRequestPathVariableData,
-                requestPathVariableHash,
-                formResponseData,
-                formResponseHeadData,
-                formResponseCookieData,
-                responseHash,
-                responseDemo,
-            });
+            if (this.state.type === "iterator") {
+                this.setState({
+                    showFlg: true,
+                    prj,
+                    title: projectRequest[project_request_title],
+                    description: projectRequest[project_request_desc],
+                    selectedFolder: "",
+                    requestUri: uri,
+                    requestMethod: method,
+                    isResponseJson: record[project_request_jsonflg],
+                    isResponseHtml: record[request_history_htmlFlg],
+                    isResponsePic: record[project_request_picflg],
+                    isResponseFile: record[request_history_fileFlg],
+                    formRequestHeadData,
+                    requestHeaderHash,
+                    formRequestBodyData,
+                    requestBodyHash,
+                    formRequestParamData,
+                    requestParamHash,
+                    formRequestPathVariableData,
+                    requestPathVariableHash,
+                    formResponseData,
+                    formResponseHeadData,
+                    formResponseCookieData,
+                    responseHash,
+                    responseDemo,
+                    isExportDoc: true,
+                });
+            } else if (this.state.type === "prj") {
+                this.setState({
+                    showFlg: true,
+                    prj,
+                    title: projectRequest[project_request_title],
+                    description: projectRequest[project_request_desc],
+                    selectedFolder: projectRequest[project_request_fold],
+                    requestUri: uri,
+                    requestMethod: method,
+                    isResponseJson: record[project_request_jsonflg],
+                    isResponseHtml: record[request_history_htmlFlg],
+                    isResponsePic: record[project_request_picflg],
+                    isResponseFile: record[request_history_fileFlg],
+                    formRequestHeadData,
+                    requestHeaderHash,
+                    formRequestBodyData,
+                    requestBodyHash,
+                    formRequestParamData,
+                    requestParamHash,
+                    formRequestPathVariableData,
+                    requestPathVariableHash,
+                    formResponseData,
+                    formResponseHeadData,
+                    formResponseCookieData,
+                    responseHash,
+                    responseDemo,
+                });
+            }
         } else {
             this.simpleBootByRequestHistoryRecord(record, prj, method, uri, false);
         }

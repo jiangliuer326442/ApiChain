@@ -3,17 +3,22 @@ import { connect } from 'react-redux';
 import { cloneDeep } from 'lodash';
 import { DeleteOutlined } from '@ant-design/icons';
 import { 
-    Input, Flex, AutoComplete, Button, Select, Typography
+    Input, Flex, InputNumber, AutoComplete, Button, Select, Typography
 } from "antd";
 
 import { isStringEmpty, removeWithoutGap, isJsonString, getType } from "@rutil/index";
+import { TABLE_FIELD_TYPE } from "@rutil/json";
 
 import CommonHeader from '@comp/request_send/common_header';
 import BulkEditBox from '@comp/request_send/bulk_edit_box';
 import {
     CONTENT_TYPE_JSON, CONTENT_TYPE_FORMDATA, 
 } from '@conf/contentType';
-import { INPUTTYPE_TEXT, INPUTTYPE_FILE } from '@conf/global_config';
+import { 
+    INPUTTYPE_TEXT, 
+    INPUTTYPE_FILE,
+    DataTypeSelectValues
+} from '@conf/global_config';
 import { prettyJson } from '@rutil/json';
 import { langTrans } from '@lang/i18n';
 
@@ -219,7 +224,7 @@ class RequestSendBody extends Component {
     }
 
     setValue = (value, i) => {
-        if(!isStringEmpty(value) && i === this.state.rows) {
+        if((getType(value) !== "String" || !isStringEmpty(value)) && i === this.state.rows) {
             let row : any = {};
             row.value = value;
             this.state.data.push(row);
@@ -351,6 +356,8 @@ class RequestSendBody extends Component {
                     <Flex flex={1}>
                     {
                         ((i<this.state.rows ? this.state.data[i].type : INPUTTYPE_TEXT) === INPUTTYPE_TEXT || this.props.contentType !== CONTENT_TYPE_FORMDATA) ?
+                        (i<this.state.rows && this.state.data[i].key in this.props.schema) ? 
+                        (this.props.schema[this.state.data[i].key][TABLE_FIELD_TYPE] === "String") ?
                         <AutoComplete
                             allowClear
                             style={{width: "100%"}}
@@ -364,6 +371,58 @@ class RequestSendBody extends Component {
                             }
                         >
                         </AutoComplete>
+                        :
+                        (this.props.schema[this.state.data[i].key][TABLE_FIELD_TYPE].indexOf(DataTypeSelectValues) >= 0) ?
+                            <Select
+                                allowClear
+                                style={{width: "100%"}}
+                                value={
+                                    (i<this.state.rows ? this.state.data[i].value : "")
+                                }
+                                onChange={data => this.setValue(data, i)}
+                                options={this.props.schema[this.state.data[i].key][TABLE_FIELD_TYPE].split("|").filter((_, index) => index !== 0).map(part => {
+                                    const [label, value] = part.split(':');
+                                    return { label, value };
+                                })}
+                            />
+                        :
+                        (this.props.schema[this.state.data[i].key][TABLE_FIELD_TYPE] === "Number" ? 
+                            <InputNumber
+                                style={{width: "100%"}}
+                                onChange={data => this.setValue(data, i)}
+                                value={
+                                    (i<this.state.rows ? this.state.data[i].value : "")
+                                }
+                            />
+                        :
+                            <AutoComplete
+                                allowClear
+                                style={{width: "100%"}}
+                                onSearch={text => this.setOptions(text, i)}
+                                placeholder={langTrans("request field tip1")}
+                                onChange={data => this.setValue(data, i)}
+                                onSelect={data => this.setSelectedValue(data, i)}
+                                options={ this.state.data[i] && this.state.data[i]['options'] ? this.state.data[i]['options'] : [] }
+                                value={
+                                    (i<this.state.rows ? this.state.data[i].value : "")
+                                }
+                            >
+                            </AutoComplete>
+                        )
+                        : 
+                            <AutoComplete
+                                allowClear
+                                style={{width: "100%"}}
+                                onSearch={text => this.setOptions(text, i)}
+                                placeholder={langTrans("request field tip1")}
+                                onChange={data => this.setValue(data, i)}
+                                onSelect={data => this.setSelectedValue(data, i)}
+                                options={ this.state.data[i] && this.state.data[i]['options'] ? this.state.data[i]['options'] : [] }
+                                value={
+                                    (i<this.state.rows ? this.state.data[i].value : "")
+                                }
+                            >
+                            </AutoComplete>
                         :
                         <>
                             <Button style={{width: "100%"}}>{

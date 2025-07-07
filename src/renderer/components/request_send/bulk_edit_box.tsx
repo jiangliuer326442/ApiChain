@@ -14,7 +14,8 @@ export default class extends Component {
             if (row.indexOf(":") < 0) {
                 continue;
             }
-            let [_bodyKey, _bodyVal] = row.split(":");
+            let _bodyKey = row.split(":")[0];
+            let _bodyVal = row.substring(_bodyKey.length + 1);
             data[_bodyKey.trim()] = _bodyVal.trim();
         }
         this.props.cb(content, data);
