@@ -48,11 +48,14 @@ export const FoldSourceIterator = "fold$$iterator$$";
 
 export const DataTypeJsonObject = "JsonString";
 
+export const DataTypeSelectValues = "SelectorPool";
+
 export const dataTypeSelect = [
     "String",
     "Boolean",
     "Number",
-    DataTypeJsonObject
+    DataTypeJsonObject,
+    DataTypeSelectValues
 ];
 
 export const SYNC_TABLES = [

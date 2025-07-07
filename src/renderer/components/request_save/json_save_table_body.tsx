@@ -18,6 +18,7 @@ import {
 } from '@conf/global_config';
 import JsonSaveCommonTable from '@comp/request_save/json_save_table_common';
 import { isStringEmpty, isJsonString } from '@rutil/index';
+import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 
@@ -39,7 +40,7 @@ export default class extends Component {
 
     handleSetJsonStr = () => {
         if (!isJsonString(this.state.jsonStr)) {
-            message.error("请输入正确格式的 json ");
+            message.error(langTrans("json save table verify json"));
             return;
         }
         let responseData = {};

@@ -1,6 +1,6 @@
 import { Component, ReactNode } from 'react';
 
-import { message, Button, Checkbox, Input, Select, Table } from 'antd';
+import { message, Button, Checkbox, Divider, Input, Select, Table } from 'antd';
 import { cloneDeep } from 'lodash';
 import { MinusOutlined } from "@ant-design/icons";
 import JsonView from 'react-json-view';
@@ -9,6 +9,7 @@ import {
     CONTENT_TYPE,
     KEY_SEPARATOR,
     DataTypeJsonObject,
+    DataTypeSelectValues,
     dataTypeSelect,
  } from '@conf/global_config';
  import { 
@@ -53,17 +54,72 @@ export default class extends Component {
                     title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
                     render: (dtype : any, row : any) => {
-                        
+                        let key = row.key;
+                        let keyArr = key.split(KEY_SEPARATOR);
+                        let obj : any = {};
+                        for (let _key of keyArr) {
+                            if (Object.keys(obj).length === 0){
+                                obj = this.state.object[_key];
+                            } else {
+                                obj = obj[_key];
+                            }
+                        }
+                        console.log("obj1", obj);
+                        console.log("dtype", dtype);
                         if (dtype === "Array" || dtype === "Object") {
                             return <span>{dtype}</span>;
                         } else {
                             let key = row.key;
-                            return <Select
-                                value={ dtype }
-                                style={{ width: 170 }}
-                                onChange={ value => this.handleSetDataType(key, value) }
-                                options={ dataTypeSelect.map(_v => ({label: langTrans("datatype " + _v), value: _v})) }
-                            />
+                            if (dtype === DataTypeSelectValues || dtype.indexOf(DataTypeSelectValues + "|") > -1) {
+                                return <>
+                                    <Select
+                                        value={ dtype }
+                                        style={{ width: 100 }}
+                                        onChange={ value => this.handleSetDataType(key, value) }
+                                        options={ dataTypeSelect.map(_v => {
+                                            if (_v.indexOf(DataTypeSelectValues + "|")) {
+                                                _v = DataTypeSelectValues;
+                                            }
+                                            return {label: langTrans("datatype " + _v), value: _v};
+                                        }) }
+                                    />
+                                    <Select 
+                                        allowClear
+                                        style={{ width: 110 }}
+                                        optionRender={(option) => (
+                                            <div>
+                                                <span>{option.label} </span>
+                                            </div>
+                                        )}
+                                        dropdownRender={(menu) => (
+                                            <>
+                                                {menu}
+                                                <Divider style={{ margin: '8px 0' }} />
+                                                <Input
+                                                    placeholder="label:value"
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') {
+                                                            obj[TABLE_FIELD_TYPE] = obj[TABLE_FIELD_TYPE] + "|" + e.target.value;
+                                                            this.props.cb(obj);
+                                                            this.parseJsonToChildren();
+                                                            console.log("obj2", obj);
+                                                        }
+                                                        e.stopPropagation()
+                                                    }}
+                                                />
+                                            </>
+                                        )}
+                                    />
+                                </>
+                            } else {
+                                return <Select
+                                    value={ dtype }
+                                    style={{ width: 190 }}
+                                    onChange={ value => this.handleSetDataType(key, value) }
+                                    options={ dataTypeSelect.map(_v => ({label: langTrans("datatype " + _v), value: _v})) }
+                                />
+                            }
+                            
                         }
                     }
                 },
