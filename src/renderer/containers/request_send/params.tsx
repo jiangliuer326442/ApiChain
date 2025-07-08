@@ -109,7 +109,9 @@ class ParamsProject extends Component {
             children: <RequestSendParam 
               obj={ this.state.requestParamData } 
               tips={ this.state.envKeys } 
-              cb={obj => this.state.requestParamData = obj} 
+              cb={obj => {
+                this.state.requestParamData = obj
+              }} 
             />,
           },
           {

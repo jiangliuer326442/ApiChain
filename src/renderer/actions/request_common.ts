@@ -31,9 +31,18 @@ export async function getRequestCommon(clientType : string, project : string) {
     return requestCommon;
 }
 
-export async function setRequestCommon(clientType : string, teamId : string, project : string, header : object, body : object, param : object, pathVariable : object, device : object) {
+export async function setRequestCommon(
+    clientType : string, teamId : string, project : string, 
+    header : object, body : object, param : object, pathVariable : object, 
+    device : object) {
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(REQUEST_COMMON_SET_URL, {prj: project, header: JSON.stringify(header), body: JSON.stringify(body), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable)});
+        await sendTeamMessage(REQUEST_COMMON_SET_URL, {
+            prj: project, 
+            header: JSON.stringify(header), 
+            body: JSON.stringify(body), 
+            param: JSON.stringify(param), 
+            pathVariable: JSON.stringify(pathVariable)
+        });
     }
 
     let request_common : any = {};

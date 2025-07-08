@@ -207,7 +207,6 @@ class RequestSendContainer extends Component {
 
   async componentDidMount() {
     let pathKey = this.props.match.path.split('/')[1];
-    let method = this.state.requestMethod;
     let showFlg = true;
     let requestEnable = true;
 
@@ -218,82 +217,49 @@ class RequestSendContainer extends Component {
       if (record == null) {
         return;
       }
-      method = record[request_history_method];
+      this.state.requestUri = record[request_history_uri];
+      this.state.requestMethod = record[request_history_method];
+      this.state.prj = record[request_history_micro_service];
       if (!isStringEmpty(record[request_history_iterator])) {
         type = "iterator";
         iteratorId = record[request_history_iterator];
+        this.state.iteratorId = iteratorId;
       }
 
       let headerData = record[request_history_head];
       let contentType = headerData[CONTENT_TYPE];
-      this.setRequestMethod(method);
-      this.setState({
-        type,
-        initDatasFlg: true,
-        iteratorId,
-        requestMethod: method,
-        requestHeadData: headerData,
-        contentType,
-        prj: record[request_history_micro_service],
-        env: record[request_history_env],
-        requestUri: record[request_history_uri],
-        responseCookie: record[request_history_response_cookie],
-        responseHeader: record[request_history_response_header],
-        responseData: record[request_history_response],
-        isResponseJson: record[request_history_jsonFlg],
-        isResponseHtml: record[request_history_htmlFlg],
-        isResponsePic: record[request_history_picFlg],
-        isResponseFile: record[request_history_fileFlg],
-        requestBodyData: record[request_history_body],
-        requestFileData: record[request_history_file],
-        requestPathVariableData: record[request_history_path_variable],
-        requestParamData: record[request_history_param],
-        requestEnable,
-        showFlg,
-      });
-    } else if (pathKey === 'internet_request_send_by_api' && this.state.type === "iterator") {
-      let record = await getVersionIteratorRequest(
-        this.props.clientType, 
-        this.state.iteratorId, 
-        this.state.prj, 
-        this.state.requestMethod, 
-        this.state.requestUri
-      );
-      let body = record[iteration_request_body];
-      let header = record[iteration_request_header];
-      let requestParam = record[iteration_request_param];
-      let requestPathVariable = record[iteration_request_path_variable];
-      let file : any = {};
-      let realBody : any = {};
-      for (let _key in body) {
-        if (body[_key][TABLE_FIELD_TYPE] === "File") {
-          file[_key] = body[_key][TABLE_FIELD_VALUE];
-        } else {
-          realBody[_key] = body[_key];
-        }
+      this.setRequestMethod(this.state.requestMethod);
+
+      let result = false;
+      if (type === "iterator") {
+        result = await this.initDataByIterator(record[request_history_uri])
       }
-      let requestBodyData = cleanJson(realBody);
-      let requestHeadData = cleanJson(header);
-      let requestParamData = cleanJson(requestParam);
-      let requestPathVariableData = cleanJson(requestPathVariable);
-      let requestFileData = file;
-      let contentType = requestHeadData[CONTENT_TYPE];
-      this.setRequestMethod(method);
-      this.setState({
-        contentType,
-        initDatasFlg: true,
-        requestHeadData,
-        requestBodyData,
-        requestFileData,
-        requestParamData,
-        requestPathVariableData,
-        header,
-        realBody,
-        requestParam,
-        requestPathVariable,
-        requestEnable,
-        showFlg,
-      });
+      if (!result) {
+        result = await this.initDataByProject(record[request_history_uri]);
+      }
+      if (!result) {
+        this.setState({
+          type,
+          requestHeadData: headerData,
+          contentType,
+          env: record[request_history_env],
+          responseCookie: record[request_history_response_cookie],
+          responseHeader: record[request_history_response_header],
+          responseData: record[request_history_response],
+          isResponseJson: record[request_history_jsonFlg],
+          isResponseHtml: record[request_history_htmlFlg],
+          isResponsePic: record[request_history_picFlg],
+          isResponseFile: record[request_history_fileFlg],
+          requestBodyData: record[request_history_body],
+          requestFileData: record[request_history_file],
+          requestPathVariableData: record[request_history_path_variable],
+          requestParamData: record[request_history_param],
+          requestEnable,
+          showFlg,
+        });
+      }
+    } else if (pathKey === 'internet_request_send_by_api' && this.state.type === "iterator") {
+      this.initDataByIterator(this.state.requestUri);
     } else if (pathKey === 'internet_request_send_by_api' && this.state.type === "project") {
       this.initDataByProject(this.state.requestUri);
     } else if (pathKey === 'internet_request_send_by_iterator') {
@@ -342,16 +308,65 @@ class RequestSendContainer extends Component {
     });
   }
 
+  initDataByIterator = async (url: string) => {
+    if (isStringEmpty(url)) return false;
+    if (this.state.initDatasFlg) return false;
+    let record = await getVersionIteratorRequest(
+      this.props.clientType, 
+      this.state.iteratorId, 
+      this.state.prj, 
+      this.state.requestMethod, 
+      url
+    );
+    if (record === null) return false;
+    let body = record[iteration_request_body];
+    let header = record[iteration_request_header];
+    let requestParam = record[iteration_request_param];
+    let requestPathVariable = record[iteration_request_path_variable];
+    let file : any = {};
+    let realBody : any = {};
+    for (let _key in body) {
+      if (body[_key][TABLE_FIELD_TYPE] === "File") {
+        file[_key] = body[_key][TABLE_FIELD_VALUE];
+      } else {
+        realBody[_key] = body[_key];
+      }
+    }
+    let requestBodyData = cleanJson(realBody);
+    let requestHeadData = cleanJson(header);
+    let requestParamData = cleanJson(requestParam);
+    let requestPathVariableData = cleanJson(requestPathVariable);
+    let requestFileData = file;
+    let contentType = requestHeadData[CONTENT_TYPE];
+    this.setRequestMethod(this.state.requestMethod);
+    this.setState({
+      contentType,
+      initDatasFlg: true,
+      requestHeadData,
+      requestBodyData,
+      requestFileData,
+      requestParamData,
+      requestPathVariableData,
+      header,
+      realBody,
+      requestParam,
+      requestPathVariable,
+      requestEnable : true,
+      showFlg : true,
+    });
+    return true;
+  }
+
   initDataByProject = async (url: string) => {
-    if (isStringEmpty(url)) return;
-    if (this.state.initDatasFlg) return;
+    if (isStringEmpty(url)) return false;
+    if (this.state.initDatasFlg) return false;
     let record = await getProjectRequest(
       this.props.clientType, 
       this.state.prj, 
       this.state.requestMethod, 
       url
     );
-    if (record === null) return;
+    if (record === null) return false;
     let body = record[project_request_body];
     let header = record[project_request_header];
     let requestParam = record[project_request_param];
@@ -365,6 +380,10 @@ class RequestSendContainer extends Component {
         realBody[_key] = body[_key];
       }
     }
+    this.state.realBody = realBody;
+    this.state.header = header;
+    this.state.requestParam = requestParam;
+    this.state.requestPathVariable = requestPathVariable;
     this.state.requestBodyData = cleanJson(realBody);
     this.state.requestHeadData = cleanJson(header);
     this.state.requestParamData = cleanJson(requestParam);
@@ -376,6 +395,7 @@ class RequestSendContainer extends Component {
       initDatasFlg: true,
     });
     this.getCommonRequestDatas();
+    return true;
   }
 
   getEnvValueData = async (prj: string, env: string) => {
@@ -649,6 +669,7 @@ class RequestSendContainer extends Component {
         children: <RequestSendPathVariable 
           requestUri={ this.state.requestUri }
           obj={ this.state.requestPathVariableData } 
+          schema= { this.state.requestPathVariable }
           tips={ this.state.envKeys } 
           cb={(obj, uri) => {
             this.state.requestPathVariableData = obj;
@@ -662,6 +683,7 @@ class RequestSendContainer extends Component {
         forceRender: true,
         children: <RequestSendParam 
           obj={ this.state.requestParamData } 
+          schema= { this.state.requestParam }
           tips={ this.state.envKeys } 
           cb={obj => this.state.requestParamData = obj} 
         />,
@@ -673,6 +695,7 @@ class RequestSendContainer extends Component {
         children: <RequestSendHead 
           contentType={ this.state.contentType }
           obj={ this.state.requestHeadData } 
+          schema= { this.state.header }
           tips={this.state.envKeys} 
           cb={obj => {
             this.state.requestHeadData = obj
