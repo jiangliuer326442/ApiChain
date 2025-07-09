@@ -14,6 +14,10 @@ import {
     ENV_VALUE_CURRENT_TIMESTAMP_SECOND,
     ENV_VALUE_CURRENT_TIMESTAMP_MICRO,
 } from "@conf/envKeys";
+import {
+    getProjectKeys,
+    getIteratorKeys
+} from '@act/keys';
 import { 
     getIteratorEnvValues, 
     getPrjEnvValues,
@@ -26,7 +30,7 @@ import {
 
 export default class {
 
-    private env: string = ""; 
+    private env_var_type: 'project' | 'iterator' | 'unittest'; 
 
     private prj: string = "";
 
@@ -34,82 +38,56 @@ export default class {
 
     private unittest: string = "";
 
-    private clientType: any = null;
+    private clientType: string = "";
 
-    private cb: (envKeyVar: Array<any>) => void = () => {};
+    private env_keys = [];
 
-    private envKeyVarMap: Map<string, string> = new Map();
-
-    private env_var_type = "";
+    private envvars = new Map<string, string>();
 
     init(
+        type: 'project' | 'iterator' | 'unittest',
         prj : string, 
-        env : string, 
         iteration : string, 
         unittest : string,
-        clientType : string,
-        cb : (envKeyVar: Array<any>) => void
+        clientType : string
     ) {  
-        if (this.prj !== prj || this.env !== env) {
-            this.env_vars = [];
-            this.envKeyVarMap = new Map();
-        }
-        if (env == null) {
-            env = "";
+        this.env_var_type = type;
+
+        if (this.prj !== prj || this.iteration !== iteration) {
+            this.env_keys = [];
+            this.envvars = new Map<string, string>();
         }
         this.prj = prj;
-        this.env = env;
         this.iteration = iteration;
         this.unittest = unittest;
         this.clientType = clientType;
-        this.cb = cb;
-        if (isStringEmpty(this.prj) && isStringEmpty(this.iteration) && isStringEmpty(this.unittest)) {
-            this.env_var_type = "global";
-        } else if (!isStringEmpty(this.prj) && isStringEmpty(this.iteration) && isStringEmpty(this.unittest)) {
-            this.env_var_type = "prj";
-        } else if (!isStringEmpty(this.iteration) && isStringEmpty(this.unittest)) {
-            this.env_var_type = "iterator";
-        } else if (isStringEmpty(this.iteration) && !isStringEmpty(this.unittest)) {
-            this.env_var_type = "unittest";
-        }
-    }
-
-    initIterator(
-        prj : string,
-        env : string,
-        iteration : string,
-        clientType : any, 
-    ) {  
-        this.init(prj, env, iteration, "", clientType, env_vars => {})
-    }
-
-    initProject(
-        prj : string,
-        env : string,
-        clientType : any,
-    ) {
-        this.init(prj, env, "", "", clientType, env_vars => {})
-    }
-
-    initGlobal(
-        env : string,
-        clientType : any,
-    ) {
-        this.init("", env, "", "", clientType, env_vars => {})
     }
 
     async getTips() : Promise<Set<string>> {
-        if (this.envKeyVarMap.size === 0) {
-            let env_vars = await this.getEnvValues(this.prj, this.env, this.iteration, "", "");
-            this.envKeyVarMap = env_vars;
-            this.cb(env_vars);
+        if (this.env_keys.length === 0) {
+            let envKeys;
+            if (this.env_var_type === "project") {
+              envKeys = await getProjectKeys(this.clientType, this.prj);
+            } else if (this.env_var_type === "iterator") {
+              envKeys = await getIteratorKeys(this.clientType, this.iteration, this.prj);
+            }
+            this.env_keys = envKeys;
+
             return this.getTipsByEnvVars();
         } else {
             return this.getTipsByEnvVars();
         }
     }
 
-    getVarByKey(key : string) : string | number | undefined {
+    async getVarByKey(key : string, env : string) : string | number | undefined {
+        if (this.envvars.size === 0) {
+            if (this.env_var_type === "project") {
+                this.envvars = await getPrjEnvValues(this.prj, env, this.clientType);
+            } else if (this.env_var_type === "iterator") {
+                this.envvars = await getIteratorEnvValues(this.iteration, this.prj, env, this.clientType);
+            }
+        }
+
         if (key === ENV_VALUE_RANDOM_STRING) {
             return "ApiChain_" + uuidv4();
         }
@@ -162,24 +140,11 @@ export default class {
             return (Date.now()).toString();
         }
 
-        return this.envKeyVarMap.get(key);
+        return this.envvars.get(key);
     }
-
-    private async getEnvValues(prj, env, iterator, unittest, pname) : Promise<Map<string, string>> {
-        if (this.env_var_type === "iterator") {
-            let result = await getIteratorEnvValues(iterator, prj, env, this.clientType);
-            return result;
-        } else if (this.env_var_type === "prj") {
-            let result = await getPrjEnvValues(prj, env, this.clientType);
-            return result;
-        } else if (this.env_var_type === "global") {
-            let result = await getGlobalEnvValues(env, this.clientType);
-            return result;
-        }
-    }
-
+    
     private getTipsByEnvVars() : Set<string> {
-        let envKeys = new Set(this.envKeyVarMap.keys());
+        let envKeys = new Set(this.env_keys);
         return this.appendEnvKeys(envKeys);
     }
 

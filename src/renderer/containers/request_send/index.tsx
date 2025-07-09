@@ -24,7 +24,11 @@ import {
   shortJsonContent,
   getEnvVarsIterator,
 } from '@rutil/json';
-import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER } from "@conf/envKeys";
+import { 
+  ENV_VALUE_API_HOST, 
+  ENV_VALUE_RUN_MODE_CLIENT, 
+  ENV_VALUE_RUN_MODE_RUMMER 
+} from "@conf/envKeys";
 import { getWikiSendRequest } from '@conf/url';
 import { 
   TABLE_REQUEST_HISTORY_FIELDS,
@@ -55,6 +59,7 @@ import {
   CONTENT_TYPE,
 } from '@conf/global_config';
 import { GET_ENV_VALS } from '@conf/redux';
+import RequestSendTips from '@clazz/RequestSendTips';
 import {
   getEnvHosts,
   getEnvRunModes,
@@ -122,10 +127,14 @@ const { TextArea } = Input;
 
 class RequestSendContainer extends Component {
 
+  private requestSendTips : RequestSendTips;
+
   constructor(props) {
     super(props);
 
     let pathKey = props.match.path.split('/')[1];
+
+    this.requestSendTips = new RequestSendTips();
 
     let id = 0;
     let showFlg = false;
@@ -412,12 +421,8 @@ class RequestSendContainer extends Component {
       this.setState({ alertMessage: langFormat("network table7", {"key": ENV_VALUE_API_HOST,}) });
       return;
     }
-    let envKeys;
-    if (this.state.type === "project") {
-      envKeys = await getProjectKeys(this.props.clientType, prj);
-    } else if (this.state.type === "iterator") {
-      envKeys = await getIteratorKeys(this.props.clientType, this.state.iteratorId, prj);
-    }
+    this.requestSendTips.init(this.state.type, prj, this.state.iteratorId, "", this.props.clientType);
+    let envKeys = await this.requestSendTips.getTips();
     this.state.prj = prj;
     this.getCommonRequestDatas();
     this.setState({ env, requestHost, runMode, envKeys: [...envKeys] });
@@ -436,7 +441,6 @@ class RequestSendContainer extends Component {
     });
 
     let requestDefine = {};
-    let envvars = new Map<string, string>();
     if (this.state.type === "project") {
       requestDefine = await getProjectRequest(
         this.props.clientType,
@@ -444,7 +448,6 @@ class RequestSendContainer extends Component {
         this.state.requestMethod, 
         this.state.requestUri
       );
-      envvars = await getPrjEnvValues(this.state.prj, this.state.env, this.props.clientType);
     } else if (this.state.type === "iterator") {
       requestDefine = await getVersionIteratorRequest(
         this.props.clientType,
@@ -453,7 +456,6 @@ class RequestSendContainer extends Component {
         this.state.requestMethod, 
         this.state.requestUri
       )
-      envvars = await getIteratorEnvValues(this.state.iteratorId, this.state.prj, this.state.env, this.props.clientType);
     }
 
     let url = this.state.requestHost + this.state.requestUri;
@@ -464,7 +466,7 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
-        value = getMapValueOrDefault(envvars, envValueKey, "");
+        value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
       }
       url = url.replaceAll("{{" + _key + "}}", value);
     }
@@ -476,7 +478,7 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
-        value = getMapValueOrDefault(envvars, envValueKey, "");
+        value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
         paramData[_key] = value;
       }
     }
@@ -491,7 +493,7 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
-        value = getMapValueOrDefault(envvars, envValueKey, "");
+        value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
         headData[_key] = value;
       }
     }

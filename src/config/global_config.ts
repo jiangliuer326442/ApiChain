@@ -62,6 +62,7 @@ export const SYNC_TABLES = [
     'env',
     'env_vars_241112001',
     'microservices_keys',
+    'project_request_common',
     'microservices',
     'project_request',
     'user',
