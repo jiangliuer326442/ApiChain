@@ -1,6 +1,7 @@
 import md5 from 'js-md5';
 import { cloneDeep } from 'lodash';
 
+import RequestSendTips from '../classes/RequestSendTips';
 import { getType, isJsonString, isStringEmpty, getMapValueOrDefault } from './index';
 import { TABLE_JSON_FRAGEMENT_FIELDS } from '../../config/db';
 import { CONTENT_TYPE, DataTypeJsonObject, KEY_SEPARATOR } from '../../config/global_config';
@@ -20,9 +21,9 @@ export const TABLE_FIELD_TYPE_REF = "Ref";
 
 let json_fragement_fields = TABLE_JSON_FRAGEMENT_FIELDS.FIELD_FIELDS;
 
-export function getEnvVarsIterator(data : any, format : any, envvars : Map<string, string>) {
+export async function getEnvVarsIterator(data : any, format : any, env : string, requestSendTips : RequestSendTips) {
     data = cloneDeep (data);
-    innterGetEnvVarsIterator(data, format, envvars);
+    await innterGetEnvVarsIterator(data, format, env, requestSendTips);
     return data;
 }
 
@@ -375,7 +376,7 @@ function innerCleanJson(outJsonObject : any, inJsonObject : any) {
 	}
 }
 
-function innterGetEnvVarsIterator(data : any, format : any, envvars : Map<string, string>) {
+async function innterGetEnvVarsIterator(data : any, format : any, env : string, requestSendTips : RequestSendTips) {
     for (let _key in data) {
         let value = data[_key];
         let isJsonString = false;
@@ -392,7 +393,7 @@ function innterGetEnvVarsIterator(data : any, format : any, envvars : Map<string
             for (let _index in value) {
                 let _item = value[_index];
                 if (getType(_item) === "Object") {
-                    innterGetEnvVarsIterator(_item, null, envvars);
+                    await innterGetEnvVarsIterator(_item, null, env, requestSendTips);
                 } else {
                     let beginIndex = value[_index].indexOf("{{");
                     let endIndex = value[_index].indexOf("}}");
@@ -403,13 +404,13 @@ function innterGetEnvVarsIterator(data : any, format : any, envvars : Map<string
                 }
             }
         } else if (getType(value) === "Object") {
-            innterGetEnvVarsIterator(value, null, envvars);
+            await innterGetEnvVarsIterator(value, null, env, requestSendTips);
         } else if (getType(value) === "String") {
             let beginIndex = value.indexOf("{{");
             let endIndex = value.indexOf("}}");
             if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
                 let envValueKey = value.substring(beginIndex + 2, endIndex);
-                data[_key] = getMapValueOrDefault(envvars, envValueKey, "");
+                data[_key] = await requestSendTips.getVarByKey(envValueKey, env);
             }
         }
 

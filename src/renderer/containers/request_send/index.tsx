@@ -63,13 +63,7 @@ import RequestSendTips from '@clazz/RequestSendTips';
 import {
   getEnvHosts,
   getEnvRunModes,
-  getPrjEnvValues,
-  getIteratorEnvValues,
 } from '@act/env_value';
-import {
-  getProjectKeys,
-  getIteratorKeys
-} from '@act/keys';
 import {
   getVersionIteratorRequest
 } from '@act/version_iterator_requests';
@@ -499,10 +493,11 @@ class RequestSendContainer extends Component {
     }
 
     if (this.state.requestMethod === REQUEST_METHOD_POST) {
-      let postData = getEnvVarsIterator(
+      let postData = await getEnvVarsIterator(
         this.state.requestBodyData, 
         requestDefine?.body ?? null,
-        envvars
+        this.state.env,
+        this.requestSendTips
       );
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {

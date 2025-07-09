@@ -378,7 +378,10 @@ export default class extends Component {
                     value={
                         (i<this.state.rows ? this.state.data[i].value : "")
                     }
-                    onChange={data => this.setValue(data, i)}
+                    onChange={data => {
+                        this.setValue(data, i);
+                        this.setState({data: cloneDeep(this.state.data)});
+                    }}
                     options={this.props.schema[this.state.data[i].key][TABLE_FIELD_TYPE].split("|").filter((_, index) => index !== 0).map(part => {
                         const [label, value] = part.split(':');
                         return { label, value };
