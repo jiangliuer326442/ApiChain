@@ -97,6 +97,7 @@ let iteration_request_desc = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_DESC;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
 
 let argsObject = getStartParams();
+console.debug("argsObject", argsObject)
 let uuid = argsObject.uuid;
 
 class Home extends Component {

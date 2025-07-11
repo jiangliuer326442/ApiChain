@@ -59,14 +59,15 @@ class TeamModel extends Component {
             if (err) {
                 message.error("数据库导出失败")
             } else {
-                let user = await getUser(this.props.clientType, this.props.uid);
+                let user = await getUser(CLIENT_TYPE_SINGLE, this.props.uid);
                 let uname = user.uname;
-                let users = await getUsers(this.props.clientType);
-                let usersList = []
+                let users = await getUsers(CLIENT_TYPE_SINGLE);
+                let usersList = [this.props.uid + "$$" + uname];
                 for (const [_uid, _uname] of users) {
                     usersList.push(_uid + "$$" + _uname);
                 }
                 let usersStr = usersList.join(",")
+                console.debug("usersStr", usersStr);
                 if (this.state.teamType === "create") {
                     this.setState({networkIng: true});
                     this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr, dbJson)
