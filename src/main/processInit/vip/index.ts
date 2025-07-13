@@ -24,7 +24,7 @@ import { getPackageJson } from '../../util/util';
 
 export default function (){
 
-    ipcMain.on(ChannelsVipStr, (event, action, productName, payMethod) => {
+    ipcMain.on(ChannelsVipStr, async (event, action, productName, payMethod) => {
 
         if (action !== ChannelsVipGenUrlStr) return;
 
@@ -58,15 +58,15 @@ export default function (){
             }
         }
 
-        let url = genCheckCodeUrl(productName, payMethod);
+        let url = await genCheckCodeUrl(productName, payMethod);
         event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money, url);
     });
 
-    ipcMain.on(ChannelsVipStr, (event, action) => {
+    ipcMain.on(ChannelsVipStr, async (event, action) => {
 
         if (action !== ChannelsVipCkCodeStr) return;
 
-        let packageJson = getPackageJson();
+        let packageJson = await getPackageJson();
 
         let url = "";
         //拿订单号

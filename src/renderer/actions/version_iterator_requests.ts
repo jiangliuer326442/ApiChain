@@ -105,7 +105,7 @@ export async function delVersionIteratorRequest(clientType : string, teamId : st
 
 export async function getUnitTestRequests(clientType : string, project : string, iteration_uuid : string, uri : string) {
     let uris = new Set();
-    let requests = await getVersionIteratorRequestsByProject(iteration_uuid, project, null, "", uri);
+    let requests = await getSimpleVersionIteratorRequests(clientType, iteration_uuid, project, null, "", uri);
     for (let _request of requests) {
         uris.add(_request[iteration_request_uri]);
     }
@@ -249,6 +249,7 @@ export async function getSimpleVersionIteratorRequests(clientType : string, iter
     } else {
         let ret = await sendTeamMessage(REQUEST_VERSION_ITERATION_QUERY_URL, {iteratorId: iteration_uuid, prj: project, fold, title, uri});
         version_iteration_requests = ret.requests;
+        version_iteration_requests.map(row => row[iteration_request_iteration_uuid] = iteration_uuid)
     }
 
     version_iteration_requests.sort((a, b) => {
@@ -334,49 +335,6 @@ export async function getFolderIteratorRequests(
     }
 
     return datas;
-}
-
-async function getVersionIteratorRequestsByProject(iteration_uuid : string, project : string, fold : string | null, title : string, uri : string) {
-    let version_iteration_requests = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
-    .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
-    .equals([ 0, iteration_uuid ])
-    .filter(row => {
-        if (!isStringEmpty(title)) {
-            if (row[iteration_request_title].indexOf(title) < 0 && row[iteration_request_desc].indexOf(title) < 0) {
-                return false;
-            }
-        }
-        if (!isStringEmpty(uri)) {
-            if (row[iteration_request_uri].toLowerCase().indexOf(uri.toLowerCase()) < 0) {
-                return false;
-            }
-        }
-        if (!isStringEmpty(project)) {
-            if (row[iteration_request_project] !== project) {
-                return false;
-            }
-        }
-        if (!isStringEmpty(fold) || fold === "") {
-            if (row[iteration_request_fold] !== fold || row[iteration_request_project] !== project) {
-                return false;
-            }
-        }
-        return true;
-    })
-    .reverse()
-    .toArray();
-
-    version_iteration_requests.sort((a, b) => {
-        if (a[iteration_request_sort] === undefined) {
-            a[iteration_request_sort] = 0;
-        }
-        if (b[iteration_request_sort] === undefined) {
-            b[iteration_request_sort] = 0;
-        }
-        return b[iteration_request_sort] - a[iteration_request_sort];
-    })
-    
-    return version_iteration_requests;
 }
 
 export async function editVersionIteratorRequest(

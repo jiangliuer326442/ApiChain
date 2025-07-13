@@ -54,12 +54,12 @@ export async function getInitParams() : Promise<string[]> {
         giftVip(3);
     }
 
-    let result = doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
+    let result = await doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
     log.info("getInitParams finished, cost time: " + (Date.now() - _btime));
     return result;
 }
 
-function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
+async function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
@@ -82,7 +82,7 @@ function doGetInitParams(packageJson : any, userLang : string, userCountry : str
         clientType = CLIENT_TYPE_SINGLE;
     }
     if (showCkCode) {
-        ckCodeUrl = getCheckCodeUrl();
+        ckCodeUrl = await getCheckCodeUrl();
     }
 
     return [

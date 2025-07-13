@@ -140,28 +140,28 @@ export function clearVipCacheFlg() {
     cache.delete(VIP_LATEST_PAYMETHOD);
 }
 
-export function getCheckCodeUrl() {
+export async function getCheckCodeUrl() {
     let cache = getCache("");
-    let packageJson = getPackageJson();
+    let packageJson = await getPackageJson();
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
     let url = packageJson.payQueryUrl + myOrderNo;
     return url;
 }
 
-export function genCheckCodeUrl(productName : string, payMethod : string) {
+export async function genCheckCodeUrl(productName : string, payMethod : string) {
     let outTradeNo = uuidv4() as string;
     let cache = getCache("");
     cache.set(VIP_LATEST_TRADE, outTradeNo);
     cache.set(VIP_LATEST_PRODUCT, productName);
     cache.set(VIP_LATEST_PAYMETHOD, payMethod);
 
-    let url = genEncryptString(outTradeNo, productName, payMethod);
+    let url = await genEncryptString(outTradeNo, productName, payMethod);
     return url;
 }
 
-function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : string {
+async function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : string {
     let param = getUuid();
-    let packageJson = getPackageJson();
+    let packageJson = await getPackageJson();
 
     let encryptString = productName + ":" + payMethod + ":" + outTradeNo + ":" + param;
     let data = base64Encode(encryptString)

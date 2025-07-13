@@ -163,7 +163,7 @@ tables[TABLE_PROJECT_REQUEST_PARAMS_NAME] = "&" + project_request_common_project
 
 console.log(tables);
 
-window.db.version(209).stores(tables).upgrade (async trans => {
+window.db.version(210).stores(tables).upgrade (async trans => {
     let projectRequests = await db[TABLE_PROJECT_REQUEST_NAME].filter(item => item[project_request_delFlg] == 0).toArray();
     for (let projectRequest of projectRequests) {
         let project_folder : any = {};

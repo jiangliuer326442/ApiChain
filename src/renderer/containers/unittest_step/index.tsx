@@ -18,13 +18,13 @@ import {
 } from '@conf/global_config';
 import {
     TABLE_UNITTEST_FIELDS,
-    TABLE_MICRO_SERVICE_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_STEP_ASSERT_FIELDS,
 } from '@conf/db';
 import RequestSendTips from '@clazz/RequestSendTips';
-import { getUnitTestRequests } from '@act/version_iterator_requests';
+import { getUnitTestRequests, getVersionIteratorRequest } from '@act/version_iterator_requests';
+import { getProjectRequest } from '@act/project_request';
 import { 
     getIterationUnitTests,
     addUnitTestStep,
@@ -43,9 +43,7 @@ const { Header, Content, Footer } = Layout;
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
-
+let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
@@ -104,7 +102,7 @@ class UnittestStepContainer extends Component {
         let requestHead = {};
         let requestBody = {};
 
-        let prjsSelectector = this.props.projects.map(_prj => ({label: _prj[prj_remark], value: _prj[prj_label] + "$$" + _prj[prj_remark]}));
+        let prjsSelectector = this.props.projects.map(_prj => ({label: _prj.label, value: _prj.value + "$$" + _prj.label}));
 
         if (this.props.unittest[iteratorId]) {
             for (let unitTest of this.props.unittest[iteratorId]) {
@@ -176,7 +174,7 @@ class UnittestStepContainer extends Component {
 
     componentDidMount(): void {
         if (!this.props.unittest[this.state.iteratorId]) {
-            getIterationUnitTests(this.state.iteratorId, null, null, this.props.dispatch);
+            getIterationUnitTests(this.props.clientType, this.state.iteratorId, null, null, this.props.dispatch);
         }
         if (!isStringEmpty(this.state.unitTestStepUuid)) {
             getUnitTestStepAsserts(this.state.iteratorId, this.state.unitTestUuid, this.state.unitTestStepUuid).then(unitTestAsserts => {
@@ -208,6 +206,11 @@ class UnittestStepContainer extends Component {
 
     initMethodUri = async (method, uri) => {
         let request = this.state.requests.find(row => row[iteration_request_method] === method && row[iteration_request_uri] === uri);
+        if (isStringEmpty(request[iteration_request_iteration_uuid])) {
+            request = await getProjectRequest(this.props.clientType, this.state.prj, method, uri);
+        } else {
+            request = await getVersionIteratorRequest(this.props.clientType, request[iteration_request_iteration_uuid], this.state.prj, method, uri);
+        }
         let formRequestHeadData = request[iteration_request_header];
         let formRequestBodyData = request[iteration_request_body];
         let formRequestParamData = request[iteration_request_param];
@@ -272,30 +275,34 @@ class UnittestStepContainer extends Component {
         let responseCookie = request[iteration_response_cookie];
         let title = request[iteration_request_title];
 
-        this.requestSendTip.getTips(envKeys => {
-            this.setState({ 
-                request, method, uri, 
-                formRequestHeadData, 
-                formRequestBodyData, 
-                formRequestParamData, 
-                formRequestPathVariableData,
-                requestHead, 
-                requestBody, 
-                requestParam, 
-                requestPathVariable,
-                assertLength,
-                title, 
-                responseContent, 
-                responseHeader, 
-                responseCookie,
-                jsonFlg,
-                paramTips: envKeys
-            });
+        let envKeys = await this.requestSendTip.getTips();
+        this.setState({ 
+            request, method, uri, 
+            formRequestHeadData, 
+            formRequestBodyData, 
+            formRequestParamData, 
+            formRequestPathVariableData,
+            requestHead, 
+            requestBody, 
+            requestParam, 
+            requestPathVariable,
+            assertLength,
+            title, 
+            responseContent, 
+            responseHeader, 
+            responseCookie,
+            jsonFlg,
+            paramTips: envKeys
         });
     }
 
     initPrj = (iteratorId, prj, dispatch) => {
-        getUnitTestRequests(prj, iteratorId, "").then(requests => {
+        getUnitTestRequests(
+            this.props.clientType, 
+            prj, 
+            iteratorId, 
+            ""
+        ).then(requests => {
             let urisSelector = [];
             for (let request of requests) {
                 let item = {};
@@ -309,7 +316,7 @@ class UnittestStepContainer extends Component {
                 }
             } );
         });
-        this.requestSendTip.init(prj, "", iteratorId, dispatch, env_vars => {});
+        this.requestSendTip.init("iterator", prj, iteratorId, "", this.props.clientType);
     }
 
     buildApiSelectValue = (method : string, uri : string) : string => {
@@ -692,6 +699,8 @@ function mapStateToProps (state) {
         device : state.device,
         unittest: state.unittest.list,
         projects: state.prj.list,
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
     }
 }
       

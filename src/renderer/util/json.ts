@@ -274,7 +274,6 @@ export function iteratorBodyGenHash(bodyObject : Object, fileObject : Object) : 
 
 export async function buildJsonString(formObjectDefine : any) {
     let jsonStringKeys = new Set<String>();
-
     for (let _key in formObjectDefine) {
         let _val = formObjectDefine[_key];
         if (_val[TABLE_FIELD_TYPE] === DataTypeJsonObject) {

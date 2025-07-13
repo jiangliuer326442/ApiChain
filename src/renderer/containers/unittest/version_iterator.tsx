@@ -198,7 +198,12 @@ class UnittestListVersion extends Component {
                                         href={ "#/version_iterator_tests_step_edit/" + this.state.iteratorId + "/" + valueUnittestStepUnittestUuid + "/" + valueUnittestStepUuid }
                                     >{langTrans("prj unittest act4")}</Button>
                                     <Button type="text" onClick={async ()=>{
-                                        let request = (await getUnitTestRequests(record[unittest_step_project], this.state.iteratorId, record[unittest_step_uri]))[0];
+                                        let request = (await getUnitTestRequests(
+                                            this.props.clientType, 
+                                            record[unittest_step_project], 
+                                            this.state.iteratorId, 
+                                            record[unittest_step_uri]
+                                        ))[0];
                                         let stepRequest = await buildUnitTestStepFromRequest(request);
                                         let unit_test_step = await window.db[TABLE_UNITTEST_STEPS_NAME]
                                         .where(unittest_step_uuid).equals(valueUnittestStepUuid)
@@ -209,7 +214,13 @@ class UnittestListVersion extends Component {
                                         unit_test_step[unittest_step_request_path_variable] = stepRequest.requestPathVariable;
                                         await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
                                         message.success("重置步骤 " + unit_test_step[unittest_title] + " 的参数成功");
-                                        getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+                                        getIterationUnitTests(
+                                            this.props.clientType, 
+                                            this.state.iteratorId, 
+                                            this.state.folder, 
+                                            this.state.env, 
+                                            this.props.dispatch
+                                        );
                                     }}>{langTrans("version unittest act4")}</Button>
                                     <Dropdown menu={this.getMoreStep(record)}>
                                         <Button type="text" icon={<MoreOutlined />} />
@@ -250,19 +261,31 @@ class UnittestListVersion extends Component {
         if(this.props.envs.length === 0) {
             getEnvs(this.props.clientType, this.props.dispatch);
         }
-        getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+        getIterationUnitTests(
+            this.props.clientType,
+            this.state.iteratorId, 
+            this.state.folder, 
+            this.state.env, 
+            this.props.dispatch
+        );
         this.setMovedIteratos();
     }
 
     async componentDidUpdate(prevProps) {  
         if (this.props.match.params.id !== prevProps.match.params.id) { 
-            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+            getIterationUnitTests(
+                this.props.clientType, 
+                this.state.iteratorId, 
+                this.state.folder, 
+                this.state.env, 
+                this.props.dispatch
+            );
             this.setMovedIteratos();
         }
     }
 
     setMovedIteratos = async () => {
-        let versionIterators = (await getOpenVersionIterators(this.props.dispatch))
+        let versionIterators = (await getOpenVersionIterators(this.props.clientType, this.props.dispatch))
         .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
         .map(item => {
             return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
@@ -286,7 +309,13 @@ class UnittestListVersion extends Component {
                         description={langTrans("version unittest del desc")}
                         onConfirm={e => {
                             delUnitTestStep(valueUnittestStepUuid, ()=>{
-                                getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+                                getIterationUnitTests(
+                                    this.props.clientType,
+                                    this.state.iteratorId, 
+                                    this.state.folder, 
+                                    this.state.env, 
+                                    this.props.dispatch
+                                );
                             });
                         }}
                         okText={langTrans("version unittest del sure")}
@@ -313,7 +342,13 @@ class UnittestListVersion extends Component {
                             description={langTrans("prj unittest del desc")}
                             onConfirm={e => {
                                 delUnitTest(record, ()=>{
-                                    getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+                                    getIterationUnitTests(
+                                        this.props.clientType, 
+                                        this.state.iteratorId, 
+                                        this.state.folder, 
+                                        this.state.env, 
+                                        this.props.dispatch
+                                    );
                                 });
                             }}
                             okText={langTrans("prj unittest del sure")}
@@ -346,7 +381,13 @@ class UnittestListVersion extends Component {
 
     setEnvironmentChange = (value: string) => {
         this.setState({env: value});
-        getIterationUnitTests(this.state.iteratorId, this.state.folder, value, this.props.dispatch);
+        getIterationUnitTests(
+            this.props.clientType, 
+            this.state.iteratorId, 
+            this.state.folder, 
+            value, 
+            this.props.dispatch
+        );
     }
 
     setFolderChange = (value: string) => {
@@ -357,14 +398,26 @@ class UnittestListVersion extends Component {
             selectedFolder = value;
         }
         this.setState({folder: value});
-        getIterationUnitTests(this.state.iteratorId, selectedFolder, this.state.env, this.props.dispatch);
+        getIterationUnitTests(
+            this.props.clientType, 
+            this.state.iteratorId, 
+            selectedFolder, 
+            this.state.env, 
+            this.props.dispatch
+        );
     }
 
     undoExportUnitTestClick = (record) => {
         let unittestId = record[unittest_uuid];
         copyFromProjectToIterator(unittestId, ()=>{
             message.success(langTrans("unittest export revoke success"));
-            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+            getIterationUnitTests(
+                this.props.clientType, 
+                this.state.iteratorId, 
+                this.state.folder, 
+                this.state.env, 
+                this.props.dispatch
+            );
         });
     }
 
@@ -373,7 +426,13 @@ class UnittestListVersion extends Component {
         let unittestId = record[unittest_uuid];
         copyFromIteratorToProject(iteratorId, unittestId, this.props.device, ()=>{
             message.success(langTrans("unittest export success"));
-            getIterationUnitTests(iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+            getIterationUnitTests(
+                this.props.clientType, 
+                iteratorId, 
+                this.state.folder, 
+                this.state.env, 
+                this.props.dispatch
+            );
         });
     }
 
@@ -409,7 +468,13 @@ class UnittestListVersion extends Component {
                     {langTrans("version unittest title")} <Text type="secondary"><Link href={getWikiUnittest()}>{langTrans("version unittest link")}</Link></Text>
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
-                    <AddUnittestComponent refreshCb={() => getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch)} />
+                    <AddUnittestComponent refreshCb={() => getIterationUnitTests(
+                        this.props.clientType,
+                        this.state.iteratorId, 
+                        this.state.folder, 
+                        this.state.env, 
+                        this.props.dispatch
+                    )} />
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: langTrans("version unittest bread1") }, 
                         { title: langTrans("version unittest bread2") }
@@ -447,7 +512,13 @@ class UnittestListVersion extends Component {
                                         batchMoveIteratorUnittest(this.state.iteratorId, this.state.selectedUnittests, value, () => {
                                             this.state.selectedUnittests = [];
                                             message.success("移动迭代成功");
-                                            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+                                            getIterationUnitTests(
+                                                this.props.clientType, 
+                                                this.state.iteratorId, 
+                                                this.state.folder, 
+                                                this.state.env, 
+                                                this.props.dispatch
+                                            );
                                         });
                                     }}
                                     options={ this.state.versionIterators }
@@ -500,7 +571,13 @@ class UnittestListVersion extends Component {
                         env={ this.state.env }
                         cb={ () => {
                             this.setState({executeFlg: true});
-                            getIterationUnitTests(this.state.iteratorId, this.state.folder, this.state.env, this.props.dispatch);
+                            getIterationUnitTests(
+                                this.props.clientType, 
+                                this.state.iteratorId, 
+                                this.state.folder, 
+                                this.state.env, 
+                                this.props.dispatch
+                            );
                         } }
                         />
                     <Table 
