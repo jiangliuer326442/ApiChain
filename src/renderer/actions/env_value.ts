@@ -26,6 +26,7 @@ import {
     ENV_VARS_ITERATOR_PAGE_URL,
     ENV_VARS_ITERATOR_SET_URL,
     ENV_VARS_ITERATOR_DEL_URL,
+    ENV_VARS_UNITTEST_DATAS_URL,
     ENV_VARS_ITERATION_COPY_URL,
     ENV_VARS_PROJECT_COPY_URL,
     PRJ_HOST_URL,
@@ -669,6 +670,86 @@ export async function getIteratorEnvValues(iterator : string, prj : string, env 
         }
     } else {
         datas = await sendTeamMessage(ENV_VARS_ITERATOR_DATAS_URL, {iterator, env, prj});
+    }
+
+    return new Map(Object.entries(datas));
+}
+
+export async function getUnittestEnvValues(unittest : string, prj : string, env : string, clientType : string) {
+    let datas : any = {};
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        let excludeKeys = new Set<String>();
+        let unittestPrjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, "", unittest ])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        excludeKeys = new Set(unittestPrjArrays.map(item => ( item[env_var_pname])));
+        for (let unittestPrjRow of unittestPrjArrays) {
+            datas[unittestPrjRow[env_var_pname]] = unittestPrjRow[env_var_pvalue];
+        }
+
+        let unittestArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, '', "", unittest ])
+        .filter(row => {
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        for (let unittestRow of unittestArrays) {
+            excludeKeys.add(unittestRow[env_var_pname]);
+            datas[unittestRow[env_var_pname]] = unittestRow[env_var_pvalue];
+        }
+
+        let prjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, '', '' ])
+        .filter(row => {
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        for (let prjRow of prjArrays) {
+            excludeKeys.add(prjRow[env_var_pname]);
+            datas[prjRow[env_var_pname]] = prjRow[env_var_pvalue];
+        }
+
+        let globalArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, '', '', '' ])
+        .filter(row => {
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        for (let globalRow of globalArrays) {
+            excludeKeys.add(globalRow[env_var_pname]);
+            datas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
+        }
+    } else {
+        datas = await sendTeamMessage(ENV_VARS_UNITTEST_DATAS_URL, {unittest, env, prj});
     }
 
     return new Map(Object.entries(datas));

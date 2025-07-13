@@ -38,16 +38,37 @@ import {
     UNITTEST_RESULT_FAILURE,
     UNITTEST_RESULT_UNKNOWN
 } from '@conf/unittest';
+import {
+    ENV_VALUE_RUN_MODE_CLIENT, 
+    ENV_VALUE_RUN_MODE_RUMMER 
+} from '@conf/envKeys';
 import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
+import {
+    CLIENT_TYPE_TEAM, 
+    CLIENT_TYPE_SINGLE,
+    ENV_VARS_UNITTEST_COPY_URL
+} from '@conf/team';
 
-import { sendAjaxMessageByClient } from '@act/message';
+import { 
+    sendAjaxMessageByClient,
+    sendAjaxMessageByRunner,
+    sendTeamMessage,
+} from '@act/message';
 import { getUsers } from '@act/user';
 import { addRequestHistory, getRequestHistory } from '@act/request_history';
 import { addProjectUnitTestFolder } from '@act/unittest_folders';
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
+import { getEnvHosts, getEnvRunModes } from '@act/env_value';
 
-import { getType, isStringEmpty, isJsonString, paramToString, waitSeconds } from '@rutil/index';
+import { 
+    getType, 
+    isStringEmpty, 
+    isJsonString, 
+    paramToString, 
+    waitSeconds, 
+    getMapValueOrDefault 
+} from '@rutil/index';
 import { TABLE_FIELD_TYPE } from '@rutil/json';
 
 import RequestSendTips from '@clazz/RequestSendTips';
@@ -194,7 +215,7 @@ export async function batchMoveIteratorUnittest(oldIterator : string, unittestAr
     cb();
 }
 
-export async function addIteratorUnitTest(versionIteratorId : string, title : string, folder : string, device : object, cb) {
+export async function addIteratorUnitTest(versionIteratorId : string, title : string, folder : string, device : object) {
     let unit_test : any = {};
     unit_test[unittest_iterator_uuid] = versionIteratorId;
     unit_test[field_unittest_uuid] = uuidv4() as string;
@@ -204,8 +225,6 @@ export async function addIteratorUnitTest(versionIteratorId : string, title : st
     unit_test[unittest_ctime] = Date.now();
     unit_test[unittest_delFlg] = 0;
     await window.db[TABLE_UNITTEST_NAME].put(unit_test);
-
-    cb();
 }
 
 export async function addUnitTestStep(
@@ -270,18 +289,16 @@ export async function addUnitTestStep(
         );
 }
 
-export async function editUnitTest(uuid : string, title : string, folder : string, cb) {
+export async function editUnitTest(uuid : string, title : string, folder : string, ) {
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(uuid)
     .first();
 
-    if (unitTest !== undefined) {
-        unitTest[unittest_title] = title;
-        unitTest[unittest_fold] = folder;
-        await window.db[TABLE_UNITTEST_NAME].put(unitTest);
-    
-        cb();
-    }
+    if (unitTest === undefined) return;
+
+    unitTest[unittest_title] = title;
+    unitTest[unittest_fold] = folder;
+    await window.db[TABLE_UNITTEST_NAME].put(unitTest);
 }
 
 export async function editUnitTestStep(
@@ -734,9 +751,18 @@ export async function executeProjectUnitTest(
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+        async (project : string) => {
+            let datas = await getEnvHosts(clientType, project, env);
+            return datas.get(env);
+        },
+        async (project : string) => {
+            let datas = await getEnvRunModes(clientType, project, env);
+            let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
+            return runMode;
+        },
         (project : string) => {
             let envVarTips = new RequestSendTips();
-            envVarTips.init(project, env, "", unitTestId, dispatch, env_vars => {});
+            envVarTips.init("unittest", project, "", unitTestId, clientType);
             return envVarTips;
         },
         () => {
@@ -807,9 +833,18 @@ export async function executeIteratorUnitTest(
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+        async (project : string) => {
+            let datas = await getEnvHosts(clientType, project, env);
+            return datas.get(env);
+        },
+        async (project : string) => {
+            let datas = await getEnvRunModes(clientType, project, env);
+            let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
+            return runMode;
+        },
         (project : string) => {
             let envVarTips = new RequestSendTips();
-            envVarTips.init(project, env, iteratorId, "", dispatch, env_vars => {});
+            envVarTips.init("iterator", project, iteratorId, "", clientType);
             return envVarTips;
         },
         () => {
@@ -867,6 +902,8 @@ async function stepsExecutor(
     unitTestId : string, 
     batch_uuid : string,
     env : string, 
+    getEnvHostFunc : Function,
+    getRunModeFunc : Function,
     getEnvVarTipsFunc : Function,
     getJsonParamTipsFunc : Function,
     saveStepResultFunc : Function,
@@ -912,7 +949,8 @@ async function stepsExecutor(
 
         let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unitTestId, stepUuid);
         let envVarTips = getEnvVarTipsFunc(project);
-        let requestHost = await envVarTips.getHostAsync();
+        let requestHost = await getEnvHostFunc(project);
+        let runMode = await getRunModeFunc(project);
         let url = requestHost + requestUri;
 
         let contentType = "";
@@ -984,20 +1022,32 @@ async function stepsExecutor(
         if (method === REQUEST_METHOD_POST) {
             if (contentType === CONTENT_TYPE_FORMDATA) {
                 try {
-                    response = await sendAjaxMessageByClient("post", url, header, body, file);
+                    if (runMode === ENV_VALUE_RUN_MODE_RUMMER) {
+                        response = await sendAjaxMessageByRunner(REQUEST_METHOD_POST, url, header, body, file)
+                    } else if (runMode === ENV_VALUE_RUN_MODE_CLIENT) {
+                        response = await sendAjaxMessageByClient(REQUEST_METHOD_POST, url, header, body, file);
+                    }
                 } catch (err) {
                     errorMessage = err.errorMessage;
                 }
             } else {
                 try {
-                    response = await sendAjaxMessageByClient("post", url, header, body, null);
+                    if (runMode === ENV_VALUE_RUN_MODE_RUMMER) {
+                        response = await sendAjaxMessageByRunner(REQUEST_METHOD_POST, url, header, body, null)
+                    } else if (runMode === ENV_VALUE_RUN_MODE_CLIENT) {
+                        response = await sendAjaxMessageByClient(REQUEST_METHOD_POST, url, header, body, null);
+                    }
                 } catch (err) {
                     errorMessage = err.errorMessage;
                 }
             }
         } else if (method === REQUEST_METHOD_GET) {
             try {
-                response = await sendAjaxMessageByClient("get", url, header, null, null);
+                if (runMode === ENV_VALUE_RUN_MODE_RUMMER) {
+                    response = await sendAjaxMessageByRunner(REQUEST_METHOD_GET, url, header, null, null)
+                } else if (runMode === ENV_VALUE_RUN_MODE_CLIENT) {
+                    response = await sendAjaxMessageByClient(REQUEST_METHOD_GET, url, header, null, null);
+                }
             } catch (err) {
                 errorMessage = err.errorMessage;
             }
@@ -1014,6 +1064,9 @@ async function stepsExecutor(
         let singleCostTime = 0;
         if(response !== null && isStringEmpty(errorMessage)) {
             singleCostTime = response.costTime;
+            if (getType(response.data) === "String" && isJsonString(response.data)) {
+                response.data = JSON.parse(response.data);
+            }
             if (response.headers['content-type'] && response.headers['content-type'].toString().indexOf(CONTENT_TYPE_HTML) >= 0) {
                 isResponseHtml = true;
                 content = response.data;
@@ -1242,7 +1295,10 @@ export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
     cb();
 }
 
-export async function copyFromIteratorToProject(iteratorId : string, unittest_uuid : string, device, cb) {
+export async function copyFromIteratorToProject(iteratorId : string, unittest_uuid : string, device) {
+    let clientType = device.clientType;
+    let teamId = device.teamId; 
+
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(unittest_uuid)
     .first();
@@ -1263,6 +1319,10 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
         prjs.add(unitTestStep[unittest_step_project]);
     }
 
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENV_VARS_UNITTEST_COPY_URL, {iteratorId, unittestId: unittest_uuid, prjs: Array.from(prjs).join(",")});
+    }
+
     let envVarKeys : any[] = [];
 
     let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
@@ -1280,7 +1340,6 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
     }
 
     for (let prj of prjs) {
-        addProjectUnitTestFolder(prj, folderName, device, ()=>{});
         let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
         .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
         .equals([prj, iteratorId, ""])
@@ -1297,6 +1356,12 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
     }
 
     let newEnvVarKeys = envVarKeys.map(obj => ({...obj, iteration: "", unittest: unittest_uuid, del_flg: 0}));
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        newEnvVarKeys = newEnvVarKeys.map(obj => ({...obj, upload_flg: 0, team_id: ""}));
+    } else {
+        newEnvVarKeys = newEnvVarKeys.map(obj => ({...obj, upload_flg: 1, team_id: teamId}));
+    }
     await window.db[TABLE_ENV_VAR_NAME].bulkPut(newEnvVarKeys);
 
     unitTest[unittest_projects] = [...prjs];
@@ -1304,7 +1369,9 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
 
     await window.db[TABLE_UNITTEST_NAME].put(unitTest);
 
-    cb();
+    for (let prj of prjs) {
+        await addProjectUnitTestFolder(prj, folderName, device);
+    }
 }
 
 async function iteratorBodyObject(

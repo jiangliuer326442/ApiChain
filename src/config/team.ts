@@ -54,11 +54,15 @@ export const ENV_VARS_PROJECT_KEYS_URL = "/envvars/project/keys";
 
 export const ENV_VARS_PROJECT_COPY_URL = "/envvars/project/copy";
 
+export const ENV_VARS_UNITTEST_COPY_URL = "/envvars/unittest/copy";
+
 export const PRJ_HOST_URL = "/envvars/project/apiHosts";
 
 export const PRJ_RUN_MODE_URL = "/envvars/project/runModes";
 
 export const ENV_VARS_ITERATOR_DATAS_URL = "/envvars/iteration/all";
+
+export const ENV_VARS_UNITTEST_DATAS_URL = "/envvars/unittest/all";
 
 export const ENV_VARS_ITERATOR_PAGE_URL = "/envvars/iteration/page";
 
@@ -67,6 +71,8 @@ export const ENV_VARS_ITERATOR_SET_URL = "/envvars/iteration/set";
 export const ENV_VARS_ITERATOR_DEL_URL = "/envvars/iteration/del";
 
 export const ENV_VARS_ITERATOR_KEYS_URL = "/envvars/iteration/keys";
+
+export const ENV_VARS_UNITTEST_KEYS_URL = "/envvars/unittest/keys";
 
 export const ENV_VARS_ITERATION_COPY_URL = "/envvars/iteration/copy";
 

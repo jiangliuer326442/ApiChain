@@ -7,7 +7,7 @@ let unittest_folder_cuid = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CUID;
 let unittest_folder_delFlg = TABLE_UNITTEST_FOLD_FIELDS.FIELD_DELFLG;
 let unittest_folder_ctime = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CTIME;
 
-export async function addProjectUnitTestFolder(project : string, folderName : string, device, cb) {
+export async function addProjectUnitTestFolder(project : string, folderName : string, device) {
     let version_iteration_test_folder : any = {};
     version_iteration_test_folder[unittest_folder_iterator] = "";
     version_iteration_test_folder[unittest_folder_project] = project;
@@ -16,7 +16,6 @@ export async function addProjectUnitTestFolder(project : string, folderName : st
     version_iteration_test_folder[unittest_folder_ctime] = Date.now();
     version_iteration_test_folder[unittest_folder_delFlg] = 0;
     await window.db[TABLE_UNITTEST_FOLD_NAME].put(version_iteration_test_folder);
-    cb();
 }
 
 export async function getProjectUnitTestFolders(project : string, cb) {
@@ -44,7 +43,7 @@ export async function getProjectUnitTestFolders(project : string, cb) {
     cb(result);
 }
 
-export async function addIteratorUnitTestFolder(versionIteratorId : string, folderName : string, device, cb) {
+export async function addIteratorUnitTestFolder(versionIteratorId : string, folderName : string, device) {
     let version_iteration_test_folder : any = {};
     version_iteration_test_folder[unittest_folder_iterator] = versionIteratorId;
     version_iteration_test_folder[unittest_folder_project] = "";
@@ -54,7 +53,6 @@ export async function addIteratorUnitTestFolder(versionIteratorId : string, fold
     version_iteration_test_folder[unittest_folder_delFlg] = 0;
     console.debug(version_iteration_test_folder);
     await window.db[TABLE_UNITTEST_FOLD_NAME].put(version_iteration_test_folder);
-    cb();
 }
 
 export async function getIteratorUnitTestFolders(version_iterator : string, cb) {

@@ -2,17 +2,17 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Breadcrumb, Layout, Table, Button } from "antd";
 
-import { getdayjs } from '../../util';
+import { getdayjs } from '@rutil/index';
 
 import { 
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
-} from '../../../config/db';
+} from '@conf/db';
 
-import SingleUnitTestReport from '../../components/unittest/single_unittest_report';
+import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 
 import {
     getExecutorReports
-} from '../../actions/unittest';
+} from '@act/unittest';
 import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;

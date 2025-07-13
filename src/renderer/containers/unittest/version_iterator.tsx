@@ -27,6 +27,7 @@ import {
 } from '@conf/unittest';
 import {
     SHOW_ADD_UNITTEST_MODEL,
+    GET_ITERATOR_TESTS,
     SHOW_EDIT_UNITTEST_MODEL
 } from '@conf/redux';
 import { UNITTEST_ENV } from '@conf/storage';
@@ -381,13 +382,22 @@ class UnittestListVersion extends Component {
 
     setEnvironmentChange = (value: string) => {
         this.setState({env: value});
-        getIterationUnitTests(
-            this.props.clientType, 
-            this.state.iteratorId, 
-            this.state.folder, 
-            value, 
-            this.props.dispatch
-        );
+        if (isStringEmpty(value)) {
+            this.props.dispatch({
+                type: GET_ITERATOR_TESTS,
+                iteratorId: this.state.iteratorId,
+                unitTests: [],
+                folders: null,
+            });
+        } else {
+            getIterationUnitTests(
+                this.props.clientType, 
+                this.state.iteratorId, 
+                this.state.folder, 
+                value, 
+                this.props.dispatch
+            );
+        }
     }
 
     setFolderChange = (value: string) => {
@@ -421,19 +431,18 @@ class UnittestListVersion extends Component {
         });
     }
 
-    exportUnitTestClick = (record) => {
+    exportUnitTestClick = async record => {
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        copyFromIteratorToProject(iteratorId, unittestId, this.props.device, ()=>{
-            message.success(langTrans("unittest export success"));
-            getIterationUnitTests(
-                this.props.clientType, 
-                iteratorId, 
-                this.state.folder, 
-                this.state.env, 
-                this.props.dispatch
-            );
-        });
+        await copyFromIteratorToProject(iteratorId, unittestId, this.props.device);
+        message.success(langTrans("unittest export success"));
+        getIterationUnitTests(
+            this.props.clientType, 
+            iteratorId, 
+            this.state.folder, 
+            this.state.env, 
+            this.props.dispatch
+        );
     }
 
     editUnitTestClick = (record) => {
@@ -484,12 +493,11 @@ class UnittestListVersion extends Component {
                         <Form layout="inline">
                             <Form.Item label={langTrans("prj unittest operator1")}>
                                 <Select
+                                    allowClear
                                     value={ this.state.env }
                                     onChange={this.setEnvironmentChange}
                                     style={{ width: 120 }}
-                                    options={this.props.envs.map(item => {
-                                        return {value: item.label, label: item.remark}
-                                    })}
+                                    options={this.props.envs}
                                 />
                             </Form.Item>
                             <Form.Item label={langTrans("prj unittest operator2")}>
@@ -601,7 +609,6 @@ function mapStateToProps (state) {
         unittest: state.unittest.list,
         folders: state.unittest.folders,
         envs: state.env.list,
-        clientType: state.device.clientType,
     }
 }
       

@@ -6,10 +6,10 @@ import {
     CONTENT_TYPE_URLENCODE,
     CONTENT_TYPE_FORMDATA,
     CONTENT_TYPE_JSON,
-} from '../../../config/contentType';
+} from '@conf/contentType';
 import { 
     CONTENT_TYPE,
-} from '../../../config/global_config';
+} from '@conf/global_config';
 import StepExpressionBuilderBox from "./step_expression_builder_box";
 import {
     TABLE_FIELD_NAME,
@@ -17,7 +17,7 @@ import {
     TABLE_FIELD_VALUE,
     TABLE_FIELD_REMARK,
     parseJsonToChildren,
-} from '../../util/json';
+} from '@rutil/json';
 import { langTrans } from '@lang/i18n';
 
 class RequestHeadFormTable extends Component {
@@ -92,9 +92,9 @@ class RequestHeadFormTable extends Component {
                                     stepHeaderData={ props.stepHeaderData }
                                     stepBodyData={ props.stepBodyData }
                                     stepParamData={ props.stepParamData }
-                                    stepResponseContentData={ props.responseContent}
-                                    stepResponseHeaderData={ props.responseHeader}
-                                    stepResponseCookieData={ props.responseCookie}
+                                    stepResponseContentData={ props.stepResponseContentData}
+                                    stepResponseHeaderData={ props.stepResponseHeaderData}
+                                    stepResponseCookieData={ props.stepResponseCookieData}
                                     value={data}
                                     cb={value => this.setData(key, value)}
                                     width={ 288 }

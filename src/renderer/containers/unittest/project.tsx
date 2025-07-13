@@ -428,6 +428,7 @@ class UnittestListVersion extends Component {
                       ].find((item) => item[unittest_uuid] === unittestUuid);
                       const iteratorId = currentUnitTest[unittest_iterator];
                       executeProjectUnitTest(
+                        this.props.clientType,
                         iteratorId,
                         unittestUuid,
                         currentUnitTest.children,

@@ -49,7 +49,7 @@ class AddUnittestComponent extends Component {
         return null;
     }
 
-    handleOk = () => {
+    handleOk = async () => {
         const unitTestTitle = this.state.unitTestTitle.trim();
         const selectedFolder = this.state.selectedFolder;
 
@@ -69,21 +69,7 @@ class AddUnittestComponent extends Component {
 
         if (this.state.actionType === "create") {
             if (isStringEmpty(this.props.project)) {
-                addIteratorUnitTest(this.props.iteratorId, unitTestTitle, selectedFolder, this.props.device, () => {
-                    this.clearInput();
-                    this.setState({
-                        loadingFlg: false
-                    });
-                    this.props.refreshCb();
-                    this.props.dispatch({
-                        type: SHOW_ADD_UNITTEST_MODEL,
-                        open: false,
-                        unitTestUuid: "",
-                    });
-                });
-            }
-        } else {
-            editUnitTest(this.state.unitTestUuid, unitTestTitle, selectedFolder, () => {
+                await addIteratorUnitTest(this.props.iteratorId, unitTestTitle, selectedFolder, this.props.device);
                 this.clearInput();
                 this.setState({
                     loadingFlg: false
@@ -94,6 +80,18 @@ class AddUnittestComponent extends Component {
                     open: false,
                     unitTestUuid: "",
                 });
+            }
+        } else {
+            await editUnitTest(this.state.unitTestUuid, unitTestTitle, selectedFolder);
+            this.clearInput();
+            this.setState({
+                loadingFlg: false
+            });
+            this.props.refreshCb();
+            this.props.dispatch({
+                type: SHOW_ADD_UNITTEST_MODEL,
+                open: false,
+                unitTestUuid: "",
             });
         }
     };
@@ -126,17 +124,15 @@ class AddUnittestComponent extends Component {
         }  
     }
 
-    handleCreateFolder = () => {
+    handleCreateFolder = async () => {
         if (isStringEmpty(this.props.project)) {
-            addIteratorUnitTestFolder(this.props.iteratorId, this.state.folderName, this.props.device, ()=>{
-                this.setState({folderName: ""});
-                getIteratorUnitTestFolders(this.props.iteratorId, folders => this.setState({ folders }));
-            });
+            await addIteratorUnitTestFolder(this.props.iteratorId, this.state.folderName, this.props.device);
+            this.setState({folderName: ""});
+            getIteratorUnitTestFolders(this.props.iteratorId, folders => this.setState({ folders }));
         } else {
-            addProjectUnitTestFolder(this.props.project, this.state.folderName, this.props.device, ()=>{
-                this.setState({folderName: ""});
-                getProjectUnitTestFolders(this.props.project, folders => this.setState({ folders }));
-            });
+            await addProjectUnitTestFolder(this.props.project, this.state.folderName, this.props.device);
+            this.setState({folderName: ""});
+            getProjectUnitTestFolders(this.props.project, folders => this.setState({ folders }));
         }
     }
 

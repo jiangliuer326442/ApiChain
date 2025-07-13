@@ -73,6 +73,7 @@ class VersionIteratorAdd extends Component {
         } else {
             await editVersionIterator(this.props.clientType, this.props.teamId, this.state.uuid, title, this.state.content, values.projects);
         }
+        this.props.history.push(VERSION_ITERATOR_LIST_ROUTE)
         window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
     };
 

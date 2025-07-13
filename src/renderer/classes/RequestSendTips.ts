@@ -16,15 +16,15 @@ import {
 } from "@conf/envKeys";
 import {
     getProjectKeys,
-    getIteratorKeys
+    getIteratorKeys,
+    getUnittestKeys,
 } from '@act/keys';
 import { 
     getIteratorEnvValues, 
     getPrjEnvValues,
-    getGlobalEnvValues,
+    getUnittestEnvValues,
 } from '@act/env_value';
-import { 
-    isStringEmpty, 
+import {
     getNowdayjs,
 } from '@rutil/index';
 
@@ -70,6 +70,8 @@ export default class {
               envKeys = await getProjectKeys(this.clientType, this.prj);
             } else if (this.env_var_type === "iterator") {
               envKeys = await getIteratorKeys(this.clientType, this.iteration, this.prj);
+            } else if (this.env_var_type === "unittest") {
+              envKeys = await getUnittestKeys(this.clientType, this.unittest, this.prj);
             }
             this.env_keys = envKeys;
 
@@ -85,6 +87,8 @@ export default class {
                 this.envvars = await getPrjEnvValues(this.prj, env, this.clientType);
             } else if (this.env_var_type === "iterator") {
                 this.envvars = await getIteratorEnvValues(this.iteration, this.prj, env, this.clientType);
+            } else if (this.env_var_type === "unittest") {
+                this.envvars = await getUnittestEnvValues(this.unittest, this.prj, env, this.clientType);
             }
         }
 

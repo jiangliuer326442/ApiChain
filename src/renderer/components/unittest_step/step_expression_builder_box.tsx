@@ -28,7 +28,6 @@ import {
     TABLE_UNITTEST_FIELDS, 
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
-    TABLE_MICRO_SERVICE_FIELDS,
 } from '@conf/db';
 import {
     DataTypeJsonObject,
@@ -40,11 +39,12 @@ import {
     parseJsonToFilledTable
 } from '@rutil/json';
 import { 
-    getUnitTestRequests 
+    getUnitTestRequests, getVersionIteratorRequest,
 } from '@act/version_iterator_requests';
 import { 
     getIterationUnitTests
 } from '@act/unittest';
+import { getProjectRequest } from '@act/project_request';
 import { langTrans } from '@lang/i18n';
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
@@ -54,6 +54,7 @@ let unittest_step_uri = TABLE_UNITTEST_STEPS_FIELDS.FIELD_URI;
 let unittest_step_method = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_METHOD;
 let unittest_step_title = TABLE_UNITTEST_STEPS_FIELDS.FIELD_TITLE;
 
+let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_HEADER;
 let iteration_request_param = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_PARAM;
@@ -62,9 +63,6 @@ let iteration_request_body = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUES
 let iteration_request_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
 let iteration_request_response_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
 let iteration_request_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
-
-let project_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let project_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 class StepExpressionBuilderBox extends Component {
 
@@ -105,7 +103,11 @@ class StepExpressionBuilderBox extends Component {
 
     async componentDidMount() {
         if (!this.props.unittest[this.props.iteratorId]) {
-            await getIterationUnitTests(this.props.iteratorId, null, null, this.props.dispatch);
+            await getIterationUnitTests(
+                this.props.clientType, 
+                this.props.iteratorId, 
+                null, null, this.props.dispatch
+            );
             this.setState({loadeadFlg: true});
         } else {
             this.setState({loadeadFlg: true});
@@ -120,12 +122,12 @@ class StepExpressionBuilderBox extends Component {
             item.value = UNITTEST_STEP_PROJECT_CURRENT;
             prjSelect.push(item);
             for (let prjItem of nextProps.prjs) {
-                if (prjItem[project_label] === nextProps.project) {
+                if (prjItem.value === nextProps.project) {
                     continue;
                 }
                 let item = {};
-                item.label = prjItem[project_remark];
-                item.value = UNITTEST_STEP_PROJECT_POINTED + prjItem[project_label];
+                item.label = prjItem.label;
+                item.value = UNITTEST_STEP_PROJECT_POINTED + prjItem.value;
                 prjSelect.push(item);
             }
             return { prjSelect };
@@ -182,8 +184,18 @@ class StepExpressionBuilderBox extends Component {
                 let selectedStepId = this.state.selectedStep.replace(UNITTEST_STEP_POINTED, "");
                 let step = this.state.steps.find(row => row[unittest_step_uuid] === selectedStepId);
                 if (step === undefined) return;
-                getUnitTestRequests(step[unittest_step_prj], this.props.iteratorId, step[unittest_step_uri]).then(requests => {
+                getUnitTestRequests(
+                    this.props.clientType, 
+                    step[unittest_step_prj], 
+                    this.props.iteratorId, 
+                    step[unittest_step_uri]
+                ).then(async requests => {
                     let request = requests.find(row => row[iteration_request_method] === step[unittest_step_method]);
+                    if (isStringEmpty(request[iteration_request_iteration_uuid])) {
+                        request = await getProjectRequest(this.props.clientType, step[unittest_step_prj], step[unittest_step_method], step[unittest_step_uri]);
+                    } else {
+                        request = await getVersionIteratorRequest(this.props.clientType, request[iteration_request_iteration_uuid], step[unittest_step_prj], step[unittest_step_method], step[unittest_step_uri]);
+                    }
 
                     let selectedDataSource = this.state.selectedDataSource;
                     let dataSource = {};
@@ -379,7 +391,7 @@ class StepExpressionBuilderBox extends Component {
                             >
                             <JsonView 
                                 src={cleanJson(this.state.dataSource)}   
-                                name="response"
+                                name={ false }
                                 theme={ "bright" }
                                 collapsed={false}  
                                 indentWidth={4}  
@@ -401,6 +413,8 @@ function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
         prjs: state.prj.list,
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
     }
 }
       

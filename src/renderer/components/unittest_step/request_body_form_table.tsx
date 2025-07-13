@@ -112,9 +112,9 @@ class RequestBodyFormTable extends Component {
                                     stepHeaderData={ props.stepHeaderData }
                                     stepBodyData={ props.stepBodyData }
                                     stepParamData={ props.stepParamData }
-                                    stepResponseContentData={ props.responseContent }
-                                    stepResponseHeaderData={ props.responseHeader }
-                                    stepResponseCookieData={ props.responseCookie }
+                                    stepResponseContentData={ props.stepResponseContentData }
+                                    stepResponseHeaderData={ props.stepResponseHeaderData }
+                                    stepResponseCookieData={ props.stepResponseCookieData }
                                     value={data}
                                     cb={value => this.setData(key, value)}
                                     width={288}

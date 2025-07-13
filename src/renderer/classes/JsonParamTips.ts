@@ -263,7 +263,7 @@ export default class {
         return result;
     }
 
-    async getValue(envVarTips: RequestSendTips, 
+    async getValue(envVarTips: RequestSendTips,
         paramData : object, pathVariableData : object, headData : object, bodyData : object, responseHeaderData : object, responseCookieData : object, responseData : object, 
         unittest_uuid : string, unittest_executor_batch : string) {
         //环境变量 固定值
@@ -279,8 +279,9 @@ export default class {
                 if (envValueKey.indexOf(UNITTEST_STEP_PROJECT_POINTED) === 0) {
                     return "";
                 } else {
+                    let tmp = envVarTips.getVarByKey(envValueKey, this.env);
                     //当前项目环境变量
-                    value = envVarTips.getVarByKey(envValueKey) === undefined ? "" : envVarTips.getVarByKey(envValueKey) as string;
+                    value = tmp === undefined ? "" : tmp as string;
                 }
             }
             return value;

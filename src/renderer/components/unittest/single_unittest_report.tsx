@@ -6,12 +6,11 @@ import { Descriptions, Typography } from "antd";
 import type { DescriptionsProps } from 'antd';
 import { cloneDeep } from 'lodash';
 
-import { getdayjs, isStringEmpty } from '@rutil/index';
+import { getdayjs, isStringEmpty, getMapValueOrDefault } from '@rutil/index';
 import {
     REQUEST_METHOD_GET,
     REQUEST_METHOD_POST
 } from '@conf/global_config';
-import { ENV_VALUE_API_HOST } from '@conf/envKeys';
 import {
     TABLE_UNITTEST_FIELDS,
     TABLE_ENV_FIELDS,
@@ -32,7 +31,7 @@ import {
     getUnitTestStepAsserts,
 } from '@act/unittest';
 import {
-    getPrjEnvValuesByPage
+    getEnvHosts
 } from '@act/env_value';
 import { langFormat, langTrans } from '@lang/i18n';
 
@@ -43,7 +42,6 @@ let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let env_var_prj = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 
-let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 
@@ -118,30 +116,29 @@ class SingleUnitTestReport extends Component {
         )) {
             let prjs;
             if (isStringEmpty(this.props.iteratorId)) {
-                prjs = this.props.prjs.map(row => row[prj_label]);
+                prjs = this.props.prjs.map(row => row.value);
             } else {
                 prjs = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.props.iteratorId)[version_iterator_prjs]
             }
             
             let promises = []
             for(let prj of prjs) {
-                promises.push(getPrjEnvValuesByPage(prj, this.props.env, ENV_VALUE_API_HOST, this.props.clientType, {
-                    current: 1,
-                    pageSize: 1,
-                }));
+                promises.push(getEnvHosts(this.props.clientType, prj, this.props.env));
             }
             let values = await Promise.all(promises);
             let hosts : any = {};
+            let index = 0;
             for (let _value of values) {
-                if (_value.length === 0) continue;
-                hosts[_value[0][env_var_prj]] =  _value[0][env_var_pvalue];
+                if (_value.size === 0) continue;
+                hosts[prjs[index]] = getMapValueOrDefault(_value, this.props.env, "");
+                index++;
             }
             this.buildRecentExecutorResult( this.props.iteratorId, this.props.unittestUuid, this.props.batchUuid, hosts);
         }
     }
 
     getDescriptions = () : Promise<DescriptionsProps['items']> => {
-        let selectedEnv = this.props.envs.find(row => row[env_label] === this.state.recentUnitTestReport[unittest_report_env]);
+        let selectedEnv = this.props.envs.find(row => row.value === this.state.recentUnitTestReport[unittest_report_env]);
         return [
             {
                 key: '1',
@@ -151,7 +148,7 @@ class SingleUnitTestReport extends Component {
             {
                 key: '2',
                 label: langTrans("unittest report desc2"),
-                children: selectedEnv[env_remark],
+                children: selectedEnv.label,
             },
             {
                 key: '3',
@@ -265,7 +262,7 @@ class SingleUnitTestReport extends Component {
                             label: langTrans("unittest report step field2"),
                             children: <JsonView 
                                 src={item.input}   
-                                name="response"
+                                name={false}
                                 theme={ "bright" }
                                 collapsed={false}  
                                 indentWidth={4}  
@@ -280,7 +277,7 @@ class SingleUnitTestReport extends Component {
                             label: langTrans("unittest report step field3"),
                             children: <JsonView 
                                 src={item.output}   
-                                name="response"
+                                name={false}
                                 theme={ "bright" }
                                 collapsed={true}  
                                 indentWidth={4}  

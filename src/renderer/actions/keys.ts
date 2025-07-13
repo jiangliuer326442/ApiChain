@@ -9,6 +9,7 @@ import {
     ENV_VARS_GLOBAL_KEYS_URL,
     ENV_VARS_PROJECT_KEYS_URL,
     ENV_VARS_ITERATOR_KEYS_URL,
+    ENV_VARS_UNITTEST_KEYS_URL,
 } from '@conf/team';
 
 import {
@@ -139,6 +140,45 @@ export async function getIteratorKeys(clientType : string, iterator : string, pr
         datas = [...union(sets1, sets2, new Set<string>([...sets3]))]
     } else {
         datas = await sendTeamMessage(ENV_VARS_ITERATOR_KEYS_URL, {iterator, project});
+    }
+    return datas;
+}
+
+export async function getUnittestKeys(clientType : string, unittest : string, project : string) {
+    let datas;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+
+        let unittestArrays1 = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+        .equals(["", "", unittest])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray(); 
+
+        mixedSort(unittestArrays1, env_var_pname);
+        let sets1 = new Set<string>(unittestArrays1.map(item => ( item[env_key_pname])));
+
+        let unittestArrays2 = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+        .equals([project, "", unittest])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray(); 
+        mixedSort(unittestArrays2, env_var_pname);
+        let sets2 = new Set<string>(unittestArrays2.map(item => ( item[env_key_pname])));
+
+        let sets3 = await getProjectKeys(clientType, project)
+        datas = [...union(sets1, sets2, new Set<string>([...sets3]))]
+    } else {
+        datas = await sendTeamMessage(ENV_VARS_UNITTEST_KEYS_URL, {unittest, project});
     }
     return datas;
 }
