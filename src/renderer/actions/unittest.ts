@@ -609,13 +609,22 @@ export async function continueIteratorExecuteUnitTest(
         steps.push(_unit_test_step);
     }
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
+        async (project : string) => {
+            let datas = await getEnvHosts(clientType, project, env);
+            return datas.get(env);
+        },
+        async (project : string) => {
+            let datas = await getEnvRunModes(clientType, project, env);
+            let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
+            return runMode;
+        },
         (project : string) => {
             let envVarTips = new RequestSendTips();
-            envVarTips.init(project, env, iteratorId, "", dispatch, env_vars => {});
+            envVarTips.init('iterator', project, iteratorId, "", clientType);
             return envVarTips;
         },
         () => {
-            let jsonParamTips = new JsonParamTips(iteratorId, "", dispatch);
+            let jsonParamTips = new JsonParamTips(iteratorId, "", clientType);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         }, 
@@ -683,13 +692,22 @@ export async function continueProjectExecuteUnitTest(
         steps.push(_unit_test_step);
     }
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
+        async (project : string) => {
+            let datas = await getEnvHosts(clientType, project, env);
+            return datas.get(env);
+        },
+        async (project : string) => {
+            let datas = await getEnvRunModes(clientType, project, env);
+            let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
+            return runMode;
+        },
         (project : string) => {
             let envVarTips = new RequestSendTips();
-            envVarTips.init(project, env, "", unitTestId, dispatch, env_vars => {});
+            envVarTips.init("unittest", project, "", unitTestId, clientType);
             return envVarTips;
         },
         () => {
-            let jsonParamTips = new JsonParamTips("", unitTestId, dispatch);
+            let jsonParamTips = new JsonParamTips("", unitTestId, clientType);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         }, 
@@ -766,7 +784,7 @@ export async function executeProjectUnitTest(
             return envVarTips;
         },
         () => {
-            let jsonParamTips = new JsonParamTips("", unitTestId, dispatch);
+            let jsonParamTips = new JsonParamTips("", unitTestId, clientType);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         },
@@ -848,7 +866,7 @@ export async function executeIteratorUnitTest(
             return envVarTips;
         },
         () => {
-            let jsonParamTips = new JsonParamTips(iteratorId, "", dispatch);
+            let jsonParamTips = new JsonParamTips(iteratorId, "", clientType);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         },

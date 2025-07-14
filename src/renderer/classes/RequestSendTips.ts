@@ -73,6 +73,7 @@ export default class {
             } else if (this.env_var_type === "unittest") {
               envKeys = await getUnittestKeys(this.clientType, this.unittest, this.prj);
             }
+            console.log("request_send_tips", this.env_var_type, envKeys)
             this.env_keys = envKeys;
 
             return this.getTipsByEnvVars();

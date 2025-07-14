@@ -47,6 +47,8 @@ let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_P
 
 export default class {
 
+    private env_var_type: 'iterator' | 'unittest'; 
+
     private project: string;
 
     private dataSourceJson: Object = {};
@@ -75,14 +77,23 @@ export default class {
     //最终填写的表达式
     private assertPrev : string | null = null;
 
-    private dispatch : any;
-
     private randomVal : any;
 
-    constructor(iteration: string, unittest: string, dispatch : any) {
+    private clientType: string = "";
+
+    constructor(
+        iteration: string, 
+        unittest: string, 
+        clientType : string
+    ) {
         this.currentIteration = iteration;
         this.currentUnittest = unittest;
-        this.dispatch = dispatch;
+        if (isStringEmpty(unittest)) {
+            this.env_var_type = 'iterator';
+        } else {
+            this.env_var_type = 'unittest';
+        }
+        this.clientType = clientType;
         this.randomVal = Math.random();
     }
 
@@ -90,7 +101,13 @@ export default class {
         this.project = project;
         this.currentProject = project;
         this.envVarTips = new RequestSendTips();
-        this.envVarTips.init(this.currentProject, this.env, this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
+        this.envVarTips.init(
+            this.env_var_type, 
+            this.currentProject, 
+            this.currentIteration, 
+            this.currentUnittest, 
+            this.clientType
+        );
     }
 
     setContent(param: string) {
@@ -129,7 +146,13 @@ export default class {
         if (this.selectedProject !== UNITTEST_STEP_PROJECT_CURRENT) {
             this.currentProject = this.selectedProject.substring(UNITTEST_STEP_PROJECT_POINTED.length);
         }
-        this.envVarTips.init(this.currentProject, "", this.currentIteration, this.currentUnittest, this.dispatch, env_vars => {});
+        this.envVarTips.init(
+            this.env_var_type, 
+            this.currentProject, 
+            this.currentIteration, 
+            this.currentUnittest, 
+            this.clientType
+        );
     }
 
     getSelectedProject() : string {
