@@ -254,7 +254,9 @@ class StepExpressionBuilderBox extends Component {
     }
 
     setAssertOptions = (text) => {
-        this.paramTips.getTips(text, responseTips => this.setState({ responseTips }));
+        this.paramTips.getTips(text, responseTips => {
+            this.setState({ responseTips })
+        });
     }
 
     setSelectedAssertPrev = (text) => {

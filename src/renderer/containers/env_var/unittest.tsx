@@ -12,7 +12,6 @@ import { isStringEmpty, getdayjs } from '@rutil/index';
 import { 
   TABLE_UNITTEST_FIELDS,
   TABLE_ENV_VAR_FIELDS,
-  TABLE_MICRO_SERVICE_FIELDS,
   UNAME,
 } from '@conf/db';
 import { getWikiEnv } from '@conf/url';
@@ -41,9 +40,6 @@ let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 class EnvVar extends Component {
 
@@ -136,8 +132,8 @@ class EnvVar extends Component {
   
   async componentDidMount() {
     let env = this.state.env ? this.state.env : this.props.env;
-    let unitest = await getSingleUnittest(this.state.unittestId, env, "");
-    this.setState({ unittest: unitest });
+    let unittest = await getSingleUnittest(this.state.unittestId, env, "");
+    this.setState({ unittest });
     this.getEnvValueData(this.state.prj, this.state.unittestId, env, "");
     if(this.props.envs.length === 0) {
       getEnvs(this.props.clientType, this.props.dispatch);
@@ -224,7 +220,7 @@ class EnvVar extends Component {
                       <Select
                           style={{ width: 180 }}
                           options={this.state.unittest[unittest_projects] ? this.state.unittest[unittest_projects].map(item => {
-                              return {value: item, label: this.props.prjs.find(row => row[prj_label] === item) ? this.props.prjs.find(row => row[prj_label] === item)[prj_remark] : ""}
+                              return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).remark : ""}
                           }) : []}
                           onChange={ value => this.getEnvValueData(value, this.state.unittestId, this.state.env ? this.state.env : this.props.env, "")}
                       />
@@ -235,18 +231,19 @@ class EnvVar extends Component {
                         value={ this.state.env ? this.state.env : this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
-                        options={this.props.envs.map(item => {
-                          return {value: item.label, label: item.remark}
-                        })}
+                        options={this.props.envs}
                       />
                       :
-                      <Button type="link" href={"#" + ENV_LIST_ROUTE}>添加服务器环境</Button>
+                      <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("envvar prj add env")}</Button>
                       }
                   </Form.Item>
                   <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar select tip2")}>
                       <AutoComplete 
                           allowClear={{ clearIcon: <CloseSquareFilled /> }} 
-                          options={this.state.pkeys} 
+                          options={this.state.pkeys.map(item => ({
+                            value: item,
+                            label: item
+                          }))}
                           filterOption={(inputValue, option) =>
                             (inputValue && option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1) || (!inputValue)
                           }

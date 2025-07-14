@@ -167,7 +167,7 @@ export default class {
         this.dataSourceJson = dataSourceJson;
     }
 
-    getTips(text : string, cb: (result: Array<any>) => void) : void {
+    async getTips(text : string, cb: (result: Array<any>) => void) : Promise<void> {
         let result : Array<any> = [];
         if (isStringEmpty(text)) {
             cb(result);
@@ -175,20 +175,17 @@ export default class {
         //环境变量 & 固定值
         if (this.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV) {
             if (text.indexOf("{{") === 0) {
-                this.envVarTips.getTips(envKeys => {
-                    let searchContent = text.substring(2);
-                    let responseTips : Array<any> = [];
-                    for (let envKey of envKeys) {
-                        if (!isStringEmpty(searchContent) && envKey.toLowerCase().indexOf(searchContent.toLowerCase()) < 0) {
-                            continue;
-                        }
-                        let responseTipItem : any = {};
-                        responseTipItem.value = "{{" + envKey + "}}";
-                        responseTipItem.label = envKey;
-                        responseTips.push(responseTipItem);
+                let envKeys = await this.envVarTips.getTips();
+                let searchContent = text.substring(2);
+                for (let envKey of envKeys) {
+                    if (!isStringEmpty(searchContent) && envKey.toLowerCase().indexOf(searchContent.toLowerCase()) < 0) {
+                        continue;
                     }
-                    cb(responseTips);
-                });
+                    let responseTipItem : any = {};
+                    responseTipItem.value = "{{" + envKey + "}}";
+                    responseTipItem.label = envKey;
+                    result.push(responseTipItem);
+                }
             }
         } else {
             let jsonObject : any = cloneDeep(this.dataSourceJson);
