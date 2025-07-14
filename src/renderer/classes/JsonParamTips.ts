@@ -88,10 +88,10 @@ export default class {
     ) {
         this.currentIteration = iteration;
         this.currentUnittest = unittest;
-        if (isStringEmpty(unittest)) {
-            this.env_var_type = 'iterator';
-        } else {
+        if (isStringEmpty(iteration)) {
             this.env_var_type = 'unittest';
+        } else {
+            this.env_var_type = 'iterator';
         }
         this.clientType = clientType;
         this.randomVal = Math.random();

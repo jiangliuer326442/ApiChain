@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { 
   Breadcrumb, Layout, Form, Select,
   Flex, Space, Button, Popconfirm, Table,
-  Typography, AutoComplete, Input, message
+  Typography, AutoComplete, Input
 } from "antd";
 import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/icons';
 
@@ -21,8 +21,8 @@ import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
 import { getSingleUnittest } from '@act/unittest';
 import { getUnittestKeys } from '@act/keys';
-import { 
-  delEnvValue,
+import {
+  delUnittestEnvValues,
   batchCopyEnvVales,
   getUnittestEnvValuesByPage,
 } from '@act/env_value';
@@ -95,20 +95,31 @@ class EnvVar extends Component {
             return (
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
-                {(record['allow_del'] === false ) ? null : 
+                {((this.state.prj && record.source === "unittest_prj") || (!this.state.prj && record.source === "unittest")) ? 
                 <Popconfirm
                   title={langTrans("envvar unittest del title")}
                   description={langTrans("envvar unittest del desc")}
-                  onConfirm={e => {
-                      delEnvValue(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", this.state.unittestId, record, ()=>{
-                        // getEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", this.state.unittestId, "", this.props.dispatch, env_vars=>{});
-                      });
+                  onConfirm={async e => {
+                    await delUnittestEnvValues(
+                      this.props.clientType, 
+                      this.props.teamId,
+                      this.state.unittestId, 
+                      this.state.prj, 
+                      (this.state.env ? this.state.env : this.props.env), 
+                      record[pname], 
+                    );
+                    this.getEnvValueData(
+                      this.state.prj, 
+                      this.state.unittestId, 
+                      (this.state.env ? this.state.env : this.props.env), 
+                      ""
+                    );
                   }}
                   okText={langTrans("envvar unittest del sure")}
                   cancelText={langTrans("envvar unittest del cancel")}
                 >
                   <Button danger type="link" icon={<DeleteOutlined />} />
-                </Popconfirm>}
+                </Popconfirm> : null}
               </Space>
             )
           },
@@ -120,7 +131,6 @@ class EnvVar extends Component {
       pkeys: [],
       env: "",
       prj: project,
-      copiedKeys: [],
       showCurrent: true,
       listDatas: [],
       pagination: {
@@ -148,7 +158,6 @@ class EnvVar extends Component {
             unittestId,
             prj: project,
             pkeys: [],
-            copiedKeys: [],
             showCurrent: true,
             listDatas: [],
             pagination: {
@@ -171,7 +180,9 @@ class EnvVar extends Component {
     addPropertiesClick = () => {
       this.props.dispatch({
           type: SHOW_ADD_PROPERTY_MODEL,
-          open: true
+          open: true,
+          unittest: this.state.unittestId,
+          prj: this.state.prj,
       });
     }
   
@@ -179,6 +190,8 @@ class EnvVar extends Component {
       this.props.dispatch({
           type: SHOW_EDIT_PROPERTY_MODEL,
           open: true,
+          unittest: this.state.unittestId,
+          prj: this.state.prj,
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
@@ -200,10 +213,6 @@ class EnvVar extends Component {
           pkeys: !paramName ? pkeys : [],
         });
       }
-    }
-
-    setCopiedKeys = copiedKeys => {
-      this.setState({copiedKeys});
     }
   
     render() : ReactNode {
@@ -253,38 +262,20 @@ class EnvVar extends Component {
                           <Input />
                       </AutoComplete>
                   </Form.Item>
-                  <Form.Item label={langTrans("envvar select tip3")}>
-                    <Select
-                        onChange={ async value => {
-                          if (this.state.copiedKeys.length === 0) return;
-                          await batchCopyEnvVales(this.state.prj, (this.state.env ? this.state.env : this.props.env), "", this.state.unittest, this.state.copiedKeys, value);
-                          this.state.copiedKeys = [];
-                          message.success("环境变量拷贝成功");
-                          this.setEnvironmentChange(value);
-                        }}
-                        style={{ width: 120 }}
-                        options={this.props.envs
-                          .filter(item => item.label != (this.state.env ? this.state.env : this.props.env))
-                          .map(item => {
-                            return {value: item.label, label: item.remark}
-                          })
-                        }
-                        allowClear
-                    />
-                  </Form.Item>
               </Form>
               <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>添加环境变量</Button>
-              <AddEnvVarComponent tips={this.state.tips} />
+              <AddEnvVarComponent cb={()=>{
+                this.getEnvValueData(this.state.prj, this.state.unittestId, this.state.env ? this.state.env : this.props.env, "");
+              }} />
             </Flex>
             <Table 
-              rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
               dataSource={this.state.listDatas} 
               rowKey={(record) => record[pname]}
               columns={this.state.listColumn} 
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.iterator, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                this.getEnvValueData(this.state.prj, this.state.unittestId, this.state.env ? this.state.env : this.props.env, "");
               }}
             />
           </Content>
@@ -302,6 +293,7 @@ function mapStateToProps (state) {
       prjs: state.prj.list,
       device : state.device,
       envs: state.env.list,
+      teamId: state.device.teamId,
       clientType: state.device.clientType,
   }
 }

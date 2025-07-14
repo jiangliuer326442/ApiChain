@@ -70,7 +70,11 @@ export const ENV_VARS_UNITTEST_PAGE_URL = "/envvars/unittest/page";
 
 export const ENV_VARS_ITERATOR_SET_URL = "/envvars/iteration/set";
 
+export const ENV_VARS_UNITTEST_SET_URL = "/envvars/unittest/set";
+
 export const ENV_VARS_ITERATOR_DEL_URL = "/envvars/iteration/del";
+
+export const ENV_VARS_UNITTEST_DEL_URL = "/envvars/unittest/del";
 
 export const ENV_VARS_ITERATOR_KEYS_URL = "/envvars/iteration/keys";
 

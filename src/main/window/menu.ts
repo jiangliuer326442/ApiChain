@@ -57,8 +57,7 @@ export default class MenuBuilder {
           {
             label: langTrans("menu db clean"),
             click: () => {
-              trunkDb(getWindow());  
-              getWindow().webContents.reload();
+              trunkDb(getWindow());
             },
           },
         ]

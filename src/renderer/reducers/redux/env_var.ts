@@ -9,12 +9,7 @@ import {
     PRJ, ENV, ITERATOR
 } from '@conf/storage';
 
-import { 
-    TABLE_ENV_VAR_FIELDS,
-} from '@conf/db';
 import { isStringEmpty } from '@rutil/index';
-
-let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 
 export default function (state = {
     showAddPropertyModelFlg: false,
@@ -47,6 +42,7 @@ export default function (state = {
               showAddPropertyModelFlg : action.open,
               prj: isStringEmpty(action.prj) ? "" : action.prj,
               iterator: isStringEmpty(action.iterator) ? "" : action.iterator,
+              unittest: isStringEmpty(action.unittest) ? "" : action.unittest,
               pname: "",
               pvalue: "",
               premark: "",
@@ -56,6 +52,7 @@ export default function (state = {
             showAddPropertyModelFlg : action.open,
             prj: isStringEmpty(action.prj) ? "" : action.prj,
             iterator: isStringEmpty(action.iterator) ? "" : action.iterator,
+            unittest: isStringEmpty(action.unittest) ? "" : action.unittest,
             pname : action.pname,
             pvalue : action.pvalue,
             premark : action.premark,

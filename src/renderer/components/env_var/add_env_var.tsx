@@ -63,7 +63,7 @@ class AddEnvVarComponent extends Component {
         this.setState({
             loadingFlg: true
         });
-        await addEnvValues(this.props.clientType, this.props.teamId, this.props.prj, this.props.env, this.props.iteration, this.props.unittest ? this.props.unittest : "" , 
+        await addEnvValues(this.props.clientType, this.props.teamId, this.props.prj, this.props.env, this.props.iteration ? this.props.iteration : "", this.props.unittest ? this.props.unittest : "" , 
             pname, pvalue, premark,
             this.props.device);
 

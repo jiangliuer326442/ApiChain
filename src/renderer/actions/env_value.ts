@@ -27,6 +27,8 @@ import {
     ENV_VARS_ITERATOR_SET_URL,
     ENV_VARS_ITERATOR_DEL_URL,
     ENV_VARS_UNITTEST_DATAS_URL,
+    ENV_VARS_UNITTEST_DEL_URL,
+    ENV_VARS_UNITTEST_SET_URL,
     ENV_VARS_ITERATION_COPY_URL,
     ENV_VARS_PROJECT_COPY_URL,
     ENV_VARS_UNITTEST_PAGE_URL,
@@ -990,38 +992,32 @@ export async function delIterationEnvValues(clientType : string, teamId : string
     }
 }
 
-export async function delEnvValue(prj, env, iteration, unittest, row, cb) {
-    let pname = row[env_var_pname];
+export async function delUnittestEnvValues(
+    clientType : string, 
+    teamId : string, 
+    unittest : string, 
+    prj : string, 
+    env : string, 
+    pname : string
+) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENV_VARS_UNITTEST_DEL_URL, {unittest, prj, env, pname});
+    }
 
     const envVarItem = await window.db[TABLE_ENV_VAR_NAME]
     .where('[' + env_var_env + '+' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-    .equals([env, prj, iteration, unittest, pname]).first();  
+    .equals([env, prj, "", unittest, pname]).reverse().first();  
     if (envVarItem !== undefined) {
         envVarItem[env_var_delFlg] = 1;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            envVarItem.upload_flg = 0;
+            envVarItem.team_id = "";
+        } else {
+            envVarItem.upload_flg = 1;
+            envVarItem.team_id = teamId;
+        }
         await window.db[TABLE_ENV_VAR_NAME].put(envVarItem);
     }
-
-    const envVars = await window.db[TABLE_ENV_VAR_NAME]
-    .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-    .equals([prj, iteration, "", pname]).toArray();  
-    let delEnvKeyFlag = true;
-    for (const envVarItem of envVars) {  
-        if (envVarItem[env_var_delFlg] === 0) {
-            delEnvKeyFlag = false;
-        }
-    }
-    if (delEnvKeyFlag) {
-        let env_key = await window.db[TABLE_ENV_KEY_NAME]
-        .where('[' + env_key_prj + '+' + env_key_pname + ']')
-        .equals([prj, pname])
-        .first();
-        env_key[env_key_prj] = prj;
-        env_key[env_key_pname] = pname;
-        env_key[env_key_delFlg] = 1;
-        console.debug(env_key);
-        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
-    }
-    cb();
 }
 
 export async function addEnvValues(
@@ -1038,6 +1034,8 @@ export async function addEnvValues(
             await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, env, remark})
         } else if (isStringEmpty(unittest)) {
             await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, env, remark})
+        } else {
+            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, env, remark})
         }
     }
 

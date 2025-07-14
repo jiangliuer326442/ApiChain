@@ -338,7 +338,7 @@ class EnvVar extends Component {
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.iterator, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
               }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>
@@ -356,6 +356,7 @@ function mapStateToProps (state) {
       iterators: state.version_iterator.list,
       device : state.device,
       envs: state.env.list,
+      teamId: state.device.teamId,
       clientType: state.device.clientType,
   }
 }
