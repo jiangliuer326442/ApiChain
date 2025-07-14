@@ -29,6 +29,7 @@ import {
     ENV_VARS_UNITTEST_DATAS_URL,
     ENV_VARS_ITERATION_COPY_URL,
     ENV_VARS_PROJECT_COPY_URL,
+    ENV_VARS_UNITTEST_PAGE_URL,
     PRJ_HOST_URL,
     PRJ_RUN_MODE_URL,
 } from '@conf/team';
@@ -587,6 +588,122 @@ export async function getIteratorEnvValuesByPage(iterator : string, prj : string
     } else {
         let params = Object.assign({}, pagination, {iterator, env, pname, prj});
         let result = await sendTeamMessage(ENV_VARS_ITERATOR_PAGE_URL, params);
+        let count = result.count;
+        pagination.total = count;
+        datas = result.list;
+    }
+
+    return datas;
+}
+
+export async function getUnittestEnvValuesByPage(unittest : string, prj : string, env : string, pname : string, clientType : string, pagination : any) {
+    let page = pagination.current;
+    let pageSize = pagination.pageSize;
+    let datas = [];
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        const offset = (page - 1) * pageSize;
+        let excludeKeys = new Set<String>();
+        let unittestPrjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, "", unittest ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(unittestPrjArrays, env_var_pname);
+        excludeKeys = new Set(unittestPrjArrays.map(item => ( item[env_var_pname])));
+        for (let unittestPrjRow of unittestPrjArrays) {
+            unittestPrjRow.source = 'unittest_prj';
+            datas.push(unittestPrjRow);
+        }
+
+        let unittestArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, '', "", unittest ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(unittestArrays, env_var_pname);
+        for (let unittestRow of unittestArrays) {
+            excludeKeys.add(unittestRow[env_var_pname]);
+            unittestRow.source = 'unittest';
+            datas.push(unittestRow);
+        }
+
+        let prjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, '', '' ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(prjArrays, env_var_pname);
+        for (let prjRow of prjArrays) {
+            excludeKeys.add(prjRow[env_var_pname]);
+            prjRow.source = 'prj';
+            datas.push(prjRow);
+        }
+
+        let globalArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, '', '', '' ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(globalArrays, env_var_pname);
+        for (let globalRow of globalArrays) {
+            excludeKeys.add(globalRow[env_var_pname]);
+            globalRow.source = 'global';
+            datas.push(globalRow);
+        }
+
+        pagination.total = datas.length;
+
+        datas = datas.splice(offset, pageSize);
+
+        let users = await getUsers(clientType);
+        datas.forEach(item => {
+            item[UNAME] = users.get(item[env_var_cuid]);
+        });
+    } else {
+        let params = Object.assign({}, pagination, {unittest, env, pname, prj});
+        let result = await sendTeamMessage(ENV_VARS_UNITTEST_PAGE_URL, params);
         let count = result.count;
         pagination.total = count;
         datas = result.list;

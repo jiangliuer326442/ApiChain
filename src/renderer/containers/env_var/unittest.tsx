@@ -11,8 +11,7 @@ import { isStringEmpty, getdayjs } from '@rutil/index';
 
 import { 
   TABLE_UNITTEST_FIELDS,
-  TABLE_ENV_VAR_FIELDS, 
-  TABLE_VERSION_ITERATION_FIELDS,
+  TABLE_ENV_VAR_FIELDS,
   TABLE_MICRO_SERVICE_FIELDS,
   UNAME,
 } from '@conf/db';
@@ -22,14 +21,16 @@ import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 
 import { getEnvs } from '@act/env';
 import { getSingleUnittest } from '@act/unittest';
+import { getUnittestKeys } from '@act/keys';
 import { 
   delEnvValue,
   batchCopyEnvVales,
+  getUnittestEnvValuesByPage,
 } from '@act/env_value';
 
-import RequestSendTips from '@clazz/RequestSendTips';
 import AddEnvVarComponent from '@comp/env_var/add_env_var';
 import { langTrans } from '@lang/i18n';
+import { cloneDeep } from 'lodash';
 
 const { Header, Content, Footer } = Layout;
 const { Text, Link } = Typography;
@@ -43,8 +44,6 @@ let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
-
-let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 
 class EnvVar extends Component {
 
@@ -126,6 +125,12 @@ class EnvVar extends Component {
       env: "",
       prj: project,
       copiedKeys: [],
+      showCurrent: true,
+      listDatas: [],
+      pagination: {
+        current: 1,
+        pageSize: 10,
+      },
     }
   }
   
@@ -141,8 +146,20 @@ class EnvVar extends Component {
 
     async componentWillReceiveProps(nextProps) {
       let unittestId = nextProps.match.params.unittestId;
-      if (this.state.unittestId !== unittestId) {
-          this.setState( { unittestId });
+      let project = nextProps.match.params.prj;
+      if (this.state.unittestId !== unittestId || this.state.project !== project) {
+          this.setState( { 
+            unittestId,
+            prj: project,
+            pkeys: [],
+            copiedKeys: [],
+            showCurrent: true,
+            listDatas: [],
+            pagination: {
+              current: 1,
+              pageSize: 10,
+            },
+          });
       }
     }
 
@@ -172,22 +189,20 @@ class EnvVar extends Component {
       });
     }
 
-    getEnvValueData = (prj: string, unittestId: string, env: string, paramName: string) => {
-      let requestSendTip = new RequestSendTips();
-      requestSendTip.init(prj, "", "", unittestId, this.props.dispatch, env_vars => {});
-      requestSendTip.getTips(envKeys => {
-        let tips = [];
-        for(let envKey of envKeys) {
-          tips.push( {value: envKey} );
-        }
-        this.setState( { prj, tips } );
-      });
+    getEnvValueData = async (prj: string, unittestId: string, env: string, paramName: string) => {
+      let pkeys = await getUnittestKeys(this.props.clientType, unittestId, prj);
       if(!isStringEmpty(env)) {
-        // getEnvValues(prj, env, "", unittestId, paramName, this.props.dispatch, env_vars => {
-        //   if (!paramName) {
-        //     this.setState({pkeys: env_vars.map(item => ({ value: item[pname] }))});
-        //   }
-        // });
+        let pagination = cloneDeep(this.state.pagination);
+        let listDatas = await getUnittestEnvValuesByPage(unittestId, prj, env, paramName, this.props.clientType, pagination);
+        if (this.state.showCurrent) {
+          listDatas = listDatas.filter(envVar => (envVar.source === "unittest_prj" || envVar.source === "unittest"));
+        }
+        this.setState({
+          prj, 
+          listDatas, 
+          pagination,
+          pkeys: !paramName ? pkeys : [],
+        });
       }
     }
 
@@ -266,9 +281,15 @@ class EnvVar extends Component {
             </Flex>
             <Table 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
-              dataSource={this.props.listDatas} 
+              dataSource={this.state.listDatas} 
+              rowKey={(record) => record[pname]}
               columns={this.state.listColumn} 
-              />
+              pagination={this.state.pagination}
+              onChange={ async (pagination, filters, sorter) => {
+                this.state.pagination = pagination;
+                this.getEnvValueData(this.state.iterator, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+              }}
+            />
           </Content>
           <Footer style={{ textAlign: 'center' }}>
           ApiChain ©{new Date().getFullYear()} Created by 方海亮
@@ -280,7 +301,6 @@ class EnvVar extends Component {
 
 function mapStateToProps (state) {
   return {
-      listDatas: state.env_var.list,
       env: state.env_var.env,
       prjs: state.prj.list,
       device : state.device,
