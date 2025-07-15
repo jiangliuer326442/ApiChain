@@ -239,7 +239,7 @@ class TeamModel extends Component {
 -e APICHAIN_SUPER_UNAME=${this.props.uname}
 -v [/path/to/local/dir]:/opt/cache
 --name apichain-runner
-registry.cn-shanghai.aliyuncs.com/apichain/runner:${this.props.defaultRunnerVersion}`}
+${this.props.userCountry === 'CN' ? "registry.cn-shanghai.aliyuncs.com/apichain/runner" : "jiangliuer326442/apichain-runner"}:${this.props.defaultRunnerVersion}`}
                                             </SyntaxHighlighter>
                                         </Paragraph>}
                                         overlayStyle={{ maxWidth: 500 }}>
@@ -299,6 +299,7 @@ function mapStateToProps (state) {
       teamId: state.device.teamId,
       defaultRunnerUrl: state.device.defaultRunnerUrl,
       defaultRunnerVersion: state.device.defaultRunnerVersion,
+      userCountry: state.device.userCountry,
     }
 }
 
