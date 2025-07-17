@@ -5,8 +5,7 @@ import {
 } from "antd";
 import { cloneDeep } from 'lodash';
 
-import { 
-    GLobalPort,
+import {
     VipTagDoc,
     VipTagMockServer,
 } from '@conf/global_config';
@@ -93,7 +92,7 @@ class Vip extends Component {
             });
         }
         getUser(this.props.clientType, this.props.uuid).then(async user => {
-            let docUrl = this.props.html.replace("localhost", this.props.clientHost) + "#/version_iterator_doc/" + this.state.iteratorId;
+            let docUrl = this.props.clientHost + "#/version_iterator_doc/" + this.props.teamId + "/" + this.state.iteratorId;
             let projects = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_projects];
             let mockServers = [];
             for (let project of projects) {
@@ -219,8 +218,8 @@ class Vip extends Component {
 
 function mapStateToProps (state) {
     return {
-        clientType: state.device.clientType,
-        html: state.device.html,			
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,		
         uuid: state.device.uuid,
         vipFlg: state.device.vipFlg,
         prjs: state.prj.list,

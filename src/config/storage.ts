@@ -34,8 +34,6 @@ export const USERCOUNTRY = "user.country";
 
 export const USERLANG = "user.lang";
 
-export const HTML = "app.html";
-
 export const APPVERSION = "app.version";
 
 export const PRJ = "env_vars_prj";
