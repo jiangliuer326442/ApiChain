@@ -102,7 +102,6 @@ class MyRouter extends Component {
             clientHost: argsObject.clientHost,
             teamName: urlDecode(argsObject.teamName), 
             teamId: argsObject.teamId,
-            html : argsObject.html,
             appName : argsObject.appName,
             appVersion : argsObject.appVersion,
             defaultRunnerUrl : argsObject.defaultRunnerUrl,

@@ -19,8 +19,7 @@ import { getDemoDatabaseFile, getDemoPostmanFile } from '../../config/url';
 import { osLocale } from '../third_party/os-locale';
 import { 
     getIpV4,
-    getPackageJson, 
-    resolveHtmlPath,
+    getPackageJson,
     base64Encode,
     uuidExists,
 } from '../util/util';
@@ -68,7 +67,6 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
     let ckCodeUrl = "";
     let expireTime = getExpireTime();
     let buyTimes = getBuyTimes();
-    let html = resolveHtmlPath('index.html');
     let appVersion = packageJson.version;
     let appName = packageJson.name;
     let defaultRunnerUrl = packageJson.defaultRunnerUrl;
@@ -94,7 +92,6 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
         "$$" + base64Encode("ckCodeUrl=" + ckCodeUrl),
         "$$" + base64Encode("expireTime=" + expireTime),
         "$$" + base64Encode("buyTimes=" + buyTimes),
-        "$$" + base64Encode("html=" + html),
         "$$" + base64Encode("appVersion=" + appVersion),
         "$$" + base64Encode("appName=" + appName),
         "$$" + base64Encode("defaultRunnerUrl=" + defaultRunnerUrl),
