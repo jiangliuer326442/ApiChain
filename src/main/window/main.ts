@@ -15,7 +15,6 @@ import {
     WINDOW_WIDTH,
     WINDOW_HEIGHT, 
   } from '../../config/global_config';
-import { isStarted } from './server';
 
 let mainWindow: BrowserWindow;
 
@@ -45,9 +44,7 @@ export function createWindow(initParms : string[]) : BrowserWindow {
 }
 
 export function bindMainWindowEvents() {
-    if (isStarted()) {
-      mainWindow.loadURL(resolveHtmlPath('index.html'));
-    }
+    mainWindow.loadURL(resolveHtmlPath('index.html'));
   
     mainWindow.on('ready-to-show', () => {
       if (!mainWindow) {
