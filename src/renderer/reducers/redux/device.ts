@@ -6,7 +6,6 @@ import {
   DEFAULT_RUNNER_VERSION,
   USERCOUNTRY,
   USERLANG,
-  HTML, 
   APPVERSION, 
   VIP_FLG, 
   CKCODE_FLG,
@@ -24,7 +23,6 @@ import { isStringEmpty } from '@rutil/index';
 
 export default function (state = {
   uuid: "",
-  html: "",
   appName: "",
   defaultRunnerUrl: "",
   defaultRunnerVersion: "",
@@ -104,11 +102,6 @@ export default function (state = {
         newState.appVersion = action.appVersion;
       }
 
-      if (action.html !== undefined) {
-        sessionStorage.setItem(HTML, action.html);
-        newState.html = action.html;
-      }
-
       if (action.clientType !== undefined) {
         sessionStorage.setItem(CLIENT_TYPE, action.clientType);
         newState.clientType = action.clientType;
@@ -141,7 +134,6 @@ export default function (state = {
     state.defaultRunnerVersion = isStringEmpty(sessionStorage.getItem(DEFAULT_RUNNER_VERSION)) ? "" : sessionStorage.getItem(DEFAULT_RUNNER_VERSION) as string;
     state.appVersion = isStringEmpty(sessionStorage.getItem(APPVERSION)) ? "" : sessionStorage.getItem(APPVERSION) as string;
     state.buyTimes = isStringEmpty(sessionStorage.getItem(BUY_TIMES)) ? 0 : Number(sessionStorage.getItem(BUY_TIMES));
-    state.html = isStringEmpty(sessionStorage.getItem(HTML)) ? "" : sessionStorage.getItem(HTML) as string;
     if (state.expireTime < Date.now()) {
       state.vipFlg = false
     }
