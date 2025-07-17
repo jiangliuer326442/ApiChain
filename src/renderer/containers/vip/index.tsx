@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import { 
     Layout, List, Switch, Typography, Divider, Table
 } from "antd";
-
 import { cloneDeep } from 'lodash';
 
 import { 
@@ -11,6 +10,10 @@ import {
     VipTagDoc,
     VipTagMockServer,
 } from '@conf/global_config';
+import { 
+    CLIENT_TYPE_TEAM,
+    CLIENT_TYPE_SINGLE
+} from '@conf/team';
 import {
     ChannelsMarkdownAccessSetStr,
     ChannelsMockServerAccessSetStr,
@@ -21,22 +24,19 @@ import {
     ChannelsMockServerAccessGetStr,
     ChannelsMockServerAccessSetResultStr,
 } from '@conf/channel';
-import { 
-    TABLE_MICRO_SERVICE_FIELDS, 
+import {
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_USER_FIELDS,
 } from '@conf/db';
 import PayModel from '@comp/topup';
+import TeamModel from '@comp/team';
 import { getUser } from '@act/user';
 import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
 
-let field_user_ip = TABLE_USER_FIELDS.FIELD_IP;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
+const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -52,6 +52,7 @@ class Vip extends Component {
             iteratorId,
             list: [],
             showPay: false,
+            showTeam: false,
             columns: [{
                 title: langTrans("member mock table1"),
                 dataIndex: "serviceName",
@@ -59,10 +60,10 @@ class Vip extends Component {
                 title: langTrans("member mock table2"),
                 dataIndex: "mockUrl",
             }],
-            ip: "",
             mockServers: [],
             queryMarkdownAccessStatusListener: null,
             queryMockserverAccessStatusListener: null,
+            uname: "",
         };
         this.state.checkFlg = {};
         this.state.checkFlg[VipTagDoc] = false;
@@ -92,19 +93,18 @@ class Vip extends Component {
             });
         }
         getUser(this.props.clientType, this.props.uuid).then(async user => {
-            let ip = user[field_user_ip];
-            let docUrl = this.props.html.replace("localhost", ip) + "#/version_iterator_doc/" + this.state.iteratorId;
+            let docUrl = this.props.html.replace("localhost", this.props.clientHost) + "#/version_iterator_doc/" + this.state.iteratorId;
             let projects = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_projects];
             let mockServers = [];
             for (let project of projects) {
                 let serviceName = this.props.prjs.find(row => row.value === project).label;
-                let url = "http://" + ip + ":" + GLobalPort + "/mockserver/" + this.state.iteratorId + "/" + project + "/";
+                let url = "http://" + this.props.clientHost + "/mockserver/" + this.state.iteratorId + "/" + project + "/";
                 let mockUrl = <Text copyable={{text: url}}>{ url }</Text>
                 mockServers.push({key: project,serviceName, mockUrl});
             }
 
             this.setState({
-                ip,
+                uname: user[db_field_uname],
                 mockServers,
                 list: [{
                     "key": VipTagDoc,
@@ -164,6 +164,10 @@ class Vip extends Component {
                     this.setState({checkFlg})
                 })
             }
+        } else if (this.props.clientType === CLIENT_TYPE_SINGLE) {
+            this.setState({
+                showTeam: true,
+            });
         } else {
             this.setState({
                 showPay: true,
@@ -178,7 +182,17 @@ class Vip extends Component {
                     {langTrans("member title")} 
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
-                    <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
+                    <PayModel 
+                        showPay={this.state.showPay} 
+                        cb={showPay => this.setState({showPay})}
+                    />
+                    {this.state.showTeam ? 
+                    <TeamModel 
+                    showTeam={this.state.showTeam} 
+                    teamType={CLIENT_TYPE_TEAM}
+                    uname={this.state.user[db_field_uname]}
+                    cb={showTeam => this.setState({showTeam})} /> 
+                    : null}
                     <List itemLayout="horizontal" dataSource={this.state.list} renderItem={(item) => (
                         <List.Item
                             actions={[<Switch checked={this.state.checkFlg[item.key]} onChange={checked => this.setChecked(item.key, checked)} />]}
@@ -211,6 +225,7 @@ function mapStateToProps (state) {
         vipFlg: state.device.vipFlg,
         prjs: state.prj.list,
         versionIterators : state['version_iterator'].list,
+        clientHost: state.device.clientHost,
     }
   }
   

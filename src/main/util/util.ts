@@ -25,14 +25,13 @@ export function getIpV4() {
 }
 
 export function resolveHtmlPath(htmlFileName: string) {
-  let port = process.env.FORMAL_PORT || GLobalPort;
-  const url = new URL(`http://localhost:${port}`);
   if (process.env.NODE_ENV === 'development') {
-    url.pathname = "proxy/" + htmlFileName;
-  } else {
+    const port = process.env.PORT || 1212;
+    const url = new URL(`http://localhost:${port}`);
     url.pathname = htmlFileName;
+    return url.href;
   }
-  return url.href;
+  return `file://${path.resolve(__dirname, '../renderer/', htmlFileName)}`;
 }
 
 let packageJson = "";
