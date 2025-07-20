@@ -311,8 +311,8 @@ class RequestListCollapseChildren extends Component {
                             showSearch
                             allowClear
                             value={this.state.movedIterator}
-                            style={ {minWidth: 260} }
-                            options={ this.props.iterators.map(item => ({
+                            style={{minWidth: 260}}
+                            options={this.props.iterators.map(item => ({
                                 value: item[version_iterator_uuid],
                                 label: item[version_iterator_title]
                             }))
