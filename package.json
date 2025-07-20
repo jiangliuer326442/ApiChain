@@ -198,7 +198,10 @@
         "repo": "ApiChain"
       }
     ],
-    "releaseNotes": "版本 1.2.3\n- 新增功能 X\n- 修复问题 Y\n- 提升性能"
+    "releaseInfo": {
+      "releaseDate": "2025-07-20",
+      "releaseNotes": "版本 1.2.3\n- 新增功能 X\n- 修复问题 Y\n- 提升性能"
+    }
   },
   "devEngines": {
     "node": ">=14.x",
