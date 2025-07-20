@@ -191,6 +191,14 @@
     "linux": {
       "target": ["AppImage"]
     },
+    "directories": {
+      "app": "release/app",
+      "buildResources": "assets",
+      "output": "release/build"
+    },
+    "extraResources": [
+      "./assets/**"
+    ],
     "publish": [
       {
         "provider": "github",
