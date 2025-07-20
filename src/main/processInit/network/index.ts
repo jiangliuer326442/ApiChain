@@ -15,7 +15,6 @@ export default function() {
 
     ipcMain.on(ChannelsAxioBreidgeStr, async (event : IpcMainEvent, action, method : string, url : string, headData, postData, fileData) => {
         if(action !== ChannelsAxioBreidgeSendStr) return;
-
         let cookieMap = new Map();
         let btime = Date.now();
         let result = await doRequest(method, url, headData, postData, fileData, cookieMap);
