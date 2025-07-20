@@ -39,7 +39,7 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && yarn build:dll",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
-    "package": "ts-node ./.erb/scripts/clean.js dist && yarn build && electron-builder build --publish never && yarn build:dll",
+    "package": "ts-node ./.erb/scripts/clean.js dist && yarn build && electron-builder build --publish always && yarn build:dll",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
@@ -181,68 +181,24 @@
   "build": {
     "productName": "ApiChain",
     "appId": "com.mustafa.ApiChain",
-    "asar": true,
-    "asarUnpack": "**\\*.{node,dll}",
-    "files": [
-      "dist",
-      "node_modules",
-      "package.json"
-    ],
-    "afterSign": ".erb/scripts/notarize.js",
+    "icon": "assets/icon.ico",
     "mac": {
-      "target": {
-        "target": "default",
-        "arch": [
-          "arm64",
-          "x64"
-        ]
-      },
-      "type": "distribution",
-      "hardenedRuntime": true,
-      "entitlements": "assets/entitlements.mac.plist",
-      "entitlementsInherit": "assets/entitlements.mac.plist",
-      "gatekeeperAssess": false
-    },
-    "dmg": {
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
+      "target": ["dmg", "zip"]
     },
     "win": {
-      "target": [
-        "nsis"
-      ]
+      "target": "nsis"
     },
     "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Development"
+      "target": ["AppImage"]
     },
-    "directories": {
-      "app": "release/app",
-      "buildResources": "assets",
-      "output": "release/build"
-    },
-    "extraResources": [
-      "./assets/**"
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "jiangliuer326442",
+        "repo": "ApiChain"
+      }
     ],
-    "publish": {
-      "provider": "generic",
-      "url": "http://cdn.fanghailiang.cn/"
-    }
-  },
-  "collective": {
-    "url": "https://opencollective.com/electron-react-boilerplate-594"
+    "releaseNotes": "版本 1.2.3\n- 新增功能 X\n- 修复问题 Y\n- 提升性能"
   },
   "devEngines": {
     "node": ">=14.x",
