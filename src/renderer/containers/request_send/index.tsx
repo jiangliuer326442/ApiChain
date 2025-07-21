@@ -233,34 +233,25 @@ class RequestSendContainer extends Component {
       let contentType = headerData[CONTENT_TYPE];
       this.setRequestMethod(this.state.requestMethod);
 
-      let result = false;
-      if (type === "iterator") {
-        result = await this.initDataByIterator(record[request_history_uri])
-      }
-      if (!result) {
-        result = await this.initDataByProject(record[request_history_uri]);
-      }
-      if (!result) {
-        this.setState({
-          type,
-          requestHeadData: headerData,
-          contentType,
-          env: record[request_history_env],
-          responseCookie: record[request_history_response_cookie],
-          responseHeader: record[request_history_response_header],
-          responseData: record[request_history_response],
-          isResponseJson: record[request_history_jsonFlg],
-          isResponseHtml: record[request_history_htmlFlg],
-          isResponsePic: record[request_history_picFlg],
-          isResponseFile: record[request_history_fileFlg],
-          requestBodyData: record[request_history_body],
-          requestFileData: record[request_history_file],
-          requestPathVariableData: record[request_history_path_variable],
-          requestParamData: record[request_history_param],
-          requestEnable,
-          showFlg,
-        });
-      }
+      this.setState({
+        type,
+        requestHeadData: headerData,
+        contentType,
+        env: record[request_history_env],
+        responseCookie: record[request_history_response_cookie],
+        responseHeader: record[request_history_response_header],
+        responseData: record[request_history_response],
+        isResponseJson: record[request_history_jsonFlg],
+        isResponseHtml: record[request_history_htmlFlg],
+        isResponsePic: record[request_history_picFlg],
+        isResponseFile: record[request_history_fileFlg],
+        requestBodyData: record[request_history_body],
+        requestFileData: record[request_history_file],
+        requestPathVariableData: record[request_history_path_variable],
+        requestParamData: record[request_history_param],
+        requestEnable,
+        showFlg,
+      });
     } else if (pathKey === 'internet_request_send_by_api' && this.state.type === "iterator") {
       this.initDataByIterator(this.state.requestUri);
     } else if (pathKey === 'internet_request_send_by_api' && this.state.type === "project") {
