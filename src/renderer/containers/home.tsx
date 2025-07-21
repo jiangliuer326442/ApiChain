@@ -301,7 +301,7 @@ class Home extends Component {
   let prjLabels = [];
   if (isStringEmpty(this.state.searchPrj)) {
     for (let _project of this.props.projects) {
-      let _projectLabel = _project[prj_label];
+      let _projectLabel = _project.value;
       prjLabels.push(_projectLabel);
     }
   } else {
