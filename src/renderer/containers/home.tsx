@@ -13,6 +13,7 @@ import {
   Typography, 
   Layout, 
   Card,
+  List,
   Space, 
   Row,
   Col,
@@ -44,7 +45,6 @@ import {
   TABLE_VERSION_ITERATION_REQUEST_NAME,
   TABLE_USER_FIELDS,
   TABLE_PROJECT_REQUEST_NAME,
-  TABLE_MICRO_SERVICE_FIELDS,
   TABLE_VERSION_ITERATION_FIELDS,
   TABLE_PROJECT_REQUEST_FIELDS,
   TABLE_VERSION_ITERATION_REQUEST_FIELDS,
@@ -73,10 +73,9 @@ import { getLang, langFormat, langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text, Link } = Typography;
+const { TextArea } = Input;
 
 const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 
 let iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 
@@ -165,6 +164,9 @@ class Home extends Component {
         }
       ],
       closeShowPay: false,
+      messages: [],
+      input: "",
+      loading: false,
     }
   }
 
@@ -262,100 +264,117 @@ class Home extends Component {
     }
  }
 
- handleSearch = async () => {
-  let version_iteration_requests = [];
-  let project_requests = [];
-  let iterators;
-  let uriSet = new Set();
-  if (isStringEmpty(this.state.searchPrj)) {
-    iterators = this.props.versionIterators;
-  } else {
-    iterators = await getOpenVersionIteratorsByPrj(this.props.clientType, this.state.searchPrj);
-  }
-  if (iterators.length > 0) {
-    for(let _iteraotr of iterators) {
-      let _iteratorUuid = _iteraotr[iterator_uuid];
-      let _temp_arr = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
-        .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
-        .equals([ 0, _iteratorUuid ])
-        .filter(row => {
-          if (row[iteration_request_title].indexOf(this.state.searchKeywords) >= 0) {
+  handleSearch = async () => {
+    let version_iteration_requests = [];
+    let project_requests = [];
+    let iterators;
+    let uriSet = new Set();
+    if (isStringEmpty(this.state.searchPrj)) {
+      iterators = this.props.versionIterators;
+    } else {
+      iterators = await getOpenVersionIteratorsByPrj(this.props.clientType, this.state.searchPrj);
+    }
+    if (iterators.length > 0) {
+      for(let _iteraotr of iterators) {
+        let _iteratorUuid = _iteraotr[iterator_uuid];
+        let _temp_arr = await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME]
+          .where([ iteration_request_delFlg, iteration_request_iteration_uuid ])
+          .equals([ 0, _iteratorUuid ])
+          .filter(row => {
+            if (row[iteration_request_title].indexOf(this.state.searchKeywords) >= 0) {
+                return true;
+            }
+            if (
+              !isStringEmpty(row[iteration_request_desc]) 
+                && 
+              row[iteration_request_desc].indexOf(this.state.searchKeywords) >= 0
+            ) {
               return true;
-          }
-          if (
-            !isStringEmpty(row[iteration_request_desc]) 
-              && 
-            row[iteration_request_desc].indexOf(this.state.searchKeywords) >= 0
-          ) {
-            return true;
-          }
-          if (row[iteration_request_uri].indexOf(this.state.searchKeywords) >= 0) {
-            return true;
-          }
-          return false;
-        })
-        .toArray();
-      version_iteration_requests = version_iteration_requests.concat(_temp_arr);
-    }
-  }
-  let prjLabels = [];
-  if (isStringEmpty(this.state.searchPrj)) {
-    for (let _project of this.props.projects) {
-      let _projectLabel = _project.value;
-      prjLabels.push(_projectLabel);
-    }
-  } else {
-    prjLabels.push(this.state.searchPrj);
-  }
-  for (let _prjLable of prjLabels) {
-    let _temp_arr = await window.db[TABLE_PROJECT_REQUEST_NAME]
-    .where([ project_request_delFlg, project_request_project ])
-    .equals([ 0, _prjLable ])
-    .filter(row => {
-      if (row[project_request_title].indexOf(this.state.searchKeywords) >= 0) {
-        return true;
+            }
+            if (row[iteration_request_uri].indexOf(this.state.searchKeywords) >= 0) {
+              return true;
+            }
+            return false;
+          })
+          .toArray();
+        version_iteration_requests = version_iteration_requests.concat(_temp_arr);
       }
-      if (!isStringEmpty(row[project_request_desc]) && row[project_request_desc].indexOf(this.state.searchKeywords) >= 0) {
-        return true;
-      }
-      if (row[project_request_uri].indexOf(this.state.searchKeywords) >= 0) {
-        return true;
-      }
-      return false;
-    })
-    .reverse()
-    .toArray();
-    project_requests = project_requests.concat(_temp_arr);
-  }
-  let result = [];
-  for (let _version_iterator_request of version_iteration_requests) {
-    let _url = _version_iterator_request[iteration_request_uri];
-    uriSet.add(_url);
-    let item = {};
-    item.method = _version_iterator_request[iteration_request_method];
-    item.title = _version_iterator_request[iteration_request_title];
-    item.project = _version_iterator_request[iteration_request_project];
-    item.uri = _url;
-    item.iterator = _version_iterator_request[iteration_request_iteration_uuid];
-    item.key = item.method + "$$" + item.uri;
-    result.push(item);
-  }
-  for (let _project_request of project_requests) {
-    let _url = _project_request[project_request_uri];
-    if (uriSet.has(_url)) {
-      continue;
     }
-    let item = {};
-    item.method = _project_request[project_request_method];
-    item.title = _project_request[project_request_title];
-    item.project = _project_request[project_request_project];
-    item.uri = _url;
-    item.iterator = "";
-    item.key = item.method + "$$" + item.uri;
-    result.push(item);
+    let prjLabels = [];
+    if (isStringEmpty(this.state.searchPrj)) {
+      for (let _project of this.props.projects) {
+        let _projectLabel = _project.value;
+        prjLabels.push(_projectLabel);
+      }
+    } else {
+      prjLabels.push(this.state.searchPrj);
+    }
+    for (let _prjLable of prjLabels) {
+      let _temp_arr = await window.db[TABLE_PROJECT_REQUEST_NAME]
+      .where([ project_request_delFlg, project_request_project ])
+      .equals([ 0, _prjLable ])
+      .filter(row => {
+        if (row[project_request_title].indexOf(this.state.searchKeywords) >= 0) {
+          return true;
+        }
+        if (!isStringEmpty(row[project_request_desc]) && row[project_request_desc].indexOf(this.state.searchKeywords) >= 0) {
+          return true;
+        }
+        if (row[project_request_uri].indexOf(this.state.searchKeywords) >= 0) {
+          return true;
+        }
+        return false;
+      })
+      .reverse()
+      .toArray();
+      project_requests = project_requests.concat(_temp_arr);
+    }
+    let result = [];
+    for (let _version_iterator_request of version_iteration_requests) {
+      let _url = _version_iterator_request[iteration_request_uri];
+      uriSet.add(_url);
+      let item = {};
+      item.method = _version_iterator_request[iteration_request_method];
+      item.title = _version_iterator_request[iteration_request_title];
+      item.project = _version_iterator_request[iteration_request_project];
+      item.uri = _url;
+      item.iterator = _version_iterator_request[iteration_request_iteration_uuid];
+      item.key = item.method + "$$" + item.uri;
+      result.push(item);
+    }
+    for (let _project_request of project_requests) {
+      let _url = _project_request[project_request_uri];
+      if (uriSet.has(_url)) {
+        continue;
+      }
+      let item = {};
+      item.method = _project_request[project_request_method];
+      item.title = _project_request[project_request_title];
+      item.project = _project_request[project_request_project];
+      item.uri = _url;
+      item.iterator = "";
+      item.key = item.method + "$$" + item.uri;
+      result.push(item);
+    }
+    this.setState({searchResult: result});
   }
-  this.setState({searchResult: result});
- }
+
+  handleSend = async () => {
+    if (!this.state.input.trim()) return;
+
+    const userMessage = { role: 'user', content: this.state.input };
+    this.setState(
+      {
+        messages: [...this.state.messages, userMessage],
+        input: '',
+        loading: true,
+      }
+    );
+
+    setTimeout(() => {
+      this.setState({ loading: false });
+    }, 2000);
+  };
 
   render() : ReactNode {
     return (
@@ -429,6 +448,54 @@ class Home extends Component {
               ]}
             />
             <Flex vertical>
+              <Card title="AI 聊天" style={{ width: 500, margin: '20px auto' }}>
+                <div style={{ height: 400, overflowY: 'auto', marginBottom: 16 }}>
+                  <List
+                    dataSource={this.state.messages}
+                    renderItem={(item) => (
+                      <List.Item
+                        style={{
+                          justifyContent: item.role === 'user' ? 'flex-end' : 'flex-start',
+                        }}
+                      >
+                        <Card
+                          style={{
+                            maxWidth: 300,
+                            background: item.role === 'user' ? '#e6f7ff' : '#f5f5f5',
+                          }}
+                        >
+                          {item.content}
+                        </Card>
+                      </List.Item>
+                    )}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <TextArea
+                    value={this.state.input}
+                    onChange={(e) => this.setState({input: e.target.value})}
+                    placeholder="输入您的消息..."
+                    autoSize={{ minRows: 1, maxRows: 4 }}
+                    onPressEnter={(e) => {
+                      if (!e.shiftKey) {
+                        e.preventDefault();
+                        this.handleSend();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="primary"
+                    icon={<SendOutlined />}
+                    onClick={this.handleSend}
+                    loading={this.state.loading}
+                    disabled={!this.state.input.trim()}
+                  >
+                    发送
+                  </Button>
+                </div>
+              </Card>
+
+
               {isStringEmpty(this.props.iterator) ? null :
               <>      
                 <Title level={1}>
