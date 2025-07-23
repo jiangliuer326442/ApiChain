@@ -37,7 +37,7 @@ export default class extends Component {
         return (
             <Flex className='ReackMarkerContainer' gap={"middle"}>
                 <Flex>
-                    <div className="ReackMarkerContent" style={{ width: 920 }}>
+                    <div className="ReackMarkerContent" style={{ width: this.props.width === undefined ? 920 : this.props.width }}>
                         <Markdown 
                             remarkPlugins={[remarkGfm]}
                             rehypePlugins={[rehypeRaw]}

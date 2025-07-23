@@ -13,7 +13,6 @@ import {
   Typography, 
   Layout, 
   Card,
-  List,
   Space, 
   Row,
   Col,
@@ -67,13 +66,13 @@ import {
 import { addUser, getUser, setUserName as ac_setUserName, setUserCountryLangIp } from '@act/user';
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import { sendTeamMessage } from '@act/message';
+import ChatBox from '@comp/chat_box/index'
 import PayModel from '@comp/topup';
 import TeamModel from '@comp/team';
 import { getLang, langFormat, langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text, Link } = Typography;
-const { TextArea } = Input;
 
 const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
 
@@ -164,9 +163,6 @@ class Home extends Component {
         }
       ],
       closeShowPay: false,
-      messages: [],
-      input: "",
-      loading: false,
     }
   }
 
@@ -359,23 +355,6 @@ class Home extends Component {
     this.setState({searchResult: result});
   }
 
-  handleSend = async () => {
-    if (!this.state.input.trim()) return;
-
-    const userMessage = { role: 'user', content: this.state.input };
-    this.setState(
-      {
-        messages: [...this.state.messages, userMessage],
-        input: '',
-        loading: true,
-      }
-    );
-
-    setTimeout(() => {
-      this.setState({ loading: false });
-    }, 2000);
-  };
-
   render() : ReactNode {
     return (
       <Layout>
@@ -448,55 +427,10 @@ class Home extends Component {
               ]}
             />
             <Flex vertical>
-              <Card title="AI 聊天" style={{ width: 500, margin: '20px auto' }}>
-                <div style={{ height: 400, overflowY: 'auto', marginBottom: 16 }}>
-                  <List
-                    dataSource={this.state.messages}
-                    renderItem={(item) => (
-                      <List.Item
-                        style={{
-                          justifyContent: item.role === 'user' ? 'flex-end' : 'flex-start',
-                        }}
-                      >
-                        <Card
-                          style={{
-                            maxWidth: 300,
-                            background: item.role === 'user' ? '#e6f7ff' : '#f5f5f5',
-                          }}
-                        >
-                          {item.content}
-                        </Card>
-                      </List.Item>
-                    )}
-                  />
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <TextArea
-                    value={this.state.input}
-                    onChange={(e) => this.setState({input: e.target.value})}
-                    placeholder="输入您的消息..."
-                    autoSize={{ minRows: 1, maxRows: 4 }}
-                    onPressEnter={(e) => {
-                      if (!e.shiftKey) {
-                        e.preventDefault();
-                        this.handleSend();
-                      }
-                    }}
-                  />
-                  <Button
-                    type="primary"
-                    icon={<SendOutlined />}
-                    onClick={this.handleSend}
-                    loading={this.state.loading}
-                    disabled={!this.state.input.trim()}
-                  >
-                    发送
-                  </Button>
-                </div>
-              </Card>
-
-
-              {isStringEmpty(this.props.iterator) ? null :
+              {this.props.clientType === CLIENT_TYPE_TEAM ?
+              <ChatBox />
+              : 
+              (isStringEmpty(this.props.iterator) ? null :
               <>      
                 <Title level={1}>
                   {langTrans("quick link title")}
@@ -524,6 +458,7 @@ class Home extends Component {
                   </Col>  
                 </Row>    
               </>
+              )
               }
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh' }}>
                 <Flex style={{ width: '60%', height: '40px' }} justify="center" align="center">
