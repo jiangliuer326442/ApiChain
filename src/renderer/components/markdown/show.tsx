@@ -1,11 +1,13 @@
 import { Component, ReactNode } from 'react';
-import { Flex, FloatButton } from 'antd';
+import { Flex, FloatButton, message } from 'antd';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import { dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import 'github-markdown-css/github-markdown-dark.css';
 import Markdown from 'react-markdown';
+import { langTrans } from '@lang/i18n';
 
 export default class extends Component {
 
@@ -34,6 +36,7 @@ export default class extends Component {
     }
 
     render() : ReactNode {
+        let that = this;
         return (
             <Flex className='ReackMarkerContainer' gap={"middle"}>
                 <Flex>
@@ -43,17 +46,40 @@ export default class extends Component {
                             rehypePlugins={[rehypeRaw]}
                             components={{
                                 code({ node, inline, className, children, ...props }: any) {
-                                const match = /language-(\w+)/.exec(className || '');
-                        
-                                return !inline && match ? (
-                                    <SyntaxHighlighter style={dracula} PreTag="div" language={match[1]} {...props}>
-                                    {String(children).replace(/\n$/, '')}
-                                    </SyntaxHighlighter>
-                                ) : (
-                                    <code className={className} {...props}>
-                                    {children}
-                                    </code>
-                                );
+                                    const match = /language-(\w+)/.exec(className || '');
+                            
+                                    if (children === undefined) {
+                                        return null;
+                                    }
+
+                                    return !inline && match ? (
+                                        <div style={{ position: 'relative' }}>
+                                            <CopyToClipboard text={String(children).replace(/\n$/, '')} onCopy={()=>{
+                                                message.success(langTrans("md copy success"));
+                                            }}>
+                                            <button
+                                                style={{
+                                                position: 'absolute',
+                                                top: '10px',
+                                                right: '10px',
+                                                padding: '5px 10px',
+                                                backgroundColor: '#f0f0f0',
+                                                border: '1px solid #ccc',
+                                                cursor: 'pointer',
+                                                }}
+                                            >
+                                                {langTrans("md copy ready")}
+                                            </button>
+                                            </CopyToClipboard>
+                                            <SyntaxHighlighter style={dracula} PreTag="div" language={match[1]} {...props}>
+                                            {String(children).replace(/\n$/, '')}
+                                            </SyntaxHighlighter>
+                                        </div>
+                                    ) : (
+                                        <code className={className} {...props}>
+                                        {children}
+                                        </code>
+                                    );
                                 },
                             }}
                             children={ this.state.content }

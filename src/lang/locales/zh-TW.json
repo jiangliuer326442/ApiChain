@@ -239,6 +239,8 @@
     "iterator table3": "迭代狀態",
     "iterator table4": "操作",
     "iterator md content": "在這裡可以使用markdown語法記錄下這個迭代的注意事項、表結構變更、配置中心配置、定時任務等\n\n[需求文件標題](http://Requirement.Document.Title)\n\n[bug清單文件標題](http://Bug.List.Document.Title)\n\n## 注意事項\n\n## 介面變更記錄\n\n## 資料庫變更\n\n## 配置中心變更\n\n## 定時任務變更\n\n",
+    "md copy ready": "複製",
+    "md copy success": "複製成功",
     "envvar prj title": "項目環境變量配置",
     "envvar prj bread1": "項目",
     "envvar prj bread2": "環境變量",
