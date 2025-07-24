@@ -239,6 +239,8 @@
     "iterator table3": "Iteration Status",
     "iterator table4": "Actions",
     "iterator md content": "Here you can use Markdown syntax to record important notes, table structure changes, configuration center settings, scheduled tasks, etc.\n\n[Requirement Document Title](http://Requirement.Document.Title)\n\n[Bug List Document Title](http://Bug.List.Document.Title)\n\n## Notes\n\n## API Change Log\n\n## Database Changes\n\n## Configuration Center Changes\n\n## Scheduled Task Changes\n\n",
+    "md copy ready": "Copy",
+    "md copy success": "Copy Success",
     "envvar prj title": "Project Environment Variables Configuration",
     "envvar prj bread1": "Project",
     "envvar prj bread2": "Environment Variables",

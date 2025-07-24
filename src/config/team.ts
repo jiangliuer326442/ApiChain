@@ -160,6 +160,8 @@ export const USERS_SET_MY_INFO_URL = "/users/set_user_info";
 
 export const NETWORK_REQUEST_URL = "/network/request";
 
+export const OPENAI_REQUEST_URL = "/network/question";
+
 export const REQUEST_COMMON_SET_URL = "/request_common/set";
 
 export const REQUEST_COMMON_GET_URL = "/request_common/get";

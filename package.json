@@ -3,9 +3,9 @@
   "version": "1.2.3",
   "minServerVersion": "1.2.3",
   "defaultRunnerUrl": "http://127.0.0.1:6588",
-  "payJumpUrl":"https://pay.apichain.app/pay/jump/",
-  "payQueryUrl":"https://pay.apichain.app/pay/query/",
-  "staticUrl":"http://cdn.fanghailiang.cn/",
+  "payJumpUrl": "https://pay.apichain.app/pay/jump/",
+  "payQueryUrl": "https://pay.apichain.app/pay/query/",
+  "staticUrl": "http://cdn.fanghailiang.cn/",
   "description": "接口文档与单元测试工具",
   "keywords": [
     "postman",
@@ -89,6 +89,7 @@
     "qrcode": "^1.5.3",
     "qs": "^6.14.0",
     "react": "^18.2.0",
+    "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.2.0",
     "react-json-view": "^1.21.3",
     "react-markdown": "^9.0.1",
@@ -185,13 +186,18 @@
     "appId": "com.mustafa.ApiChain",
     "icon": "assets/icon.ico",
     "mac": {
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
       "target": "nsis"
     },
     "linux": {
-      "target": ["AppImage"]
+      "target": [
+        "AppImage"
+      ]
     },
     "directories": {
       "app": "release/app",
@@ -206,7 +212,7 @@
         "provider": "github",
         "owner": "jiangliuer326442",
         "repo": "ApiChain"
-    }
+      }
     ],
     "releaseInfo": {
       "releaseDate": "2025-07-20",
