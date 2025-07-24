@@ -1,3 +1,5 @@
 export function addNewlineBeforeTripleBackticks(str) {
-  return str.replace(/([^\n]|^)(\s*)```/g, '$1\n$2```');
+  let ret = str.replace(/([^\n]|^)(\s*)```/g, '$1\n$2```');
+  ret = ret.replaceAll("```#", "```\n\n#");
+  return ret;
 }
