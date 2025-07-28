@@ -41,20 +41,28 @@ class VersionIteratorAdd extends Component {
 
     constructor(props) {
         super(props);
+
+        let uuid = "";
+        let mode = "add";
+        if ('uuid' in props.match.params) {
+            uuid = props.match.params.uuid;
+            mode = "update";
+        }
+
         this.state = {
             formReadyFlg: false,
-            uuid: "",
+            uuid,
+            mode,
             version_iteration: {},
             content: "",
         }
     }
 
     async componentDidMount() {
-        if ('uuid' in this.props.match.params) {
-            let uuid = this.props.match.params.uuid;
-            let version_iteration = await getRemoteVersionIterator(this.props.clientType, uuid);
+        if (this.state.mode === "update") {
+            let version_iteration = await getRemoteVersionIterator(this.props.clientType, this.state.uuid);
             this.setState({
-                uuid, version_iteration, 
+                version_iteration, 
                 formReadyFlg: true,
                 content: version_iteration[version_iterator_content],
             })
@@ -68,7 +76,7 @@ class VersionIteratorAdd extends Component {
 
     onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         let title = values.title.trim();
-        if(isStringEmpty(this.state.uuid)) {
+        if (this.state.mode === "add") {
             await addVersionIterator(this.props.clientType, this.props.teamId, title, this.state.content, values.projects, this.props.device);
         } else {
             await editVersionIterator(this.props.clientType, this.props.teamId, this.state.uuid, title, this.state.content, values.projects);
@@ -86,7 +94,7 @@ class VersionIteratorAdd extends Component {
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: langTrans("iterator bread1") }, 
                         { title: <a href={"#" + VERSION_ITERATOR_LIST_ROUTE }> {langTrans("iterator bread2")}</a> },
-                        { title: isStringEmpty(this.state.uuid) ? langTrans("iterator add title") : langTrans("iterator edit title")  }, 
+                        { title: this.state.mode === "add" ? langTrans("iterator add title") : langTrans("iterator edit title")  }, 
                     ]} />
                 </Flex>
                 <div
@@ -135,10 +143,10 @@ class VersionIteratorAdd extends Component {
                             label={langTrans("iterator add form3")}
                             name="content"
                         >
-                            <MarkdownEditor content={this.state.content} cb={content => this.setState({content}) } />
+                            <MarkdownEditor mode={this.state.mode} content={this.state.content} cb={content => this.setState({content}) } />
                         </Form.Item>
 
-                        {!isStringEmpty(this.state.uuid) ? 
+                        {this.state.mode === "update" ? 
                         <Descriptions title="">
                             { this.state.version_iteration[version_iterator_openflg] === 0 ?
                             <Descriptions.Item label={langTrans("iterator add form4")}>{ getdayjs(this.state.version_iteration[version_iterator_close_time]).format("YYYY-MM-DD") }</Descriptions.Item>
@@ -149,7 +157,7 @@ class VersionIteratorAdd extends Component {
                         </Descriptions>
                         : null}
 
-                        {isStringEmpty(this.state.uuid) ? 
+                        {this.state.mode === "add" ? 
                         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                             <Button type="primary" htmlType="submit">
                                 {langTrans("iterator add btn")}

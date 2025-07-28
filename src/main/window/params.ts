@@ -73,6 +73,7 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
     let demoDatabaseFile = getDemoDatabaseFile(packageJson.staticUrl);
     let demoPostmanFile = getDemoPostmanFile(packageJson.staticUrl);
     let minServerVersion = packageJson.minServerVersion;
+    let aiModels = packageJson.aiModels;
     let clientType = getClientType();
     let clientHost = getClientHost();
     let teamId = getTeamId();
@@ -98,6 +99,7 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
         "$$" + base64Encode("demoDatabaseFile=" + demoDatabaseFile),
         "$$" + base64Encode("demoPostmanFile=" + demoPostmanFile),
         "$$" + base64Encode("minServerVersion=" + minServerVersion),
+        "$$" + base64Encode("aiModels=" + aiModels),
         "$$" + base64Encode("userLang=" + userLang),
         "$$" + base64Encode("userCountry=" + userCountry),
         "$$" + base64Encode("firstLauch=" + firstLauch),

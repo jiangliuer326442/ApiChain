@@ -83,6 +83,14 @@ export function getdayjs(timestamp : number) : dayjs.Dayjs  {
   return dayjs(timestamp);
 }
 
+export function replaceHttpWithWs(url) {
+  // 替换 http:// 为 ws://
+  let wsUrl = url.replace(/^http:\/\//i, 'ws://');
+  // 替换 https:// 为 wss://
+  wsUrl = wsUrl.replace(/^https:\/\//i, 'wss://');
+  return wsUrl;
+}
+
 export function getType(obj : any) {
   return Object.prototype.toString.call(obj).slice(8, -1);  
 }

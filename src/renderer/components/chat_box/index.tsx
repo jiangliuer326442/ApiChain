@@ -4,19 +4,34 @@ import { connect } from 'react-redux';
 import { Card, Flex, Select, List, Input, Button, Popover, Typography, Space } from 'antd';
 import { SendOutlined, } from '@ant-design/icons';
 
-import { isStringEmpty } from '@rutil/index';
+import './index.less';
+
+import { AI_LINK_PROJECT, AI_MODEL } from '@conf/storage';
+import { langTrans } from '@lang/i18n';
+import { replaceHttpWithWs, getStartParams, isStringEmpty } from '@rutil/index';
 import { addNewlineBeforeTripleBackticks } from '@rutil/markdown';
 import MarkdownView from '@comp/markdown/show';
 
-import './index.css';
-
 const { TextArea } = Input;
 const { Paragraph } = Typography;
+
+let argsObjects = getStartParams();
+let aiModels = argsObjects.aiModels.split(",");
 
 class AiChatBox extends Component {
 
     constructor(props) {
         super(props);
+
+        let linkProject = localStorage.getItem(AI_LINK_PROJECT);
+        if (isStringEmpty(linkProject)) {
+          linkProject = "";
+        }
+        let aiModel = localStorage.getItem(AI_MODEL);
+        if (isStringEmpty(aiModel)) {
+          aiModel = "";
+        }
+
         let messages = [];
         this.state = {
           messages,
@@ -27,18 +42,19 @@ class AiChatBox extends Component {
           linkOperators: [
             {
               value: "searchInterfaces",
-              label: "搜索api",
+              label: langTrans("chatbox link action1"),
             }
           ],
-          linkProject: "",
+          linkProject,
           linkOperator: "",
+          aiModel,
         }
 
         this.scrollContainerRef = React.createRef();
     }
 
     componentDidMount(): void {
-      this.ws = new WebSocket("ws://127.0.0.1:6588/network/ws/" + this.props.uid);
+      this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/network/ws/" + this.props.uid);
 
       this.ws.onopen = (event) => {
           console.log("WebSocket opened:", event);
@@ -78,9 +94,11 @@ class AiChatBox extends Component {
 
     handleLinkProject = originPrj => {
       if (isStringEmpty(originPrj)) {
+        localStorage.removeItem(AI_LINK_PROJECT);
         this.setState( {linkProject : ""} );
       } else {
         let prj = originPrj.split("$$")[0];
+        localStorage.setItem(AI_LINK_PROJECT, prj);
         this.setState( {linkProject : prj} );
       }
     }
@@ -93,9 +111,16 @@ class AiChatBox extends Component {
       }
     }
 
+    handleSetAiModel = aiModel => {
+      localStorage.setItem(AI_MODEL, aiModel);
+      this.setState( {aiModel} );
+    }
+
     handleSend = async () => {
         if (!this.state.input.trim()) return;
         let messageLength = this.state.messageLength;
+
+        let historyMessage = this.state.messages.length > 10 ? cloneDeep(this.state.messages.slice(-10)) : cloneDeep(this.state.messages)
 
         const userMessage = { role: 'user', content: this.state.input };
         this.state.messages.push(userMessage);
@@ -126,96 +151,16 @@ class AiChatBox extends Component {
           },
           payload: {
             project: this.state.linkProject,
-            operator: this.state.linkOperator
+            operator: this.state.linkOperator,
+            aiModel: this.state.aiModel,
+            history: historyMessage,
           }
         }));
-
-    
-        // const controller = new AbortController();
-        // const formData = new URLSearchParams();
-        // formData.append('content', this.state.input);
-        // formData.append('project', this.state.linkProject);
-        // formData.append('operator', this.state.linkOperator);
-        // await fetchEventSource(this.props.clientHost + OPENAI_REQUEST_URL, {
-        //   openWhenHidden: false,
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/x-www-form-urlencoded',
-
-        //   },
-        //   body: formData.toString(),
-        //   onopen: async (response) => {
-        //     if (response.ok) {
-        //       console.log("发送数据时间：", Date.now());
-        //     } else {
-        //       console.log("连接失败", response);
-        //     }
-        //   },
-        //   signal: controller.signal,
-        //   fetch: async (input, init) => {
-        //     const res = await fetch(input, {
-        //       ...init,
-        //       timeout: 60000, // 自定义超时
-        //     });
-        //     if (!res.ok) {
-        //       throw new Error(`Server returned ${res.status}`);
-        //     }
-        //     return res;
-        //   },
-        //   onmessage: (ret) => {
-        //     console.log("ret", ret);
-        //     if (ret.event === "error") {
-        //        console.error('Stream error:', ret.data);
-        //       return;
-        //     }
-        //     if (ret.event === "done") {
-        //       this.state.messageLength++
-        //       this.setState(
-        //         {
-        //           tmpResponse: {},
-        //           loading: false,
-        //           messageLength: this.state.messageLength,
-        //         }
-        //       );
-        //       setTimeout(() => {
-        //         const container = this.scrollContainerRef.current;
-        //         if (container) {
-        //           container.scrollTop = container.scrollHeight;
-        //         }
-        //       }, 200);
-        //       return;
-        //     }
-        //     if (ret.event === 'message') {
-        //       console.log("接受数据时间：", Date.now())
-        //       if (Object.keys(this.state.tmpResponse).length === 0) {
-        //         this.state.tmpResponse = { role: 'assistant', content: ret.data };
-        //       } else {
-        //         this.state.tmpResponse.content += ret.data;
-        //       }
-        //       let messages = this.state.messages.slice(0, this.state.messageLength);
-        //       messages.push(this.state.tmpResponse);
-        //       this.state.messages = messages;
-              
-        //       this.setState(
-        //         {
-        //           messages: cloneDeep( messages),
-        //         }
-        //       );
-        //     }
-        //   },
-        //   onclose: () => {
-        //     console.log("close connection");
-        //   },
-        //   onerror(err) {
-        //     console.error('Stream error:', err);
-        //     throw err;
-        //   }
-        // });
     };
 
     render() : ReactNode {
         return (
-            <Card title="AI 聊天" style={{ width: 900 }}>
+            <Card title={langTrans("chatbox title")} style={{ width: 900 }}>
                 <div 
                   className='chat-box'
                   ref={this.scrollContainerRef}
@@ -244,8 +189,8 @@ class AiChatBox extends Component {
                   <TextArea
                       value={this.state.input}
                       onChange={(e) => this.setState({input: e.target.value})}
-                      placeholder="输入您的消息..."
-                      autoSize={{ minRows: 1, maxRows: 4 }}
+                      placeholder={langTrans("chatbox question tips")}
+                      autoSize={{ minRows: 1, maxRows: 10 }}
                       onPressEnter={(e) => {
                       if (!e.shiftKey) {
                           e.preventDefault();
@@ -255,7 +200,7 @@ class AiChatBox extends Component {
                   />
                   <Flex justify='space-between' align='center' style={{height: 50}}>
                     <Space>
-                      <Popover placement="top" title={false} content={
+                      <Popover placement="top" title={langTrans("chatbox link project")} content={
                         <Select
                           showSearch
                           allowClear
@@ -270,9 +215,9 @@ class AiChatBox extends Component {
                           value={this.state.linkProject}
                         />
                       }>
-                        <Button>{this.state.linkProject ? this.props.projects.find(_prj => _prj.value === this.state.linkProject).label : "关联项目"}</Button>
+                        <Button>{(this.state.linkProject && this.props.projects.length > 0) ? this.props.projects.find(_prj => _prj.value === this.state.linkProject).label : langTrans("chatbox link project")}</Button>
                       </Popover>
-                      <Popover placement="top" title={false} content={
+                      <Popover placement="top" title={langTrans("chatbox link action")} content={
                         <Select 
                           allowClear
                           value={this.state.linkOperator}
@@ -281,9 +226,19 @@ class AiChatBox extends Component {
                           options={this.state.linkOperators}
                         />
                       }>
-                        <Button>{this.state.linkOperator ? this.state.linkOperators.find(_operator => _operator.value === this.state.linkOperator).label : "关联操作"}</Button>
+                        <Button>{this.state.linkOperator ? this.state.linkOperators.find(_operator => _operator.value === this.state.linkOperator).label : langTrans("chatbox link action")}</Button>
                       </Popover>
-                      <Button>清空记录</Button>
+                      <Button onClick={()=>this.setState({messages: [], messageLength: 0})}>{langTrans("chatbox empty record")}</Button>
+                      <Popover placement="top" title={langTrans("chatbox aimodel select")} content={
+                        <Select 
+                        value={this.state.aiModel}
+                        onChange={ this.handleSetAiModel }
+                        style={{width: 200}}
+                        options={aiModels.map(item=>({label: item, value: item}))}
+                        />
+                      }>
+                        <Button>{this.state.aiModel ? this.state.aiModel : langTrans("chatbox aimodel select")}</Button>
+                      </Popover>
                     </Space>
                     <Button
                         type="primary"
