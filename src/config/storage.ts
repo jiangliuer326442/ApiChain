@@ -2,6 +2,10 @@ export const LAST_SHOWTEAM_TIME = "storage.team.showDialog.time";
 
 export const IS_AUTO_UPGRADE = "storage.checkAutoUpgrade";
 
+export const AI_LINK_PROJECT = "storage.chatBox.project";
+
+export const AI_MODEL = "storage.chatBox.aimodel";
+
 export const DOC_ITERATOR = "iterator_doc_iteratorId";
 
 export const UUID = "device.uuid";

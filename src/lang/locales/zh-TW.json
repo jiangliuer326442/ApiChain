@@ -505,6 +505,13 @@
     "team topup btn1": "創建",
     "team topup btn2": "加入",
     "team topup btn3": "取消",
+    "chatbox link action1": "搜尋API",
+    "chatbox link project": "關聯項目",
+    "chatbox link action": "關聯操作",
+    "chatbox empty record": "清空記錄",
+    "chatbox aimodel select": "選擇模型",
+    "chatbox title": "諮詢 AI",
+    "chatbox question tips": "在此輸入您的問題，Enter 發送，Shift+Enter 換行。聊天記錄僅保存在本地，不會上傳到 runner。",
     "welcome": "你好，ApiChain 陪你度過嶄新的一天。",
     "greeting": "你好，{{name}}！"
 }
