@@ -6,6 +6,7 @@
   "payJumpUrl": "https://pay.apichain.app/pay/jump/",
   "payQueryUrl": "https://pay.apichain.app/pay/query/",
   "staticUrl": "http://cdn.fanghailiang.cn/",
+  "aiModels":"gpt-4o,grok-4,deepseek-chat,qwen-2p5-32b-instruct-hw",
   "description": "接口文档与单元测试工具",
   "keywords": [
     "postman",
@@ -39,7 +40,7 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && yarn build:dll",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
-    "package": "ts-node ./.erb/scripts/clean.js dist && yarn build && electron-builder build --publish always && yarn build:dll",
+    "package": "ts-node ./.erb/scripts/clean.js dist && yarn build && electron-builder build --publish never && yarn build:dll",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
@@ -65,35 +66,28 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.6",
-    "@microsoft/fetch-event-source": "^2.0.1",
     "antd": "^5.16.5",
     "axios": "^1.6.8",
     "base-64": "^1.0.0",
     "dayjs": "^1.11.11",
     "dexie": "^4.0.4",
-    "draft-js": "^0.11.7",
     "electron-log": "^4.4.8",
     "electron-store": "^8.2.0",
     "electron-updater": "^6.1.4",
-    "express": "^4.19.2",
     "fs-extra": "^11.2.0",
     "github-markdown-css": "^5.5.1",
-    "http-proxy-middleware": "^3.0.0",
     "indexeddb-export-import": "^2.1.5",
     "js-md5": "^0.8.3",
     "less": "^4.2.0",
     "lodash": "^4.17.21",
-    "markdown-navbar": "^1.4.3",
     "path-browserify": "^1.0.1",
-    "prismjs": "^1.29.0",
     "qrcode": "^1.5.3",
-    "qs": "^6.14.0",
     "react": "^18.2.0",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.2.0",
     "react-json-view": "^1.21.3",
     "react-markdown": "^9.0.1",
-    "react-mde": "5.8.0",
+    "react-mde": "^11.5.0",
     "react-redux": "^7.1.1",
     "react-router-dom": "^5.1.2",
     "react-syntax-highlighter": "^15.5.0",
@@ -184,20 +178,52 @@
   "build": {
     "productName": "ApiChain",
     "appId": "com.mustafa.ApiChain",
-    "icon": "assets/icon.ico",
+    "asar": true,
+    "asarUnpack": "**\\*.{node,dll}",
+    "files": [
+      "dist",
+      "node_modules",
+      "package.json"
+    ],
+    "afterSign": ".erb/scripts/notarize.js",
     "mac": {
-      "target": [
-        "dmg",
-        "zip"
+      "target": {
+        "target": "default",
+        "arch": [
+          "arm64",
+          "x64"
+        ]
+      },
+      "type": "distribution",
+      "hardenedRuntime": true,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist",
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
     },
     "win": {
-      "target": "nsis"
+      "target": [
+        "nsis"
+      ]
     },
     "linux": {
       "target": [
         "AppImage"
-      ]
+      ],
+      "category": "Development"
     },
     "directories": {
       "app": "release/app",
@@ -207,17 +233,13 @@
     "extraResources": [
       "./assets/**"
     ],
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "jiangliuer326442",
-        "repo": "ApiChain"
-      }
-    ],
-    "releaseInfo": {
-      "releaseDate": "2025-07-20",
-      "releaseNotes": "版本 1.2.3\n- 新增功能 X\n- 修复问题 Y\n- 提升性能"
+    "publish": {
+      "provider": "generic",
+      "url": "http://cdn.fanghailiang.cn/"
     }
+  },
+  "collective": {
+    "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
   "devEngines": {
     "node": ">=14.x",
