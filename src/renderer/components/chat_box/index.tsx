@@ -70,7 +70,8 @@ class AiChatBox extends Component {
             this.state.messages.push(tmpMessage);
             this.setState({ 
               messages: cloneDeep(this.state.messages),
-              messageLength: this.state.messageLength + 1
+              messageLength: this.state.messageLength + 1,
+              loading: false,
             });
           } else {
             let tmpMessage = this.state.messages[message.id];
