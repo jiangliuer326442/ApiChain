@@ -30,6 +30,7 @@
     "nav setting envvar": "Global Variables",
     "nav setting project": "Project",
     "nav setting env": "Env Config",
+    "nav setting basic": "Basic Settings",
     "update checkbox": "Enable Automatic Update Check",
     "update manual": "Manual Check for Updates",
     "member welcome": "Dear Member ",
@@ -512,6 +513,11 @@
     "chatbox aimodel select": "Select Model",
     "chatbox title": "Consult AI",
     "chatbox question tips": "Enter your question here, press Enter to send, press Shift+Enter to create a new line. Chat history is saved locally and will not be uploaded to the runner.",
+    "setting basic key label": "Token",
+    "setting basic key help1": "Click ",
+    "setting basic key help2": "this link",
+    "setting basic key help3": " to register and create a token",
+    "setting basic key placeholder": "Please enter your API key",
     "welcome": "Hello, ApiChain is here to spend a brand new day with you.",
     "greeting": "Hello, {{name}}!"
 }

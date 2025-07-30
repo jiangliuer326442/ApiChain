@@ -9,13 +9,27 @@
     <title>ApiChain</title>
   </head>
   <style type="text/css">
-    #root {
-      background-color: #2a2926;
-      width: 100vw;
-      height: 100vh;
+    /* 针对Webkit内核浏览器（Chrome, Safari, Edge等） */
+    ::-webkit-scrollbar {
+      width: 2px; /* 设置滚动条宽度为细线 */
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent; /* 滚动条轨道透明 */
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #000; /* 滚动条滑块为黑色 */
+      border-radius: 1px; /* 可选：轻微圆角 */
+    }
+
+    /* 针对Firefox（64+版本） */
+    html {
+      scrollbar-width: thin; /* 细线模式 */
+      scrollbar-color: #000 transparent; /* 滑块黑色，轨道透明 */
     }
   </style>
-  <body style="margin: 0px;">
+  <body style="margin: 0px; background-color: #2a2926;">
     <div id="root"><font color="white">Just a moment, the page will be displayed shortly...☕️🥚🍗</font></div>
   </body>
 </html>

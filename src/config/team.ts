@@ -165,3 +165,7 @@ export const OPENAI_REQUEST_URL = "/network/question";
 export const REQUEST_COMMON_SET_URL = "/request_common/set";
 
 export const REQUEST_COMMON_GET_URL = "/request_common/get";
+
+export const OS_ENV_VALUE_SET_URL = "/os_env_value/set";
+
+export const OS_ENV_VALUE_GET_URL = "/os_env_value/get";

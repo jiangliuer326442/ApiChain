@@ -31,6 +31,7 @@ setLang(userCountry, userLang);
 
 
 import { 
+    BASIC_SETTING_ROUTE,
     ENV_LIST_ROUTE, 
     PROJECT_LIST_ROUTE,
     ENVVAR_PRJ_LIST_ROUTE,
@@ -64,6 +65,7 @@ import {
 } from '@conf/routers';
 import Nav from '@comp/nav';
 import HomePage from "@contain/home";
+import BasicSettingPage from "@contain/basic_setting";
 import EnvListPage from "@contain/env";
 import ProjectListPage from "@contain/prj";
 import EnvVarPrjectPage from "@contain/env_var/project";
@@ -160,6 +162,7 @@ class MyRouter extends Component {
                     {'electron' in window ? <Nav /> : null}
                     <Layout>
                         <Switch>
+                            <Route path={ BASIC_SETTING_ROUTE } component={BasicSettingPage} />
                             <Route path={ ENV_LIST_ROUTE } component={EnvListPage} />
                             <Route path={ PROJECT_LIST_ROUTE } component={ProjectListPage} />
                             <Route path={ ENVVAR_PRJ_LIST_ROUTE } component={EnvVarPrjectPage} />

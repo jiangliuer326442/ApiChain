@@ -28,6 +28,7 @@ import {
   INTERNET_REQUEST,
   REQUEST_HISTORY,
   ENVVAR_GLOBAL_LIST_ROUTE,
+  BASIC_SETTING_ROUTE,
 } from '@conf/routers';
 import { getOpenVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
@@ -126,6 +127,14 @@ class Nav extends Component {
                   label: (
                     <a href={ "#" + ENV_LIST_ROUTE } rel="noopener noreferrer">
                       {langTrans("nav setting env")}
+                    </a >
+                  )
+                },
+                {
+                  key: BASIC_SETTING_ROUTE,
+                  label: (
+                    <a href={ "#" + BASIC_SETTING_ROUTE } rel="noopener noreferrer">
+                      {langTrans("nav setting basic")}
                     </a >
                   )
                 },

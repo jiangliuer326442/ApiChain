@@ -1,3 +1,5 @@
+//基础设置
+export const BASIC_SETTING_ROUTE = "/basic_setting";
 //环境管理
 export const ENV_LIST_ROUTE = "/envs";
 //微服务管理

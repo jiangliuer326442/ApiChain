@@ -30,6 +30,7 @@
     "nav setting envvar": "全局環境變量",
     "nav setting project": "項目",
     "nav setting env": "開發環境",
+    "nav setting basic": "基本設置",
     "update checkbox": "開啟自動檢查更新",
     "update manual": "手動檢查更新",
     "member welcome": "尊敬的會員",
@@ -512,6 +513,11 @@
     "chatbox aimodel select": "選擇模型",
     "chatbox title": "諮詢 AI",
     "chatbox question tips": "在此輸入您的問題，Enter 發送，Shift+Enter 換行。聊天記錄僅保存在本地，不會上傳到 runner。",
+    "setting basic key label": "令牌",
+    "setting basic key help1": "點擊這個",
+    "setting basic key help2": "連結",
+    "setting basic key help3": "註冊並創建令牌",
+    "setting basic key placeholder": "請輸入您的API密鑰",
     "welcome": "你好，ApiChain 陪你度過嶄新的一天。",
     "greeting": "你好，{{name}}！"
 }
