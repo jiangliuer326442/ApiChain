@@ -1,4 +1,4 @@
-import { Button, Form, Input, Checkbox, Typography, Space, Breadcrumb, Flex, Layout } from 'antd';
+import { Button, Form, Input, Checkbox, Typography, Space, Breadcrumb, Flex, Layout, message } from 'antd';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 
@@ -49,8 +49,8 @@ class BasicSetting extends Component {
             key: "OPENAI_API_KEY",
             value: e.target.value
         });
-        console.log("ret", ret);
-        this.setState({apiKey : e.target.value})
+        this.setState({apiKey : e.target.value});
+        message.success(langTrans("prj unittest status2"))
     }
 
     render(): ReactNode {
