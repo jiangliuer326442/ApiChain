@@ -1,5 +1,7 @@
 export const LAST_SHOWTEAM_TIME = "storage.team.showDialog.time";
 
+export const LAST_ASYNC_VECTOR_TIME = "storage.team.asynVector.time";
+
 export const IS_AUTO_UPGRADE = "storage.checkAutoUpgrade";
 
 export const AI_LINK_PROJECT = "storage.chatBox.project";

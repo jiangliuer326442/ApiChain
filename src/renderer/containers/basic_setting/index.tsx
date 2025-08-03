@@ -1,4 +1,4 @@
-import { Button, Form, Input, Checkbox, Typography, Space, Breadcrumb, Flex, Layout, message } from 'antd';
+import { Button, Form, Input, Checkbox, Typography, Space, Breadcrumb, Flex, Layout, message, Select } from 'antd';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 
@@ -27,14 +27,20 @@ class BasicSetting extends Component {
         this.state = {
             loaded: false,
             checkAutoUpgrade,
+            baseUrl: "",
             apiKey: "",
         }
     }
 
     async componentDidMount() {
         if (this.props.clientType === CLIENT_TYPE_TEAM) {
-            let ret = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_API_KEY"});
-            this.setState({apiKey: ret ? ret : "", loaded: true})
+            let ret1 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_API_KEY"});
+            let ret2 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_BASE_URL"});
+            this.setState({
+                apiKey: ret1 ? ret1 : "", 
+                baseUrl: ret2 ? ret2 : "",
+                loaded: true
+            })
         } else {
             this.setState({loaded: true})
         }
@@ -45,11 +51,20 @@ class BasicSetting extends Component {
     } 
 
     setApiKey = async (e) => { 
-        let ret = await sendTeamMessage(OS_ENV_VALUE_SET_URL, {
+        await sendTeamMessage(OS_ENV_VALUE_SET_URL, {
             key: "OPENAI_API_KEY",
             value: e.target.value
         });
         this.setState({apiKey : e.target.value});
+        message.success(langTrans("prj unittest status2"))
+    }
+
+    setBaseUrl = async (baseUrl) => { 
+        await sendTeamMessage(OS_ENV_VALUE_SET_URL, {
+            key: "OPENAI_BASE_URL",
+            value: baseUrl
+        });
+        this.setState({baseUrl});
         message.success(langTrans("prj unittest status2"))
     }
 
@@ -69,6 +84,19 @@ class BasicSetting extends Component {
                         wrapperCol={{ span: 14 }}
                     >
                         {this.props.clientType === CLIENT_TYPE_TEAM ? 
+                    <>
+                        <Form.Item
+                            label={langTrans("setting basic url label")}
+                        >
+                            <Select 
+                                size='large' 
+                                value={ this.state.baseUrl }
+                                onChange={ this.setBaseUrl }
+                            >
+                                <Select.Option value="https://yunwu.zeabur.app/v1">{ langTrans("setting basic url mainland") }</Select.Option>
+                                <Select.Option value="https://yunwu.ai/v1">{ langTrans("setting basic url other") }</Select.Option>
+                            </Select>
+                        </Form.Item>
                         <Form.Item
                             label={langTrans("setting basic key label")}
                             help={
@@ -82,12 +110,14 @@ class BasicSetting extends Component {
                             }
                         >
                             <Input.Password
+                                size='large'
                                 allowClear
                                 value={this.state.apiKey}
                                 onChange={this.setApiKey}
                                 placeholder={langTrans("setting basic key placeholder")} 
                             />
                         </Form.Item>
+                    </>
                         : null}
                 
                         <Form.Item

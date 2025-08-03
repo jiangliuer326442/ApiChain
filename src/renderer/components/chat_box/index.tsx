@@ -6,11 +6,13 @@ import { SendOutlined, } from '@ant-design/icons';
 
 import './index.less';
 
-import { AI_LINK_PROJECT, AI_MODEL } from '@conf/storage';
+import { LAST_ASYNC_VECTOR_TIME, AI_LINK_PROJECT, AI_MODEL } from '@conf/storage';
+import { VECTOR_MAKE_URL } from '@conf/team';
 import { langTrans } from '@lang/i18n';
-import { replaceHttpWithWs, getStartParams, isStringEmpty } from '@rutil/index';
+import { replaceHttpWithWs, getStartParams, isStringEmpty, getNowdayjs, } from '@rutil/index';
 import { addNewlineBeforeTripleBackticks } from '@rutil/markdown';
 import MarkdownView from '@comp/markdown/show';
+import { sendTeamMessage } from '@act/message';
 
 const { TextArea } = Input;
 const { Paragraph } = Typography;
@@ -60,7 +62,7 @@ class AiChatBox extends Component {
           console.log("WebSocket opened:", event);
       };
 
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = async (event) => {
           let message = JSON.parse(JSON.parse(event.data));
           if (message.id >= this.state.messages.length) {
             let tmpMessage = { 
@@ -73,6 +75,10 @@ class AiChatBox extends Component {
               messageLength: this.state.messageLength + 1,
               loading: false,
             });
+            if (isStringEmpty(localStorage.getItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId)) || (getNowdayjs().unix() - parseInt(localStorage.getItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId))) > 86400 ) {
+              await sendTeamMessage(VECTOR_MAKE_URL, {});
+              localStorage.setItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId, getNowdayjs().unix() + "");
+            }
           } else {
             let tmpMessage = this.state.messages[message.id];
             tmpMessage.content += message.content;
@@ -161,7 +167,7 @@ class AiChatBox extends Component {
 
     render() : ReactNode {
         return (
-            <Card title={langTrans("chatbox title")} style={{ width: 900 }}>
+            <Card title={langTrans("chatbox title")} style={{ width: 1050 }}>
                 <div 
                   className='chat-box'
                   ref={this.scrollContainerRef}

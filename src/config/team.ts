@@ -162,6 +162,8 @@ export const NETWORK_REQUEST_URL = "/network/request";
 
 export const OPENAI_REQUEST_URL = "/network/question";
 
+export const VECTOR_MAKE_URL = "/network/vector";
+
 export const REQUEST_COMMON_SET_URL = "/request_common/set";
 
 export const REQUEST_COMMON_GET_URL = "/request_common/get";

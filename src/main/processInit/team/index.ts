@@ -1,8 +1,5 @@
 import { ipcMain } from 'electron';
 
-import {
-    readPublicKey,
-} from '../../util/util';
 import { 
     postRequest,
     pingHost
@@ -56,8 +53,6 @@ export default async function (){
 
         if (action !== ChannelsTeamSetInfoStr) return;
 
-        let publicKeyContent = readPublicKey();
-
         let responseTeamId = "";
         let errorMessage = "";
 
@@ -65,7 +60,6 @@ export default async function (){
 
             let result = await postRequest(TEAM_CREATE_URL, {
                 "uname": uname,
-                "publicKey": publicKeyContent,
                 "teamName": teamName,
                 "users": users,
                 "dbJson": dbJson,
@@ -76,7 +70,6 @@ export default async function (){
         } else {
             let result = await postRequest(TEAM_JOIN_URL, {
                 "uname": uname,
-                "publicKey": publicKeyContent,
                 "teamId": teamId,
                 "users": users,
                 "dbJson": dbJson,

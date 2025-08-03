@@ -1,6 +1,5 @@
-import { dialog } from 'electron';
 import log from 'electron-log';
-import { langTrans, setLang } from '../../lang/i18n';
+import { setLang } from '../../lang/i18n';
 import { getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { 
@@ -21,7 +20,6 @@ import {
     getIpV4,
     getPackageJson,
     base64Encode,
-    uuidExists,
 } from '../util/util';
 import { isStringEmpty } from '../../renderer/util';
 
@@ -29,9 +27,9 @@ export async function getInitParams() : Promise<string[]> {
     let _btime = Date.now();
     let packageJson = await getPackageJson();
     let lang = await osLocale();
-    if (process.env.NODE_ENV === 'development') {
-        lang = 'en-AU';
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //     lang = 'en-AU';
+    // }
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
     setLang(userCountry, userLang);
@@ -41,11 +39,6 @@ export async function getInitParams() : Promise<string[]> {
     if (isStringEmpty(teamServerErrorMessage)) {
         let ret = await postRequest(TEAM_QUERY_NAME, {})
         teamName = urlEncode(ret[1]);
-    }
-
-    if (!uuidExists()) {
-        dialog.showErrorBox(langTrans("lack sshkey title"), langTrans("lack sshkey content"));
-        process.exit(1);
     }
 
     let firstLauch = isFirstLauch();

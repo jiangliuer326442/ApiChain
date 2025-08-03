@@ -6,8 +6,9 @@ import os from 'os';
 import crypto from 'crypto';
 import axios from 'axios';
 import fs from 'fs-extra';
+import { machineIdSync } from 'node-machine-id';
 
-import { GLobalPort, REQUEST_METHOD_POST, REQUEST_METHOD_GET } from '../../config/global_config';
+import { REQUEST_METHOD_POST, REQUEST_METHOD_GET } from '../../config/global_config';
 
 export function getIpV4() {
   const interfacees = os.networkInterfaces();
@@ -72,20 +73,14 @@ export function md5(str : string) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
-const publicKeyPath = path.join(app.getPath("home"), '.ssh', 'id_rsa.pub');
-
-export function uuidExists() : boolean {
-    return fs.pathExistsSync(publicKeyPath);
-}
-
-let publicKeyContent = "";
-export function readPublicKey() {
-    if (publicKeyContent === "") {
-        let uuid = (fs.readFileSync(publicKeyPath)).toString();
-        publicKeyContent = uuid;
+let deviceId = "";
+export function getDeviceId() {
+    if (deviceId === "") {
+        let uuid = machineIdSync(true);
+        deviceId = uuid;
     }
 
-    return publicKeyContent;
+    return deviceId;
 }
 
 export async function doRequest(method : any, url : string, headData : any, postData : any, fileData : any, cookieMap : any) {

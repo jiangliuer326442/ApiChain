@@ -1,23 +1,15 @@
-import { app } from 'electron';
-import path from 'path';
-import fse from 'fs-extra';
+import os from 'os';
 
-import { md5, readPublicKey } from '../../util/util';
+import { md5, getDeviceId } from '../../util/util';
 
 let cache_uid = "";
 let cache_salt = "";
 let cache_uname = "";
 
-let privateKeyPath = path.join(app.getPath("home"), '.ssh', 'id_rsa');
-
-let privateKeyContent = "";
-
 export function getUuid() : string {
     if (cache_uid === "") {
-        let publicKey = readPublicKey();
-        publicKey = publicKey.split(" ")[1];
-        publicKey = md5(publicKey).substring(0, 8);
-        cache_uid = publicKey;
+        const deviceId = getDeviceId();
+        cache_uid = deviceId;
     }
 
     return cache_uid;
@@ -25,9 +17,8 @@ export function getUuid() : string {
 
 export function getUname() : string {
     if (cache_uname === "") {
-        let publicKey = readPublicKey();
-        publicKey = publicKey.split(" ")[2].replace(/\r?\n/g, '');
-        cache_uname = publicKey;
+        const username = os.userInfo().username;
+        cache_uname = username;
     }
 
     return cache_uname;
@@ -35,23 +26,9 @@ export function getUname() : string {
 
 export function getSalt() : string {
     if (cache_salt === "") {
-        let privateKey = readPrivateKey();
-        privateKey = privateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "");
-        privateKey = privateKey.replace("-----END RSA PRIVATE KEY-----", "");
-        privateKey = privateKey.replace(/\s/g, '');
-        privateKey = privateKey.replace(/\r?\n/g, '');
-        privateKey = md5(privateKey).substring(0, 16);
-        cache_salt = privateKey;
+        const deviceId = getDeviceId();
+        cache_salt = md5(deviceId).substring(0, 16);
     }
 
     return cache_salt;
-}
-
-function readPrivateKey() {
-    if (privateKeyContent === "") {
-        let salt = (fse.readFileSync(privateKeyPath)).toString();
-        privateKeyContent = salt;
-    }
-
-    return privateKeyContent;
 }

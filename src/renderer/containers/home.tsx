@@ -448,9 +448,6 @@ class Home extends Component {
                     </Card>
                   </Col>  
                 </Row>    
-              </>
-              )
-              }
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '40vh', overflow: 'hidden' }}>
                 <Flex style={{ width: '60%', height: '40px' }} justify="center" align="center">
                   <Select
@@ -495,6 +492,9 @@ class Home extends Component {
                 columns={this.state.listColumn} 
               />
               : null}
+              </>
+              )
+              }
             </Flex>
           </Content>
           <Footer style={{ textAlign: 'center' }}>

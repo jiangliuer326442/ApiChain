@@ -1,5 +1,4 @@
 {
-    "lack sshkey title": "未找到 id_rsa.pub 檔案",
     "low server version": "服務端版本 {{serverVersion}} 低於要求的最低服務端版本 {{minServerVersion}}",
     "lack sshkey content": "請透過 ssh-keygen -t RSA 指令產生該文件，用於標記您在團隊內的身分",
     "db load success": "資料庫還原成功!",
@@ -513,6 +512,9 @@
     "chatbox aimodel select": "選擇模型",
     "chatbox title": "諮詢 AI",
     "chatbox question tips": "在此輸入您的問題，Enter 發送，Shift+Enter 換行。聊天記錄僅保存在本地，不會上傳到 runner。",
+    "setting basic url label": "runner 部署區域",  
+    "setting basic url mainland": "中國大陸",  
+    "setting basic url other": "其他國家和地區",  
     "setting basic key label": "令牌",
     "setting basic key help1": "點擊這個",
     "setting basic key help2": "連結",
