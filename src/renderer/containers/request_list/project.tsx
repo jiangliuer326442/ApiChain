@@ -41,7 +41,8 @@ class RequestListProject extends Component {
             optionsTitle: [],
             folders: [],
             filterTitle: "",
-            filterUri: ""
+            filterUri: "",
+			initFlg: false,
         }
     }
 
@@ -74,7 +75,8 @@ class RequestListProject extends Component {
             this.setState({
                 folders,
                 filterTitle: "",
-                filterUri: ""
+                filterUri: "",
+				initFlg: true,
             })
             return;
         }
@@ -89,6 +91,7 @@ class RequestListProject extends Component {
             folders,
             filterTitle: title,
             filterUri: uri,
+			initFlg: true,
         })
     }
 
@@ -133,6 +136,7 @@ class RequestListProject extends Component {
                             </Form>
                         </Flex>
                         <Flex>
+							{this.state.initFlg?
                             <div style={ { width: "100%" } }>
                                 <RequestListCollapse 
                                     metadata={this.state.projectLabel}
@@ -146,6 +150,7 @@ class RequestListProject extends Component {
                                     })}
                                 />
                             </div>
+							:null}
                         </Flex>
                     </Flex>
                 </Content>

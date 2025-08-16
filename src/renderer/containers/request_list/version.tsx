@@ -296,6 +296,7 @@ class RequestListVersion extends Component {
                                         name: (this.props.prjs.length > 0 ? this.props.prjs.find(row => row.value === prj).label : "")
                                     })}</p >
                                 </Divider>
+                            {this.state.folders !== undefined && Object.keys(this.state.folders).length > 0 && prj in this.state.folders ?
                                 <RequestListCollapse 
                                     metadata={this.state.iteratorId+"$$"+prj}
                                     folders={this.state.folders[prj]} 
@@ -309,6 +310,7 @@ class RequestListVersion extends Component {
                                         uri: this.state.filterUri
                                     })}
                                 />
+                            : null}
                             </div>
                         : null)
                     ))}

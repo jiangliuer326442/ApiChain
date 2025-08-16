@@ -13,9 +13,6 @@ function buildFolders(
     metadata,
     refreshCallback,
 ) {
-    if (currentFolders === undefined) {
-        currentFolders = [];
-    }
     let items = [];
     for (let _fold of currentFolders) {
         let type = "";
@@ -75,7 +72,7 @@ class RequestListCollapse extends Component {
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
-        if (nextProps.filterTitle !== prevState.someProp || nextProps.filterUri !== prevState.filterUri) {
+        if (nextProps.filterTitle !== prevState.filterTitle || nextProps.filterUri !== prevState.filterUri) {
             let items = buildFolders(
                 nextProps.folders,
                 nextProps.allFolders,
