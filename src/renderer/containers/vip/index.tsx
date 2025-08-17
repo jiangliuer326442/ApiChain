@@ -27,7 +27,7 @@ import {
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_USER_FIELDS,
 } from '@conf/db';
-import PayModel from '@comp/topup';
+import PayModel from '@comp/topup/member';
 import TeamModel from '@comp/team';
 import { getUser } from '@act/user';
 import { langTrans } from '@lang/i18n';

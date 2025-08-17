@@ -59,7 +59,7 @@ import { addUser, getUser, setUserName as ac_setUserName, setUserCountryLangIp }
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import { sendTeamMessage } from '@act/message';
 import ChatBox from '@comp/chat_box/index'
-import PayModel from '@comp/topup';
+import PayModel from '@comp/topup/member';
 import TeamModel from '@comp/team';
 import { langFormat, langTrans } from '@lang/i18n';
 

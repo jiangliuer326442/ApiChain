@@ -1,6 +1,7 @@
 import os from 'os';
+import { sm2 } from 'sm-crypto';
 
-import { md5, getDeviceId } from '../../util/util';
+import { getDeviceId } from '../../util/util';
 
 let cache_uid = "";
 let cache_salt = "";
@@ -8,8 +9,8 @@ let cache_uname = "";
 
 export function getUuid() : string {
     if (cache_uid === "") {
-        const deviceId = getDeviceId();
-        cache_uid = deviceId;
+        const salt = getSalt();
+        cache_uid = sm2.getPublicKeyFromPrivateKey(salt);
     }
 
     return cache_uid;
@@ -27,7 +28,7 @@ export function getUname() : string {
 export function getSalt() : string {
     if (cache_salt === "") {
         const deviceId = getDeviceId();
-        cache_salt = md5(deviceId).substring(0, 16);
+        cache_salt = deviceId.replaceAll("-", "");
     }
 
     return cache_salt;

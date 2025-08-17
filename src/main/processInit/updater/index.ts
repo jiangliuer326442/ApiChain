@@ -25,7 +25,6 @@ export default function (){
         autoUpdater.on('update-available', (info) => {
             if (info !== null) {
                 autoUpdater.downloadUpdate().then(paths => {
-                    log.info("downloadUpdate paths", paths, info);
                     event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeNewVersionStr, info);
                 });
             }

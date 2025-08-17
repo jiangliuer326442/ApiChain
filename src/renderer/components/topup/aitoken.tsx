@@ -13,13 +13,12 @@ import {
     ChannelsVipDoCkCodeStr,
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
-import { isStringEmpty, getdayjs } from '@rutil/index';
-import { langFormat, langTrans } from '@lang/i18n';
+import { langTrans, langFormat } from '@lang/i18n';
+import { isStringEmpty } from '@rutil/index';
 
 const { TextArea } = Input;
 
-class PayModel extends Component {
-
+class PayAiTokenModel extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -76,6 +75,7 @@ class PayModel extends Component {
                 if (action !== ChannelsVipGenUrlStr) return;
                 listener();
                 try {
+                    console.log('qrcode url:', url);
                     const qrCodeDataURL = await qrcode.toDataURL(url);
                     this.setState({
                         showPayQrCode1: true,
@@ -108,13 +108,14 @@ class PayModel extends Component {
         let productName = this.state.productName;
         let payMethod = this.state.payMethod;
         if (isStringEmpty(productName) || isStringEmpty(payMethod)) {
-            message.error("请选择购买时长和支付方式");
+            message.error(langTrans("aitoken topup check1"));
             return;
         }
         //拿核销二维码
         let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, product, url : string) => {
             if (action !== ChannelsVipCkCodeStr) return;
             listener();
+            console.log("拿到核销码", url);
             this.props.dispatch({
                 type : SET_DEVICE_INFO,
                 showCkCode : true,
@@ -151,7 +152,7 @@ class PayModel extends Component {
     payCheck = () => {
         let ckCode = this.state.ckCode;
         if (isStringEmpty(ckCode)) {
-            message.error("请填写核销码");
+            message.error(langTrans("team topup check2"));
             return;
         }
         this.setState({lodingCkCode: true})
@@ -205,19 +206,11 @@ class PayModel extends Component {
         this.props.cb(false);
     }
 
-    render() : ReactNode {
-        let payTools = "";
-        if (this.state.payMethod === 'wxpay') {
-            payTools = langTrans("member topup equipment e1");
-        } else if (this.state.payMethod === 'alipay') {
-            payTools = langTrans("member topup equipment e2");
-        } else if (this.state.payMethod === 'dollerpay') {
-            payTools = langTrans("member topup equipment e3");
-        }
+    render(): ReactNode {
         return (
             <>
                 <Modal
-                    title={langTrans("member topup title")}
+                    title={langTrans("aitoken topup title")}
                     open={this.props.showPay}
                     onOk={this.payDone}
                     onCancel={this.canelPay}
@@ -233,20 +226,16 @@ class PayModel extends Component {
                 >
                     <Flex gap="small" vertical>
                         <Form>
-                            <Form.Item label={langTrans("member topup time")}>
+                            <Form.Item label={langTrans("aitoken topup tokens")}>
                                 {
                                 this.props.userCountry === 'CN' ? 
                                 <Radio.Group onChange={this.setProductName} value={this.state.productName}>
-                                    <Radio value={this.props.buyTimes === 0 ? "product12" : (this.props.buyTimes === 1 ? "product13" : "product9") } >{langTrans("member topup time t1")}</Radio>
-                                    <Radio value="product10">{langTrans("member topup time t2")}</Radio>
-                                    <Radio value="product11">{langTrans("member topup time t3")}</Radio>
+                                    <Radio value="token1">{langTrans("aitoken topup tokens t1")}</Radio>
+                                    <Radio value="token2">{langTrans("aitoken topup tokens t2")}</Radio>
+                                    <Radio value="token3">{langTrans("aitoken topup tokens t3")}</Radio>
                                 </Radio.Group>
                                 : 
-                                <Radio.Group onChange={this.setProductName} value={this.state.productName}>
-                                    <Radio value="product9">{langTrans("member topup time t1")}</Radio>
-                                    <Radio value="product10">{langTrans("member topup time t2")}</Radio>
-                                    <Radio value="product11">{langTrans("member topup time t3")}</Radio>
-                                </Radio.Group>
+                                null
                                 }
                             </Form.Item>
                             <Form.Item label={langTrans("member topup paymethod")}>
@@ -254,12 +243,9 @@ class PayModel extends Component {
                                 this.props.userCountry === 'CN' ? 
                                 <Radio.Group onChange={this.setPayMethod} value={this.state.payMethod}>
                                     <Radio value="wxpay">{langTrans("member topup paymethod p1")}</Radio>
-                                    <Radio value="alipay">{langTrans("member topup paymethod p2")}</Radio>
                                 </Radio.Group>
                                 : 
-                                <Radio.Group onChange={this.setPayMethod} value={this.state.payMethod}>
-                                    <Radio value="dollerpay">{langTrans("member topup paymethod p3")}</Radio>
-                                </Radio.Group>
+                                null
                                 }
                             </Form.Item>
                         </Form>
@@ -268,7 +254,7 @@ class PayModel extends Component {
                             <p>{langFormat("member topup paycontent", {
                                 "money": this.state.money,
                                 "unit": this.state.payMethod === 'dollerpay' ? '$' : '￥',
-                                "equipment": payTools
+                                "equipment": langTrans("member topup equipment e3")
                             })}</p>
                             <img src={ this.state.qrcode } />
                         </>
@@ -311,15 +297,14 @@ class PayModel extends Component {
                     </Flex>
                 </Modal>
             </>
-        )
+        );
     }
 }
 
 function mapStateToProps (state) {
     return {
-        buyTimes: state.device.buyTimes,
         userCountry: state.device.userCountry,
     }
   }
   
-export default connect(mapStateToProps)(PayModel);
+export default connect(mapStateToProps)(PayAiTokenModel);

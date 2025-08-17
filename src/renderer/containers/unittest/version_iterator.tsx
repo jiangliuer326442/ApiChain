@@ -46,7 +46,7 @@ import {
 import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { getOpenVersionIterators } from '@act/version_iterator';
 import { buildUnitTestStepFromRequest } from '@act/unittest_step';
-import PayModel from '@comp/topup';
+import PayModel from '@comp/topup/member';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
 import { langTrans } from '@lang/i18n';

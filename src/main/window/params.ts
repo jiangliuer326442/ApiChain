@@ -46,9 +46,7 @@ export async function getInitParams() : Promise<string[]> {
         giftVip(3);
     }
 
-    let result = await doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
-    log.info("getInitParams finished, cost time: " + (Date.now() - _btime));
-    return result;
+    return await doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
 }
 
 async function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {

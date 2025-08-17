@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import log from 'electron-log';
 
 import { 
     ChannelsVipStr, 
@@ -18,9 +19,9 @@ import {
     incBuyTimes, 
     clearVipCacheFlg,
     genCheckCodeUrl,
+    getCheckCodeUrl,
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
-import { getPackageJson } from '../../util/util';
 
 export default function (){
 
@@ -28,7 +29,15 @@ export default function (){
 
         if (action !== ChannelsVipGenUrlStr) return;
 
-        if (productName !== "product9" && productName !== "product10" && productName !== "product11" && productName !== "product12" && productName !== "product13") {
+        if (
+            productName !== "product9" && 
+            productName !== "product10" && 
+            productName !== "product11" && 
+            productName !== "product12" && 
+            productName !== "product13" &&
+            productName !== "token1" && 
+            productName !== "token2"
+        ) {
             return ;
         }
         if (payMethod !== "alipay" && payMethod !== "wxpay" && payMethod !== "dollerpay") {
@@ -55,6 +64,12 @@ export default function (){
                 money = "1";
             } else if (productName === "product13") {
                 money = "5";
+            } else if (productName === "token1") {
+                money = "10";
+            } else if (productName === "token2") {
+                money = "50";
+            } else if (productName === "token3") {
+                money = "100";
             }
         }
 
@@ -66,13 +81,11 @@ export default function (){
 
         if (action !== ChannelsVipCkCodeStr) return;
 
-        let packageJson = await getPackageJson();
-
         let url = "";
         //拿订单号
         let tradeNo = getOutTradeNo();
         if (!isStringEmpty(tradeNo)) {
-            url = packageJson.payQueryUrl + tradeNo;
+            url = await getCheckCodeUrl();
         }
         let product = getLatestProduct();
 

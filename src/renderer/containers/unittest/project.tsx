@@ -39,7 +39,7 @@ import {
   continueProjectExecuteUnitTest,
   copyFromProjectToIterator,
 } from '@act/unittest';
-import PayModel from '@comp/topup';
+import PayModel from '@comp/topup/member';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 

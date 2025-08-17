@@ -2,7 +2,7 @@ import { BrowserWindow } from 'electron';
 import MarkdownInitFunc from './markdown';
 import PostManInitFunc from './postman';
 import UpdaterInitFunc from './updater';
-import VipInitFunc from './vip';
+import TopupInitFunc from './topup';
 import TeamInitFunc from './team';
 import MockServerInitFunc from './mockserver';
 import NetworkSendInitFunc from './network';
@@ -15,7 +15,7 @@ export default function (mainWindow : BrowserWindow){
     MarkdownInitFunc(mainWindow);
     PostManInitFunc();
     UpdaterInitFunc();
-    VipInitFunc();
+    TopupInitFunc();
     TeamInitFunc();
     MockServerInitFunc(mainWindow);
     NetworkSendInitFunc();

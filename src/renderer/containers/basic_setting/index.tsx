@@ -14,6 +14,7 @@ import {
     CLIENT_TYPE_TEAM 
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
+import PayAiTokenModel from '@comp/topup/aitoken';
 
 const { Header, Content, Footer } = Layout;
 const { Link } = Typography;
@@ -29,6 +30,7 @@ class BasicSetting extends Component {
             checkAutoUpgrade,
             baseUrl: "",
             apiKey: "",
+            showPay: false,
         }
     }
 
@@ -78,6 +80,10 @@ class BasicSetting extends Component {
                     <Flex justify="space-between" align="center">
                         <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting basic") }]} />
                     </Flex>
+                    <PayAiTokenModel 
+                        showPay={this.state.showPay} 
+                        cb={showPay => this.setState({showPay})} 
+                        />
                 {this.state.loaded ? 
                     <Form
                         labelCol={{ span: 10 }}
@@ -102,7 +108,7 @@ class BasicSetting extends Component {
                             help={
                                 <span>
                                     {langTrans("setting basic key help1")}
-                                    <Link href="https://yunwu.ai/register?aff=O2S5" target="_blank" rel="noopener noreferrer">
+                                    <Link onClick={() => this.setState({showPay: true})}>
                                     {langTrans("setting basic key help2")}
                                     </Link>
                                     {langTrans("setting basic key help3")}

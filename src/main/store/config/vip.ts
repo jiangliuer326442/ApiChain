@@ -1,8 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
+import { sm2 } from 'sm-crypto';
+import log from 'electron-log';
+import crypto from 'crypto';
 
 import getCache from './index';
-import { getUuid } from './user';
-import { base64Decode, base64Encode, getPackageJson } from '../../util/util'
+import { getUuid, getSalt } from './user';
+import { base64Encode, getPackageJson } from '../../util/util'
 import { isStringEmpty } from '../../../renderer/util';
 
 export const TABLE_NAME = "vip.status";
@@ -101,23 +104,18 @@ export function setExpireTime(expireTime : number) {
 }
 
 export function genDecryptString(base64Str : string) : string {
-    let line = base64Decode(base64Str);
+    const key = crypto.createHash('md5').update(getUuid()).digest('hex').substring(0, 16);
+    const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from(key), null);
+    let decrypted = decipher.update(base64Str, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+    let line = decrypted;
     if (isStringEmpty(line)) {
         return "";
     }
     let lineArr = line.split(":");
     let productName = lineArr[0];
     let productDays = lineArr[1];
-    let timestamp = lineArr[2];
-    let payMethod = lineArr[3];
     let orderNo = lineArr[4];
-    let uid = lineArr[5];
-
-    let myUid = getUuid();
-
-    if (uid !== myUid) {
-        return "";
-    }
 
     let cache = getCache("");
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
@@ -144,7 +142,15 @@ export async function getCheckCodeUrl() {
     let cache = getCache("");
     let packageJson = await getPackageJson();
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
-    let url = packageJson.payQueryUrl + myOrderNo;
+    const plaintext = myOrderNo;
+    const privateKey = getSalt();
+    const publicKey = getUuid();
+    const signature = sm2.doSignature(plaintext, privateKey, {
+        hash: true,
+        der: false  
+    });
+    const data = base64Encode(plaintext + "&" + publicKey + "&" + signature)
+    let url = packageJson.payQueryUrl + data;
     return url;
 }
 
@@ -160,11 +166,14 @@ export async function genCheckCodeUrl(productName : string, payMethod : string) 
 }
 
 async function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : string {
-    let param = getUuid();
+    const privateKey = getSalt();
+    const publicKey = getUuid();
+    const plaintext = productName + ":" + payMethod + ":" + outTradeNo;
+    const signature = sm2.doSignature(plaintext, privateKey, {
+        hash: true,
+        der: false  
+    });
+    const data = base64Encode(plaintext + "&" + publicKey + "&" + signature)
     let packageJson = await getPackageJson();
-
-    let encryptString = productName + ":" + payMethod + ":" + outTradeNo + ":" + param;
-    let data = base64Encode(encryptString)
-    let url = packageJson.payJumpUrl + data;
-    return url;
+    return packageJson.payJumpUrl + data;
 }
