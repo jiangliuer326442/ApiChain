@@ -157,21 +157,13 @@ class PayAiTokenModel extends Component {
         }
         this.setState({lodingCkCode: true})
         //进行核销操作
-        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, result, myuid, expireTime : number, buyTimes) => {
+        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, result, myuid, apiKey, orderNo) => {
             if (action !== ChannelsVipDoCkCodeStr) return;
             listener();
             if (!result) {
                 message.error(langTrans("member checkout error"));
                 return;
             }
-            this.props.dispatch({
-                type: SET_DEVICE_INFO,
-                vipFlg: true, 
-                uuid: myuid,
-                expireTime,
-                buyTimes,
-                showCkCode : false,
-            });
             this.setState({
                 showPayWriteOff: false,
                 showPayQrCode1: false,
@@ -184,7 +176,8 @@ class PayAiTokenModel extends Component {
                 ckCode: "",
                 lodingCkCode: false,
             });
-            message.success(langFormat("member checkout success", {"date": getdayjs(expireTime).format("YYYY-MM-DD")}));
+            message.success(langFormat("aitoken checkout success", {"orderNo": orderNo, "token": apiKey}));
+            this.props.refresh();
         });
         //发消息进行核销
         window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipDoCkCodeStr, ckCode);

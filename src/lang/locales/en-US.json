@@ -65,6 +65,7 @@
     "aitoken topup tokens t3": "85 million",
     "aitoken topup check1": "Please select the number of tokens to purchase and payment method",
     "aitoken topup check2": "please fill in api token",
+    "aitoken checkout success": "Checkout successful, dear member, your order number {{orderNo}} AI chat token is: {{token}}",
     "env title": "Development Environment Configuration",
     "env bread1": "Settings",
     "env bread2": "Development Environment",

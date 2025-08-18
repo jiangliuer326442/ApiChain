@@ -65,6 +65,7 @@
     "aitoken topup tokens t3": "8500萬",
     "aitoken topup check1": "請選擇需要購買的token數和支付方式",
     "aitoken topup check2": "請填寫api token",
+    "aitoken checkout success": "核銷成功，尊敬的會員，您的訂單號{{orderNo}} 的AI聊天token為：{{token}}",
     "env title": "開發環境配置",
     "env bread1": "設置",
     "env bread2": "開發環境",

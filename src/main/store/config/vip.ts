@@ -103,32 +103,42 @@ export function setExpireTime(expireTime : number) {
     cache.set(VIP_END_TIME, expireTime);
 }
 
-export function genDecryptString(base64Str : string) : string {
+export function genDecryptString(base64Str : string) {
     const key = crypto.createHash('md5').update(getUuid()).digest('hex').substring(0, 16);
     const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from(key), null);
     let decrypted = decipher.update(base64Str, 'base64', 'utf8');
     decrypted += decipher.final('utf8');
     let line = decrypted;
     if (isStringEmpty(line)) {
-        return "";
+        return ["", "", ""];
     }
     let lineArr = line.split(":");
     let productName = lineArr[0];
-    let productDays = lineArr[1];
+    let returnType = "";
+    let returnContent = "";
+    if (productName.indexOf("product") >= 0) {
+        let productDays = lineArr[1];
+        returnType = "member";
+        returnContent = productDays;
+    } else if (productName.indexOf("token") >= 0) {
+        let apiKey = lineArr[1];
+        returnType = "chat_token";
+        returnContent = apiKey;
+    }
     let orderNo = lineArr[4];
 
     let cache = getCache("");
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
     let myProductName = cache.get(VIP_LATEST_PRODUCT);
     if (myProductName !== productName) {
-        return "";
+        return ["", "", ""];
     }
     if (myOrderNo !== orderNo) {
-        return "";
+        return ["", "", ""];
     }
     clearVipCacheFlg();
 
-    return productDays;
+    return [returnType, returnContent, orderNo];
 }
 
 export function clearVipCacheFlg() {

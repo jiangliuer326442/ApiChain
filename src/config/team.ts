@@ -170,4 +170,6 @@ export const REQUEST_COMMON_GET_URL = "/request_common/get";
 
 export const OS_ENV_VALUE_SET_URL = "/os_env_value/set";
 
+export const OS_AI_TOKEN_SET_URL = "/os_env_value/setOpenApi";
+
 export const OS_ENV_VALUE_GET_URL = "/os_env_value/get";

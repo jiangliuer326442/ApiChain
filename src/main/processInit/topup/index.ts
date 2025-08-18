@@ -8,6 +8,9 @@ import {
     ChannelsVipDoCkCodeStr,
     ChannelsVipCloseCkCodeStr,
 } from '../../../config/channel';
+import { 
+    OS_AI_TOKEN_SET_URL, 
+} from '../../../config/team';
 import { getUuid } from '../../store/config/user';
 import {
     getOutTradeNo, 
@@ -22,6 +25,9 @@ import {
     getCheckCodeUrl,
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
+import { 
+    postRequest
+} from '../../util/teamUtil'
 
 export default function (){
 
@@ -36,7 +42,8 @@ export default function (){
             productName !== "product12" && 
             productName !== "product13" &&
             productName !== "token1" && 
-            productName !== "token2"
+            productName !== "token2" && 
+            productName !== "token3"
         ) {
             return ;
         }
@@ -98,30 +105,42 @@ export default function (){
         clearVipCacheFlg();
     });
 
-    ipcMain.on(ChannelsVipStr, (event, action, ckCode) => {
+    ipcMain.on(ChannelsVipStr, async (event, action, ckCode) => {
         if (action !== ChannelsVipDoCkCodeStr) return;
 
-        let days = genDecryptString(ckCode);
-        if (isStringEmpty(days)) {
-            //核销失败
-            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, false);
-            return;
+        let ret = genDecryptString(ckCode);
+        if (ret[0] == "member") {
+            let days = ret[1];
+            if (isStringEmpty(days)) {
+                //核销失败
+                event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, false);
+                return;
+            }
+            let expireTime = 0;
+            if (isVip()) {
+                expireTime = getExpireTime();
+                expireTime += 86400 * 1000 * Number(days);
+            } else {
+                expireTime = Date.now() + 86400 * 1000 * Number(days);
+            }
+    
+            //设置会员过期时间
+            setExpireTime(expireTime);
+            //累计购买次数
+            let buyTimes = incBuyTimes();
+    
+            //核销成功
+            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), expireTime, buyTimes);
+        } else if (ret[0] == "chat_token") {
+            let apiKey = ret[1];
+            let orderNo = ret[2];
+            await postRequest(OS_AI_TOKEN_SET_URL, {
+                token: apiKey,
+                orderNo,
+            })
+            //核销成功
+            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), apiKey, orderNo);
         }
-        let expireTime = 0;
-        if (isVip()) {
-            expireTime = getExpireTime();
-            expireTime += 86400 * 1000 * Number(days);
-        } else {
-            expireTime = Date.now() + 86400 * 1000 * Number(days);
-        }
-
-        //设置会员过期时间
-        setExpireTime(expireTime);
-        //累计购买次数
-        let buyTimes = incBuyTimes();
-
-        //核销成功
-        event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), expireTime, buyTimes);
 
     });
 }

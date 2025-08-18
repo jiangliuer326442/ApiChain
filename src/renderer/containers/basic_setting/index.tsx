@@ -8,7 +8,7 @@ import {
   ChannelsAutoUpgradeCheckStr, 
 } from '@conf/channel';
 import { IS_AUTO_UPGRADE } from '@conf/storage';
-import { 
+import {
     OS_ENV_VALUE_SET_URL,
     OS_ENV_VALUE_GET_URL,
     CLIENT_TYPE_TEAM 
@@ -50,15 +50,6 @@ class BasicSetting extends Component {
 
     checkForUpgrade = () => {
         window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
-    } 
-
-    setApiKey = async (e) => { 
-        await sendTeamMessage(OS_ENV_VALUE_SET_URL, {
-            key: "OPENAI_API_KEY",
-            value: e.target.value
-        });
-        this.setState({apiKey : e.target.value});
-        message.success(langTrans("prj unittest status2"))
     }
 
     setBaseUrl = async (baseUrl) => { 
@@ -83,6 +74,12 @@ class BasicSetting extends Component {
                     <PayAiTokenModel 
                         showPay={this.state.showPay} 
                         cb={showPay => this.setState({showPay})} 
+                        refresh={async () => {
+                            let ret1 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_API_KEY"});
+                            this.setState({
+                                apiKey: ret1 ? ret1 : "", 
+                            })
+                        }}
                         />
                 {this.state.loaded ? 
                     <Form
@@ -116,10 +113,10 @@ class BasicSetting extends Component {
                             }
                         >
                             <Input.Password
+                                readOnly
                                 size='large'
                                 allowClear
                                 value={this.state.apiKey}
-                                onChange={this.setApiKey}
                                 placeholder={langTrans("setting basic key placeholder")} 
                             />
                         </Form.Item>
