@@ -13,7 +13,7 @@ import {
 } from '../../../config/team';
 import { getUuid } from '../../store/config/user';
 import {
-    getOutTradeNo, 
+    getOutTradeNo,
     isVip, 
     setExpireTime, 
     getExpireTime, 
@@ -128,18 +128,24 @@ export default function (){
             setExpireTime(expireTime);
             //累计购买次数
             let buyTimes = incBuyTimes();
+
+            clearVipCacheFlg();
     
             //核销成功
             event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), expireTime, buyTimes);
         } else if (ret[0] == "chat_token") {
             let apiKey = ret[1];
             let orderNo = ret[2];
-            await postRequest(OS_AI_TOKEN_SET_URL, {
+            let setApiResult = await postRequest(OS_AI_TOKEN_SET_URL, {
                 token: apiKey,
                 orderNo,
             })
-            //核销成功
-            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), apiKey, orderNo);
+            let errorMessage = setApiResult[0];
+            if (isStringEmpty(errorMessage)) {
+                clearVipCacheFlg();
+                //核销成功
+                event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), apiKey, orderNo);
+            }
         }
 
     });

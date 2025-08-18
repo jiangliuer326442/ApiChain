@@ -97,6 +97,7 @@ class MyRouter extends Component {
             uuid : uuid,
             vipFlg : argsObject.vipFlg === "true" ? true : false, 
             showCkCode : argsObject.showCkCode === "true" ? true : false, 
+            ckCodeType : argsObject.ckCodeType,
             ckCodeUrl : argsObject.ckCodeUrl,
             expireTime : parseInt(argsObject.expireTime),
             buyTimes : parseInt(argsObject.buyTimes),

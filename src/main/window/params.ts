@@ -41,21 +41,21 @@ export async function getInitParams() : Promise<string[]> {
         teamName = urlEncode(ret[1]);
     }
 
+    let showCkCodeRet = await isShowCkcode();
+
     let firstLauch = isFirstLauch();
     if (firstLauch) {
         giftVip(3);
     }
 
-    return await doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
+    return doGetInitParams(packageJson, showCkCodeRet, userLang, userCountry, teamName, firstLauch);
 }
 
-async function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
+function doGetInitParams(packageJson : any, showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
     let vipFlg = isVip();
-    let showCkCode = isShowCkcode();
-    let ckCodeUrl = "";
     let expireTime = getExpireTime();
     let buyTimes = getBuyTimes();
     let appVersion = packageJson.version;
@@ -71,17 +71,15 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
     if (isStringEmpty(teamName)) {
         clientType = CLIENT_TYPE_SINGLE;
     }
-    if (showCkCode) {
-        ckCodeUrl = await getCheckCodeUrl();
-    }
-
+    
     return [
         "$$" + base64Encode("uuid=" + uuid),
         "$$" + base64Encode("uname=" + uname),
         "$$" + base64Encode("ip=" + ip),
         "$$" + base64Encode("vipFlg=" + vipFlg),
-        "$$" + base64Encode("showCkCode=" + showCkCode),
-        "$$" + base64Encode("ckCodeUrl=" + ckCodeUrl),
+        "$$" + base64Encode("showCkCode=" + showCkCodeRet[0]),
+        "$$" + base64Encode("ckCodeType=" + showCkCodeRet[1]),
+        "$$" + base64Encode("ckCodeUrl=" + showCkCodeRet[2]),
         "$$" + base64Encode("expireTime=" + expireTime),
         "$$" + base64Encode("buyTimes=" + buyTimes),
         "$$" + base64Encode("appVersion=" + appVersion),

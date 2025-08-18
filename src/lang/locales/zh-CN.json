@@ -68,6 +68,7 @@
     "aitoken topup check1": "请选择需要购买的token数和支付方式",
     "aitoken topup check2": "请填写api token",
     "aitoken checkout success": "核销成功，尊敬的会员，您的订单号{{orderNo}} 的AI聊天token为：{{token}}",
+    "aitoken checkout tips": "你有一笔待核销的AI聊天token购买记录，点击此处进行核销",
     "env title": "开发环境配置",
     "env bread1": "设置",
     "env bread2": "开发环境",

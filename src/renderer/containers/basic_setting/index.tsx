@@ -1,11 +1,13 @@
-import { Button, Form, Input, Checkbox, Typography, Space, Breadcrumb, Flex, Layout, message, Select } from 'antd';
+import { Alert, Button, Form, Input, Checkbox, Typography, Space, Breadcrumb, Flex, Layout, message, Select } from 'antd';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 
 import { langTrans } from '@lang/i18n';
 import {
-  ChannelsAutoUpgradeStr, 
-  ChannelsAutoUpgradeCheckStr, 
+    ChannelsAutoUpgradeStr, 
+    ChannelsAutoUpgradeCheckStr, 
+    ChannelsVipStr,
+    ChannelsVipCloseCkCodeStr,
 } from '@conf/channel';
 import { IS_AUTO_UPGRADE } from '@conf/storage';
 import {
@@ -13,6 +15,7 @@ import {
     OS_ENV_VALUE_GET_URL,
     CLIENT_TYPE_TEAM 
 } from '@conf/team';
+import { SET_DEVICE_INFO } from '@conf/redux';
 import { sendTeamMessage } from '@act/message';
 import PayAiTokenModel from '@comp/topup/aitoken';
 
@@ -31,6 +34,8 @@ class BasicSetting extends Component {
             baseUrl: "",
             apiKey: "",
             showPay: false,
+            closeShowPay: false,
+            showPayWriteOff: false,
         }
     }
 
@@ -61,6 +66,21 @@ class BasicSetting extends Component {
         message.success(langTrans("prj unittest status2"))
     }
 
+    showCkCode = (e) => {
+        if (!this.state.closeShowPay) {
+            this.setState({showPayWriteOff: true})
+        }
+    }
+
+    closeShowPay = (e) => {
+        window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCloseCkCodeStr);
+        this.props.dispatch({
+            type: SET_DEVICE_INFO,
+            showCkCode : false,
+        });
+        this.state.closeShowPay = true;
+    }
+
     render(): ReactNode {
         return (
             <Layout>
@@ -71,9 +91,20 @@ class BasicSetting extends Component {
                     <Flex justify="space-between" align="center">
                         <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting basic") }]} />
                     </Flex>
+                    {this.props.showCkCode && this.props.ckCodeType === "chat_token" ? <Alert 
+                        style={{ marginBottom: 16 }}
+                        message={langTrans("aitoken checkout tips")}
+                        type="warning" 
+                        closable 
+                        onClose={this.closeShowPay} 
+                        onClick={this.showCkCode}
+                    /> : null}
+
                     <PayAiTokenModel 
                         showPay={this.state.showPay} 
-                        cb={showPay => this.setState({showPay})} 
+                        ckCodeUrl={this.props.ckCodeUrl}
+                        showPayWriteOff={this.state.showPayWriteOff} 
+                        cb={showPay => this.setState({showPay, showPayWriteOff: showPay})} 
                         refresh={async () => {
                             let ret1 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_API_KEY"});
                             this.setState({
@@ -158,8 +189,12 @@ class BasicSetting extends Component {
 }
 
 function mapStateToProps (state) {
+    console.log("ckCodeUrl", state.device.ckCodeUrl)
     return {
-      clientType: state.device.clientType,
+        clientType: state.device.clientType,
+        showCkCode: state.device.showCkCode,
+        ckCodeType: state.device.ckCodeType,
+        ckCodeUrl: state.device.ckCodeUrl,
     }
 }
 

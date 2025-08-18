@@ -52,11 +52,21 @@ export function getLatestPayMethod() : string {
     return latestPayMethod;
 }
 
-export function isShowCkcode() {
+export async function isShowCkcode() {
     let cache = getCache("");
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
-    let myProductName = cache.get(VIP_LATEST_PRODUCT);
-    return !isStringEmpty(myOrderNo) && !isStringEmpty(myProductName);
+    let myProductName = cache.get(VIP_LATEST_PRODUCT)!;
+    if (!isStringEmpty(myOrderNo) && !isStringEmpty(myProductName)) {
+        let returnType = null;
+        if (myProductName.indexOf("product") >= 0) {
+            returnType = "member";
+        } else if (myProductName.indexOf("token") >= 0) {
+            returnType = "chat_token";
+        }
+        let url = await innerGetCheckCodeUrl(myOrderNo);
+        return [true, returnType, url];
+    }
+    return [false, null, ""];
 }
 
 export function isVip() {
@@ -136,7 +146,6 @@ export function genDecryptString(base64Str : string) {
     if (myOrderNo !== orderNo) {
         return ["", "", ""];
     }
-    clearVipCacheFlg();
 
     return [returnType, returnContent, orderNo];
 }
@@ -150,18 +159,8 @@ export function clearVipCacheFlg() {
 
 export async function getCheckCodeUrl() {
     let cache = getCache("");
-    let packageJson = await getPackageJson();
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
-    const plaintext = myOrderNo;
-    const privateKey = getSalt();
-    const publicKey = getUuid();
-    const signature = sm2.doSignature(plaintext, privateKey, {
-        hash: true,
-        der: false  
-    });
-    const data = base64Encode(plaintext + "&" + publicKey + "&" + signature)
-    let url = packageJson.payQueryUrl + data;
-    return url;
+    return await innerGetCheckCodeUrl(myOrderNo);
 }
 
 export async function genCheckCodeUrl(productName : string, payMethod : string) {
@@ -186,4 +185,18 @@ async function genEncryptString(outTradeNo : string, productName : string, payMe
     const data = base64Encode(plaintext + "&" + publicKey + "&" + signature)
     let packageJson = await getPackageJson();
     return packageJson.payJumpUrl + data;
+}
+
+async function innerGetCheckCodeUrl(myOrderNo : string) {
+    let packageJson = await getPackageJson();
+    const plaintext = myOrderNo;
+    const privateKey = getSalt();
+    const publicKey = getUuid();
+    const signature = sm2.doSignature(plaintext, privateKey, {
+        hash: true,
+        der: false  
+    });
+    const data = base64Encode(plaintext + "&" + publicKey + "&" + signature)
+    let url = packageJson.payQueryUrl + data;
+    return url;
 }
