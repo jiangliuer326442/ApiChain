@@ -75,7 +75,6 @@ class PayAiTokenModel extends Component {
                 if (action !== ChannelsVipGenUrlStr) return;
                 listener();
                 try {
-                    console.log('qrcode url:', url);
                     const qrCodeDataURL = await qrcode.toDataURL(url);
                     this.setState({
                         showPayQrCode1: true,
@@ -115,7 +114,6 @@ class PayAiTokenModel extends Component {
         let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, product, url : string) => {
             if (action !== ChannelsVipCkCodeStr) return;
             listener();
-            console.log("拿到核销码", url);
             this.props.dispatch({
                 type : SET_DEVICE_INFO,
                 showCkCode : true,
