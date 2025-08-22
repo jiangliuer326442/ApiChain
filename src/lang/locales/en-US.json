@@ -66,7 +66,6 @@
     "aitoken topup check1": "Please select the number of tokens to purchase and payment method",
     "aitoken topup check2": "please fill in api token",
     "aitoken checkout success": "Checkout successful, dear member, your order number {{orderNo}} AI chat token is: {{token}}",
-    "aitoken checkout tips": "You have an AI chat token purchase history that needs to be written off, click here to cancel it",
     "env title": "Development Environment Configuration",
     "env bread1": "Settings",
     "env bread2": "Development Environment",
@@ -531,6 +530,14 @@
     "setting basic key help2": "this link",
     "setting basic key help3": " get-token",
     "setting basic key placeholder": "Please enter your API key",
+    "setting basic table index1": "Order",
+    "setting basic table index2": "Total Quantity",
+    "setting basic table index3": "Remaining",
+    "setting basic table index4": "Order Placer",
+    "setting basic table index5": "Purchase Time",
+    "setting basic table index6": "Action",
+    "setting basic table index7": "Effective",
+    "setting basic table title": "Token Management",
     "welcome": "Hello, ApiChain is here to spend a brand new day with you.",
     "greeting": "Hello, {{name}}!"
 }

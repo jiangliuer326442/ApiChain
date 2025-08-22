@@ -164,11 +164,6 @@ class PayAiTokenModel extends Component {
                 message.error(langTrans("member checkout error"));
                 return;
             }
-            this.props.dispatch({
-                type: SET_DEVICE_INFO,
-                uuid: myuid,
-                showCkCode : false,
-            });
             this.setState({
                 showPayWriteOff: false,
                 showPayQrCode1: false,

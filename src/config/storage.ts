@@ -18,8 +18,6 @@ export const VIP_FLG = "device.vip.flg";
 
 export const CKCODE_FLG = "device.ckcode.flg";
 
-export const CKCODE_TYPE = "device.ckcode.type";
-
 export const CKCODE_URL = "device.ckcode.url";
 
 export const CLIENT_TYPE = "team.client.type";

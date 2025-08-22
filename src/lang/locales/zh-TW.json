@@ -66,7 +66,6 @@
     "aitoken topup check1": "請選擇需要購買的token數和支付方式",
     "aitoken topup check2": "請填寫api token",
     "aitoken checkout success": "核銷成功，尊敬的會員，您的訂單號{{orderNo}} 的AI聊天token為：{{token}}",
-    "aitoken checkout tips": "你有一筆待核銷的ai聊天token購買記錄，點擊此處進行核銷",
     "env title": "開發環境配置",
     "env bread1": "設置",
     "env bread2": "開發環境",
@@ -531,6 +530,14 @@
     "setting basic key help2": "連結",
     "setting basic key help3": "獲取令牌",
     "setting basic key placeholder": "請輸入您的API密鑰",
+    "setting basic table index1": "訂單",
+    "setting basic table index2": "總量",
+    "setting basic table index3": "剩餘",
+    "setting basic table index4": "下單人",
+    "setting basic table index5": "購買時間",
+    "setting basic table index6": "操作",
+    "setting basic table index7": "生效",
+    "setting basic table title": "令牌管理",
     "welcome": "你好，ApiChain 陪你度過嶄新的一天。",
     "greeting": "你好，{{name}}！"
 }

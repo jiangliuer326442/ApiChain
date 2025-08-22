@@ -41,21 +41,20 @@ export async function getInitParams() : Promise<string[]> {
         teamName = urlEncode(ret[1]);
     }
 
-    let showCkCodeRet = await isShowCkcode();
-
     let firstLauch = isFirstLauch();
     if (firstLauch) {
         giftVip(3);
     }
 
-    return doGetInitParams(packageJson, showCkCodeRet, userLang, userCountry, teamName, firstLauch);
+    return await doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
 }
 
-function doGetInitParams(packageJson : any, showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
+async function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
     let vipFlg = isVip();
+    let ckCodeUrl = "";
     let expireTime = getExpireTime();
     let buyTimes = getBuyTimes();
     let appVersion = packageJson.version;
@@ -71,7 +70,8 @@ function doGetInitParams(packageJson : any, showCkCodeRet : any, userLang : stri
     if (isStringEmpty(teamName)) {
         clientType = CLIENT_TYPE_SINGLE;
     }
-    
+    let showCkCodeRet = isShowCkcode();
+
     return [
         "$$" + base64Encode("uuid=" + uuid),
         "$$" + base64Encode("uname=" + uname),

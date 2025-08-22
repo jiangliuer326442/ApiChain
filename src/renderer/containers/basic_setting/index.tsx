@@ -1,26 +1,43 @@
-import { Alert, Button, Form, Input, Checkbox, Typography, Space, Breadcrumb, Flex, Layout, message, Select } from 'antd';
+import { 
+    Button, 
+    Form, 
+    Input, 
+    Checkbox, 
+    Divider, 
+    Table,
+    Typography, 
+    Space, 
+    Breadcrumb, 
+    Flex, 
+    Layout, 
+    message, 
+    Select 
+} from 'antd';
+import { ReloadOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 
 import { langTrans } from '@lang/i18n';
 import {
-    ChannelsAutoUpgradeStr, 
-    ChannelsAutoUpgradeCheckStr, 
-    ChannelsVipStr,
-    ChannelsVipCloseCkCodeStr,
+  ChannelsAutoUpgradeStr, 
+  ChannelsAutoUpgradeCheckStr, 
 } from '@conf/channel';
 import { IS_AUTO_UPGRADE } from '@conf/storage';
 import {
-    OS_ENV_VALUE_SET_URL,
-    OS_ENV_VALUE_GET_URL,
     CLIENT_TYPE_TEAM 
 } from '@conf/team';
-import { SET_DEVICE_INFO } from '@conf/redux';
-import { sendTeamMessage } from '@act/message';
+import { getdayjs } from '@rutil/index';
+import { 
+    getTokens, 
+    setBaseUrl, 
+    getTeamSetting,
+    enableToken,
+    queryRemainGas
+} from '@act/team';
 import PayAiTokenModel from '@comp/topup/aitoken';
 
 const { Header, Content, Footer } = Layout;
-const { Link } = Typography;
+const { Link, Text } = Typography;
 
 class BasicSetting extends Component {
 
@@ -34,18 +51,75 @@ class BasicSetting extends Component {
             baseUrl: "",
             apiKey: "",
             showPay: false,
-            closeShowPay: false,
-            showPayWriteOff: false,
+            columns: [{
+                title: langTrans("setting basic table index1"),
+                dataIndex: "token_name",
+                render: (tokenName, record) => {
+                    return (
+                    <Space>
+                        {record["token_content"] == this.state.apiKey ? 
+                        <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                        : null}
+                        <Text>{tokenName}</Text>
+                    </Space>
+                    )
+                }
+            },{
+                title: langTrans("setting basic table index2"),
+                dataIndex: "total_gas",
+            },{
+                title: langTrans("setting basic table index3"),
+                dataIndex: "remain_gas",
+                render: (remainGas, record) => {
+                    return <Button 
+                        type="link" 
+                        icon={<ReloadOutlined style={{ fontSize: '16px', color: '#1890ff' }} />}
+                        onClick={async () => {
+                            let tokenName = record["token_name"];
+                            await queryRemainGas(tokenName).then(async () => this.setState({tokens: await getTokens()}))
+                        }}
+                        >
+                    {remainGas}
+                  </Button>;
+                },
+            },{
+                title: langTrans("setting basic table index4"),
+                dataIndex: "create_name",
+            },{
+                title: langTrans("setting basic table index5"),
+                dataIndex: "create_time",
+                render: (time) => { return getdayjs(time).format("YYYY-MM-DD") },
+            },{
+                title: langTrans("setting basic table index6"),
+                dataIndex: "operator",
+                render: (_, record) => {
+                    return (
+                      <Space size="middle">
+                        <Button type="link" onClick={async () => {
+                            let tokenName = record["token_name"];
+                            await enableToken(tokenName).then(async () => {
+                                const { apiKey } = await getTeamSetting();
+                                this.setState({
+                                    apiKey, 
+                                    tokens: await getTokens(),
+                                });
+                            })
+                        }}>{langTrans("setting basic table index7")}</Button>
+                      </Space>
+                    )
+                }
+            }],
+            tokens: [],
         }
     }
 
     async componentDidMount() {
         if (this.props.clientType === CLIENT_TYPE_TEAM) {
-            let ret1 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_API_KEY"});
-            let ret2 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_BASE_URL"});
+            const { apiKey, baseUrl } = await getTeamSetting();
             this.setState({
-                apiKey: ret1 ? ret1 : "", 
-                baseUrl: ret2 ? ret2 : "",
+                apiKey, 
+                baseUrl,
+                tokens: await getTokens(),
                 loaded: true
             })
         } else {
@@ -57,28 +131,11 @@ class BasicSetting extends Component {
         window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
     }
 
-    setBaseUrl = async (baseUrl) => { 
-        await sendTeamMessage(OS_ENV_VALUE_SET_URL, {
-            key: "OPENAI_BASE_URL",
-            value: baseUrl
+    setBaseUrl = async (baseUrl : string) => { 
+        await setBaseUrl(baseUrl).then(()=> {
+            this.setState({baseUrl});
+            message.success(langTrans("prj unittest status2"))
         });
-        this.setState({baseUrl});
-        message.success(langTrans("prj unittest status2"))
-    }
-
-    showCkCode = (e) => {
-        if (!this.state.closeShowPay) {
-            this.setState({showPayWriteOff: true})
-        }
-    }
-
-    closeShowPay = (e) => {
-        window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCloseCkCodeStr);
-        this.props.dispatch({
-            type: SET_DEVICE_INFO,
-            showCkCode : false,
-        });
-        this.state.closeShowPay = true;
     }
 
     render(): ReactNode {
@@ -91,24 +148,13 @@ class BasicSetting extends Component {
                     <Flex justify="space-between" align="center">
                         <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting basic") }]} />
                     </Flex>
-                    {this.props.showCkCode && this.props.ckCodeType === "chat_token" ? <Alert 
-                        style={{ marginBottom: 16 }}
-                        message={langTrans("aitoken checkout tips")}
-                        type="warning" 
-                        closable 
-                        onClose={this.closeShowPay} 
-                        onClick={this.showCkCode}
-                    /> : null}
-
                     <PayAiTokenModel 
                         showPay={this.state.showPay} 
-                        ckCodeUrl={this.props.ckCodeUrl}
-                        showPayWriteOff={this.state.showPayWriteOff} 
-                        cb={showPay => this.setState({showPay, showPayWriteOff: showPay})} 
+                        cb={showPay => this.setState({showPay})} 
                         refresh={async () => {
-                            let ret1 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_API_KEY"});
+                            const { apiKey } = await getTeamSetting();
                             this.setState({
-                                apiKey: ret1 ? ret1 : "", 
+                                apiKey: apiKey, 
                             })
                         }}
                         />
@@ -179,6 +225,10 @@ class BasicSetting extends Component {
                         </Form.Item>
                     </Form>
                 : null}
+                    <Divider>{langTrans("setting basic table title")}</Divider>
+                    {this.props.clientType === CLIENT_TYPE_TEAM ? 
+                    <Table rowKey={"token_name"} columns={this.state.columns} dataSource={ this.state.tokens } pagination={ false } />
+                    : null}
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                 ApiChain ©{new Date().getFullYear()} Created by 方海亮
@@ -189,12 +239,8 @@ class BasicSetting extends Component {
 }
 
 function mapStateToProps (state) {
-    console.log("ckCodeUrl", state.device.ckCodeUrl)
     return {
-        clientType: state.device.clientType,
-        showCkCode: state.device.showCkCode,
-        ckCodeType: state.device.ckCodeType,
-        ckCodeUrl: state.device.ckCodeUrl,
+      clientType: state.device.clientType,
     }
 }
 

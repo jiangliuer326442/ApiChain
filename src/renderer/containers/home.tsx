@@ -98,6 +98,7 @@ class Home extends Component {
         "register_time": 0,
       },
       showPay: false,
+      showPayWriteOff: false,
       showTeam: false,
       teamType: "create",
       searchPrj: "",
@@ -153,7 +154,6 @@ class Home extends Component {
         }
       ],
       closeShowPay: false,
-      showPayWriteOff: false,
     }
   }
 
@@ -226,9 +226,9 @@ class Home extends Component {
   closeShowPay = (e) => {
     window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCloseCkCodeStr);
     this.props.dispatch({
-        type: SET_DEVICE_INFO,
-        showCkCode : false,
-    });
+      type: SET_DEVICE_INFO,
+      showCkCode : false,
+  });
     this.state.closeShowPay = true;
   }
 
@@ -366,7 +366,7 @@ class Home extends Component {
           </Header>
           <Content style={{ padding: '0 16px'}}>
 
-            {this.props.showCkCode && this.props.ckCodeType === "member" ? <Alert 
+            {this.props.showCkCode ? <Alert 
               message={langTrans("member checkout tips")}
               type="warning" 
               closable 
@@ -512,7 +512,6 @@ function mapStateToProps (state) {
     appName: state.device.appName,
     vipFlg: state.device.vipFlg,
     showCkCode: state.device.showCkCode,
-    ckCodeType: state.device.ckCodeType,
     ckCodeUrl: state.device.ckCodeUrl,
     expireTime: state.device.expireTime,
     projects: state.prj.list,
