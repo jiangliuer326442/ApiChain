@@ -3,6 +3,8 @@ import { connect } from 'react-redux';
 import { 
     Modal, Button, Form, Radio, Input, Flex, message,
 } from "antd";
+import { createWeb3Modal, defaultConfig } from '@web3modal/ethers';
+import { BrowserProvider } from 'ethers';
 import { RadioChangeEvent } from 'antd/lib';
 import qrcode from 'qrcode';
 
@@ -12,11 +14,38 @@ import {
     ChannelsVipCkCodeStr,
     ChannelsVipDoCkCodeStr,
 } from '@conf/channel';
+import contractConfig from '@conf/contract.json';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import { langFormat, langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
+
+const chainId = 1337;
+const contractName = "SimpleStorage";
+const contractABI = contractConfig[contractName].abi;
+const contractAddress = contractConfig[contractName].address[chainId];
+
+const projectId = "4944c382-20d4-4466-be54-1f3fba5b6218/64ba1489-43c8-4b7b-bebb-e1ac8140aa9e";
+
+const chains = [
+  {
+    chainId,
+    name: 'ganache',
+    currency: 'ETH',
+    explorerUrl: 'http://192.168.1.3:7545',
+    rpcUrl: 'http://192.168.1.3:7545'
+  }
+];
+
+const metadata = {
+  name: 'My DApp',
+  description: 'A decentralized application using WalletConnect and Ethers.js',
+  url: 'https://your-dapp-url.com',
+  icons: ['https://your-dapp-url.com/icon.png']
+};
+
+console.log("createWeb3Modal", createWeb3Modal);
 
 class PayMemberModel extends Component {
 
@@ -33,6 +62,14 @@ class PayMemberModel extends Component {
             qrcode: "",
             ckCode: "",
             cacheCkCodeUrl: "",
+            web3Modal: createWeb3Modal({
+                ethersConfig: defaultConfig({ metadata }),
+                chains,
+                projectId,
+            }),
+            provider: null,
+            signer: null,
+            web3Account: null,
         };
     }
 
@@ -51,6 +88,27 @@ class PayMemberModel extends Component {
             }
         }
     }
+
+    componentDidMount(): void {
+        this.connectWallet();
+    }
+
+    connectWallet = async () => {
+        try {
+            // 打开 WalletConnect 模态框
+            const walletProvider = await this.web3Modal.connect();
+            const ethersProvider = new BrowserProvider(walletProvider);
+            const signer = await ethersProvider.getSigner();
+            const address = await signer.getAddress();
+            this.setState({
+                provider: walletProvider,
+                signer,
+                web3Account: address,
+            });
+        } catch (error) {
+        console.error('Connection failed:', error);
+        }
+    };
 
     setProductName = (e: RadioChangeEvent) => {
         this.setState({productName: e.target.value});

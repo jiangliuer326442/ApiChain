@@ -24,12 +24,11 @@ import {
 import { isStringEmpty } from '../../renderer/util';
 
 export async function getInitParams() : Promise<string[]> {
-    let _btime = Date.now();
     let packageJson = await getPackageJson();
     let lang = await osLocale();
-    // if (process.env.NODE_ENV === 'development') {
-    //     lang = 'en-AU';
-    // }
+    if (process.env.NODE_ENV === 'development') {
+        lang = 'en-AU';
+    }
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
     setLang(userCountry, userLang);
