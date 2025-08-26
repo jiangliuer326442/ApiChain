@@ -1,0 +1,36 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/SimpleStorage.sol": {
+      "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.28;\r\n\r\ncontract SimpleStorage {\r\n  // State variable to store a number\r\n  uint256 private storedNumber;\r\n\r\n  // Event to emit when the number is updated\r\n  event NumberStored(uint256 newNumber);\r\n\r\n  // Function to set a new number\r\n  function setNumber(uint256 _number) public {\r\n    storedNumber = _number;\r\n    emit NumberStored(_number);\r\n  }\r\n\r\n  // Function to get the stored number\r\n  function getNumber() public view returns (uint256) {\r\n    return storedNumber;\r\n  }\r\n}\r\n"
+    }
+  },
+  "settings": {
+    "evmVersion": "paris",
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
