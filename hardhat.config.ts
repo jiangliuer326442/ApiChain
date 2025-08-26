@@ -1,8 +1,17 @@
 import { HardhatUserConfig } from "hardhat/config"
 import "hardhat-deploy"
 import "@nomicfoundation/hardhat-toolbox"
+import "dotenv/config"
 
 const config: HardhatUserConfig = {
+  defaultNetwork: "ganache",
+  networks: {
+    ganache: {
+      url: "http://192.168.1.3:7545",
+      chainId: 1337,
+      accounts: [process.env.GANACHE_ACCOUNT!]
+    },
+  },
   paths: {
     root: "./src/solidity",
   },
