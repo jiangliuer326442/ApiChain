@@ -19,14 +19,8 @@ import { SET_DEVICE_INFO } from '@conf/redux';
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import { langFormat, langTrans } from '@lang/i18n';
 
+const { projectId, contractName, usdEthRate, cryptorCurrency, supportedChains } = contractConfig;
 const { TextArea } = Input;
-
-const chainId = 1337;
-const contractName = "SimpleStorage";
-const contractABI = contractConfig[contractName].abi;
-const contractAddress = contractConfig[contractName].address[chainId];
-
-const walletConnectProjectId = "ba0ad790e4aed95af5c34acbbecb8613";
 
 class PayMemberModel extends Component {
 
@@ -43,10 +37,11 @@ class PayMemberModel extends Component {
             qrcode: "",
             ckCode: "",
             cacheCkCodeUrl: "",
+            dollerPayLoading: false,
             provider: null,
             signer: null,
-            walletAddress: "",
             connected: false,
+            transactionHash: "",
         };
     }
 
@@ -67,29 +62,50 @@ class PayMemberModel extends Component {
     }
 
     connectWallet = async () => {
+        let wcProvider = null;
         try {
-            const wcProvider = await EthereumProvider.init({
-                projectId: walletConnectProjectId,
-                chains: [11155111],
-                showQrModal: true,
+            wcProvider = await EthereumProvider.init({
+                projectId,
+                chains: supportedChains,
+                showQrModal: false,
+            });
+            wcProvider.on('display_uri', async (url) => {
+                try {
+                    const qrCodeDataURL = await qrcode.toDataURL(url);
+                    this.setState({
+                        showPayQrCode1: true,
+                        qrcode: qrCodeDataURL,
+                    });
+                } catch (error) {
+                    console.error('Error generating QR code:', error);
+                }
             });
 
             await wcProvider.connect();
             const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
-            const signer = ethersProvider.getSigner();
-            const address = await signer.getAddress();
-
-            this.setState({
-                provider: ethersProvider,
-                signer,
-                walletAddress: address,
-                connected: true,
-            });
-
-            this.setupWalletConnectEvents(wcProvider);
+            this.state.provider = ethersProvider;
         } catch (error) {
-            console.error('Connection failed:', error);
+            console.error('Error connecting to provider:', error);
+            wcProvider = null;
+            await this.canelPay();
         }
+        if (wcProvider === null) return;
+        const signer = ethersProvider.getSigner();
+
+        if (wcProvider.connected) {
+            this.state.signer = signer;
+            this.state.connected = true;
+            this.doWithContract(wcProvider.chainId);
+        } else {
+            this.state.dollerPayLoading = true;
+        }
+
+        this.setState({
+            signer,
+            connected: true,
+        });
+
+        this.setupWalletConnectEvents(wcProvider);
     }
 
     disconnectWallet = async () => {
@@ -98,7 +114,6 @@ class PayMemberModel extends Component {
             this.setState({
                 provider: null,
                 signer: null,
-                walletAddress: "",
                 connected: false,
             });
         }
@@ -116,8 +131,12 @@ class PayMemberModel extends Component {
         });
 
         // Handle chain changes
-        wcProvider.on('chainChanged', (chainId) => {
-            console.log('Chain changed to:', chainId);
+        wcProvider.on('chainChanged', async (chainId) => {
+            console.log('Chain changed:', chainId);
+            if (!this.state.dollerPayLoading) return;
+            this.state.dollerPayLoading = false;
+            let useChainId = parseInt(chainId, 10);
+            this.doWithContract(useChainId);
         });
 
         // Handle disconnection
@@ -127,6 +146,32 @@ class PayMemberModel extends Component {
             }
             console.log('Wallet disconnected:', payload);
         });
+    }
+
+    doWithContract = async (chainId : number) => {
+        const contractInfo = contractConfig[contractName];
+        const contractABI = contractInfo.abi;
+        const contractAddress = contractInfo.address[chainId];
+        const contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
+
+        const getNumberMethod = "getNumber";
+        const getNumberRet = await contract[getNumberMethod]();
+        console.log("getNumberRet", getNumberRet);
+
+
+        const methodName = 'setNumber';
+        console.log("money", this.state.money);
+        const params = [(this.state.money * 100000).toString()];
+        console.log("params", params);
+        try {
+            const tx = await contract[methodName](...params);
+            console.log("tx hash", tx.hash);
+            this.setState({transactionHash: tx.hash});
+            const receipt = await tx.wait();
+            console.log('Transaction confirmed:', receipt);
+        } catch (error) {
+            this.canelPay();
+        }
     }
 
     setProductName = (e: RadioChangeEvent) => {
@@ -156,15 +201,21 @@ class PayMemberModel extends Component {
             let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, url) => {
                 if (action !== ChannelsVipGenUrlStr) return;
                 listener();
-                try {
-                    const qrCodeDataURL = await qrcode.toDataURL(url);
+                if (payMethod === "dollerpay") {
                     this.setState({
-                        showPayQrCode1: true,
-                        money,
-                        qrcode: qrCodeDataURL,
+                        money: money * usdEthRate,
                     });
-                } catch (error) {
-                    console.error('Error generating QR code:', error);
+                } else {
+                    try {
+                        const qrCodeDataURL = await qrcode.toDataURL(url);
+                        this.setState({
+                            showPayQrCode1: true,
+                            money,
+                            qrcode: qrCodeDataURL,
+                        });
+                    } catch (error) {
+                        console.error('Error generating QR code:', error);
+                    }
                 }
             });
 
@@ -181,7 +232,13 @@ class PayMemberModel extends Component {
             payMethod: "",
             money: "",
             qrcode: "",
+            dollerPayLoading: false,
+            provider: null,
+            signer: null,
+            connected: false,
+            transactionHash: "",
         });
+        this.disconnectWallet();
         this.props.cb(false);
     }
 
@@ -268,6 +325,7 @@ class PayMemberModel extends Component {
         });
         //发消息进行核销
         window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipDoCkCodeStr, ckCode);
+        this.disconnectWallet();
     }
 
     canelCkCode = () => {
@@ -283,6 +341,7 @@ class PayMemberModel extends Component {
             ckCode: "",
             lodingCkCode: false,
         });
+        this.disconnectWallet();
         this.props.cb(false);
     }
 
@@ -337,11 +396,17 @@ class PayMemberModel extends Component {
                         </Form>
                         {this.state.showPayQrCode1 ? 
                         <>
-                            <p>{langFormat("member topup paycontent", {
+                            {this.state.payMethod === 'dollerpay' ? 
+                                <p>{langFormat("member topup paycontent", {
+                                    "money": this.state.money,
+                                    "unit": cryptorCurrency,
+                                    "equipment": langTrans("member topup equipment e4")
+                                })}</p>
+                            :<p>{langFormat("member topup paycontent", {
                                 "money": this.state.money,
-                                "unit": this.state.payMethod === 'dollerpay' ? '$' : '￥',
+                                "unit": '￥',
                                 "equipment": langTrans("member topup equipment e3")
-                            })}</p>
+                            })}</p>}
                             <img src={ this.state.qrcode } />
                         </>
                         : null}

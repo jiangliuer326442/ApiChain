@@ -31,6 +31,7 @@ import PayModel from '@comp/topup/member';
 import TeamModel from '@comp/team';
 import { getUser } from '@act/user';
 import { langTrans } from '@lang/i18n';
+import { isStringEmpty } from '@rutil/index';
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -96,7 +97,8 @@ class Vip extends Component {
             let projects = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.state.iteratorId)[version_iterator_projects];
             let mockServers = [];
             for (let project of projects) {
-                let serviceName = this.props.prjs.find(row => row.value === project).label;
+                let serviceName = this.props.prjs.find(row => row.value === project) ? this.props.prjs.find(row => row.value === project).label : "";
+                if (isStringEmpty(serviceName)) continue;
                 let url = "http://" + this.props.clientHost + "/mockserver/" + this.state.iteratorId + "/" + project + "/";
                 let mockUrl = <Text copyable={{text: url}}>{ url }</Text>
                 mockServers.push({key: project,serviceName, mockUrl});
