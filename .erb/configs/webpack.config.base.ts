@@ -67,7 +67,9 @@ const configuration: webpack.Configuration = {
     extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
     modules: [webpackPaths.srcPath, 'node_modules'],
     // There is no need to add aliases here, the paths in tsconfig get mirrored
-    plugins: [new TsconfigPathsPlugins()],
+    plugins: [
+      new TsconfigPathsPlugins(),
+    ],
     fallback: {
       path: require.resolve("path-browserify")
     }
@@ -76,6 +78,9 @@ const configuration: webpack.Configuration = {
   plugins: [
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
+    }),
+    new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'],
     }),
   ],
 };

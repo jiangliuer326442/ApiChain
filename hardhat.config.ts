@@ -11,6 +11,11 @@ const config: HardhatUserConfig = {
       chainId: 1337,
       accounts: [process.env.GANACHE_ACCOUNT!]
     },
+    sepolia: {
+      url: "https://eth-sepolia.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU",
+      chainId: 11155111,
+      accounts: [process.env.SEPOLIA_ACCOUNT!],
+    }
   },
   paths: {
     root: "./src/solidity",

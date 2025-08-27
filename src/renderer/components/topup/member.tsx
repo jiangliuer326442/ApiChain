@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import { 
     Modal, Button, Form, Radio, Input, Flex, message,
 } from "antd";
-import { createWeb3Modal, defaultConfig } from '@web3modal/ethers';
-import { BrowserProvider } from 'ethers';
+import { EthereumProvider } from '@walletconnect/ethereum-provider';
+import { ethers } from 'ethers';
 import { RadioChangeEvent } from 'antd/lib';
 import qrcode from 'qrcode';
 
@@ -26,26 +26,7 @@ const contractName = "SimpleStorage";
 const contractABI = contractConfig[contractName].abi;
 const contractAddress = contractConfig[contractName].address[chainId];
 
-const projectId = "4944c382-20d4-4466-be54-1f3fba5b6218/64ba1489-43c8-4b7b-bebb-e1ac8140aa9e";
-
-const chains = [
-  {
-    chainId,
-    name: 'ganache',
-    currency: 'ETH',
-    explorerUrl: 'http://192.168.1.3:7545',
-    rpcUrl: 'http://192.168.1.3:7545'
-  }
-];
-
-const metadata = {
-  name: 'My DApp',
-  description: 'A decentralized application using WalletConnect and Ethers.js',
-  url: 'https://your-dapp-url.com',
-  icons: ['https://your-dapp-url.com/icon.png']
-};
-
-console.log("createWeb3Modal", createWeb3Modal);
+const walletConnectProjectId = "ba0ad790e4aed95af5c34acbbecb8613";
 
 class PayMemberModel extends Component {
 
@@ -62,14 +43,10 @@ class PayMemberModel extends Component {
             qrcode: "",
             ckCode: "",
             cacheCkCodeUrl: "",
-            web3Modal: createWeb3Modal({
-                ethersConfig: defaultConfig({ metadata }),
-                chains,
-                projectId,
-            }),
             provider: null,
             signer: null,
-            web3Account: null,
+            walletAddress: "",
+            connected: false,
         };
     }
 
@@ -89,26 +66,68 @@ class PayMemberModel extends Component {
         }
     }
 
-    componentDidMount(): void {
-        this.connectWallet();
-    }
-
     connectWallet = async () => {
         try {
-            // 打开 WalletConnect 模态框
-            const walletProvider = await this.web3Modal.connect();
-            const ethersProvider = new BrowserProvider(walletProvider);
-            const signer = await ethersProvider.getSigner();
-            const address = await signer.getAddress();
-            this.setState({
-                provider: walletProvider,
-                signer,
-                web3Account: address,
+            const wcProvider = await EthereumProvider.init({
+                projectId: walletConnectProjectId,
+                chains: [11155111],
+                showQrModal: true,
             });
+
+            await wcProvider.connect();
+            const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
+            const signer = ethersProvider.getSigner();
+            const address = await signer.getAddress();
+
+            this.setState({
+                provider: ethersProvider,
+                signer,
+                walletAddress: address,
+                connected: true,
+            });
+
+            this.setupWalletConnectEvents(wcProvider);
         } catch (error) {
-        console.error('Connection failed:', error);
+            console.error('Connection failed:', error);
         }
-    };
+    }
+
+    disconnectWallet = async () => {
+        if (this.state.provider?.provider) {
+            await this.state.provider.provider.disconnect();
+            this.setState({
+                provider: null,
+                signer: null,
+                walletAddress: "",
+                connected: false,
+            });
+        }
+    }
+
+    setupWalletConnectEvents = (wcProvider) => {
+        // Handle connection
+        wcProvider.on('connect', (payload) => {
+            console.log('Wallet connected:', payload);
+        });
+
+        // Handle account changes
+        wcProvider.on('accountsChanged', (accounts) => {
+            console.log('Accounts changed:', accounts);
+        });
+
+        // Handle chain changes
+        wcProvider.on('chainChanged', (chainId) => {
+            console.log('Chain changed to:', chainId);
+        });
+
+        // Handle disconnection
+        wcProvider.on('disconnect', (error, payload) => {
+            if (error) {
+            console.error('Disconnect error:', error);
+            }
+            console.log('Wallet disconnected:', payload);
+        });
+    }
 
     setProductName = (e: RadioChangeEvent) => {
         this.setState({productName: e.target.value});
@@ -116,8 +135,12 @@ class PayMemberModel extends Component {
     };
 
     setPayMethod = (e: RadioChangeEvent) => {
-        this.setState({payMethod: e.target.value});
-        this.checkAndGenPayPng(null, e.target.value);
+        const payMethod = e.target.value;
+        if (payMethod === "dollerpay") {
+            this.connectWallet();
+        }
+        this.setState({payMethod});
+        this.checkAndGenPayPng(null, payMethod);
     };
 
     //生成支付二维码
