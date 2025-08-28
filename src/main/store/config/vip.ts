@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { sm2 } from 'sm-crypto';
+import { ethers } from 'ethers';
 import log from 'electron-log';
 import crypto from 'crypto';
 
@@ -181,19 +182,13 @@ export async function genCheckCodeUrl(productName : string, payMethod : string) 
     cache.set(VIP_LATEST_PRODUCT, productName);
     cache.set(VIP_LATEST_PAYMETHOD, payMethod);
 
-    let url = await genEncryptString(outTradeNo, productName, payMethod);
-    return url;
-}
-
-export async function genCheckCodeUrl2(productName : string, payMethod : string) {
-    let outTradeNo = uuidv4() as string;
-    let cache = getCache("");
-    cache.set(VIP_LATEST_TRADE, outTradeNo);
-    cache.set(VIP_LATEST_PRODUCT, productName);
-    cache.set(VIP_LATEST_PAYMETHOD, payMethod);
-
-    let url = await genEncryptString2(outTradeNo, productName, payMethod);
-    return url;
+    if (payMethod === "dollerpay") {
+        let prams = genEncryptString2(outTradeNo, productName, payMethod);
+        return prams;
+    } else {
+        let url = await genEncryptString(outTradeNo, productName, payMethod);
+        return url;
+    }
 }
 
 async function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : string {
@@ -210,5 +205,9 @@ async function genEncryptString(outTradeNo : string, productName : string, payMe
 }
 
 async function genEncryptString2(outTradeNo : string, productName : string, payMethod : string) : string {
-    return productName + ":" + payMethod + ":" + outTradeNo;
+    const uid = getUuid();
+    const plaintext = productName + ":" + payMethod + ":" + outTradeNo;
+    const signature = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(plaintext));
+    const data = plaintext + "&" + uid + "&" + signature;
+    return data;
 }
