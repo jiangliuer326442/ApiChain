@@ -23,6 +23,7 @@ import {
     incBuyTimes, 
     clearVipCacheFlg,
     genCheckCodeUrl,
+    genCheckCodeUrl2,
     getCheckCodeUrl,
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
@@ -66,7 +67,9 @@ export default function (){
             if (productName.indexOf("product") >= 0) {
                 money = money * 1000000 * usdEthRate / 1000000;
             }
-            event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money);
+            event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money, 
+                genCheckCodeUrl2(productName, payMethod)
+            );
         } else {
             if (productName === "product9") {
                 money = "10";

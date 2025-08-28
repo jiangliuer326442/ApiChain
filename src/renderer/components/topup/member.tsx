@@ -37,6 +37,7 @@ class PayMemberModel extends Component {
             qrcode: "",
             ckCode: "",
             cacheCkCodeUrl: "",
+            contractPrams: "",
             dollerPayLoading: false,
             provider: null,
             signer: null,
@@ -220,7 +221,7 @@ class PayMemberModel extends Component {
         }
         if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
             //拿支付二维码生成结果
-            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money) => {
+            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, contractPrams) => {
                 if (action !== ChannelsVipGenUrlStr) return;
                 listener();
                 if (payMethod === "dollerpay") {
@@ -232,14 +233,17 @@ class PayMemberModel extends Component {
                                 money,
                                 showPayQrCode1: true,
                                 qrcode: qrCodeDataURL,
+                                contractPrams,
                             });
                         } else {
                             this.setState({
                                 money,
                                 showPayQrCode1: true,
                                 qrcode: "",
+                                contractPrams,
                             });
                         }
+                        console.log("contractPrams", contractPrams);
                     } catch (error) {
                         console.error('Error checkAndGenPayPng:', error);
                     }

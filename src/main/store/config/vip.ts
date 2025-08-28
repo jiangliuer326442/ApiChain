@@ -185,6 +185,17 @@ export async function genCheckCodeUrl(productName : string, payMethod : string) 
     return url;
 }
 
+export async function genCheckCodeUrl2(productName : string, payMethod : string) {
+    let outTradeNo = uuidv4() as string;
+    let cache = getCache("");
+    cache.set(VIP_LATEST_TRADE, outTradeNo);
+    cache.set(VIP_LATEST_PRODUCT, productName);
+    cache.set(VIP_LATEST_PAYMETHOD, payMethod);
+
+    let url = await genEncryptString2(outTradeNo, productName, payMethod);
+    return url;
+}
+
 async function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : string {
     const privateKey = getSalt();
     const publicKey = getUuid();
@@ -196,4 +207,8 @@ async function genEncryptString(outTradeNo : string, productName : string, payMe
     const data = base64Encode(plaintext + "&" + publicKey + "&" + signature)
     let packageJson = await getPackageJson();
     return packageJson.payJumpUrl + data;
+}
+
+async function genEncryptString2(outTradeNo : string, productName : string, payMethod : string) : string {
+    return productName + ":" + payMethod + ":" + outTradeNo;
 }
