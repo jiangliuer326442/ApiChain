@@ -1,6 +1,7 @@
-import { ipcMain } from 'electron';
+import { ipcMain, shell } from 'electron';
 import log from 'electron-log';
 
+import contractConfig from '../../../config/contract.json';
 import { 
     ChannelsVipStr, 
     ChannelsVipGenUrlStr, 
@@ -28,6 +29,8 @@ import { isStringEmpty } from '../../../renderer/util';
 import { 
     postRequest
 } from '../../util/teamUtil'
+
+const { usdEthRate } = contractConfig;
 
 export default function (){
 
@@ -60,6 +63,10 @@ export default function (){
             } else if (productName === "product11") {
                 money = "28";
             }
+            if (productName.indexOf("product") >= 0) {
+                money = money * 1000000 * usdEthRate / 1000000;
+            }
+            event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money);
         } else {
             if (productName === "product9") {
                 money = "10";
@@ -78,10 +85,10 @@ export default function (){
             } else if (productName === "token3") {
                 money = "100";
             }
+            let url = await genCheckCodeUrl(productName, payMethod);
+            await shell.openExternal(url)
+            event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money);
         }
-
-        let url = await genCheckCodeUrl(productName, payMethod);
-        event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money, url);
     });
 
     ipcMain.on(ChannelsVipStr, async (event, action) => {

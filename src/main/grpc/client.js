@@ -2,7 +2,16 @@ const protoLoader = require('@grpc/proto-loader');
 const grpc = require('@grpc/grpc-js');
 const path = require('path');
 
-const packageDefinition = protoLoader.loadSync(path.join(__dirname, 'service.proto'), {
+const FILE_NAME = "user.proc"
+
+const GRPC_HOST = 'localhost';
+const GRPC_PORT = '9091';
+
+const SERVICE_NAME = "User";
+const METHOD_NAME = "queryUser";
+const PARAMS = { uid: 1 };
+
+const packageDefinition = protoLoader.loadSync(path.join(__dirname, FILE_NAME), {
   keepCase: true,
   longs: String,
   enums: String,
@@ -10,14 +19,14 @@ const packageDefinition = protoLoader.loadSync(path.join(__dirname, 'service.pro
   oneofs: true
 });
 
-const greeterProto = grpc.loadPackageDefinition(packageDefinition).com.mustafa.payment.grpc.sample;
+const proto = grpc.loadPackageDefinition(packageDefinition);
 
-const client = new greeterProto.Greeter('localhost:9091', grpc.credentials.createInsecure());
+const client = new proto[SERVICE_NAME](GRPC_HOST + ':' + GRPC_PORT, grpc.credentials.createInsecure());
 
-client.sayHello({ name: 'World' }, (err, response) => {
+client[METHOD_NAME](PARAMS, (err, response) => {
   if (err) {
     console.error('Error:', err);
     return;
   }
-  console.log('Greeting:', response.message);
+  console.log('response:', response);
 });

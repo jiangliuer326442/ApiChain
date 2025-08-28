@@ -5,7 +5,6 @@ import { isFirstLauch } from '../store/config/first';
 import { 
     isVip, 
     isShowCkcode, 
-    getCheckCodeUrl, 
     getExpireTime, 
     getBuyTimes, 
     giftVip 
@@ -53,7 +52,6 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
     let uname = getUname();
     let ip = getIpV4();
     let vipFlg = isVip();
-    let ckCodeUrl = "";
     let expireTime = getExpireTime();
     let buyTimes = getBuyTimes();
     let appVersion = packageJson.version;

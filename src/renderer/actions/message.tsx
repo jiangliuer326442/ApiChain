@@ -37,7 +37,6 @@ import {
     ChannelsAxioTeanSendStr,
     ChannelsAutoUpgradeNewVersionStr,
     ChannelsAxioTeamReplyStr,
-    ChannelsLoadAppStr,
 } from '@conf/channel';
 import {
     NETWORK_REQUEST_URL

@@ -10,7 +10,7 @@ const packageDefinition = protoLoader.loadSync(path.join(__dirname, 'service.pro
   oneofs: true
 });
 
-const greeterProto = grpc.loadPackageDefinition(packageDefinition).com.mustafa.payment.grpc.sample;
+const greeterProto = grpc.loadPackageDefinition(packageDefinition);
 
 function sayHello(call, callback) {
   callback(null, { message: 'Hello ' + call.request.name });

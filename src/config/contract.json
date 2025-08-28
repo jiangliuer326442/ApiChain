@@ -4,8 +4,8 @@
   ],
   "contractName": "SimpleStorage",
   "projectId": "ba0ad790e4aed95af5c34acbbecb8613",
-  "cryptorCurrency": "ETH",
   "usdEthRate": 0.00022,
+  "cnyEthRate": 0.000031,
   "SimpleStorage": {
     "abi": [
       {

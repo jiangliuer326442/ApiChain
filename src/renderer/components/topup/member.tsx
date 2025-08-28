@@ -19,7 +19,7 @@ import { SET_DEVICE_INFO } from '@conf/redux';
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import { langFormat, langTrans } from '@lang/i18n';
 
-const { projectId, contractName, usdEthRate, cryptorCurrency, supportedChains } = contractConfig;
+const { contractName } = contractConfig;
 const { TextArea } = Input;
 
 class PayMemberModel extends Component {
@@ -61,6 +61,33 @@ class PayMemberModel extends Component {
         }
     }
 
+    getWalletConnectUri = () => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const { projectId, supportedChains } = contractConfig;
+                let wcProvider = await EthereumProvider.init({
+                    projectId,
+                    chains: supportedChains,
+                    showQrModal: false,
+                });
+                if (wcProvider.connected) {
+                    resolve("");
+                    return;
+                }
+                wcProvider.on('display_uri', async (url) => {
+                    try {
+                        resolve(url);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+                await wcProvider.connect();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
     connectWallet = async () => {
         let wcProvider = null;
         try {
@@ -80,16 +107,14 @@ class PayMemberModel extends Component {
                     console.error('Error generating QR code:', error);
                 }
             });
-
-            await wcProvider.connect();
-            const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
-            this.state.provider = ethersProvider;
         } catch (error) {
             console.error('Error connecting to provider:', error);
             wcProvider = null;
             await this.canelPay();
         }
         if (wcProvider === null) return;
+        const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
+        this.state.provider = ethersProvider;
         const signer = ethersProvider.getSigner();
 
         if (wcProvider.connected) {
@@ -181,9 +206,6 @@ class PayMemberModel extends Component {
 
     setPayMethod = (e: RadioChangeEvent) => {
         const payMethod = e.target.value;
-        if (payMethod === "dollerpay") {
-            this.connectWallet();
-        }
         this.setState({payMethod});
         this.checkAndGenPayPng(null, payMethod);
     };
@@ -198,20 +220,34 @@ class PayMemberModel extends Component {
         }
         if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
             //拿支付二维码生成结果
-            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, url) => {
+            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money) => {
                 if (action !== ChannelsVipGenUrlStr) return;
                 listener();
                 if (payMethod === "dollerpay") {
-                    this.setState({
-                        money: money * usdEthRate,
-                    });
+                    try {
+                        let url = await this.getWalletConnectUri();
+                        if (!isStringEmpty(url)) {
+                            const qrCodeDataURL = await qrcode.toDataURL(url);
+                            this.setState({
+                                money,
+                                showPayQrCode1: true,
+                                qrcode: qrCodeDataURL,
+                            });
+                        } else {
+                            this.setState({
+                                money,
+                                showPayQrCode1: true,
+                                qrcode: "",
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error checkAndGenPayPng:', error);
+                    }
                 } else {
                     try {
-                        const qrCodeDataURL = await qrcode.toDataURL(url);
                         this.setState({
                             showPayQrCode1: true,
                             money,
-                            qrcode: qrCodeDataURL,
                         });
                     } catch (error) {
                         console.error('Error generating QR code:', error);
@@ -395,25 +431,21 @@ class PayMemberModel extends Component {
                             </Form.Item>
                         </Form>
                         {this.state.showPayQrCode1 ? 
-                        <>
-                            {this.state.payMethod === 'dollerpay' ? 
-                                <p>{langFormat("member topup paycontent", {
-                                    "money": this.state.money,
-                                    "unit": cryptorCurrency,
-                                    "equipment": langTrans("member topup equipment e4")
+                            (this.state.payMethod === 'dollerpay' ? 
+                                <>
+                                <p style={isStringEmpty(this.state.qrcode) ? {marginTop: 0, marginBottom: 0} : {}}>{langFormat("member topup paycontent2", {
+                                    "money": this.state.money
                                 })}</p>
-                            :<p>{langFormat("member topup paycontent", {
-                                "money": this.state.money,
-                                "unit": '￥',
-                                "equipment": langTrans("member topup equipment e3")
-                            })}</p>}
-                            <img src={ this.state.qrcode } />
-                        </>
+                                {!isStringEmpty(this.state.qrcode) ? <img src={ this.state.qrcode } /> : null}
+                                </>
+                            :<p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
+                                "money": this.state.money
+                            })}</p>)
                         : null}
                     </Flex>
                 </Modal>
                 <Modal
-                    title={langTrans("member checkout title")}
+                    title={langTrans("member checkout title1")}
                     open={this.state.showPayWriteOff || this.props.showPayWriteOff}
                     confirmLoading={this.state.lodingCkCode}
                     onOk={this.payCheck}
