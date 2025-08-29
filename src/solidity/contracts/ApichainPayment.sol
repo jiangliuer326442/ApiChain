@@ -5,7 +5,7 @@ import 'base64-sol/base64.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 
 contract ApichainPayment {
-  address private s_owner;
+  address payable private s_owner;
   enum Product {
     Product9,
     Product10,
@@ -22,8 +22,13 @@ contract ApichainPayment {
   mapping(string => Product) private s_orderProduct;
   mapping(string => string) private s_uidOrder;
 
+  modifier onlyOwner() {
+    require(msg.sender == s_owner, "Only owner can call this function");
+    _;
+  }
+
   constructor() {
-    s_owner = msg.sender;
+    s_owner = payable(msg.sender);
 
     s_productMoney[Product.Product9] = 2;
     s_productMoney[Product.Product10] = 14;
@@ -57,6 +62,12 @@ contract ApichainPayment {
 
     s_uidOrder[uid] = tradeNo;
     s_orderProduct[tradeNo] = product;
+  }
+
+  function withdraw() external onlyOwner {
+    uint256 balance = address(this).balance;
+    require(balance > 0, "No funds to withdraw");
+    s_owner.transfer(balance);
   }
 
   function getOrderReceipt(
