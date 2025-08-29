@@ -191,7 +191,7 @@ export async function genCheckCodeUrl(productName : string, payMethod : string) 
     }
 }
 
-async function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : string {
+async function genEncryptString(outTradeNo : string, productName : string, payMethod : string) : Promise<string> {
     const privateKey = getSalt();
     const publicKey = getUuid();
     const plaintext = productName + ":" + payMethod + ":" + outTradeNo;
@@ -207,7 +207,6 @@ async function genEncryptString(outTradeNo : string, productName : string, payMe
 async function genEncryptString2(outTradeNo : string, productName : string, payMethod : string) : string {
     const uid = getUuid();
     const plaintext = productName + ":" + payMethod + ":" + outTradeNo;
-    const signature = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(plaintext));
-    const data = plaintext + "&" + uid + "&" + signature;
+    const data = plaintext + "&" + uid;
     return data;
 }
