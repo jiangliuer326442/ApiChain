@@ -207,6 +207,6 @@ async function genEncryptString(outTradeNo : string, productName : string, payMe
 async function genEncryptString2(outTradeNo : string, productName : string, payMethod : string) : string {
     const uid = getUuid();
     const plaintext = productName + ":" + payMethod + ":" + outTradeNo;
-    const data = plaintext + "&" + uid;
+    const data = base64Encode(plaintext + "&" + uid);
     return data;
 }

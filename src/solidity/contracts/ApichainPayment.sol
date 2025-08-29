@@ -1,37 +1,99 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "./StringHelper.sol";
+import 'base64-sol/base64.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 
 contract ApichainPayment {
+  address private s_owner;
+  enum Product {
+    Product9,
+    Product10,
+    Product11
+  }
+  mapping(Product => uint) private s_productMoney;
+  mapping(Product => string) private s_productName;
+  mapping(Product => uint) private s_productDays;
 
-    using StringHelper for string;
+  uint private constant USD_ETH_RATE = 220;
+  uint private constant CNY_ETH_RATE = 31;
+  uint private constant RATE_DENOMINATOR = 1e6;
 
-    address private s_owner;
+  mapping(string => Product) private s_orderProduct;
+  mapping(string => string) private s_uidOrder;
 
-    bytes32 public hashFirstPart;
+  constructor() {
+    s_owner = msg.sender;
 
-    bytes32 public lastPart;
+    s_productMoney[Product.Product9] = 2;
+    s_productMoney[Product.Product10] = 14;
+    s_productMoney[Product.Product11] = 28;
+    s_productName[Product.Product9] = 'product9';
+    s_productName[Product.Product10] = 'product10';
+    s_productName[Product.Product11] = 'product11';
+    s_productDays[Product.Product9] = 31;
+    s_productDays[Product.Product10] = 366;
+    s_productDays[Product.Product11] = 20000;
+  }
 
-    string public parts0;
-    string public parts2;
+  function storePayData(
+    string memory productName,
+    string memory tradeNo,
+    string memory uid
+  ) external payable {
+    require(msg.value > 0, 'send money');
 
-    constructor() {
-        s_owner = msg.sender;
+    require(bytes(productName).length > 0, 'productName empty');
+    require(bytes(tradeNo).length > 0, 'tradeNo empty');
+    require(bytes(uid).length > 0, 'uid empty');
+
+    Product product = stringToProduct(productName);
+
+    uint money = s_productMoney[product];
+    uint moneyEth = (money * USD_ETH_RATE * 1e18) / RATE_DENOMINATOR;
+    if (msg.value < moneyEth) {
+      revert('Not enough money');
     }
 
-    function storePayData(string memory payData) payable external {
-        string[] memory parts = payData.splitString("&");
-        require(parts.length >= 3, "Invalid payData format: must contain at least 3 parts");
-        parts0 = parts[0];
-        parts2 = parts[2];
-        hashFirstPart = parts0.hash();
-        lastPart = parts2.toBytes32();
-        // require(lastPart == hashFirstPart, "Hash mismatch");
-    }
+    s_uidOrder[uid] = tradeNo;
+    s_orderProduct[tradeNo] = product;
+  }
 
-    function getOwner() public view returns (address) {
-        return s_owner;
-    }
+  function getOrderReceipt(
+    string calldata tradeNo,
+    string calldata uid
+  ) external view returns (string memory) {
+    require(keccak256(bytes(s_uidOrder[uid])) == keccak256(bytes(tradeNo)), '');
+    Product product = s_orderProduct[tradeNo];
 
+    string memory originString = string(
+      abi.encodePacked(
+        s_productName[product],
+        ':',
+        Strings.toString(s_productDays[product]),
+        ':',
+        Strings.toString(block.timestamp),
+        ':dollerpay:',
+        tradeNo
+      )
+    );
+    return Base64.encode(bytes(originString));
+  }
+
+  function stringToProduct(
+    string memory productName
+  ) private pure returns (Product) {
+    bytes32 hash = keccak256(abi.encodePacked(productName));
+    if (hash == keccak256(abi.encodePacked('product9')))
+      return Product.Product9;
+    if (hash == keccak256(abi.encodePacked('product10')))
+      return Product.Product10;
+    if (hash == keccak256(abi.encodePacked('product11')))
+      return Product.Product11;
+    revert('Invalid product name');
+  }
+
+  function getOwner() external view returns (address) {
+    return s_owner;
+  }
 }

@@ -37,12 +37,11 @@ class PayMemberModel extends Component {
             qrcode: "",
             ckCode: "",
             cacheCkCodeUrl: "",
-            contractPrams: "",
+            contractParams: "",
             dollerPayLoading: false,
             provider: null,
             signer: null,
             connected: false,
-            transactionHash: "",
         };
     }
 
@@ -64,9 +63,10 @@ class PayMemberModel extends Component {
 
     getWalletConnectUri = () => {
         return new Promise(async (resolve, reject) => {
+            let wcProvider = null;
             try {
                 const { projectId, supportedChains } = contractConfig;
-                let wcProvider = await EthereumProvider.init({
+                wcProvider = await EthereumProvider.init({
                     projectId,
                     chains: supportedChains,
                     showQrModal: false,
@@ -86,53 +86,67 @@ class PayMemberModel extends Component {
             } catch (error) {
                 reject(error);
             }
-        });
-    }
 
-    connectWallet = async () => {
-        let wcProvider = null;
-        try {
-            wcProvider = await EthereumProvider.init({
-                projectId,
-                chains: supportedChains,
-                showQrModal: false,
-            });
-            wcProvider.on('display_uri', async (url) => {
-                try {
-                    const qrCodeDataURL = await qrcode.toDataURL(url);
-                    this.setState({
-                        showPayQrCode1: true,
-                        qrcode: qrCodeDataURL,
-                    });
-                } catch (error) {
-                    console.error('Error generating QR code:', error);
-                }
-            });
-        } catch (error) {
-            console.error('Error connecting to provider:', error);
-            wcProvider = null;
-            await this.canelPay();
-        }
-        if (wcProvider === null) return;
-        const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
-        this.state.provider = ethersProvider;
-        const signer = ethersProvider.getSigner();
-
-        if (wcProvider.connected) {
+            if (wcProvider === null) return;
+            const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
+            this.state.provider = ethersProvider;
+            const signer = ethersProvider.getSigner();
             this.state.signer = signer;
-            this.state.connected = true;
-            this.doWithContract(wcProvider.chainId);
-        } else {
-            this.state.dollerPayLoading = true;
-        }
 
-        this.setState({
-            signer,
-            connected: true,
+            if (wcProvider.connected) {
+                this.state.signer = signer;
+                this.state.connected = true;
+                this.doWithContract(wcProvider.chainId);
+            } else {
+                this.setupWalletConnectEvents(wcProvider);
+            }
         });
-
-        this.setupWalletConnectEvents(wcProvider);
     }
+
+    // connectWallet = async () => {
+    //     let wcProvider = null;
+    //     try {
+    //         wcProvider = await EthereumProvider.init({
+    //             projectId,
+    //             chains: supportedChains,
+    //             showQrModal: false,
+    //         });
+    //         wcProvider.on('display_uri', async (url) => {
+    //             try {
+    //                 const qrCodeDataURL = await qrcode.toDataURL(url);
+    //                 this.setState({
+    //                     showPayQrCode1: true,
+    //                     qrcode: qrCodeDataURL,
+    //                 });
+    //             } catch (error) {
+    //                 console.error('Error generating QR code:', error);
+    //             }
+    //         });
+    //     } catch (error) {
+    //         console.error('Error connecting to provider:', error);
+    //         wcProvider = null;
+    //         await this.canelPay();
+    //     }
+    //     if (wcProvider === null) return;
+    //     const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
+    //     this.state.provider = ethersProvider;
+    //     const signer = ethersProvider.getSigner();
+
+    //     if (wcProvider.connected) {
+    //         this.state.signer = signer;
+    //         this.state.connected = true;
+    //         this.doWithContract(wcProvider.chainId);
+    //     } else {
+    //         this.state.dollerPayLoading = true;
+    //     }
+
+    //     this.setState({
+    //         signer,
+    //         connected: true,
+    //     });
+
+    //     this.setupWalletConnectEvents(wcProvider);
+    // }
 
     disconnectWallet = async () => {
         if (this.state.provider?.provider) {
@@ -158,9 +172,6 @@ class PayMemberModel extends Component {
 
         // Handle chain changes
         wcProvider.on('chainChanged', async (chainId) => {
-            console.log('Chain changed:', chainId);
-            if (!this.state.dollerPayLoading) return;
-            this.state.dollerPayLoading = false;
             let useChainId = parseInt(chainId, 10);
             this.doWithContract(useChainId);
         });
@@ -175,27 +186,26 @@ class PayMemberModel extends Component {
     }
 
     doWithContract = async (chainId : number) => {
+        let contractParams = this.state.contractParams;
+        let [_tmp, uid] = atob(contractParams).split("&");
+        let [productName, payMethod, tradeNo] = _tmp.split(":");
+
+
         const contractInfo = contractConfig[contractName];
         const contractABI = contractInfo.abi;
         const contractAddress = contractInfo.address[chainId];
         const contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
 
-        const getNumberMethod = "getNumber";
-        const getNumberRet = await contract[getNumberMethod]();
-        console.log("getNumberRet", getNumberRet);
-
-
-        const methodName = 'setNumber';
-        console.log("money", this.state.money);
-        const params = [(this.state.money * 100000).toString()];
-        console.log("params", params);
+        const methodName = 'storePayData';
+        const params = [productName, tradeNo, uid];
         try {
-            const tx = await contract[methodName](...params);
-            console.log("tx hash", tx.hash);
-            this.setState({transactionHash: tx.hash});
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
+            await contract[methodName](...params, {
+                value: ethers.utils.parseEther(this.state.money.toString()),
+                gasLimit: 110000,
+                gasPrice: ethers.utils.parseUnits("2", "gwei"),
+            });
         } catch (error) {
+            console.error('Error sending transaction:', error);
             this.canelPay();
         }
     }
@@ -221,7 +231,7 @@ class PayMemberModel extends Component {
         }
         if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
             //拿支付二维码生成结果
-            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, contractPrams) => {
+            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, params : string) => {
                 if (action !== ChannelsVipGenUrlStr) return;
                 listener();
                 if (payMethod === "dollerpay") {
@@ -233,17 +243,15 @@ class PayMemberModel extends Component {
                                 money,
                                 showPayQrCode1: true,
                                 qrcode: qrCodeDataURL,
-                                contractPrams,
                             });
                         } else {
                             this.setState({
                                 money,
                                 showPayQrCode1: true,
                                 qrcode: "",
-                                contractPrams,
                             });
                         }
-                        console.log("contractPrams", contractPrams);
+                        this.state.contractParams = params;
                     } catch (error) {
                         console.error('Error checkAndGenPayPng:', error);
                     }
@@ -276,7 +284,6 @@ class PayMemberModel extends Component {
             provider: null,
             signer: null,
             connected: false,
-            transactionHash: "",
         });
         this.disconnectWallet();
         this.props.cb(false);

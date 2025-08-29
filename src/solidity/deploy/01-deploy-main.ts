@@ -4,9 +4,9 @@ import fse from "fs-extra";
 
 import contractConfig from "../../config/contract.json";
 
-const contractName = "SimpleStorage";
+const { contractName } = contractConfig;
 
-const deploySimpleStorage: DeployFunction = async function (
+const deployFunction: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
   ) {
     const { deployments, getNamedAccounts, network, ethers } = hre
@@ -40,5 +40,5 @@ const deploySimpleStorage: DeployFunction = async function (
     
 }
 
-export default deploySimpleStorage
-deploySimpleStorage.tags = [contractName]
+export default deployFunction
+deployFunction.tags = [contractName]
