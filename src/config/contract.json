@@ -17,6 +17,25 @@
         "inputs": [
           {
             "internalType": "string",
+            "name": "uid",
+            "type": "string"
+          }
+        ],
+        "name": "getOrderNoByUid",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
             "name": "tradeNo",
             "type": "string"
           },
@@ -82,7 +101,7 @@
       }
     ],
     "address": {
-      "11155111": "0x76949A4B9e57D739bd6e246f3114772c3B5b5A2f"
+      "11155111": "0x8f642f51B423f3FFa423A8649935bc6bc65C1F18"
     }
   }
 }

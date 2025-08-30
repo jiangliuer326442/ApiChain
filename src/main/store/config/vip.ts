@@ -6,7 +6,7 @@ import crypto from 'crypto';
 
 import getCache from './index';
 import { getUuid, getSalt } from './user';
-import { base64Encode, getPackageJson } from '../../util/util'
+import { base64Decode, base64Encode, getPackageJson } from '../../util/util'
 import { isStringEmpty } from '../../../renderer/util';
 
 export const TABLE_NAME = "vip.status";
@@ -122,11 +122,18 @@ export function setExpireTime(expireTime : number) {
 }
 
 export function genDecryptString(base64Str : string) {
-    const key = crypto.createHash('md5').update(getUuid()).digest('hex').substring(0, 16);
-    const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from(key), null);
-    let decrypted = decipher.update(base64Str, 'base64', 'utf8');
-    decrypted += decipher.final('utf8');
-    let line = decrypted;
+    let cache = getCache("");
+    let payMethod = cache.get(VIP_LATEST_PAYMETHOD);
+    let line;
+    if (payMethod === "dollerpay") {
+        line = base64Decode(base64Str);
+    } else {
+        const key = crypto.createHash('md5').update(getUuid()).digest('hex').substring(0, 16);
+        const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from(key), null);
+        let decrypted = decipher.update(base64Str, 'base64', 'utf8');
+        decrypted += decipher.final('utf8');
+        line = decrypted;
+    }
     if (isStringEmpty(line)) {
         return ["", "", ""];
     }
@@ -145,7 +152,6 @@ export function genDecryptString(base64Str : string) {
     }
     let orderNo = lineArr[4];
 
-    let cache = getCache("");
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
     let myProductName = cache.get(VIP_LATEST_PRODUCT);
     if (myProductName !== productName) {

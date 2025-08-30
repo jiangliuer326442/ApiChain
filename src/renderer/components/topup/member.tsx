@@ -42,19 +42,16 @@ class PayMemberModel extends Component {
             selectedContractChain: "",
             provider: null,
             signer: null,
-            connected: false,
         };
     }
 
     async componentDidUpdate(prevProps, prevState) {
-        if (isStringEmpty(prevProps.payMethod) || isStringEmpty(prevProps.payParam)) {
-            console.log("44444444");
+        if (isStringEmpty(prevProps.payMethod) || isStringEmpty(prevProps.payParam) || !this.props.showPayWriteOff) {
             return;
         }
         if (prevProps.payMethod === "dollerpay") {
             if (prevProps.payParam != prevState.tradeNo) {
                 let tradeNo = prevProps.payParam;
-                console.log("tradeNo", tradeNo);
                 this.state.tradeNo = tradeNo;
                 let uri;
                 try {
@@ -111,15 +108,16 @@ class PayMemberModel extends Component {
                     try {
                         if (!hasResolved) {
                             hasResolved = true;
-                            console.log("11111111111");
                             resolve(url);
                         }
                     } catch (error) {
+                        console.error("2222222", error)
                         reject(error);
                     }
                 });
                 await wcProvider.connect();
             } catch (error) {
+                console.error("111111", error);
                 reject(error);
             }
 
@@ -130,8 +128,8 @@ class PayMemberModel extends Component {
             this.state.signer = signer;
 
             if (wcProvider.connected) {
+                console.log("333333333")
                 this.state.signer = signer;
-                this.state.connected = true;
                 this.state.selectedContractChain = wcProvider.chainId;
                 try {
                     if (!hasResolved) {
@@ -139,11 +137,13 @@ class PayMemberModel extends Component {
                         resolve("");
                     }
                 } catch (error) {
+                    console.error("333333333", error)
                     reject(error);
                     return;
                 }
                 this.doWithContract();
             } else {
+                console.log("4444444444444")
                 this.setupWalletConnectEvents(wcProvider);
             }
         });
@@ -155,7 +155,6 @@ class PayMemberModel extends Component {
             this.setState({
                 provider: null,
                 signer: null,
-                connected: false,
             });
         }
     }
@@ -218,10 +217,9 @@ class PayMemberModel extends Component {
                     gasLimit: 110000,
                     gasPrice: ethers.utils.parseUnits("1.2", "gwei"),
                 });
-                console.log("ckCode", ckCode);
+                this.setState({ckCode});
             } catch (error) {
-                console.error('Error getOrderReceipt:', error);
-                this.canelCkCode();
+                message.error("未查询到核销码，请稍后再试");
             }
         } else {
             let contractParams = this.state.contractParams;
@@ -229,13 +227,22 @@ class PayMemberModel extends Component {
             let [productName, payMethod, tradeNo] = _tmp.split(":");
             const methodName = 'storePayData';
             const params = [productName, tradeNo, uid];
+            console.log("params", params);
+            console.log("gas", {
+                    value: ethers.utils.parseEther(this.state.money.toString()),
+                    gasLimit: 110000,
+                    gasPrice: ethers.utils.parseUnits("1", "gwei"),
+                });
             try {
+                console.log("8888888")
                 await contract[methodName](...params, {
                     value: ethers.utils.parseEther(this.state.money.toString()),
                     gasLimit: 110000,
                     gasPrice: ethers.utils.parseUnits("1", "gwei"),
                 });
+                console.log("99999999999")
             } catch (error) {
+                console.log("00000000000");
                 console.error('Error sending transaction:', error);
                 this.canelPay();
             }
@@ -314,7 +321,6 @@ class PayMemberModel extends Component {
             qrcode: "",
             provider: null,
             signer: null,
-            connected: false,
         });
         this.disconnectWallet();
         this.props.cb(false);
@@ -433,6 +439,7 @@ class PayMemberModel extends Component {
                 lodingCkCode: false,
             });
             message.success(langFormat("member checkout success", {"date": getdayjs(expireTime).format("YYYY-MM-DD")}));
+            this.props.cb(false);
         });
         //发消息进行核销
         window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipDoCkCodeStr, ckCode);
