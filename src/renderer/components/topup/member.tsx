@@ -19,7 +19,6 @@ import { SET_DEVICE_INFO } from '@conf/redux';
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import { langFormat, langTrans } from '@lang/i18n';
 
-const { contractName } = contractConfig;
 const { TextArea } = Input;
 
 class PayMemberModel extends Component {
@@ -40,7 +39,8 @@ class PayMemberModel extends Component {
             contractParams: "",
             tradeNo: "",
             selectedContractChain: "",
-            provider: null,
+            wcProvider: null,
+            etherProvider: null,
             signer: null,
         };
     }
@@ -95,105 +95,84 @@ class PayMemberModel extends Component {
 
     getWalletConnectUri = () => {
         return new Promise(async (resolve, reject) => {
-            let wcProvider = null;
-            let hasResolved = false;
-            try {
-                const { projectId, supportedChains } = contractConfig;
-                wcProvider = await EthereumProvider.init({
-                    projectId,
-                    chains: supportedChains,
-                    showQrModal: false,
-                });
-                wcProvider.on('display_uri', async (url) => {
-                    try {
-                        if (!hasResolved) {
-                            hasResolved = true;
-                            resolve(url);
-                        }
-                    } catch (error) {
-                        console.error("2222222", error)
-                        reject(error);
-                    }
-                });
-                await wcProvider.connect();
-            } catch (error) {
-                console.error("111111", error);
-                reject(error);
-            }
-
-            if (wcProvider === null) return;
-            const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
-            this.state.provider = ethersProvider;
-            const signer = ethersProvider.getSigner();
-            this.state.signer = signer;
-
-            if (wcProvider.connected) {
-                console.log("333333333")
-                this.state.signer = signer;
-                this.state.selectedContractChain = wcProvider.chainId;
+            if (this.state.wcProvider === null) {
+                let handleFlg = false;
+                let wcProvider = null;
                 try {
-                    if (!hasResolved) {
-                        hasResolved = true;
-                        resolve("");
-                    }
+                    const { projectId, supportedChains } = contractConfig;
+                    wcProvider = await EthereumProvider.init({
+                        projectId,
+                        chains: supportedChains,
+                        showQrModal: false,
+                    });
+                    wcProvider.on('session_event', async (event) => {
+                        console.log('Received session_request:', event);
+                    });
+                    wcProvider.on('display_uri', async (url) => {
+                        try {
+                            await resolve(url);
+                        } catch (error) {
+                            console.error("2222222", error)
+                            this.disconnectWallet();
+                            reject(error);
+                        }
+                    });
+                    wcProvider.on('chainChanged', (chainId) => {
+                        if (handleFlg) {
+                            return;
+                        }
+                        handleFlg = true;
+                        let useChainId = parseInt(chainId, 16);
+                        this.state.selectedContractChain = useChainId;
+                        const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
+                        const signer = ethersProvider.getSigner();
+                        this.state.etherProvider = ethersProvider;
+                        this.state.signer = signer;
+                        this.state.wcProvider = wcProvider;
+                        this.doWithContract();
+                    });
+                    await wcProvider.connect();
                 } catch (error) {
-                    console.error("333333333", error)
+                    console.error("111111", error);
+                    this.disconnectWallet();
                     reject(error);
-                    return;
                 }
-                this.doWithContract();
             } else {
-                console.log("4444444444444")
-                this.setupWalletConnectEvents(wcProvider);
+                await resolve("");
+                this.state.selectedContractChain = this.state.wcProvider.chainId;
+                this.doWithContract();
             }
         });
     }
 
     disconnectWallet = async () => {
-        if (this.state.provider?.provider) {
-            await this.state.provider.provider.disconnect();
+        if (this.state.wcProvider) {
+            await this.state.wcProvider.disconnect();
             this.setState({
-                provider: null,
+                wcProvider: null,
+                etherProvider: null,
                 signer: null,
             });
         }
     }
 
-    setupWalletConnectEvents = (wcProvider) => {
-        // Handle connection
-        wcProvider.on('connect', (payload) => {
-            console.log('Wallet connected:', payload);
-        });
-
-        // Handle account changes
-        wcProvider.on('accountsChanged', (accounts) => {
-            console.log('Accounts changed:', accounts);
-        });
-
-        // Handle chain changes
-        wcProvider.on('chainChanged', async (chainId) => {
-            let useChainId = parseInt(chainId, 10);
-            this.state.selectedContractChain = useChainId;
-            this.doWithContract();
-        });
-
-        // Handle disconnection
-        wcProvider.on('disconnect', (error, payload) => {
-            if (error) {
-                console.error('Disconnect error:', error);
-            }
-            console.log('Wallet disconnected:', payload);
-        });
-    }
-
     doWithContract = async () => {
+        const { contractName } = contractConfig;
         const chainId = this.state.selectedContractChain;
         const contractInfo = contractConfig[contractName];
         const contractABI = contractInfo.abi;
         const contractAddress = contractInfo.address[chainId];
-        const contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
+        let contract;
+        try {
+            console.log("777777");
+            contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
+        } catch (error) {
+            console.error('sign contract error:', error);
+            this.disconnectWallet();
+            this.canelPay();
+        }
+        console.log("88888888");
 
-        console.log("showPayWriteOff", this.state.showPayWriteOff || this.props.showPayWriteOff);
         if (this.state.showPayWriteOff || this.props.showPayWriteOff) {
             let contractParamsTradeNo ;
             let currentUid;
@@ -227,23 +206,15 @@ class PayMemberModel extends Component {
             let [productName, payMethod, tradeNo] = _tmp.split(":");
             const methodName = 'storePayData';
             const params = [productName, tradeNo, uid];
-            console.log("params", params);
-            console.log("gas", {
-                    value: ethers.utils.parseEther(this.state.money.toString()),
-                    gasLimit: 110000,
-                    gasPrice: ethers.utils.parseUnits("1", "gwei"),
-                });
             try {
-                console.log("8888888")
                 await contract[methodName](...params, {
                     value: ethers.utils.parseEther(this.state.money.toString()),
                     gasLimit: 110000,
                     gasPrice: ethers.utils.parseUnits("1", "gwei"),
                 });
-                console.log("99999999999")
             } catch (error) {
-                console.log("00000000000");
                 console.error('Error sending transaction:', error);
+                this.disconnectWallet();
                 this.canelPay();
             }
         }
@@ -319,7 +290,8 @@ class PayMemberModel extends Component {
             payMethod: "",
             money: "",
             qrcode: "",
-            provider: null,
+            wcProvider: null,
+            etherProvider: null,
             signer: null,
         });
         this.disconnectWallet();
