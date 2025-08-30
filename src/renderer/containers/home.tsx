@@ -366,7 +366,7 @@ class Home extends Component {
           </Header>
           <Content style={{ padding: '0 16px'}}>
 
-            {this.props.showCkCode ? <Alert 
+            {(this.props.showCkCode && this.props.ckCodeType === "member") ? <Alert 
               message={langTrans("member checkout tips")}
               type="warning" 
               closable 
@@ -377,7 +377,8 @@ class Home extends Component {
             <PayModel 
               showPay={this.state.showPay} 
               showPayWriteOff={this.state.showPayWriteOff} 
-              ckCodeUrl={this.props.ckCodeUrl}
+              payMethod={this.props.payMethod}
+              payParam={this.props.payParam}
               cb={showPay => this.setState({showPay, showPayWriteOff: showPay})} 
               />
             {this.state.showTeam ? 
@@ -512,7 +513,9 @@ function mapStateToProps (state) {
     appName: state.device.appName,
     vipFlg: state.device.vipFlg,
     showCkCode: state.device.showCkCode,
-    ckCodeUrl: state.device.ckCodeUrl,
+    ckCodeType: state.device.ckCodeType,
+    payMethod: state.device.payMethod,
+    payParam: state.device.payParam,
     expireTime: state.device.expireTime,
     projects: state.prj.list,
     versionIterators : state['version_iterator'].list,

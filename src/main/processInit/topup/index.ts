@@ -19,6 +19,7 @@ import {
     setExpireTime, 
     getExpireTime, 
     getLatestProduct, 
+    getLatestPayMethod,
     genDecryptString,
     incBuyTimes, 
     clearVipCacheFlg,
@@ -99,12 +100,13 @@ export default function (){
         let url = "";
         //拿订单号
         let tradeNo = getOutTradeNo();
-        if (!isStringEmpty(tradeNo)) {
+        let payMethod = getLatestPayMethod();
+        if (payMethod !== "dollerpay" && !isStringEmpty(tradeNo)) {
             url = await getCheckCodeUrl();
         }
         let product = getLatestProduct();
 
-        event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, product, url);
+        event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, product, tradeNo, url);
     });
 
     ipcMain.on(ChannelsVipStr, (event, action) => {

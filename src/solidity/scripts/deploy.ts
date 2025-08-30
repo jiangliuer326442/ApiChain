@@ -1,9 +1,22 @@
-import { ethers } from "hardhat"
+import { ethers, network } from "hardhat"
+
+import contractConfig from "../../config/contract.json";
 
 async function main() {
-    const SimpleStorageFactory = await ethers.getContractFactory("SimpleStorage")
-    const simpleStorage = await SimpleStorageFactory.deploy()
-    console.log("Simple Storage deployed to:", await simpleStorage.getAddress())
+    const { contractName } = contractConfig;
+    const address = contractConfig[contractName].address[network.config.chainId];
+    const abi = contractConfig[contractName].abi;
+
+    const [signer] = await ethers.getSigners();
+    const contract = new ethers.Contract(
+      address,
+      abi,
+      signer
+    );
+
+    let result = await contract.withdraw();
+
+    console.log("result", result);
 }
 
 main()

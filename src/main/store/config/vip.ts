@@ -57,6 +57,7 @@ export function isShowCkcode() {
     let cache = getCache("");
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
     let myProductName = cache.get(VIP_LATEST_PRODUCT);
+    let payMethod = cache.get(VIP_LATEST_PAYMETHOD);
     if (!isStringEmpty(myOrderNo) && !isStringEmpty(myProductName)) {
         let returnType = null;
         if (myProductName.indexOf("product") >= 0) {
@@ -64,10 +65,16 @@ export function isShowCkcode() {
         } else if (productName.indexOf("token") >= 0) {
             returnType = "chat_token";
         }
-        let url = getCheckCodeUrl();
-        return [true, returnType, url]
+        let params;
+        if (payMethod === "dollerpay") {
+            params = myOrderNo;
+        } else {
+            params = getCheckCodeUrl();
+        }
+        
+        return [true, returnType, payMethod, params]
     }
-    return [false, null, ""]
+    return [false, null, "", ""]
 }
 
 export function isVip() {

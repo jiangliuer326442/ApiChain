@@ -9,7 +9,9 @@ import {
   APPVERSION, 
   VIP_FLG, 
   CKCODE_FLG,
-  CKCODE_URL,
+  CKCODE_TYPE,
+  PAY_PARAM,
+  PAY_METHOD,
   EXPIRE_TIME, 
   CLIENT_TYPE,
   CLIENT_HOST,
@@ -31,7 +33,9 @@ export default function (state = {
   userLang: "",
   vipFlg: false,
   showCkCode: false,
-  ckCodeUrl: "",
+  ckCodeType: "",
+  payMethod: "",
+  payParam: "",
   expireTime: 0,
   clientType: CLIENT_TYPE_SINGLE,
   clientHost: "",
@@ -57,9 +61,19 @@ export default function (state = {
         newState.showCkCode = action.showCkCode;
       }
 
-      if (action.ckCodeUrl !== undefined) {
-        sessionStorage.setItem(CKCODE_URL, action.ckCodeUrl);
-        newState.ckCodeUrl = action.ckCodeUrl;
+      if (action.ckCodeType !== undefined) {
+        sessionStorage.setItem(CKCODE_TYPE, action.ckCodeType);
+        newState.ckCodeType = action.ckCodeType;
+      }
+
+      if (action.payMethod !== undefined) {
+        sessionStorage.setItem(PAY_METHOD, action.payMethod);
+        newState.payMethod = action.payMethod;
+      }
+
+      if (action.payParam !== undefined) {
+        sessionStorage.setItem(PAY_PARAM, action.payParam);
+        newState.payParam = action.payParam;
       }
 
       if (action.vipFlg !== undefined) {
@@ -127,7 +141,9 @@ export default function (state = {
     state.uuid = isStringEmpty(sessionStorage.getItem(UUID)) ? "" : sessionStorage.getItem(UUID) as string;
     state.vipFlg = isStringEmpty(sessionStorage.getItem(VIP_FLG)) ? false : (sessionStorage.getItem(VIP_FLG) === "1" ? true : false);
     state.showCkCode = isStringEmpty(sessionStorage.getItem(CKCODE_FLG)) ? false : (sessionStorage.getItem(CKCODE_FLG) === "1" ? true : false);
-    state.ckCodeUrl = isStringEmpty(sessionStorage.getItem(CKCODE_URL)) ? "" : sessionStorage.getItem(CKCODE_URL) as string;
+    state.ckCodeType = isStringEmpty(sessionStorage.getItem(CKCODE_TYPE)) ? "" : sessionStorage.getItem(CKCODE_TYPE) as string;
+    state.payParam = isStringEmpty(sessionStorage.getItem(PAY_PARAM)) ? "" : sessionStorage.getItem(PAY_PARAM) as string;
+    state.payMethod = isStringEmpty(sessionStorage.getItem(PAY_METHOD)) ? "" : sessionStorage.getItem(PAY_METHOD) as string;
     state.expireTime = isStringEmpty(sessionStorage.getItem(EXPIRE_TIME)) ? 0 : Number(sessionStorage.getItem(EXPIRE_TIME));
     state.appName = isStringEmpty(sessionStorage.getItem(APPNAME)) ? "" : sessionStorage.getItem(APPNAME) as string;
     state.defaultRunnerUrl = isStringEmpty(sessionStorage.getItem(DEFAULT_RUNNER_URL)) ? "" : sessionStorage.getItem(DEFAULT_RUNNER_URL) as string;

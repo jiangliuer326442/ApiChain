@@ -72,10 +72,17 @@
         "outputs": [],
         "stateMutability": "payable",
         "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
       }
     ],
     "address": {
-      "11155111": "0x682cC384DC8A2D56c5efbe281E6310523ccf153a"
+      "11155111": "0x76949A4B9e57D739bd6e246f3114772c3B5b5A2f"
     }
   }
 }

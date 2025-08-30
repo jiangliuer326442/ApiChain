@@ -18,7 +18,11 @@ export const VIP_FLG = "device.vip.flg";
 
 export const CKCODE_FLG = "device.ckcode.flg";
 
-export const CKCODE_URL = "device.ckcode.url";
+export const CKCODE_TYPE = "device.ckcode.type";
+
+export const PAY_PARAM = "device.ckcode.param";
+
+export const PAY_METHOD = "device.ckcode.payMethod";
 
 export const CLIENT_TYPE = "team.client.type";
 

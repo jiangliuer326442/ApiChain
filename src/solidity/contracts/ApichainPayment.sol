@@ -74,7 +74,9 @@ contract ApichainPayment {
     string calldata tradeNo,
     string calldata uid
   ) external view returns (string memory) {
-    require(keccak256(bytes(s_uidOrder[uid])) == keccak256(bytes(tradeNo)), '');
+    if (keccak256(bytes(s_uidOrder[uid])) != keccak256(bytes(tradeNo))) {
+      return "";
+    }
     Product product = s_orderProduct[tradeNo];
 
     string memory originString = string(
@@ -102,6 +104,10 @@ contract ApichainPayment {
     if (hash == keccak256(abi.encodePacked('product11')))
       return Product.Product11;
     revert('Invalid product name');
+  }
+
+  function getOrderNoByUid(string memory uid) external view returns (string memory) {
+    return s_uidOrder[uid];
   }
 
   function getOwner() external view returns (address) {
