@@ -102,11 +102,16 @@ class PayMemberModel extends Component {
                     const { projectId, supportedChains } = contractConfig;
                     wcProvider = await EthereumProvider.init({
                         projectId,
+                        metadata: {
+                            name: this.props.appName,
+                            description: this.props.appName,
+                            url: "http://localhost:1212",
+                            icons: ["https://apichain.app/icon.ico"],
+                            storage: window.localStorage,
+                        },
                         chains: supportedChains,
                         showQrModal: false,
-                    });
-                    wcProvider.on('session_event', async (event) => {
-                        console.log('Received session_request:', event);
+                        disableProviderPing: true,
                     });
                     wcProvider.on('display_uri', async (url) => {
                         try {
@@ -118,6 +123,7 @@ class PayMemberModel extends Component {
                         }
                     });
                     wcProvider.on('chainChanged', (chainId) => {
+
                         if (handleFlg) {
                             return;
                         }
@@ -131,7 +137,19 @@ class PayMemberModel extends Component {
                         this.state.wcProvider = wcProvider;
                         this.doWithContract();
                     });
-                    await wcProvider.connect();
+                    if (wcProvider.session) {
+                        await wcProvider.enable();
+                        await resolve("");
+                        this.state.wcProvider = wcProvider;
+                        this.state.selectedContractChain = this.state.wcProvider.chainId;
+                        const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
+                        const signer = ethersProvider.getSigner();
+                        this.state.etherProvider = ethersProvider;
+                        this.state.signer = signer;
+                        this.doWithContract();
+                    } else {
+                        await wcProvider.connect();
+                    }
                 } catch (error) {
                     console.error("111111", error);
                     this.disconnectWallet();
@@ -164,24 +182,20 @@ class PayMemberModel extends Component {
         const contractAddress = contractInfo.address[chainId];
         let contract;
         try {
-            console.log("777777");
             contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
         } catch (error) {
             console.error('sign contract error:', error);
             this.disconnectWallet();
             this.canelPay();
         }
-        console.log("88888888");
 
         if (this.state.showPayWriteOff || this.props.showPayWriteOff) {
             let contractParamsTradeNo ;
             let currentUid;
             if (isStringEmpty(this.state.contractParams)) {
-                console.log("666666666666666")
                 currentUid = this.props.uid;
                 contractParamsTradeNo = this.state.tradeNo;
             } else {
-                console.log("77777777777");
                 let contractParams = this.state.contractParams;
                 let [_tmp, uid] = atob(contractParams).split("&");
                 let [productName, payMethod, tradeNo] = _tmp.split(":");
@@ -190,7 +204,6 @@ class PayMemberModel extends Component {
             }
             const methodName = 'getOrderReceipt';
             const params = [contractParamsTradeNo, currentUid];
-            console.log("params", params);
             try {
                 const ckCode = await contract[methodName](...params, {
                     gasLimit: 110000,
@@ -247,16 +260,15 @@ class PayMemberModel extends Component {
                 if (payMethod === "dollerpay") {
                     try {
                         let url = await this.getWalletConnectUri();
+                        this.state.money = money;
                         if (!isStringEmpty(url)) {
                             const qrCodeDataURL = await qrcode.toDataURL(url);
                             this.setState({
-                                money,
                                 showPayQrCode1: true,
                                 qrcode: qrCodeDataURL,
                             });
                         } else {
                             this.setState({
-                                money,
                                 showPayQrCode1: true,
                                 qrcode: "",
                             });
@@ -397,7 +409,11 @@ class PayMemberModel extends Component {
                 expireTime,
                 buyTimes,
                 showCkCode : false,
+                ckCodeType: "",
+                payParam: "",
+                payMethod: "",
             });
+
             this.setState({
                 showPayWriteOff: false,
                 showPayQrCode1: false,
@@ -517,7 +533,10 @@ class PayMemberModel extends Component {
                     <Flex gap="small" vertical>
                         <Form>
                             <Form.Item label={langTrans("member checkout form")}>
-                                <TextArea value={ this.state.ckCode } autoSize={{ minRows: 6 }}                                  
+                                <TextArea 
+                                    value={ this.state.ckCode } 
+                                    readOnly={ this.props.payMethod === "dollerpay" }
+                                    autoSize={{ minRows: 6 }}
                                     onChange={(e) => {
                                         let content = e.target.value;
                                         this.setState({ ckCode: content });
@@ -541,6 +560,7 @@ class PayMemberModel extends Component {
 function mapStateToProps (state) {
     return {
         uid: state.device.uuid,
+        appName: state.device.appName,
         buyTimes: state.device.buyTimes,
         userCountry: state.device.userCountry,
     }
