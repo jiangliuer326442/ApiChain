@@ -20,6 +20,7 @@ import { isStringEmpty, getdayjs } from '@rutil/index';
 import { langFormat, langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
+const { supportedChains } = contractConfig;
 
 class PayMemberModel extends Component {
 
@@ -32,13 +33,13 @@ class PayMemberModel extends Component {
             lodingCkCode: false,
             productName: "",
             payMethod: "",
+            tradeNo: "",
+            contractChain: "",
             money: "",
             qrcode: "",
             ckCode: "",
             cacheCkCodeUrl: "",
             contractParams: "",
-            tradeNo: "",
-            selectedContractChain: "",
             wcProvider: null,
             etherProvider: null,
             signer: null,
@@ -50,9 +51,11 @@ class PayMemberModel extends Component {
             return;
         }
         if (prevProps.payMethod === "dollerpay") {
-            if (prevProps.payParam != prevState.tradeNo) {
-                let tradeNo = prevProps.payParam;
+            let [oldPayParam, network] = prevProps.payParam.split("$$");
+            if (oldPayParam != prevState.tradeNo) {
+                let tradeNo = oldPayParam;
                 this.state.tradeNo = tradeNo;
+                this.state.contractChain = network;
                 let uri;
                 try {
                     uri = await this.getWalletConnectUri();
@@ -96,68 +99,47 @@ class PayMemberModel extends Component {
     getWalletConnectUri = () => {
         return new Promise(async (resolve, reject) => {
             if (this.state.wcProvider === null) {
-                let handleFlg = false;
-                let wcProvider = null;
                 try {
-                    const { projectId, supportedChains } = contractConfig;
-                    wcProvider = await EthereumProvider.init({
+                    const { projectId } = contractConfig;
+                    this.state.wcProvider = await EthereumProvider.init({
                         projectId,
                         metadata: {
                             name: this.props.appName,
                             description: this.props.appName,
                             url: "http://localhost:1212",
                             icons: ["https://apichain.app/icon.ico"],
-                            storage: window.localStorage,
                         },
-                        chains: supportedChains,
+                        chains: Object.keys(supportedChains),
                         showQrModal: false,
                         disableProviderPing: true,
                     });
-                    wcProvider.on('display_uri', async (url) => {
+                    this.state.wcProvider.on('display_uri', async (url) => {
                         try {
                             await resolve(url);
                         } catch (error) {
-                            console.error("2222222", error)
+                            console.error("display_uri error", error)
                             this.disconnectWallet();
                             reject(error);
                         }
                     });
-                    wcProvider.on('chainChanged', (chainId) => {
 
-                        if (handleFlg) {
-                            return;
-                        }
-                        handleFlg = true;
-                        let useChainId = parseInt(chainId, 16);
-                        this.state.selectedContractChain = useChainId;
-                        const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
-                        const signer = ethersProvider.getSigner();
-                        this.state.etherProvider = ethersProvider;
-                        this.state.signer = signer;
-                        this.state.wcProvider = wcProvider;
-                        this.doWithContract();
-                    });
-                    if (wcProvider.session) {
-                        await wcProvider.enable();
+                    this.state.etherProvider = new ethers.providers.Web3Provider(this.state.wcProvider);
+                    this.state.signer = this.state.etherProvider.getSigner();
+                    
+                    if (this.state.wcProvider.session) {
+                        await this.state.wcProvider.enable();
                         await resolve("");
-                        this.state.wcProvider = wcProvider;
-                        this.state.selectedContractChain = this.state.wcProvider.chainId;
-                        const ethersProvider = new ethers.providers.Web3Provider(wcProvider);
-                        const signer = ethersProvider.getSigner();
-                        this.state.etherProvider = ethersProvider;
-                        this.state.signer = signer;
-                        this.doWithContract();
                     } else {
-                        await wcProvider.connect();
+                        await this.state.wcProvider.connect();
                     }
+                    this.doWithContract();
                 } catch (error) {
-                    console.error("111111", error);
+                    console.error("init wcProvider error", error);
                     this.disconnectWallet();
                     reject(error);
                 }
             } else {
                 await resolve("");
-                this.state.selectedContractChain = this.state.wcProvider.chainId;
                 this.doWithContract();
             }
         });
@@ -176,7 +158,7 @@ class PayMemberModel extends Component {
 
     doWithContract = async () => {
         const { contractName } = contractConfig;
-        const chainId = this.state.selectedContractChain;
+        const chainId = this.state.contractChain;
         const contractInfo = contractConfig[contractName];
         const contractABI = contractInfo.abi;
         const contractAddress = contractInfo.address[chainId];
@@ -211,12 +193,21 @@ class PayMemberModel extends Component {
                 });
                 this.setState({ckCode});
             } catch (error) {
-                message.error("未查询到核销码，请稍后再试");
+                message.error(langTrans("member topup ckcode error"));
             }
         } else {
             let contractParams = this.state.contractParams;
             let [_tmp, uid] = atob(contractParams).split("&");
             let [productName, payMethod, tradeNo] = _tmp.split(":");
+
+            this.props.dispatch({
+                type : SET_DEVICE_INFO,
+                showCkCode : true,
+                ckCodeType: "member",
+                payParam: tradeNo + "$$" + chainId,
+                payMethod,
+            });
+
             const methodName = 'storePayData';
             const params = [productName, tradeNo, uid];
             try {
@@ -235,24 +226,33 @@ class PayMemberModel extends Component {
 
     setProductName = (e: RadioChangeEvent) => {
         this.setState({productName: e.target.value});
-        this.checkAndGenPayPng(e.target.value, null);
+        this.checkAndGenPayPng(e.target.value, null, null);
     };
 
     setPayMethod = (e: RadioChangeEvent) => {
         const payMethod = e.target.value;
         this.setState({payMethod});
-        this.checkAndGenPayPng(null, payMethod);
+        this.checkAndGenPayPng(null, payMethod, null);
     };
 
+    setContractChain = (e: RadioChangeEvent) => {
+        const contractChain = e.target.value;
+        this.setState({contractChain});
+        this.checkAndGenPayPng(null, null, contractChain);
+    }
+
     //生成支付二维码
-    checkAndGenPayPng = (productName : string | null, payMethod : string | null) => {
+    checkAndGenPayPng = (productName : string | null, payMethod : string | null, contractChain : string | null) => {
         if (productName === null) {
             productName = this.state.productName;
         }
         if (payMethod === null) {
             payMethod = this.state.payMethod;
         }
-        if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
+        if (contractChain === null) {
+            contractChain = this.state.contractChain;
+        }
+        if (!(isStringEmpty(productName) || isStringEmpty(payMethod) || isStringEmpty(contractChain))) {
             //拿支付二维码生成结果
             let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, params : string) => {
                 if (action !== ChannelsVipGenUrlStr) return;
@@ -289,7 +289,7 @@ class PayMemberModel extends Component {
                 }
             });
 
-            window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipGenUrlStr, productName, payMethod);
+            window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipGenUrlStr, productName, payMethod, contractChain);
         }
     }
 
@@ -300,6 +300,7 @@ class PayMemberModel extends Component {
             cacheCkCodeUrl: "",
             productName: "",
             payMethod: "",
+            contractChain: "",
             money: "",
             qrcode: "",
             wcProvider: null,
@@ -323,13 +324,6 @@ class PayMemberModel extends Component {
             listener();
             if (payMethod === "dollerpay") {
                 this.state.tradeNo = tradeNo;
-                this.props.dispatch({
-                    type : SET_DEVICE_INFO,
-                    showCkCode : true,
-                    ckCodeType: "member",
-                    payParam: this.state.tradeNo,
-                    payMethod,
-                });
                 let uri;
                 try {
                     uri = await this.getWalletConnectUri();
@@ -380,6 +374,7 @@ class PayMemberModel extends Component {
             lodingCkCode: false,
             productName: "",
             payMethod: "",
+            contractChain: "",
             money: "",
             qrcode: "",
             ckCode: "",
@@ -421,6 +416,7 @@ class PayMemberModel extends Component {
                 cacheCkCodeUrl: "",
                 productName: "",
                 payMethod: "",
+                contractChain: "",
                 money: "",
                 qrcode: "",
                 ckCode: "",
@@ -442,6 +438,7 @@ class PayMemberModel extends Component {
             cacheCkCodeUrl: "",
             productName: "",
             payMethod: "",
+            contractChain: "",
             money: "",
             qrcode: "",
             ckCode: "",
@@ -499,12 +496,26 @@ class PayMemberModel extends Component {
                                 </Radio.Group>
                                 }
                             </Form.Item>
+                    {this.state.payMethod === 'dollerpay' ? 
+                            <Form.Item label={langTrans("member topup network")}>
+                        {
+                            Object.keys(supportedChains).map(chainId => {
+                                return (
+                                <Radio.Group onChange={this.setContractChain} value={this.state.contractChain}>
+                                    <Radio value={chainId}>{supportedChains[chainId]}</Radio>
+                                </Radio.Group>
+                                )
+                            })
+                        }
+                            </Form.Item>
+                    : null}
                         </Form>
                         {this.state.showPayQrCode1 ? 
                             (this.state.payMethod === 'dollerpay' ? 
                                 <>
                                 <p style={isStringEmpty(this.state.qrcode) ? {marginTop: 0, marginBottom: 0} : {}}>{langFormat("member topup paycontent2", {
-                                    "money": this.state.money
+                                    "money": this.state.money,
+                                    "network": supportedChains[this.state.contractChain]
                                 })}</p>
                                 {!isStringEmpty(this.state.qrcode) ? <img src={ this.state.qrcode } /> : null}
                                 </>
@@ -515,7 +526,11 @@ class PayMemberModel extends Component {
                     </Flex>
                 </Modal>
                 <Modal
-                    title={langTrans("member checkout title1")}
+                    title={
+                        (this.state.payMethod === 'dollerpay' || this.props.payMethod === 'dollerpay') ? 
+                        langTrans("member checkout title2") : 
+                        langTrans("member checkout title1")
+                    }
                     open={this.state.showPayWriteOff || this.props.showPayWriteOff}
                     confirmLoading={this.state.lodingCkCode}
                     onOk={this.payCheck}
@@ -546,7 +561,11 @@ class PayMemberModel extends Component {
                         </Form>
                         {this.state.showPayQrCode ? 
                         <>
-                            <p>{langTrans("member checkout paycontent")}</p>
+                        {(this.state.payMethod === 'dollerpay' || this.props.payMethod === 'dollerpay') ? 
+                            <p>{langTrans("member checkout paycontent2")}</p>
+                        :
+                            <p>{langTrans("member checkout paycontent1")}</p>
+                        }
                             {!isStringEmpty(this.state.qrcode) ? <img src={ this.state.qrcode } /> : null}
                         </>
                         : null}

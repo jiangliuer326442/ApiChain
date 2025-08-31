@@ -16,6 +16,7 @@ import { getUuid } from '../../store/config/user';
 import {
     getOutTradeNo, 
     isVip, 
+    setContractChain,
     setExpireTime, 
     getExpireTime, 
     getLatestProduct, 
@@ -35,7 +36,7 @@ const { usdEthRate } = contractConfig;
 
 export default function (){
 
-    ipcMain.on(ChannelsVipStr, async (event, action, productName, payMethod) => {
+    ipcMain.on(ChannelsVipStr, async (event, action, productName, payMethod, contractChain) => {
 
         if (action !== ChannelsVipGenUrlStr) return;
 
@@ -68,6 +69,7 @@ export default function (){
                 money = money * 1000000 * usdEthRate / 1000000;
             }
             let params = await genCheckCodeUrl(productName, payMethod);
+            setContractChain(contractChain);
             event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money, params);
         } else {
             if (productName === "product9") {

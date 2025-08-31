@@ -14,6 +14,9 @@ export const TABLE_NAME = "vip.status";
 //最新的 VIP 订单号
 const VIP_LATEST_TRADE = TABLE_NAME + ".tradeNo";
 
+//最新的 VIP 使用的网络
+const VIP_LATEST_CHAIN = TABLE_NAME + ".chainId";
+
 //最新的 商品
 const VIP_LATEST_PRODUCT = TABLE_NAME + ".product";
 
@@ -58,6 +61,7 @@ export function isShowCkcode() {
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
     let myProductName = cache.get(VIP_LATEST_PRODUCT);
     let payMethod = cache.get(VIP_LATEST_PAYMETHOD);
+    let chainId = cache.get(VIP_LATEST_CHAIN);
     if (!isStringEmpty(myOrderNo) && !isStringEmpty(myProductName)) {
         let returnType = null;
         if (myProductName.indexOf("product") >= 0) {
@@ -67,7 +71,7 @@ export function isShowCkcode() {
         }
         let params;
         if (payMethod === "dollerpay") {
-            params = myOrderNo;
+            params = myOrderNo + "$$" + chainId;
         } else {
             params = getCheckCodeUrl();
         }
@@ -100,6 +104,11 @@ export function incBuyTimes() {
     let cache = getCache("");
     cache.set(VIP_BUY_TIMES, newBuyTimes);
     return newBuyTimes;
+}
+
+export function setContractChain(chainId : string) {
+    let cache = getCache("");
+    cache.set(VIP_LATEST_CHAIN, chainId);
 }
 
 export function getExpireTime() {

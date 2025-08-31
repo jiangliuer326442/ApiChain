@@ -1,7 +1,7 @@
 {
-  "supportedChains": [
-    11155111
-  ],
+  "supportedChains": {
+    "11155111": "Sepolia Testnet"
+  },
   "contractName": "ApichainPayment",
   "projectId": "ba0ad790e4aed95af5c34acbbecb8613",
   "usdEthRate": 0.00022,
