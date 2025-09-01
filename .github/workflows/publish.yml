@@ -28,16 +28,12 @@ jobs:
           yarn postinstall
           yarn build
 
-      - name: Merge main into macos branch
+      - name: Publish releases
         run: |
-          git fetch origin macos:macos
-          git checkout macos
-          git merge main --no-edit
-          git push origin macos
-
-      - name: Merge main into windows branch
-        run: |
-          git fetch origin windows:windows
-          git checkout windows
-          git merge main --no-edit
-          git push origin windows
+          yarn electron-builder -- --publish never --mac
+          
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ApiChain_macos
+          path: release/build/
