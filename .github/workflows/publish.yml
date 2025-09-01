@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches:    
-      - windows
+      - macos
 
 jobs:
   publish:
@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [macos-latest]
 
     steps:
       - name: Checkout git repo
@@ -30,10 +30,10 @@ jobs:
 
       - name: Publish releases
         run: |
-          yarn electron-builder -- --publish never --windows
+          yarn electron-builder -- --publish never --mac
           
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ApiChain_windows
+          name: ApiChain_macos
           path: release/build/
