@@ -27,7 +27,7 @@ import {
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_USER_FIELDS,
 } from '@conf/db';
-import PayModel from '@comp/topup/member';
+import PayMemberModel from '@comp/topup/member';
 import TeamModel from '@comp/team';
 import { getUser } from '@act/user';
 import { langTrans } from '@lang/i18n';
@@ -183,7 +183,7 @@ class Vip extends Component {
                     {langTrans("member title")} 
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
-                    <PayModel 
+                    <PayMemberModel 
                         showPay={this.state.showPay} 
                         cb={showPay => this.setState({showPay})}
                     />

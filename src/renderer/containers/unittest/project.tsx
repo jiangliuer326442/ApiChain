@@ -39,7 +39,7 @@ import {
   continueProjectExecuteUnitTest,
   copyFromProjectToIterator,
 } from '@act/unittest';
-import PayModel from '@comp/topup/member';
+import PayMemberModel from '@comp/topup/member';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 
@@ -370,7 +370,7 @@ class UnittestListVersion extends Component {
             style={{ margin: '16px 0' }}
             items={[{ title: langTrans("prj unittest bread1") }, { title: langTrans("prj unittest bread2") }]}
           />
-          <PayModel
+          <PayMemberModel
             showPay={this.state.showPay}
             cb={(showPay) => this.setState({ showPay })}
           />

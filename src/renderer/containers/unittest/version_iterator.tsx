@@ -46,7 +46,7 @@ import {
 import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { getOpenVersionIterators } from '@act/version_iterator';
 import { buildUnitTestStepFromRequest } from '@act/unittest_step';
-import PayModel from '@comp/topup/member';
+import PayMemberModel from '@comp/topup/member';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
 import { langTrans } from '@lang/i18n';
@@ -488,7 +488,7 @@ class UnittestListVersion extends Component {
                         { title: langTrans("version unittest bread1") }, 
                         { title: langTrans("version unittest bread2") }
                     ]} />
-                    <PayModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
+                    <PayMemberModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
                     <Flex justify="space-between" align="center" style={{marginBottom: 16}}>
                         <Form layout="inline">
                             <Form.Item label={langTrans("prj unittest operator1")}>
