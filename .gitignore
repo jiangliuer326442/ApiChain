@@ -18,8 +18,6 @@ node_modules
 # OSX
 .DS_Store
 
-assets/icons
-
 release/app/dist
 release/build
 .erb/dll
