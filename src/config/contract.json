@@ -1,8 +1,17 @@
 {
   "supportedChains": {
-    "11155111": "Mainnet Sepolia",
-    "421614": "Arbitrum Sepolia",
-    "42161": "Arbitrum"
+    "42161": {
+      "name": "Arbitrum",
+      "rpc": "https://arb-mainnet.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU"
+    },
+    "421614": {
+      "name": "Arbitrum Sepolia",
+      "rpc": "https://arb-sepolia.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU"
+    },
+    "11155111": {
+      "name": "Mainnet Sepolia",
+      "rpc": "https://eth-sepolia.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU"
+    }
   },
   "contractName": "ApichainPayment",
   "projectId": "ba0ad790e4aed95af5c34acbbecb8613",

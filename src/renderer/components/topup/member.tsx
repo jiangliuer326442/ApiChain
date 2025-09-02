@@ -104,6 +104,11 @@ class PayMemberModel extends Component {
             if (this.state.wcProvider === null) {
                 try {
                     const { projectId } = contractConfig;
+                    let rpcMap = {};
+                    for (let chainId of allowedChains) {
+                        rpcMap[chainId] = supportedChains[chainId].rpc;
+                    }
+                    
                     this.state.wcProvider = await EthereumProvider.init({
                         projectId,
                         metadata: {
@@ -112,17 +117,19 @@ class PayMemberModel extends Component {
                             url: "http://localhost:1212",
                             icons: ["https://apichain.app/icon.ico"],
                         },
-                        chains: allowedChains,
+                        chains: [this.state.contractChain],
+                        optionalChains: [this.state.contractChain],
                         showQrModal: false,
                         disableProviderPing: true,
+                        rpcMap
                     });
                     this.state.wcProvider.on('display_uri', async (url) => {
                         try {
                             await resolve(url);
                         } catch (error) {
                             console.error("display_uri error", error)
-                            this.disconnectWallet();
-                            reject(error);
+                            this.canelPay();
+                            return;
                         }
                     });
 
@@ -138,8 +145,8 @@ class PayMemberModel extends Component {
                     this.doWithContract();
                 } catch (error) {
                     console.error("init wcProvider error", error);
-                    this.disconnectWallet();
-                    reject(error);
+                    this.canelPay();
+                    return;
                 }
             } else {
                 await resolve("");
@@ -211,14 +218,24 @@ class PayMemberModel extends Component {
                 payMethod,
             });
 
+            console.log("11111111", this.state.wcProvider.chainId, this.state.contractChain)
+
             const methodName = 'storePayData';
             const params = [productName, tradeNo, uid];
             try {
-                await contract[methodName](...params, {
+                console.log("dfgdfgdfgf", params, {
                     value: ethers.utils.parseEther(this.state.money.toString()),
-                    gasLimit: 110000,
+                    gasLimit: 120000,
+                    gasPrice: ethers.utils.parseUnits("1", "gwei"),
+                }, this.state.money)
+                let tx = await contract[methodName](...params, {
+                    value: ethers.utils.parseEther(this.state.money.toString()),
+                    gasLimit: 120000,
                     gasPrice: ethers.utils.parseUnits("1", "gwei"),
                 });
+                console.log("tx hash", tx.hash);
+                const receipt = await tx.wait();
+                console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
             } catch (error) {
                 console.error('Error sending transaction:', error);
                 this.disconnectWallet();
@@ -508,8 +525,8 @@ class PayMemberModel extends Component {
                         {
                             allowedChains.map(chainId => {
                                 return (
-                                <Radio.Group onChange={this.setContractChain} value={this.state.contractChain}>
-                                    <Radio value={chainId}>{supportedChains[chainId]}</Radio>
+                                <Radio.Group key={chainId} onChange={this.setContractChain} value={this.state.contractChain}>
+                                    <Radio value={chainId}>{supportedChains[chainId].name}</Radio>
                                 </Radio.Group>
                                 )
                             })
@@ -522,7 +539,7 @@ class PayMemberModel extends Component {
                                 <>
                                 <p style={isStringEmpty(this.state.qrcode) ? {marginTop: 0, marginBottom: 0} : {}}>{langFormat("member topup paycontent2", {
                                     "money": this.state.money,
-                                    "network": supportedChains[this.state.contractChain]
+                                    "network": supportedChains[this.state.contractChain].name
                                 })}</p>
                                 {!isStringEmpty(this.state.qrcode) ? <img src={ this.state.qrcode } /> : null}
                                 </>
