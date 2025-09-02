@@ -16,11 +16,14 @@ import {
 } from '@conf/channel';
 import contractConfig from '@conf/contract.json';
 import { SET_DEVICE_INFO } from '@conf/redux';
-import { isStringEmpty, getdayjs } from '@rutil/index';
+import { isStringEmpty, getdayjs, getStartParams } from '@rutil/index';
 import { langFormat, langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
 const { supportedChains } = contractConfig;
+
+let argsObjects = getStartParams();
+let allowedChains = argsObjects.allowedChains.split(",");
 
 class PayMemberModel extends Component {
 
@@ -109,7 +112,7 @@ class PayMemberModel extends Component {
                             url: "http://localhost:1212",
                             icons: ["https://apichain.app/icon.ico"],
                         },
-                        chains: Object.keys(supportedChains),
+                        chains: allowedChains,
                         showQrModal: false,
                         disableProviderPing: true,
                     });
@@ -252,7 +255,11 @@ class PayMemberModel extends Component {
         if (contractChain === null) {
             contractChain = this.state.contractChain;
         }
-        if (!(isStringEmpty(productName) || isStringEmpty(payMethod) || isStringEmpty(contractChain))) {
+        if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
+            if (payMethod === "dollerpay" && isStringEmpty(contractChain)) {
+                return;
+            }
+
             //拿支付二维码生成结果
             let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, params : string) => {
                 if (action !== ChannelsVipGenUrlStr) return;
@@ -499,7 +506,7 @@ class PayMemberModel extends Component {
                     {this.state.payMethod === 'dollerpay' ? 
                             <Form.Item label={langTrans("member topup network")}>
                         {
-                            Object.keys(supportedChains).map(chainId => {
+                            allowedChains.map(chainId => {
                                 return (
                                 <Radio.Group onChange={this.setContractChain} value={this.state.contractChain}>
                                     <Radio value={chainId}>{supportedChains[chainId]}</Radio>

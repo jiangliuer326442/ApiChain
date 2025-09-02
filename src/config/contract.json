@@ -1,6 +1,8 @@
 {
   "supportedChains": {
-    "11155111": "Sepolia Testnet"
+    "11155111": "Mainnet Sepolia",
+    "421614": "Arbitrum Sepolia",
+    "42161": "Arbitrum"
   },
   "contractName": "ApichainPayment",
   "projectId": "ba0ad790e4aed95af5c34acbbecb8613",
@@ -101,7 +103,9 @@
       }
     ],
     "address": {
-      "11155111": "0x8f642f51B423f3FFa423A8649935bc6bc65C1F18"
+      "42161": "0xc65b22AC3bbC095d225e02510ab7BcE578a9ABc0",
+      "421614": "0xc65b22AC3bbC095d225e02510ab7BcE578a9ABc0",
+      "11155111": "0xc65b22AC3bbC095d225e02510ab7BcE578a9ABc0"
     }
   }
 }
