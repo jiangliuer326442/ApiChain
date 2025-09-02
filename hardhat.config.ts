@@ -14,7 +14,17 @@ const config: HardhatUserConfig = {
     sepolia: {
       url: "https://eth-sepolia.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU",
       chainId: 11155111,
-      accounts: [process.env.SEPOLIA_ACCOUNT!],
+      accounts: [process.env.EVM_ACCOUNT!],
+    },
+    arbitrumTestnet: {
+      url: "https://arb-sepolia.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU",
+      chainId: 421614,
+      accounts: [process.env.EVM_ACCOUNT!],
+    },
+    arbitrum: {
+      url: "https://arb-mainnet.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU",
+      chainId: 42161,
+      accounts: [process.env.EVM_ACCOUNT!],
     }
   },
   paths: {
