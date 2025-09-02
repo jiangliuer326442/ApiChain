@@ -25,9 +25,9 @@ import { isStringEmpty } from '../../renderer/util';
 export async function getInitParams() : Promise<string[]> {
     let packageJson = await getPackageJson();
     let lang = await osLocale();
-    // if (process.env.NODE_ENV === 'development') {
-    //     lang = 'en-AU';
-    // }
+    if (process.env.NODE_ENV === 'development') {
+        lang = 'en-AU';
+    }
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
     setLang(userCountry, userLang);
@@ -61,6 +61,7 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
     let demoPostmanFile = getDemoPostmanFile(packageJson.staticUrl);
     let minServerVersion = packageJson.minServerVersion;
     let aiModels = packageJson.aiModels;
+    let allowedChains = packageJson.allowedChains;
     let clientType = getClientType();
     let clientHost = getClientHost();
     let teamId = getTeamId();
@@ -87,6 +88,7 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
         "$$" + base64Encode("demoPostmanFile=" + demoPostmanFile),
         "$$" + base64Encode("minServerVersion=" + minServerVersion),
         "$$" + base64Encode("aiModels=" + aiModels),
+        "$$" + base64Encode("allowedChains=" + allowedChains),
         "$$" + base64Encode("userLang=" + userLang),
         "$$" + base64Encode("userCountry=" + userCountry),
         "$$" + base64Encode("firstLauch=" + firstLauch),
