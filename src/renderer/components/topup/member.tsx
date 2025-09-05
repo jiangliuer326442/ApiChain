@@ -237,7 +237,10 @@ class PayMemberModel extends Component {
             const methodName = 'sendRequest';
             const params = ["419", ["1"]];
             try {
-                let tx = await contract[methodName](...params);
+                let tx = await contract[methodName](...params, {
+                    value: ethers.utils.parseEther(this.state.money.toString()).toString(),
+                    gasLimit: 500000,
+                });
                 console.log("tx hash", tx.hash);
                 const receipt = await tx.wait();
                 console.log(`Transaction confirmed in block ${receipt.blockNumber}`);

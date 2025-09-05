@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.30;
 
 import '@openzeppelin/contracts/utils/Strings.sol';
 import {FunctionsClient} from '@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol';
@@ -11,34 +11,16 @@ contract ApichainPayment is FunctionsClient, ConfirmedOwner {
   using Strings for uint256;
 
   address payable private immutable i_owner;
-  bytes32 private immutable i_donId;
-  uint32 private i_gasLimit;
-  uint64 private immutable i_subscriptionId;
-
-  mapping(address => bytes32) private s_userRequestId;
-  mapping(address => uint256) private s_userPay;
 
   // State variables to store the last request ID, response, and error
   bytes32 public s_lastRequestId;
   bytes public s_lastResponse;
   bytes public s_lastError;
-  uint256 public s_lastPay;
-  address payable public s_lastAddress;
 
   // Custom error type
   error UnexpectedRequestID(bytes32 requestId);
   error RequestPending();
   error WithdrawalFailed();
-
-  // Event to log responses
-  event Response(
-    bytes32 indexed requestId,
-    uint256 status,
-    bytes response,
-    bytes err
-  );
-
-  event Withdrawn(address indexed owner, uint256 amount);
 
   string source =
     'const money = args[0];'
@@ -49,44 +31,58 @@ contract ApichainPayment is FunctionsClient, ConfirmedOwner {
     'if (apiResponse.error) {'
     "throw Error('Request failed');"
     '}'
-    'const { data } = apiResponse;'
-    'return Functions.encodeUint256(data.status);';
+    "return Functions.encodeString('');";
 
+  uint32 private i_gasLimit;
+
+  bytes32 private immutable i_donId;
+
+  /**
+   * @notice Initializes the contract with the Chainlink router address and sets the contract owner
+   */
   constructor(
     address router,
     bytes32 donID,
-    uint32 gasLimit,
-    uint64 subscriptionId
+    uint32 gasLimit
   ) FunctionsClient(router) ConfirmedOwner(msg.sender) {
     i_owner = payable(msg.sender);
     i_donId = donID;
     i_gasLimit = gasLimit;
-    i_subscriptionId = subscriptionId;
   }
 
-  function sendRequest(string memory payData) external payable {
-    require(
-      s_userRequestId[msg.sender] == bytes32(0),
-      'Previous request pending'
-    );
-    string[] memory args = new string[](2);
-    args[0] = msg.value.toString();
-    args[1] = payData;
+  /**
+   * @notice Sends an HTTP request for character information
+   * @param subscriptionId The ID for the Chainlink subscription
+   * @param args The arguments to pass to the HTTP request
+   * @return requestId The ID of the request
+   */
+  function sendRequest(
+    uint64 subscriptionId,
+    string[] calldata args
+  ) external payable returns (bytes32 requestId) {
     FunctionsRequest.Request memory req;
     req.initializeRequestForInlineJavaScript(source);
-    req.setArgs(args);
+    string memory payData = args[0];
+    string[] memory requestArgs = new string[](2);
+    requestArgs[0] = msg.value.toString();
+    requestArgs[1] = payData;
+    req.setArgs(requestArgs);
     s_lastRequestId = _sendRequest(
       req.encodeCBOR(),
-      i_subscriptionId,
+      subscriptionId,
       i_gasLimit,
       i_donId
     );
-    s_lastPay = msg.value;
-    s_lastAddress = payable(msg.sender);
-    s_userRequestId[msg.sender] = s_lastRequestId;
-    s_userPay[msg.sender] = msg.value;
+
+    return s_lastRequestId;
   }
 
+  /**
+   * @notice Callback function for fulfilling a request
+   * @param requestId The ID of the request to fulfill
+   * @param response The HTTP response data
+   * @param err Any errors from the Functions request
+   */
   function fulfillRequest(
     bytes32 requestId,
     bytes memory response,
@@ -97,21 +93,11 @@ contract ApichainPayment is FunctionsClient, ConfirmedOwner {
     }
     s_lastResponse = response;
     s_lastError = err;
-
-    // uint256 status;
-    //     if (err.length == 0 && response.length > 0) {
-    //         status = abi.decode(response, (uint256));
-
-    // emit Response(requestId, string(response), s_lastResponse, s_lastError);
   }
 
   function withdraw() external onlyOwner {
     uint256 balance = address(this).balance;
     require(balance > 0, 'No funds to withdraw');
     i_owner.transfer(balance);
-  }
-
-  function getOwner() external view returns (address) {
-    return i_owner;
   }
 }

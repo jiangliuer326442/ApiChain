@@ -3,7 +3,6 @@ import "@nomicfoundation/hardhat-toolbox"
 import "dotenv/config"
 
 import contractConfig from './src/config/contract.json';
-import { sub } from "@rutil/sets";
 const { supportedChains } = contractConfig;
 
 const config = {
@@ -26,8 +25,7 @@ const config = {
       linkToken: process.env.ARBITRUM_SEPOLIA_LINK_TOKEN!,
       functionsRouter: process.env.ARBITRUM_SEPOLIA_FUNCTION_ROUTER!,
       donIdName: process.env.ARBITRUM_SEPOLIA_DONID_NAME!,
-      donIdAddress: process.env.ARBITRUM_SEPOLIA_DONID_ADDRESS!,
-      subscriptionId: process.env.ARBITRUM_SEPOLIA_SUBSCRIPTION_ID!,
+      donIdAddress: process.env.ARBITRUM_SEPOLIA_DONID_ADDRESS!
     },
     arbitrum: {
       url: supportedChains["42161"].rpc,
@@ -36,14 +34,13 @@ const config = {
       linkToken: process.env.ARBITRUM_LINK_TOKEN!,
       functionsRouter: process.env.ARBITRUM_FUNCTION_ROUTER!,
       donIdName: process.env.ARBITRUM_DONID_NAME!,
-      donIdAddress: process.env.ARBITRUM_DONID_ADDRESS!,
-      subscriptionId: process.env.ARBITRUM_SUBSCRIPTION_ID!,
+      donIdAddress: process.env.ARBITRUM_DONID_ADDRESS!
     }
   },
   paths: {
     root: "./src/solidity",
   },
-  solidity: "0.8.28",
+  solidity: "0.8.30",
   namedAccounts: {
     deployer: {
         default: 0,
