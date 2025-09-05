@@ -226,9 +226,14 @@ async function genEncryptString(outTradeNo : string, productName : string, payMe
     return packageJson.payJumpUrl + data;
 }
 
-async function genEncryptString2(outTradeNo : string, productName : string, payMethod : string) : string {
-    const uid = getUuid();
+function genEncryptString2(outTradeNo : string, productName : string, payMethod : string) : string {
+    const privateKey = getSalt();
+    const publicKey = getUuid();
     const plaintext = productName + ":" + payMethod + ":" + outTradeNo;
-    const data = base64Encode(plaintext + "&" + uid);
+    const signature = sm2.doSignature(plaintext, privateKey, {
+        hash: true,
+        der: false  
+    });
+    const data = base64Encode(plaintext + "&" + publicKey + "&" + signature)
     return data;
 }
