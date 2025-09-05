@@ -13,9 +13,21 @@ const deployFunction: DeployFunction = async function (
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
 
+    // const args = [
+    //   network.config.functionsRouter,
+    //   network.config.donIdAddress,
+    //   300000,
+    //   network.config.subscriptionId,
+    // ];
+    const args = [
+      network.config.functionsRouter,
+      network.config.donIdAddress,
+      300000,
+    ];
+
     const deployResult = await deploy(contractName, {
         from: deployer,
-        args: [],
+        args,
         log: true,
         waitConfirmations: 1,
     });

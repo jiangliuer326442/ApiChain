@@ -132,9 +132,20 @@ class PayMemberModel extends Component {
                             return;
                         }
                     });
-
-                    this.state.etherProvider = new ethers.providers.Web3Provider(this.state.wcProvider);
-                    this.state.signer = this.state.etherProvider.getSigner();
+                    this.state.wcProvider.on('session_update', ({ topic, params }) => {
+                        console.log('Session updated:', params);
+                        const chainId = params.namespaces.eip155.chains[0].split(':')[1];
+                        console.log('Current chainId:', chainId);
+                    });
+                    this.state.wcProvider.on('session_event', ({ topic, params }) => {
+                        if (params.event.name === 'chainChanged') {
+                            console.log('Chain changed to:', params.event.data);
+                        }
+                    });
+                    this.state.wcProvider.on('connect', (session) => {
+                        const chainId = parseInt(session.chainId, 16);
+                        console.log('Initial chainId:', chainId, this.state.contractChain);
+                    });
                     
                     if (this.state.wcProvider.session) {
                         await this.state.wcProvider.enable();
@@ -142,6 +153,9 @@ class PayMemberModel extends Component {
                     } else {
                         await this.state.wcProvider.connect();
                     }
+                    this.state.etherProvider = new ethers.providers.Web3Provider(this.state.wcProvider);
+                    this.state.signer = this.state.etherProvider.getSigner();
+                    console.log("signer", this.state.signer);
                     this.doWithContract();
                 } catch (error) {
                     console.error("init wcProvider error", error);
@@ -171,6 +185,7 @@ class PayMemberModel extends Component {
         const chainId = this.state.contractChain;
         const contractInfo = contractConfig[contractName];
         const contractABI = contractInfo.abi;
+        console.log("chainid", this.state.wcProvider.chainId, chainId);
         const contractAddress = contractInfo.address[chainId];
         let contract;
         try {
@@ -203,36 +218,26 @@ class PayMemberModel extends Component {
                 });
                 this.setState({ckCode});
             } catch (error) {
+                console.error('Error contract:', error);
                 message.error(langTrans("member topup ckcode error"));
             }
         } else {
+            // console.log("money", Number(ethers.utils.parseEther(this.state.money.toString()).toString()), "contractParams", this.state.contractParams);
             let contractParams = this.state.contractParams;
-            let [_tmp, uid] = atob(contractParams).split("&");
-            let [productName, payMethod, tradeNo] = _tmp.split(":");
 
-            this.props.dispatch({
-                type : SET_DEVICE_INFO,
-                showCkCode : true,
-                ckCodeType: "member",
-                payParam: tradeNo + "$$" + chainId,
-                payMethod,
-            });
+            // this.props.dispatch({
+            //     type : SET_DEVICE_INFO,
+            //     showCkCode : true,
+            //     ckCodeType: "member",
+            //     payParam: tradeNo + "$$" + chainId,
+            //     payMethod,
+            // });
 
-            console.log("11111111", this.state.wcProvider.chainId, this.state.contractChain)
-
-            const methodName = 'storePayData';
-            const params = [productName, tradeNo, uid];
+            // const methodName = 'storePayData';
+            const methodName = 'sendRequest';
+            const params = ["419", ["1"]];
             try {
-                console.log("dfgdfgdfgf", params, {
-                    value: ethers.utils.parseEther(this.state.money.toString()),
-                    gasLimit: 120000,
-                    gasPrice: ethers.utils.parseUnits("1", "gwei"),
-                }, this.state.money)
-                let tx = await contract[methodName](...params, {
-                    value: ethers.utils.parseEther(this.state.money.toString()),
-                    gasLimit: 120000,
-                    gasPrice: ethers.utils.parseUnits("1", "gwei"),
-                });
+                let tx = await contract[methodName](...params);
                 console.log("tx hash", tx.hash);
                 const receipt = await tx.wait();
                 console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
@@ -347,6 +352,13 @@ class PayMemberModel extends Component {
             if (action !== ChannelsVipCkCodeStr) return;
             listener();
             if (payMethod === "dollerpay") {
+                this.props.dispatch({
+                    type : SET_DEVICE_INFO,
+                    showCkCode : true,
+                    ckCodeType: "member",
+                    payParam: tradeNo + "$$" + this.state.contractChain,
+                    payMethod,
+                });
                 this.state.tradeNo = tradeNo;
                 let uri;
                 try {
@@ -398,7 +410,6 @@ class PayMemberModel extends Component {
             lodingCkCode: false,
             productName: "",
             payMethod: "",
-            contractChain: "",
             money: "",
             qrcode: "",
             ckCode: "",
