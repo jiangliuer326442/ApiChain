@@ -31,7 +31,8 @@ contract ApichainPayment is FunctionsClient, ConfirmedOwner {
     'if (apiResponse.error) {'
     "throw Error('Request failed');"
     '}'
-    "return Functions.encodeString('');";
+    'const { data } = apiResponse;'
+    'return Functions.encodeString(data.token);';
 
   uint32 private i_gasLimit;
 

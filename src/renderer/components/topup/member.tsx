@@ -53,48 +53,17 @@ class PayMemberModel extends Component {
         if (isStringEmpty(prevProps.payMethod) || isStringEmpty(prevProps.payParam) || !this.props.showPayWriteOff) {
             return;
         }
-        if (prevProps.payMethod === "dollerpay") {
-            let [oldPayParam, network] = prevProps.payParam.split("$$");
-            if (oldPayParam != prevState.tradeNo) {
-                let tradeNo = oldPayParam;
-                this.state.tradeNo = tradeNo;
-                this.state.contractChain = network;
-                let uri;
-                try {
-                    uri = await this.getWalletConnectUri();
-                } catch (error) {
-                    console.error('Error checkAndGenPayPng:', error);
-                    this.canelCkCode();
-                    return;
-                }
-                if (!isStringEmpty(uri)) {
-                    const qrCodeDataURL = await qrcode.toDataURL(uri);
-                    this.setState({
-                        tradeNo,
-                        showPayQrCode: true,
-                        qrcode: qrCodeDataURL,
-                    });
-                } else {
-                    this.setState({
-                        tradeNo,
-                        showPayQrCode: true,
-                        qrcode: "",
-                    });
-                }
-            }
-        } else {
-            if (prevProps.payParam != prevState.cacheCkCodeUrl) {
-                let cacheCkCodeUrl = prevProps.payParam;
-                try {
-                    const qrCodeDataURL = await qrcode.toDataURL(cacheCkCodeUrl);
-                    this.setState({
-                        cacheCkCodeUrl,
-                        showPayQrCode: true,
-                        qrcode: qrCodeDataURL,
-                    });
-                } catch (error) {
-                    console.error('Error generating QR code:', error);
-                }
+        if (prevProps.payParam != prevState.cacheCkCodeUrl) {
+            let cacheCkCodeUrl = prevProps.payParam;
+            try {
+                const qrCodeDataURL = await qrcode.toDataURL(cacheCkCodeUrl);
+                this.setState({
+                    cacheCkCodeUrl,
+                    showPayQrCode: true,
+                    qrcode: qrCodeDataURL,
+                });
+            } catch (error) {
+                console.error('Error generating QR code:', error);
             }
         }
     }
@@ -155,7 +124,6 @@ class PayMemberModel extends Component {
                     }
                     this.state.etherProvider = new ethers.providers.Web3Provider(this.state.wcProvider);
                     this.state.signer = this.state.etherProvider.getSigner();
-                    console.log("signer", this.state.signer);
                     this.doWithContract();
                 } catch (error) {
                     console.error("init wcProvider error", error);
@@ -185,7 +153,6 @@ class PayMemberModel extends Component {
         const chainId = this.state.contractChain;
         const contractInfo = contractConfig[contractName];
         const contractABI = contractInfo.abi;
-        console.log("chainid", this.state.wcProvider.chainId, chainId);
         const contractAddress = contractInfo.address[chainId];
         let contract;
         try {
@@ -222,20 +189,10 @@ class PayMemberModel extends Component {
                 message.error(langTrans("member topup ckcode error"));
             }
         } else {
-            // console.log("money", Number(ethers.utils.parseEther(this.state.money.toString()).toString()), "contractParams", this.state.contractParams);
             let contractParams = this.state.contractParams;
-
-            // this.props.dispatch({
-            //     type : SET_DEVICE_INFO,
-            //     showCkCode : true,
-            //     ckCodeType: "member",
-            //     payParam: tradeNo + "$$" + chainId,
-            //     payMethod,
-            // });
-
-            // const methodName = 'storePayData';
             const methodName = 'sendRequest';
-            const params = ["419", ["1"]];
+            const subscriptionId = supportedChains[chainId].subscription;
+            const params = [subscriptionId, [contractParams]];
             try {
                 let tx = await contract[methodName](...params, {
                     value: ethers.utils.parseEther(this.state.money.toString()).toString(),
@@ -281,6 +238,7 @@ class PayMemberModel extends Component {
             contractChain = this.state.contractChain;
         }
         if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
+            //美元支付必须选择支付网络
             if (payMethod === "dollerpay" && isStringEmpty(contractChain)) {
                 return;
             }
@@ -351,55 +309,24 @@ class PayMemberModel extends Component {
             return;
         }
         //拿核销二维码
-        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, product, tradeNo, url : string) => {
+        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, url : string) => {
             if (action !== ChannelsVipCkCodeStr) return;
             listener();
-            if (payMethod === "dollerpay") {
-                this.props.dispatch({
-                    type : SET_DEVICE_INFO,
-                    showCkCode : true,
-                    ckCodeType: "member",
-                    payParam: tradeNo + "$$" + this.state.contractChain,
-                    payMethod,
+            this.props.dispatch({
+                type : SET_DEVICE_INFO,
+                showCkCode : true,
+                ckCodeType: "member",
+                payParam: url,
+                payMethod,
+            });
+            try {
+                const qrCodeDataURL = await qrcode.toDataURL(url);
+                this.setState({
+                    showPayQrCode: true,
+                    qrcode: qrCodeDataURL,
                 });
-                this.state.tradeNo = tradeNo;
-                let uri;
-                try {
-                    uri = await this.getWalletConnectUri();
-                } catch (error) {
-                    console.error('Error checkAndGenPayPng:', error);
-                    this.canelPay();
-                    return;
-                }
-                if (!isStringEmpty(uri)) {
-                    const qrCodeDataURL = await qrcode.toDataURL(uri);
-                    this.setState({
-                        showPayQrCode: true,
-                        qrcode: qrCodeDataURL,
-                    });
-                } else {
-                    this.setState({
-                        showPayQrCode: true,
-                        qrcode: "",
-                    });
-                }
-            } else {
-                this.props.dispatch({
-                    type : SET_DEVICE_INFO,
-                    showCkCode : true,
-                    ckCodeType: "member",
-                    payParam: url,
-                    payMethod,
-                });
-                try {
-                    const qrCodeDataURL = await qrcode.toDataURL(url);
-                    this.setState({
-                        showPayQrCode: true,
-                        qrcode: qrCodeDataURL,
-                    });
-                } catch (error) {
-                    console.error('Error generating QR code:', error);
-                }
+            } catch (error) {
+                console.error('Error generating QR code:', error);
             }
         });
         //发消息生成核销码
@@ -564,11 +491,7 @@ class PayMemberModel extends Component {
                     </Flex>
                 </Modal>
                 <Modal
-                    title={
-                        (this.state.payMethod === 'dollerpay' || this.props.payMethod === 'dollerpay') ? 
-                        langTrans("member checkout title2") : 
-                        langTrans("member checkout title1")
-                    }
+                    title={langTrans("member checkout title1")}
                     open={this.state.showPayWriteOff || this.props.showPayWriteOff}
                     confirmLoading={this.state.lodingCkCode}
                     onOk={this.payCheck}
@@ -587,8 +510,7 @@ class PayMemberModel extends Component {
                         <Form>
                             <Form.Item label={langTrans("member checkout form")}>
                                 <TextArea 
-                                    value={ this.state.ckCode } 
-                                    readOnly={ this.props.payMethod === "dollerpay" }
+                                    value={ this.state.ckCode }
                                     autoSize={{ minRows: 6 }}
                                     onChange={(e) => {
                                         let content = e.target.value;
@@ -599,11 +521,7 @@ class PayMemberModel extends Component {
                         </Form>
                         {this.state.showPayQrCode ? 
                         <>
-                        {(this.state.payMethod === 'dollerpay' || this.props.payMethod === 'dollerpay') ? 
-                            <p>{langTrans("member checkout paycontent2")}</p>
-                        :
                             <p>{langTrans("member checkout paycontent1")}</p>
-                        }
                             {!isStringEmpty(this.state.qrcode) ? <img src={ this.state.qrcode } /> : null}
                         </>
                         : null}

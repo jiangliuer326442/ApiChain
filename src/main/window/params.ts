@@ -1,4 +1,3 @@
-import log from 'electron-log';
 import { setLang } from '../../lang/i18n';
 import { getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
@@ -25,9 +24,9 @@ import { isStringEmpty } from '../../renderer/util';
 export async function getInitParams() : Promise<string[]> {
     let packageJson = await getPackageJson();
     let lang = await osLocale();
-    if (process.env.NODE_ENV === 'development') {
-        lang = 'en-AU';
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //     lang = 'en-AU';
+    // }
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
     setLang(userCountry, userLang);
@@ -39,15 +38,17 @@ export async function getInitParams() : Promise<string[]> {
         teamName = urlEncode(ret[1]);
     }
 
+    let showCkCodeRet = await isShowCkcode();
+
     let firstLauch = isFirstLauch();
     if (firstLauch) {
         giftVip(3);
     }
 
-    return await doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
+    return doGetInitParams(packageJson, showCkCodeRet, userLang, userCountry, teamName, firstLauch);
 }
 
-async function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
+function doGetInitParams(packageJson : any, showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
@@ -68,7 +69,6 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
     if (isStringEmpty(teamName)) {
         clientType = CLIENT_TYPE_SINGLE;
     }
-    let showCkCodeRet = isShowCkcode();
 
     return [
         "$$" + base64Encode("uuid=" + uuid),
