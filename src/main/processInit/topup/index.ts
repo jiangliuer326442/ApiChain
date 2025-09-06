@@ -102,13 +102,11 @@ export default function (){
         let url = "";
         //拿订单号
         let tradeNo = getOutTradeNo();
-        let payMethod = getLatestPayMethod();
-        if (payMethod !== "dollerpay" && !isStringEmpty(tradeNo)) {
+        if (!isStringEmpty(tradeNo)) {
             url = await getCheckCodeUrl();
         }
-        let product = getLatestProduct();
 
-        event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, product, tradeNo, url);
+        event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, url);
     });
 
     ipcMain.on(ChannelsVipStr, (event, action) => {
