@@ -56,12 +56,11 @@ export function getLatestPayMethod() : string {
     return latestPayMethod;
 }
 
-export function isShowCkcode() {
+export async function isShowCkcode() {
     let cache = getCache("");
     let myOrderNo = cache.get(VIP_LATEST_TRADE);
     let myProductName = cache.get(VIP_LATEST_PRODUCT);
     let payMethod = cache.get(VIP_LATEST_PAYMETHOD);
-    let chainId = cache.get(VIP_LATEST_CHAIN);
     if (!isStringEmpty(myOrderNo) && !isStringEmpty(myProductName)) {
         let returnType = null;
         if (myProductName.indexOf("product") >= 0) {
@@ -69,12 +68,7 @@ export function isShowCkcode() {
         } else if (productName.indexOf("token") >= 0) {
             returnType = "chat_token";
         }
-        let params;
-        if (payMethod === "dollerpay") {
-            params = myOrderNo + "$$" + chainId;
-        } else {
-            params = getCheckCodeUrl();
-        }
+        let params = await getCheckCodeUrl();
         
         return [true, returnType, payMethod, params]
     }
@@ -132,17 +126,11 @@ export function setExpireTime(expireTime : number) {
 
 export function genDecryptString(base64Str : string) {
     let cache = getCache("");
-    let payMethod = cache.get(VIP_LATEST_PAYMETHOD);
-    let line;
-    if (payMethod === "dollerpay") {
-        line = base64Decode(base64Str);
-    } else {
-        const key = crypto.createHash('md5').update(getUuid()).digest('hex').substring(0, 16);
-        const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from(key), null);
-        let decrypted = decipher.update(base64Str, 'base64', 'utf8');
-        decrypted += decipher.final('utf8');
-        line = decrypted;
-    }
+    const key = crypto.createHash('md5').update(getUuid()).digest('hex').substring(0, 16);
+    const decipher = crypto.createDecipheriv('aes-128-ecb', Buffer.from(key), null);
+    let decrypted = decipher.update(base64Str, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+    let line = decrypted;
     if (isStringEmpty(line)) {
         return ["", "", ""];
     }
