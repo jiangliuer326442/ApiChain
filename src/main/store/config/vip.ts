@@ -65,7 +65,7 @@ export async function isShowCkcode() {
         let returnType = null;
         if (myProductName.indexOf("product") >= 0) {
             returnType = "member";
-        } else if (productName.indexOf("token") >= 0) {
+        } else if (myProductName.indexOf("token") >= 0) {
             returnType = "chat_token";
         }
         let params = await getCheckCodeUrl();
