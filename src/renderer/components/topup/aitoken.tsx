@@ -3,6 +3,8 @@ import { connect } from 'react-redux';
 import { 
     Modal, Button, Form, Radio, Input, Flex, message,
 } from "antd";
+import { EthereumProvider } from '@walletconnect/ethereum-provider';
+import { ethers } from 'ethers';
 import { RadioChangeEvent } from 'antd/lib';
 import qrcode from 'qrcode';
 
@@ -12,11 +14,16 @@ import {
     ChannelsVipCkCodeStr,
     ChannelsVipDoCkCodeStr,
 } from '@conf/channel';
+import contractConfig from '@conf/contract.json';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { langTrans, langFormat } from '@lang/i18n';
-import { isStringEmpty } from '@rutil/index';
+import { isStringEmpty, getStartParams } from '@rutil/index';
 
 const { TextArea } = Input;
+const { supportedChains } = contractConfig;
+
+let argsObjects = getStartParams();
+let allowedChains = argsObjects.allowedChains.split(",");
 
 class PayAiTokenModel extends Component {
     constructor(props) {
@@ -28,16 +35,25 @@ class PayAiTokenModel extends Component {
             lodingCkCode: false,
             productName: "",
             payMethod: "",
+            contractChain: "",
             money: "",
             qrcode: "",
             ckCode: "",
             cacheCkCodeUrl: "",
+            contractParams: "",
+            walletAccount: "",
+            wcProvider: null,
+            etherProvider: null,
+            signer: null,
         };
     }
 
     async componentDidUpdate(prevProps, prevState) {
-        if (!isStringEmpty(prevProps.ckCodeUrl) && prevProps.ckCodeUrl != prevState.cacheCkCodeUrl) {
-            let cacheCkCodeUrl = prevProps.ckCodeUrl;
+        if (isStringEmpty(prevProps.payMethod) || isStringEmpty(prevProps.payParam) || !this.props.showPayWriteOff) {
+            return;
+        }
+        if (prevProps.payParam != prevState.cacheCkCodeUrl) {
+            let cacheCkCodeUrl = prevProps.payParam;
             try {
                 const qrCodeDataURL = await qrcode.toDataURL(cacheCkCodeUrl);
                 this.setState({
@@ -51,46 +67,198 @@ class PayAiTokenModel extends Component {
         }
     }
 
+    getWalletConnectUri = () => {
+        return new Promise(async (resolve, reject) => {
+            if (this.state.wcProvider === null) {
+                try {
+                    const { projectId } = contractConfig;
+                    let rpcMap = {};
+                    for (let chainId of allowedChains) {
+                        rpcMap[chainId] = supportedChains[chainId].rpc;
+                    }
+                    
+                    this.state.wcProvider = await EthereumProvider.init({
+                        projectId,
+                        metadata: {
+                            name: this.props.appName,
+                            description: this.props.appName,
+                            url: "http://localhost:1212",
+                            icons: ["https://apichain.app/icon.ico"],
+                        },
+                        chains: [this.state.contractChain],
+                        optionalChains: [this.state.contractChain],
+                        showQrModal: false,
+                        disableProviderPing: true,
+                        rpcMap
+                    });
+                    this.state.wcProvider.on('display_uri', async (url) => {
+                        try {
+                            await resolve(url);
+                        } catch (error) {
+                            console.error("display_uri error", error)
+                            this.cancelPay();
+                            return;
+                        }
+                    });
+                    this.state.wcProvider.on('session_update', ({ topic, params }) => {
+                        console.log('Session updated:', params);
+                        const chainId = params.namespaces.eip155.chains[0].split(':')[1];
+                        console.log('Current chainId:', chainId);
+                    });
+                    this.state.wcProvider.on('session_event', ({ topic, params }) => {
+                        if (params.event.name === 'chainChanged') {
+                            console.log('Chain changed to:', params.event.data);
+                        }
+                    });
+                    this.state.wcProvider.on('connect', (session) => {
+                        const chainId = parseInt(session.chainId, 16);
+                        console.log('Initial chainId:', chainId, this.state.contractChain);
+                    });
+
+                    this.state.wcProvider.on('disconnect', (error, payload) => {
+                        console.error('WalletConnect disconnected:', error, payload);
+                        if (error?.message?.includes('expired') || error?.code === 'SESSION_EXPIRED') {
+                            console.error('Session expired. Please reconnect.');
+                            this.cancelPay();
+                        }
+                    });
+                    
+                    if (this.state.wcProvider.session) {
+                        await this.state.wcProvider.enable();
+                        const accounts = this.state.wcProvider.session.namespaces.eip155.accounts;
+                        console.log("accounts", accounts);
+                        const currentAccount = accounts[0].split(':')[2];
+                        this.setState({walletAccount: currentAccount});
+                        await resolve("");
+                    } else {
+                        await this.state.wcProvider.connect();
+                    }
+                    this.state.etherProvider = new ethers.providers.Web3Provider(this.state.wcProvider);
+                    this.state.signer = this.state.etherProvider.getSigner();
+                    this.doWithContract();
+                } catch (error) {
+                    console.error("init wcProvider error", error);
+                    this.cancelPay();
+                    return;
+                }
+            } else {
+                await resolve("");
+                this.doWithContract();
+            }
+        });
+    }
+
+    disconnectWallet = async () => {
+        if (this.state.wcProvider) {
+            await this.state.wcProvider.disconnect();
+            this.setState({
+                wcProvider: null,
+                etherProvider: null,
+                signer: null,
+            });
+        }
+    }
+
+    doWithContract = async () => {
+        const { contractName } = contractConfig;
+        const chainId = this.state.contractChain;
+        const contractInfo = contractConfig[contractName];
+        const contractABI = contractInfo.abi;
+        const contractAddress = contractInfo.address[chainId];
+        let contract;
+        try {
+            contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
+        } catch (error) {
+            console.error('sign contract error:', error);
+            this.cancelPay();
+        }
+        
+        let contractParams = this.state.contractParams;
+        const methodName = 'sendRequest';
+        const subscriptionId = supportedChains[chainId].subscription;
+        const params = [subscriptionId, [contractParams]];
+        try {
+            contract[methodName](...params, {
+                value: ethers.utils.parseEther(this.state.money.toString()).toString(),
+                gasLimit: 500000,
+            });
+        } catch (error) {
+            console.error('Error sending transaction:', error);
+            this.cancelPay();
+        }
+    }
+
     setProductName = (e: RadioChangeEvent) => {
         this.setState({productName: e.target.value});
-        this.checkAndGenPayPng(e.target.value, null);
+        this.checkAndGenPayPng(e.target.value, null, null);
     };
 
     setPayMethod = (e: RadioChangeEvent) => {
         this.setState({payMethod: e.target.value});
-        this.checkAndGenPayPng(null, e.target.value);
+        this.checkAndGenPayPng(null, e.target.value, null);
     };
 
+    setContractChain = (e: RadioChangeEvent) => {
+        const contractChain = e.target.value;
+        this.setState({contractChain});
+        this.checkAndGenPayPng(null, null, contractChain);
+    }
+
     //生成支付二维码
-    checkAndGenPayPng = (productName : string | null, payMethod : string | null) => {
+    checkAndGenPayPng = (productName : string | null, payMethod : string | null, contractChain : string | null) => {
         if (productName === null) {
             productName = this.state.productName;
         }
         if (payMethod === null) {
             payMethod = this.state.payMethod;
         }
+        if (contractChain === null) {
+            contractChain = this.state.contractChain;
+        }
         if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
+            //美元支付必须选择支付网络
+            if (payMethod === "dollerpay" && isStringEmpty(contractChain)) {
+                return;
+            }
+
             //拿支付二维码生成结果
-            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, url) => {
+            let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, params : string) => {
                 if (action !== ChannelsVipGenUrlStr) return;
                 listener();
-                try {
-                    const qrCodeDataURL = await qrcode.toDataURL(url);
+                if (payMethod === "dollerpay") {
+                    try {
+                        let url = await this.getWalletConnectUri();
+                        this.state.money = money;
+                        if (!isStringEmpty(url)) {
+                            const qrCodeDataURL = await qrcode.toDataURL(url);
+                            this.setState({
+                                showPayQrCode1: true,
+                                qrcode: qrCodeDataURL,
+                            });
+                        } else {
+                            this.setState({
+                                showPayQrCode1: true,
+                                qrcode: "",
+                            });
+                        }
+                        this.state.contractParams = params;
+                    } catch (error) {
+                        console.error('Error checkAndGenPayPng:', error);
+                    }
+                } else {
                     this.setState({
                         showPayQrCode1: true,
                         money,
-                        qrcode: qrCodeDataURL,
                     });
-                } catch (error) {
-                    console.error('Error generating QR code:', error);
                 }
             });
 
-            window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipGenUrlStr, productName, payMethod);
+            window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipGenUrlStr, productName, payMethod, contractChain);
         }
     }
 
-    canelPay = () => {
+    cancelPay = () => {
+        this.disconnectWallet();
         this.setState({
             showPayQrCode: false,
             showPayQrCode1: false,
@@ -99,6 +267,10 @@ class PayAiTokenModel extends Component {
             payMethod: "",
             money: "",
             qrcode: "",
+            walletAccount: "",
+            wcProvider: null,
+            etherProvider: null,
+            signer: null,
         });
         this.props.cb(false);
     }
@@ -111,13 +283,15 @@ class PayAiTokenModel extends Component {
             return;
         }
         //拿核销二维码
-        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, product, url : string) => {
+        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, url : string) => {
             if (action !== ChannelsVipCkCodeStr) return;
             listener();
             this.props.dispatch({
                 type : SET_DEVICE_INFO,
                 showCkCode : true,
-                ckCodeUrl: url,
+                ckCodeType: "chat_token",
+                payParam: url,
+                payMethod,
             });
             try {
                 const qrCodeDataURL = await qrcode.toDataURL(url);
@@ -162,6 +336,14 @@ class PayAiTokenModel extends Component {
                 message.error(langTrans("member checkout error"));
                 return;
             }
+            this.props.dispatch({
+                type: SET_DEVICE_INFO,
+                uuid: myuid,
+                showCkCode : false,
+                ckCodeType: "",
+                payParam: "",
+                payMethod: "",
+            });
             this.setState({
                 showPayWriteOff: false,
                 showPayQrCode1: false,
@@ -204,10 +386,10 @@ class PayAiTokenModel extends Component {
                     title={langTrans("aitoken topup title")}
                     open={this.props.showPay}
                     onOk={this.payDone}
-                    onCancel={this.canelPay}
+                    onCancel={this.cancelPay}
                     width={500}
                     footer={[
-                        <Button key="back" onClick={this.canelPay}>
+                        <Button key="back" onClick={this.cancelPay}>
                             {langTrans("member topup btn cancel")}
                         </Button>,
                         <Button key="submit" type="primary" onClick={this.payDone}>
@@ -218,16 +400,11 @@ class PayAiTokenModel extends Component {
                     <Flex gap="small" vertical>
                         <Form>
                             <Form.Item label={langTrans("aitoken topup tokens")}>
-                                {
-                                this.props.userCountry === 'CN' ? 
                                 <Radio.Group onChange={this.setProductName} value={this.state.productName}>
                                     <Radio value="token1">{langTrans("aitoken topup tokens t1")}</Radio>
                                     <Radio value="token2">{langTrans("aitoken topup tokens t2")}</Radio>
                                     <Radio value="token3">{langTrans("aitoken topup tokens t3")}</Radio>
                                 </Radio.Group>
-                                : 
-                                null
-                                }
                             </Form.Item>
                             <Form.Item label={langTrans("member topup paymethod")}>
                                 {
@@ -236,24 +413,52 @@ class PayAiTokenModel extends Component {
                                     <Radio value="wxpay">{langTrans("member topup paymethod p1")}</Radio>
                                 </Radio.Group>
                                 : 
-                                null
+                                <Radio.Group onChange={this.setPayMethod} value={this.state.payMethod}>
+                                    <Radio value="dollerpay">{langTrans("member topup paymethod p3")}</Radio>
+                                </Radio.Group>
                                 }
                             </Form.Item>
+                    {this.state.payMethod === 'dollerpay' ? 
+                            <Form.Item label={langTrans("member topup network")}>
+                        {
+                            allowedChains.map(chainId => {
+                                return (
+                                <Radio.Group key={chainId} onChange={this.setContractChain} value={this.state.contractChain}>
+                                    <Radio value={chainId}>{supportedChains[chainId].name}</Radio>
+                                </Radio.Group>
+                                )
+                            })
+                        }
+                            </Form.Item>
+                    : null}
                         </Form>
                         {this.state.showPayQrCode1 ? 
-                        <>
-                            <p>{langFormat("member topup paycontent", {
-                                "money": this.state.money,
-                                "unit": this.state.payMethod === 'dollerpay' ? '$' : '￥',
-                                "equipment": langTrans("member topup equipment e3")
-                            })}</p>
-                            <img src={ this.state.qrcode } />
-                        </>
+                            (this.state.payMethod === 'dollerpay' ? 
+                                <>
+                                <p style={isStringEmpty(this.state.qrcode) ? {marginTop: 0, marginBottom: 0} : {}}>
+                                {this.state.walletAccount ? 
+                                    langFormat("member topup paycontent3", {
+                                        "money": this.state.money,
+                                        "network": supportedChains[this.state.contractChain].name,
+                                        "account": this.state.walletAccount
+                                    })
+                                :
+                                    langFormat("member topup paycontent2", {
+                                        "money": this.state.money,
+                                        "network": supportedChains[this.state.contractChain].name
+                                    })
+                                }
+                                </p>
+                                {!isStringEmpty(this.state.qrcode) ? <img src={ this.state.qrcode } /> : null}
+                                </>
+                            :<p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
+                                "money": this.state.money
+                            })}</p>)
                         : null}
                     </Flex>
                 </Modal>
                 <Modal
-                    title={langTrans("member checkout title")}
+                    title={langTrans("member checkout title1")}
                     open={this.state.showPayWriteOff || this.props.showPayWriteOff}
                     confirmLoading={this.state.lodingCkCode}
                     onOk={this.payCheck}
@@ -281,7 +486,7 @@ class PayAiTokenModel extends Component {
                         </Form>
                         {this.state.showPayQrCode ? 
                         <>
-                            <p>{langTrans("member checkout paycontent")}</p>
+                            <p>{langTrans("member checkout paycontent1")}</p>
                             <img src={ this.state.qrcode } />
                         </>
                         : null}
@@ -294,6 +499,7 @@ class PayAiTokenModel extends Component {
 
 function mapStateToProps (state) {
     return {
+        appName: state.device.appName,
         userCountry: state.device.userCountry,
     }
   }

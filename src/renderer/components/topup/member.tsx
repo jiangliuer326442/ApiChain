@@ -43,6 +43,7 @@ class PayMemberModel extends Component {
             ckCode: "",
             cacheCkCodeUrl: "",
             contractParams: "",
+            walletAccount: "",
             wcProvider: null,
             etherProvider: null,
             signer: null,
@@ -97,7 +98,7 @@ class PayMemberModel extends Component {
                             await resolve(url);
                         } catch (error) {
                             console.error("display_uri error", error)
-                            this.canelPay();
+                            this.cancelPay();
                             return;
                         }
                     });
@@ -115,9 +116,21 @@ class PayMemberModel extends Component {
                         const chainId = parseInt(session.chainId, 16);
                         console.log('Initial chainId:', chainId, this.state.contractChain);
                     });
+
+                    this.state.wcProvider.on('disconnect', (error, payload) => {
+                        console.error('WalletConnect disconnected:', error, payload);
+                        if (error?.message?.includes('expired') || error?.code === 'SESSION_EXPIRED') {
+                            console.error('Session expired. Please reconnect.');
+                            this.cancelPay();
+                        }
+                    });
                     
                     if (this.state.wcProvider.session) {
                         await this.state.wcProvider.enable();
+                        const accounts = this.state.wcProvider.session.namespaces.eip155.accounts;
+                        console.log("accounts", accounts);
+                        const currentAccount = accounts[0].split(':')[2];
+                        this.setState({walletAccount: currentAccount});
                         await resolve("");
                     } else {
                         await this.state.wcProvider.connect();
@@ -127,7 +140,7 @@ class PayMemberModel extends Component {
                     this.doWithContract();
                 } catch (error) {
                     console.error("init wcProvider error", error);
-                    this.canelPay();
+                    this.cancelPay();
                     return;
                 }
             } else {
@@ -159,53 +172,21 @@ class PayMemberModel extends Component {
             contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
         } catch (error) {
             console.error('sign contract error:', error);
-            this.disconnectWallet();
-            this.canelPay();
+            this.cancelPay();
         }
 
-        if (this.state.showPayWriteOff || this.props.showPayWriteOff) {
-            let contractParamsTradeNo ;
-            let currentUid;
-            if (isStringEmpty(this.state.contractParams)) {
-                currentUid = this.props.uid;
-                contractParamsTradeNo = this.state.tradeNo;
-            } else {
-                let contractParams = this.state.contractParams;
-                let [_tmp, uid] = atob(contractParams).split("&");
-                let [productName, payMethod, tradeNo] = _tmp.split(":");
-                contractParamsTradeNo = tradeNo;
-                currentUid = uid;
-            }
-            const methodName = 'getOrderReceipt';
-            const params = [contractParamsTradeNo, currentUid];
-            try {
-                const ckCode = await contract[methodName](...params, {
-                    gasLimit: 110000,
-                    gasPrice: ethers.utils.parseUnits("1.2", "gwei"),
-                });
-                this.setState({ckCode});
-            } catch (error) {
-                console.error('Error contract:', error);
-                message.error(langTrans("member topup ckcode error"));
-            }
-        } else {
-            let contractParams = this.state.contractParams;
-            const methodName = 'sendRequest';
-            const subscriptionId = supportedChains[chainId].subscription;
-            const params = [subscriptionId, [contractParams]];
-            try {
-                let tx = await contract[methodName](...params, {
-                    value: ethers.utils.parseEther(this.state.money.toString()).toString(),
-                    gasLimit: 500000,
-                });
-                console.log("tx hash", tx.hash);
-                const receipt = await tx.wait();
-                console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
-            } catch (error) {
-                console.error('Error sending transaction:', error);
-                this.disconnectWallet();
-                this.canelPay();
-            }
+        let contractParams = this.state.contractParams;
+        const methodName = 'sendRequest';
+        const subscriptionId = supportedChains[chainId].subscription;
+        const params = [subscriptionId, [contractParams]];
+        try {
+            contract[methodName](...params, {
+                value: ethers.utils.parseEther(this.state.money.toString()).toString(),
+                gasLimit: 500000,
+            });
+        } catch (error) {
+            console.error('Error sending transaction:', error);
+            this.cancelPay();
         }
     }
 
@@ -268,14 +249,10 @@ class PayMemberModel extends Component {
                         console.error('Error checkAndGenPayPng:', error);
                     }
                 } else {
-                    try {
-                        this.setState({
-                            showPayQrCode1: true,
-                            money,
-                        });
-                    } catch (error) {
-                        console.error('Error generating QR code:', error);
-                    }
+                    this.setState({
+                        showPayQrCode1: true,
+                        money,
+                    });
                 }
             });
 
@@ -283,7 +260,8 @@ class PayMemberModel extends Component {
         }
     }
 
-    canelPay = () => {
+    cancelPay = () => {
+        this.disconnectWallet();
         this.setState({
             showPayQrCode: false,
             showPayQrCode1: false,
@@ -293,11 +271,11 @@ class PayMemberModel extends Component {
             contractChain: "",
             money: "",
             qrcode: "",
+            walletAccount: "",
             wcProvider: null,
             etherProvider: null,
             signer: null,
         });
-        this.disconnectWallet();
         this.props.cb(false);
     }
 
@@ -420,10 +398,10 @@ class PayMemberModel extends Component {
                     title={langTrans("member topup title")}
                     open={this.props.showPay}
                     onOk={this.payDone}
-                    onCancel={this.canelPay}
+                    onCancel={this.cancelPay}
                     width={500}
                     footer={[
-                        <Button key="back" onClick={this.canelPay}>
+                        <Button key="back" onClick={this.cancelPay}>
                             {langTrans("member topup btn cancel")}
                         </Button>,
                         <Button key="submit" type="primary" onClick={this.payDone}>
@@ -478,10 +456,20 @@ class PayMemberModel extends Component {
                         {this.state.showPayQrCode1 ? 
                             (this.state.payMethod === 'dollerpay' ? 
                                 <>
-                                <p style={isStringEmpty(this.state.qrcode) ? {marginTop: 0, marginBottom: 0} : {}}>{langFormat("member topup paycontent2", {
-                                    "money": this.state.money,
-                                    "network": supportedChains[this.state.contractChain].name
-                                })}</p>
+                                <p style={isStringEmpty(this.state.qrcode) ? {marginTop: 0, marginBottom: 0} : {}}>
+                                {this.state.walletAccount ? 
+                                    langFormat("member topup paycontent3", {
+                                        "money": this.state.money,
+                                        "network": supportedChains[this.state.contractChain].name,
+                                        "account": this.state.walletAccount
+                                    })
+                                :
+                                    langFormat("member topup paycontent2", {
+                                        "money": this.state.money,
+                                        "network": supportedChains[this.state.contractChain].name
+                                    })
+                                }
+                                </p>
                                 {!isStringEmpty(this.state.qrcode) ? <img src={ this.state.qrcode } /> : null}
                                 </>
                             :<p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
@@ -534,7 +522,6 @@ class PayMemberModel extends Component {
 
 function mapStateToProps (state) {
     return {
-        uid: state.device.uuid,
         appName: state.device.appName,
         buyTimes: state.device.buyTimes,
         userCountry: state.device.userCountry,

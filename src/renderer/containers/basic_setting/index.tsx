@@ -1,4 +1,5 @@
 import { 
+    Alert,
     Button, 
     Form, 
     Input, 
@@ -19,9 +20,12 @@ import { connect } from 'react-redux';
 
 import { langTrans } from '@lang/i18n';
 import {
-  ChannelsAutoUpgradeStr, 
-  ChannelsAutoUpgradeCheckStr, 
+    ChannelsAutoUpgradeStr, 
+    ChannelsAutoUpgradeCheckStr, 
+    ChannelsVipStr,
+    ChannelsVipCloseCkCodeStr,
 } from '@conf/channel';
+import { SET_DEVICE_INFO } from '@conf/redux';
 import { IS_AUTO_UPGRADE } from '@conf/storage';
 import {
     CLIENT_TYPE_TEAM 
@@ -110,6 +114,8 @@ class BasicSetting extends Component {
                 }
             }],
             tokens: [],
+            showPayWriteOff: false,
+            closeShowPay: false,
         }
     }
 
@@ -138,6 +144,21 @@ class BasicSetting extends Component {
         });
     }
 
+    showCkCode = (e) => {
+        if (!this.state.closeShowPay) {
+            this.setState({showPayWriteOff: true})
+        }
+    }
+
+    closeShowPay = (e) => {
+        window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCloseCkCodeStr);
+        this.props.dispatch({
+            type: SET_DEVICE_INFO,
+            showCkCode : false,
+        });
+        this.state.closeShowPay = true;
+    }
+
     render(): ReactNode {
         return (
             <Layout>
@@ -148,15 +169,28 @@ class BasicSetting extends Component {
                     <Flex justify="space-between" align="center">
                         <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting basic") }]} />
                     </Flex>
+                {(this.props.showCkCode && this.props.ckCodeType === "chat_token") ? 
+                    <Alert 
+                        message={langTrans("aitoken checkout tips")}
+                        type="warning" 
+                        closable 
+                        onClose={this.closeShowPay} 
+                        onClick={this.showCkCode}
+                    /> 
+                : null}
                     <PayAiTokenModel 
                         showPay={this.state.showPay} 
-                        cb={showPay => this.setState({showPay})} 
+                        showPayWriteOff={this.state.showPayWriteOff} 
+                        payMethod={this.props.payMethod}
+                        payParam={this.props.payParam}
                         refresh={async () => {
                             const { apiKey } = await getTeamSetting();
                             this.setState({
                                 apiKey: apiKey, 
+                                tokens: await getTokens(),
                             })
                         }}
+                        cb={showPay => this.setState({showPay, showPayWriteOff: showPay})} 
                         />
                 {this.state.loaded ? 
                     <Form
@@ -240,7 +274,11 @@ class BasicSetting extends Component {
 
 function mapStateToProps (state) {
     return {
-      clientType: state.device.clientType,
+        clientType: state.device.clientType,
+        showCkCode: state.device.showCkCode,
+        ckCodeType: state.device.ckCodeType,
+        payMethod: state.device.payMethod,
+        payParam: state.device.payParam,
     }
 }
 
