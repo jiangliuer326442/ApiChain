@@ -130,10 +130,7 @@ contract ApichainPolygonPayment is FunctionsClient, ConfirmedOwner {
   function withdraw() external onlyOwner {
     uint256 balance = weth.balanceOf(address(this));
     require(balance > 0, 'No funds to withdraw');
-    require(
-      weth.transferFrom(address(this), i_owner, balance),
-      'WETH withdrawal failed'
-    );
+    require(weth.transfer(i_owner, balance), 'WETH withdrawal failed');
   }
 
   // 将字符串转换为uint256
