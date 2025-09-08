@@ -6,13 +6,13 @@ import contractConfig from './src/config/contract.json';
 const { supportedChains } = contractConfig;
 
 const config = {
-  defaultNetwork: "ganache",
+  defaultNetwork: "arbitrumTestnet",
   networks: {
-    ganache: {
-      url: supportedChains["1337"].rpc,
-      chainId: 1337,
-      accounts: [process.env.GANACHE_ACCOUNT!],
-    },
+    // ganache: {
+    //   url: supportedChains["1337"].rpc,
+    //   chainId: 1337,
+    //   accounts: [process.env.GANACHE_ACCOUNT!],
+    // },
     // sepolia: {
     //   url: supportedChains["11155111"].rpc,
     //   chainId: 11155111,
@@ -35,6 +35,15 @@ const config = {
       functionsRouter: process.env.ARBITRUM_FUNCTION_ROUTER!,
       donIdName: process.env.ARBITRUM_DONID_NAME!,
       donIdAddress: process.env.ARBITRUM_DONID_ADDRESS!
+    },
+    polygon: {
+      url: supportedChains["137"].rpc,
+      chainId: 137,
+      accounts: [process.env.EVM_ACCOUNT!],
+      linkToken: process.env.POLYGON_LINK_TOKEN!,
+      functionsRouter: process.env.POLYGON_FUNCTION_ROUTER!,
+      donIdName: process.env.POLYGON_DONID_NAME!,
+      donIdAddress: process.env.POLYGON_DONID_ADDRESS!
     }
   },
   paths: {

@@ -20,7 +20,7 @@ import { langTrans, langFormat } from '@lang/i18n';
 import { isStringEmpty, getStartParams } from '@rutil/index';
 
 const { TextArea } = Input;
-const { supportedChains } = contractConfig;
+const { supportedChains, erc20Chains } = contractConfig;
 
 let argsObjects = getStartParams();
 let allowedChains = argsObjects.allowedChains.split(",");
@@ -124,15 +124,11 @@ class PayAiTokenModel extends Component {
                     });
                     
                     if (this.state.wcProvider.session) {
-                        await this.state.wcProvider.enable();
-                        const accounts = this.state.wcProvider.session.namespaces.eip155.accounts;
-                        console.log("accounts", accounts);
-                        const currentAccount = accounts[0].split(':')[2];
-                        this.setState({walletAccount: currentAccount});
-                        await resolve("");
-                    } else {
-                        await this.state.wcProvider.connect();
+                        await this.state.wcProvider.disconnect();
                     }
+
+                    await this.state.wcProvider.connect();
+
                     this.state.etherProvider = new ethers.providers.Web3Provider(this.state.wcProvider);
                     this.state.signer = this.state.etherProvider.getSigner();
                     this.doWithContract();
@@ -160,12 +156,37 @@ class PayAiTokenModel extends Component {
     }
 
     doWithContract = async () => {
-        const { contractName } = contractConfig;
         const chainId = this.state.contractChain;
+        const etherValue = ethers.utils.parseEther(this.state.money.toString());
+
+        const { contractName } = contractConfig;
         const contractInfo = contractConfig[contractName];
         const contractABI = contractInfo.abi;
         const contractAddress = contractInfo.address[chainId];
+
+        //erc20授权
         let contract;
+        if (erc20Chains.includes(chainId.toString())) {
+            const erc20Contract = contractConfig.erc20;
+            const erc20ContractABI = erc20Contract.abi;
+            const erc20ContractAddress = erc20Contract.address[chainId];
+
+            try {
+                contract = new ethers.Contract(erc20ContractAddress, erc20ContractABI, this.state.signer);
+            } catch (error) {
+                console.error('sign contract error:', error);
+                this.cancelPay();
+            }
+
+            try {
+                let erc20Result = await contract["approve"](contractAddress, etherValue.toNumber());
+                console.log("erc20Result", erc20Result);
+            } catch (error) {
+                console.error('Error sending transaction:', error);
+                this.cancelPay();
+            }
+        }
+
         try {
             contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
         } catch (error) {
@@ -176,15 +197,31 @@ class PayAiTokenModel extends Component {
         let contractParams = this.state.contractParams;
         const methodName = 'sendRequest';
         const subscriptionId = supportedChains[chainId].subscription;
-        const params = [subscriptionId, [contractParams]];
-        try {
-            contract[methodName](...params, {
-                value: ethers.utils.parseEther(this.state.money.toString()).toString(),
-                gasLimit: 500000,
-            });
-        } catch (error) {
-            console.error('Error sending transaction:', error);
-            this.cancelPay();
+
+        if (erc20Chains.includes(chainId.toString())) {
+            const params = [subscriptionId, [
+                etherValue.toString(),
+                contractParams
+            ]];
+            try {
+                contract[methodName](...params, {
+                    gasLimit: 400000,
+                });
+            } catch (error) {
+                console.error('Error sending transaction:', error);
+                this.cancelPay();
+            }
+        } else {
+            const params = [subscriptionId, [contractParams]];
+            try {
+                contract[methodName](...params, {
+                    value: etherValue.toString(),
+                    gasLimit: 400000,
+                });
+            } catch (error) {
+                console.error('Error sending transaction:', error);
+                this.cancelPay();
+            }
         }
     }
 
