@@ -1,13 +1,14 @@
 {
   "supportedChains": {
-    "1337": {
-      "name": "ganache",
-      "rpc": "http://192.168.1.4:7545"
+    "137": {
+      "name": "Polygon",
+      "rpc": "https://polygon-mainnet.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU",
+      "subscription": "151"
     },
     "42161": {
       "name": "Arbitrum",
       "rpc": "https://arb-mainnet.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU",
-      "subscription": "60"
+      "subscription": "63"
     },
     "421614": {
       "name": "Arbitrum Sepolia",
@@ -15,10 +16,44 @@
       "subscription": "419"
     }
   },
+  "erc20Chains": [
+    "137"
+  ],
   "contractName": "ApichainPayment",
+  "erc20ContractName": "ApichainPolygonPayment",
   "projectId": "ba0ad790e4aed95af5c34acbbecb8613",
   "usdEthRate": 0.00022,
   "cnyEthRate": 0.000031,
+  "erc20": {
+    "abi": [
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "name": "_spender",
+            "type": "address"
+          },
+          {
+            "name": "_value",
+            "type": "uint256"
+          }
+        ],
+        "name": "approve",
+        "outputs": [
+          {
+            "name": "success",
+            "type": "bool"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "address": {
+      "137": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
+    }
+  },
   "ApichainPayment": {
     "abi": [
       {
@@ -275,8 +310,273 @@
       }
     ],
     "address": {
-      "421614": "0xEDE9cA871730D4364c926204C7Ba1B27fFA38BFD",
-      "42161": "0x0eAC8b7Ec7009B479C6FbA61792FCe8182F97F13"
+      "137": "0x598cD8483e427135856954FC5731896AdAB4824D",
+      "42161": "0x0eAC8b7Ec7009B479C6FbA61792FCe8182F97F13",
+      "421614": "0xEDE9cA871730D4364c926204C7Ba1B27fFA38BFD"
+    }
+  },
+  "ApichainPolygonPayment": {
+    "abi": [
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "wethAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "router",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "donID",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "gasLimit",
+            "type": "uint32"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "inputs": [],
+        "name": "EmptyArgs",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "EmptySource",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "NoInlineSecrets",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "OnlyRouterCanFulfill",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "RequestPending",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "requestId",
+            "type": "bytes32"
+          }
+        ],
+        "name": "UnexpectedRequestID",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "WithdrawalFailed",
+        "type": "error"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          }
+        ],
+        "name": "OwnershipTransferRequested",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "id",
+            "type": "bytes32"
+          }
+        ],
+        "name": "RequestFulfilled",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "id",
+            "type": "bytes32"
+          }
+        ],
+        "name": "RequestSent",
+        "type": "event"
+      },
+      {
+        "inputs": [],
+        "name": "acceptOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "requestId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "response",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "err",
+            "type": "bytes"
+          }
+        ],
+        "name": "handleOracleFulfillment",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "s_lastError",
+        "outputs": [
+          {
+            "internalType": "bytes",
+            "name": "",
+            "type": "bytes"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "s_lastRequestId",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "s_lastResponse",
+        "outputs": [
+          {
+            "internalType": "bytes",
+            "name": "",
+            "type": "bytes"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint64",
+            "name": "subscriptionId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "string[]",
+            "name": "args",
+            "type": "string[]"
+          }
+        ],
+        "name": "sendRequest",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "requestId",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "address": {
+      "137": "0x598cD8483e427135856954FC5731896AdAB4824D"
     }
   }
 }
