@@ -1,4 +1,4 @@
-![咨询AI](./images/Apichain_2025-08-29_11-17-00.png)
+![咨询AI](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-08-29_11-17-00.png)
 
 ApiChain从迭代和项目的视角管理我们不同项目、不同迭代接口api。按照迭代生成接口文档，基于项目并结合ai帮助我们搜索想要的接口发送网络请求。
 
@@ -70,35 +70,35 @@ mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --
 
 出于安全考虑，数据存储在本地，您需要在您的内网本地部署一个runner，部署runner的教程参考这里。下面使用我们的测试runner进行演示流程。
 
-![客户端类型设置](./images/Apichain_2025-09-03_15-53-24.png)
+![客户端类型设置](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_15-53-24.png)
 
 第一次打开，会弹出客户端类型设置的弹窗，我们选择联网版，服务器地址填写测试地址：`https://runner.apichain.app`
 
-![填写团队名称](./images/Apichain_2025-09-03_15-59-48.png)
+![填写团队名称](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_15-59-48.png)
 
 点击检测按钮，会检测我们的服务器地址是否正确，检测通过后，可以选择创建团队和加入团队，这里我们创建了一个叫 `天气预报开发小组`的团队，点击创建按钮成功创建了第一个团队！
 
 创建成功后，app自动重启。
 
-![整体界面](./images/Apichain_2025-09-03_16-06-30.png)
+![整体界面](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-06-30.png)
 
 #### 环境、微服务、环境变量
 
 点击设置 -> 开发环境 -> 新增 来创建我们的开发环境
 
-![添加服务器环境](./images/Apichain_2025-09-03_16-10-22.png)
+![添加服务器环境](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-10-22.png)
 
 发送请求中的client代表这个环境的api请求，从我们自己的电脑发出，runner代表api请求从这个runner（代理）中发出。具体说明参考这个文档。
 
 点击设置 -> 项目 -> 添加 来创建我们的项目
 
-![新增项目](./images/Apichain_2025-09-03_16-14-09.png)
+![新增项目](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-14-09.png)
 
 编程语言 java，开发框架 springboot 的配置，是为了方便我们通过ai就这个项目的问题进行提问。关于如何使用ai就项目问题进行提问，参考这里。
 
 在项目菜单下可以看到我们刚刚新增的项目，在环境变量菜单下设置我们这个项目在这个环境中，接口访问的 host 信息，点击项目->天气预报->环境变量->选择环境（本地环境）->api_host->编辑，下面填写的地址为 `https://pay.apichain.app/`  (注意，要求必须是以 `http:// ` 或者 `https://` 开头且以 /结尾的 url 地址)
 
-![修改环境变量](./images/Apichain_2025-09-03_16-22-28.png)
+![修改环境变量](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-22-28.png)
 
 #### 迭代
 
@@ -108,11 +108,11 @@ mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --
 
 点击 设置 ->  版本迭代 -> 新增
 
-![新增迭代——准备](./images/Apichain_2025-09-03_16-25-20.png)
+![新增迭代——准备](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-25-20.png)
 
 我们现在通常是一个月一个迭代，因此我的迭代名称就是 **天气预报 2406**，因为我这个迭代涉及的项目就一个天气预报项目，所以微服务只选了一个。通常情况下，你们一个迭代会涉及很多个项目，都把它们选出来吧，多选漏选也无所谓，可以在 设置 -> 版本迭代 找到你的版本迭代，进行修改的。迭代说明是一个 markdown 的文案，这会在你们迭代的文档顶部展现出来，你、前端、测试 所有想要看迭代接口文档的人都会看到～
 
-![新增迭代](./images/Apichain_2025-09-03_16-27-52.png)
+![新增迭代](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-27-52.png)
 
 -----
 
@@ -122,7 +122,7 @@ mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --
 
 先配置我们这个项目的公共请求参数。公共请求参数会在这个项目的所有网络请求中自动添加的部分，可以设置路径变量、参数、头部、主体。
 
-![公共请求参数配置](./images/Apichain_2025-09-03_17-17-04.png)
+![公共请求参数配置](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-17-04.png)
 
 在项目->全局参数->头部->批量编辑 中粘贴以下内容，会自动帮我们填写好全部的header信息。点击保存按钮，可以看到上面的内容。
 
@@ -131,19 +131,19 @@ Content-Type: application/x-www-form-urlencoded
 lang: zh
 ```
 
-![批量编辑](./images/Apichain_2025-09-03_17-20-16.png)
+![批量编辑](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-20-16.png)
 
 ##### 城市列表
 
 测试一下我写的查询支持城市列表接口是否正确：请求 -> 发送请求，选择项目（天气预报）-> 选择环境（本地环境）->请求方式（POST）->地址（test/weather-report/city-list）。点击发送请求按钮可以得到下图的响应，代表查询天气预报接口是可用的。同时，我们看到，返回的message是中文的，表明我们设置的公共header中的语言是生效的！
 
-![发送请求](./images/Apichain_2025-09-03_17-22-26.png)
+![发送请求](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-22-26.png)
 
 点击**发送请求**按钮上面的 **保存** 按钮，把刚刚自测验证通过的接口保存到这个迭代文档中。我们需要告诉其他人，这个接口是用来干什么的（查询城市列表），传的那些字段是什么含义（`公共语言配置`），返回的那些字段又是什么含义，这些在我们的迭代文档中都会有所体现。另外这个接口是属于哪个迭代的，如果这个迭代涉及的接口太多，我们还要通过文件夹（天气预报）在迭代这个池子中进行接口和接口的分类。勾选导出到文档便可以在自动生成的迭代文档中看到这个接口。
 
-![城市列表——保存到迭代](./images/Apichain_2025-09-03_17-24-48.png)
+![城市列表——保存到迭代](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-24-48.png)
 
-![天气预报保存到迭代——响应](./images/Apichain_2025-09-03_16-46-45.png)
+![天气预报保存到迭代——响应](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-46-45.png)
 
 data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`城市ID`，name 参数类型为字符串，备注为`城市名称`。
 
@@ -153,21 +153,21 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 验证第二个接口，根据城市名称查询天气，这次改成从迭代中发送网络请求，两者的区别是 从迭代发送网络请求，使用的环境变量可以包括迭代私有的环境变量，并且优先级高于项目环境变量和全局环境变量。迭代->天气预报2406->文档->发送请求，打开发送请求页面。选择项目（天气预报）->选择环境（本地环境）->请求方式（POST）->请求地址`test/weather-report/query-city-weather`。参数 `cityId` 填写 `1`，代表查询Ankara这座城市的天气。发送请求得到以下响应：
 
-![发送请求入口2](./images/Apichain_2025-09-03_17-06-53.png)
+![发送请求入口2](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-06-53.png)
 
-![查询城市天气](./images/Apichain_2025-09-03_17-12-04.png)
+![查询城市天气](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-12-04.png)
 
 我们点击保存按钮把这个接口存入迭代的接口文档中吧！标题：查询城市天气，字段cityId 城市ID，必填，导出到文档。城市id 配置为选择器，表明用户只能选择一个城市进行接口调用，而不是随便写个ID。
 
-![填写城市ID](./images/Apichain_2025-09-03_17-32-47.png)
+![填写城市ID](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-32-47.png)
 
 选择器内填写 `Ankara:1`代表有一个ID为1，城市名称为Ankara的城市，调用接口传输的是1，展示的名称是Ankara，点击回车确认。效果如下：
 
-![选择城市列表](./images/Apichain_2025-09-03_17-36-25.png)
+![选择城市列表](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-36-25.png)
 
 在迭代的接口列表点击发送按钮，可以看到发送网络请求的效果如下：
 
-![选择查询城市](./images/Apichain_2025-09-03_17-39-00.png)
+![选择查询城市](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-39-00.png)
 
 #### 编写文档
 
@@ -175,19 +175,19 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 在迭代导航下可以看到我们刚刚创建的迭代，点到文档菜单，可以看到这个迭代下面的接口列表，支持根据接口地址、接口说明、接口所属的项目（微服务），接口在迭代里的文件夹进行帅选；对接口列表的管理包括编辑、删除、设置排序值等。
 
-![接口列表1](./images/Apichain_2025-09-03_16-51-00.png)
+![接口列表1](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-51-00.png)
 
 点击右下角的导出按钮，可以把这个迭代的接口导出成html或者markdown文件，离线分享。也可以打开这个迭代的 会员->迭代文档按钮，复制文档链接在线分享。（文档链接地址取决于您运行runner所在的服务器网络）
 
-![会员迭代文档](./images/Apichain_2025-09-03_16-54-35.png)
+![会员迭代文档](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-54-35.png)
 
 用浏览器打开复制的迭代文档链接，效果如下：
 
-![浏览器迭代文档1](./images/Apichain_2025-09-03_16-55-54.png)
+![浏览器迭代文档1](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_16-55-54.png)
 
-![浏览器迭代文档2](./images/Apichain_2025-09-03_17-40-53.png)
+![浏览器迭代文档2](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-40-53.png)
 
-![浏览器迭代文档3](./images/Apichain_2025-09-03_17-41-39.png)
+![浏览器迭代文档3](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-41-39.png)
 
 #### 编写单测用例、执行测试
 
@@ -197,7 +197,7 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 新建一个单测用例：从迭代菜单找到**天气预报 2407**->单测，点击添加，单测名称我写的是 **任意城市查询天气**，文件夹为 根目录 ，点击确定。
 
-![添加单测](./images/Apichain_2025-09-03_17-47-21.png)
+![添加单测](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-47-21.png)
 
 在这个单测用例中，包含两个步骤：
 
@@ -206,27 +206,27 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 为了保证这些步骤顺利执行下去，每个步骤必须添加一个断言，断言失败终止执行测试用例，并告知亲在哪里断言出错了，入参是什么、返回是什么，方便你进行排查修复 bug。
 
-![添加步骤——前](./images/Apichain_2025-09-03_17-50-24.png)
+![添加步骤——前](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-03_17-50-24.png)
 
 从单测列表中找到你新加的单测，接口选择 **天气预报** 项目 的 **查询支持的城市列表** 接口，其他使用默认值即可。
 
-![城市列表——单测1](./images/Apichain_2025-09-05_11-17-01.png)
+![城市列表——单测1](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-17-01.png)
 
 下面填写返回断言：这个接口的断言是要求 **接口返回正确的错误码**，也就是 status 必须是 1
 
-![城市列表——返回code](./images/Apichain_2025-09-05_11-18-59.png)
+![城市列表——返回code](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-18-59.png)
 
-![城市列表——返回code2](./images/Apichain_2025-09-05_11-20-35.png)
+![城市列表——返回code2](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-20-35.png)
 
 最终生成下面的断言表达式，支持添加多个断言的，他们之间是且的关系。点击**添加步骤**按钮，添加我们第一个单元测试的第一个步骤。
 
-![城市列表——返回整体](./images/Apichain_2025-09-05_11-24-32.png)
+![城市列表——返回整体](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-24-32.png)
 
 我们可以试着运行一下测试用例，看一下效果，选择环境->本地环境，勾选需要执行的单测项目，支持多选，多个测试用例将依次执行，点击执行用例按钮依次执行选中的测试用例。
 
-![第一次执行单测](./images/Apichain_2025-09-05_11-27-05.png)
+![第一次执行单测](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-27-05.png)
 
-![第一次执行单测——效果](./images/Apichain_2025-09-05_11-27-52.png)
+![第一次执行单测——效果](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-27-52.png)
 
 从图中可以看到，我们的执行结果是成功的，也可以看到，我们每个步骤、接口调用的入参、返回值，断言两边的计算结果，方便我们在遇到失败时进行排障。
 
@@ -234,11 +234,11 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 再接再厉，添加第二个步骤，拿刚刚成功的获取城市列表接口返回的 **任意一个城市**作为入参，调用查询天气预报接口，断言接口返回的城市就是我们入参提供的来自于城市列表接口返回的任意城市。
 
-![查询城市天气——单测](./images/Apichain_2025-09-05_11-31-35.png)
+![查询城市天气——单测](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-31-35.png)
 
 很显然，这里只查询 Ankara 这一座城市不满足测试的需求，我们要的是任何城市都可以查询。下面是高能区，仔细看图：
 
-![任意城市查询天气——核心配置](./images/Apichain_2025-09-05_11-37-25.png)
+![任意城市查询天气——核心配置](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-37-25.png)
 
 数据源是 上一步，查询城市列表的返回值，我们取他数组里任意一个元素的city值。ApiChain目前支持的数据源包括：
 
@@ -290,13 +290,13 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 下面添加返回断言，和上一步类似
 
-![任意城市查询天气——整体配置](./images/Apichain_2025-09-05_11-39-52.png)
+![任意城市查询天气——整体配置](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-39-52.png)
 
 可以看到，我们已经添加好了两个步骤，下面在 **本地环境** 下执行我们的用例。
 
-![两个步骤](./images/Apichain_2025-09-05_11-40-48.png)
+![两个步骤](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-40-48.png)
 
-![两个步骤执行](./images/Apichain_2025-09-05_11-42-05.png)
+![两个步骤执行](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-42-05.png)
 
 ------
 
@@ -304,19 +304,19 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 目前我们的单测是在迭代中进行的，迭代上线后是要关闭的，这样就会再也找不到我们给迭代写的单侧了。当我们需要给项目做回归测试时，我们希望能够在项目中找到这个项目所有执行过的单测，让他依次再执行一遍，用来判断这个版本的开发有没有导致项目旧的功能的使用出现问题。
 
-![导出到项目——入口](./images/Apichain_2025-09-05_11-45-02.png)
+![导出到项目——入口](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-45-02.png)
 
 单测拓展按钮里有个 “导出到项目”按钮，点击后，会在项目维度，将这个单测复制一份，同时被复制的还有迭代环境变量被复制为 单测环境变量，迭代环境变量在这个迭代中生效，单测环境变量对这个单测生效。
 
-![关闭迭代入口](./images/Apichain_2025-09-05_11-46-31.png)
+![关闭迭代入口](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-46-31.png)
 
 代码上线，迭代已经结束，我们到 设置->版本迭代->迭代状态 入口关闭我们的迭代，操作会自动把我们这个迭代开发的所有接口合并到项目中。
 
-![项目文档](./images/Apichain_2025-09-05_11-49-26.png)
+![项目文档](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_11-49-26.png)
 
 此刻，可以在项目中执行天气预报的单测用例的，测试用例可以多选执行，进行回归测试。
 
-![执行项目测试](./images/Apichain_2025-09-05_13-41-38.png)
+![执行项目测试](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_13-41-38.png)
 
 ### 用户注册登录鉴权
 
@@ -326,15 +326,15 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 新增一个项目，具体内容见下图，不展开讲
 
-![用户管理——项目列表](./images/Apichain_2025-09-05_13-49-17.png)
+![用户管理——项目列表](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_13-49-17.png)
 
 新增迭代，具体内容见下图，不展开讲
 
-![用户演示项目——迭代](./images/Apichain_2025-09-05_13-54-31.png)
+![用户演示项目——迭代](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_13-54-31.png)
 
 配置项目调用接口的地址前缀为`https://pay.apichain.app/test/user/`
 
-![演示项目——配置接口地址](./images/Apichain_2025-09-05_13-58-38.png)
+![演示项目——配置接口地址](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_13-58-38.png)
 
 #### 用户注册
 
@@ -347,11 +347,11 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 
 本次我们使用了 ApiChain 支持的内置函数，所有支持的函数列表，输入 `{{$` 时能够看到，关于支持的内置函数的完整列表，参考这个链接。
 
-![用户注册——网络请求](./images/Apichain_2025-09-05_14-07-04.png)
+![用户注册——网络请求](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_14-07-04.png)
 
 从这个返回报文中，我们看到注册后，返回的header（responseHeader）中包含了一个用于登录鉴权的jwt，返回的主体意思是注册成功，也给了注册的用户信息。我们先把它保存到接口文档。
 
-![保存用户注册1](./images/Apichain_2025-09-05_14-10-23.png)
+![保存用户注册1](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_14-10-23.png)
 
 这些参数都是必填的，age 字段类型是数字，其他都是字符串，返回的header 中包含 jwt，我们用来登录的令牌。点击保存。
 
@@ -363,7 +363,7 @@ data 备注为`城市列表`，下面的ID参数类型为**数字**，备注为`
 nickname:Mustafa
 ```
 
-![获取头像](./images/Apichain_2025-09-05_14-16-51.png)
+![获取头像](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_14-16-51.png)
 
 点击发送请求，可以看到uri变成 avatar/{{nickname}}，实际上，这只是一个规范，你可以根据{{nickname}}实际的位置重新调整。接口返回是一张图片，可以将这个返回图片的接口保存到迭代文档中。
 
@@ -371,17 +371,17 @@ nickname:Mustafa
 
 从迭代文档中找到刚刚新增的用户注册接口，点击发送按钮。
 
-![发送用户注册接口](./images/Apichain_2025-09-05_14-26-25.png)
+![发送用户注册接口](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_14-26-25.png)
 
 点击发送请求按钮（此刻你会发现随机不重复的好处了，继续注册不要做任何修改），点击复制按钮，复制返回的jwt，粘贴到记事本中，后面流程会用到。
 
 接口地址 **get-login-user** ，参数 header 的 key 是 **Authorization**，value 是 **bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI5Iiwic3ViIjoiQXBpQ2hhaW5fOGIzNzM1YWEtOTg2Mi00MDViLTllOTUtNWI2YzI5ZWI5MmNlIiwiaWF0IjoxNzM3OTczMzk3LCJleHAiOjE3Mzc5NzY5OTd9.A0bZ69TZE-412nFz1NqxffRh2y06mEHxTEIBcLndqyg** ，也就是 `bearer ` 加上你刚刚复制保存下来的那个jwt。
 
-![获取当前登录的用户](./images/Apichain_2025-09-05_14-30-26.png)
+![获取当前登录的用户](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_14-30-26.png)
 
 点击发送请求按钮，可以看到能够根据这个认证令牌拿到用户信息，这个令牌有效期 30 分钟。点击保存按钮，迭代文档新增我们的第二个接口。
 
-![登录鉴权——保存接口](./images/Apichain_2025-09-05_14-32-38.png)
+![登录鉴权——保存接口](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-05_14-32-38.png)
 
 #### 通过 application/json  方式实现用户登录
 
@@ -409,13 +409,13 @@ nickname:Mustafa
 
 请求地址 **login**，header中 content-type 选择为 `application/json`，在主体部分粘上请求的报文，就可以发送一个登录请求了。
 
-![application/json](./images/Apichain_2025-09-08_15-45-54.png)
+![application/json](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-08_15-45-54.png)
 
-![application/json根据邮箱登录](./images/Apichain_2025-09-08_15-48-04.png)
+![application/json根据邮箱登录](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-08_15-48-04.png)
 
 这样，就完成了一个application/json的网络请求，点击保存按钮保存到迭代文档。
 
-![application/json方式登录——保存](./images/Apichain_2025-09-08_15-52-14.png)
+![application/json方式登录——保存](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-08_15-52-14.png)
 
 #### 通过  jsonString  方式实现用户登录
 
@@ -431,19 +431,19 @@ nickname:Mustafa
 }
 ```
 
-![json登录](./images/Apichain_2025-09-08_16-35-08.png)
+![json登录](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-08_16-35-08.png)
 
 把他保存到迭代文档，保存时参数类型选择 json字符串。
 
-![json登录——保存](./images/Apichain_2025-09-08_16-36-52.png)
+![json登录——保存](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-08_16-36-52.png)
 
 到此，用户注册登录鉴权涉及的所有接口都登记到迭代文档中了。
 
-![用户管理接口列表](./images/Apichain_2025-09-08_16-38-12.png)
+![用户管理接口列表](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-08_16-38-12.png)
 
-![文档——接口列表](./images/Apichain_2025-09-08_16-44-46.png)
+![文档——接口列表](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-08_16-44-46.png)
 
-![接口文档详情](./images/Apichain_2025-09-08_16-46-00.png)
+![接口文档详情](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-09-08_16-46-00.png)
 
 ## 版本发布记录
 
@@ -515,8 +515,8 @@ yarn package
 
 您对软件有任何批评建议，可以加我微信沟通，二维码如下：
 
-<img src="./images/image-20240619222612484.png" width="50%" />
+<img src="https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/image-20240619222612484.png" width="50%" />
 
 如果觉得帮到了你，可以不吝打赏一个鸡腿哦，打赏二维码如下：
 
-<img src="./images/image-20240619222828912.png" width="50%" />
+<img src="https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/image-20240619222828912.png" width="50%" />
