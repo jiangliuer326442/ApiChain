@@ -1,5 +1,7 @@
 # ApiChain - 接口管理与测试工具
 
+![咨询AI](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-08-29_11-17-00.png)
+
 ApiChain 是一款专为开发者设计的接口管理与测试工具，它从迭代和项目的视角帮助我们管理不同项目、不同迭代的 API 接口。通过按迭代生成接口文档，并结合 AI 技术，帮助开发者快速搜索和理解接口功能，发送网络请求。
 
 ---
@@ -17,11 +19,11 @@ ApiChain 是一款专为开发者设计的接口管理与测试工具，它从�
 
 ## 📦 软件下载
 
-| 平台 | 下载链接 |
-|------|----------|
+| 平台    | 下载链接                                                     |
+| ------- | ------------------------------------------------------------ |
 | Windows | [ApiChain_v1.2.3_windows.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
-| Linux | [ApiChain_v1.2.3_linux.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
-| macOS | [ApiChain_v1.2.3_macos.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| Linux   | [ApiChain_v1.2.3_linux.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| macOS   | [ApiChain_v1.2.3_macos.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
 
 > **注意**：Mac 用户如果遇到无法打开应用的情况，可在终端执行命令 `sudo spctl --master-disable` 后即可正常打开。
 
@@ -40,33 +42,41 @@ ApiChain 是一款专为开发者设计的接口管理与测试工具，它从�
 ## 🧪 快速入门：查询城市天气
 
 ### 1. 加入团队
+
 - 首次启动时选择“联网版”，填写测试服务器地址：`https://runner.apichain.app`。
 - 创建团队（如“天气预报开发小组”），点击“创建”按钮即可。
 
 ### 2. 配置环境与项目
+
 - **开发环境**：点击“设置 -> 开发环境 -> 新增”，配置 API 请求的环境（如本地环境）。
 - **项目**：点击“设置 -> 项目 -> 添加”，填写项目名称、编程语言（如 Java）、开发框架（如 Spring Boot）。
-- **环境变量**：在“环境变量”菜单中设置 API 请求的 host 地址（如 `https://pay.apichain.app/`）。
+- **环境变量**：在“环境变量”菜单中设置 API 请求的 host 地址（如 `https://pay.apichain.app/test/weather-report/`）。
 
 ### 3. 创建迭代
+
 - 点击“设置 -> 版本迭代 -> 新增”，填写迭代名称（如“天气预报 2406”），选择涉及的微服务。
 - 迭代说明支持 Markdown 格式，便于团队成员查看。
 
 ### 4. 接口测试
+
 #### 公共请求参数
+
 - 在“项目 -> 全局参数 -> 头部 -> 批量编辑”中配置公共请求头：
+
   ```
   Content-Type: application/x-www-form-urlencoded
   lang: zh
   ```
 
 #### 查询城市列表
-- 发送请求：选择项目（天气预报）-> 环境（本地环境）-> 请求方式（POST）-> 地址（`test/weather-report/city-list`）。
+
+- 发送请求：选择项目（天气预报）-> 环境（本地环境）-> 请求方式（POST）-> 地址（`city-list`）。
 - 保存接口到迭代文档，填写接口说明、参数含义、返回字段说明。
 
 #### 查询城市天气
+
 - 从迭代中发送请求，使用迭代私有环境变量（优先级高于项目环境变量）。
-- 请求地址：`test/weather-report/query-city-weather`，参数 `cityId` 填写 `1`（代表 Ankara）。
+- 请求地址：`query-city-weather`，参数 `cityId` 填写 `1`（代表 Ankara）。
 - 保存接口时，配置 cityId 为选择器，支持用户从城市列表中选择。
 
 ---
@@ -101,11 +111,14 @@ ApiChain 是一款专为开发者设计的接口管理与测试工具，它从�
 ## 🔐 用户注册与登录鉴权示例
 
 ### 1. 初始化
+
 - 新增项目（如“用户管理”），配置接口地址前缀（如 `https://pay.apichain.app/test/user/`）。
 - 创建迭代，填写迭代说明。
 
 ### 2. 用户注册
+
 - 接口地址：`register`，提交数据如下：
+
   ```json
   {
     "userName": "{{$randomString}}",
@@ -114,19 +127,25 @@ ApiChain 是一款专为开发者设计的接口管理与测试工具，它从�
     "age": "{{$randomAge}}"
   }
   ```
+
 - 使用内置函数生成随机数据，确保注册不重复。
 
 ### 3. 获取用户头像
+
 - 接口地址：`avatar/`，路径变量：
+
   ```
   nickname: Mustafa
   ```
 
 ### 4. 获取登录用户信息
+
 - 使用注册接口返回的 JWT（bearer token）调用 `get-login-user` 接口，验证登录状态。
 
 ### 5. 登录方式
+
 - **application/json 方式**：
+
   ```json
   {
     "type": "by_email",
@@ -134,7 +153,9 @@ ApiChain 是一款专为开发者设计的接口管理与测试工具，它从�
     "password": "password"
   }
   ```
+
 - **jsonString 方式**：
+
   ```json
   {
     "type": "by_email",
@@ -148,6 +169,7 @@ ApiChain 是一款专为开发者设计的接口管理与测试工具，它从�
 ## 📦 版本发布记录
 
 ### v1.2.3
+
 - 新增团队版功能，支持内网部署 Runner。
 - AI 加持，支持通过大模型搜索项目相关 API。
 - 支持项目公共请求参数配置。
@@ -156,6 +178,7 @@ ApiChain 是一款专为开发者设计的接口管理与测试工具，它从�
 - JSON 字符串类型请求参数优化。
 
 ### v1.0.9
+
 - 启动速度优化。
 - 使用 SSH Key 作为默认用户。
 - 修复部分 bug。
@@ -166,21 +189,28 @@ ApiChain 是一款专为开发者设计的接口管理与测试工具，它从�
 ## 🛠️ 从源码编译
 
 ### 依赖
+
 - Node.js：v20.12.2
 - Electron：v26.2.4
 
 ### 编译步骤
+
 1. 安装并配置 Yarn：
+
    ```bash
    npm install -g yarn
    yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
    yarn config set registry https://registry.npmmirror.com/
    ```
+
 2. 安装依赖：
+
    ```bash
    yarn
    ```
+
 3. 生成可执行文件：
+
    ```bash
    yarn package
    ```
