@@ -2,7 +2,7 @@
 
 ![咨询AI](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-08-29_11-17-00.png)
 
-ApiChain 是一款专为开发者设计的接口管理与测试工具，它从迭代和项目的视角帮助我们管理不同项目、不同迭代的 API 接口。通过按迭代生成接口文档，并结合 AI 技术，帮助开发者快速搜索和理解接口功能，发送网络请求（更多关于ai助手的使用教程，[ai助手](https://gitee.com/onlinetool/mypostman/wikis/ai助手)。
+ApiChain 是一款专为开发者设计的接口管理与测试工具，它从迭代和项目的视角帮助我们管理不同项目、不同迭代的 API 接口。通过按迭代生成接口文档，并结合 AI 技术，帮助开发者快速搜索和理解接口功能，发送网络请求（更多关于ai助手的使用教程[ai助手](https://gitee.com/onlinetool/mypostman/wikis/ai助手)。
 
 ---
 
