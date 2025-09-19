@@ -1,211 +1,246 @@
-![image-20250207082013980](doc/images/en/image-20250207082013980.png)
+# ApiChain - API Management and Testing Tool
 
-ApiChain is a documentation generation and API automation testing software based on version iteration and project perspectives. It completes the process from creating iterations across several projects, performing API calls on interfaces involved in iterations, generating API documentation for these interfaces and sharing it, to writing automatically executable test cases for the interfaces within iterations. When code is merged and launched after an iteration, ApiChain merges the interfaces and automated test cases of the iteration into the project and conducts comprehensive regression testing. Compared with tools like Postman, ApiChain understands your needs better.
+![咨询AI](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-08-29_11-17-00.png)
 
-Features of ApiChain include:
+ApiChain is an API management and testing tool designed specifically for developers. It helps manage APIs across different projects and iterations from both an iteration and project perspective. By generating API documentation based on iterations and integrating AI technology, it enables developers to quickly search and understand API functionalities and send network requests. (For more on using the AI assistant, see the [AI Assistant Tutorial](https://github.com/jiangliuer326442/ApiChain/wiki/3.AI-Assistant)。
 
-1. **API Testing**: Supports sending network requests with URI path parameters and JSON payloads. The data submitted can come from global, project, or iteration environment variables, and supports generating various types of non-repeating random data through built-in functions, such as UUIDs, current time, unique emails, etc. It also retrieves header, cookie, and other information returned by interface requests, allowing for comprehensive iteration and automated interface testing based on this data.
-2. **Documentation Export**: Iteration documents can be exported in HTML and Markdown formats or shared in real-time via intranet links.
-3. **Automated Testing with Chain Calls**: Interfaces involved in projects and iterations are tested using chained calls. Starting from fixed values, environment variables, or randomly generated data by built-in functions, each step uses the returned JSON, headers, cookies, and previous step's data as input for the next call, creating infinitely repeatable test cases that assert whether each step meets expected outcomes.
-4. **Automatic Construction of Data**: Automated testing supports automatic construction of string type data converted from JSON.
-5. **Execution Control Between Test Steps**: Users can choose to manually execute the next step, wait for a fixed period before automatically executing the next step, or sequentially execute multiple test cases for projects and iterations to perform regression testing.
-6. **Intranet Usage**: Operates entirely within the intranet without requiring internet connection, ensuring high performance and security.
+---
 
-🔥🔥🔥 If you agree that ApiChain understands your needs better, why not [click here to give it a star](https://github.com/jiangliuer326442/ApiChain) and show some support? (*￣︶￣)💋💋💋
+## 🚀 Key Features
 
-## Software Download
+- **Team Collaboration and Intranet Deployment**：The new team version supports deploying a Runner on an intranet, allowing team members to share data and access iteration development documents via an intranet browser, with API calls forwarded through the Runner.
+- **AI-Powered Search**：After configuring the project’s programming language and framework, leverage large language models to understand the project and search for relevant APIs.
+- **Global Request Parameter Configuration**：Configure global request parameters (e.g., headers, body) for projects.
+- **API Parameter Enum Support**：Enhanced support for parameter types, including enums.
+- **Browser Packet Capture for Quick API Creation**：Generate API request configurations quickly via browser packet capture.
+- **JSON String Parameter Optimization**：Improved handling of JSON string-type request parameters.
 
-v1.2.1:
+---
 
-    1. Support for JsonString Type Parameter Automated Testing
-    2. Automated Testing Can Be Multi-Selected for Execution
-    3. Automated Testing Supports Execution After Waiting for a Certain Period
-    4. Enhanced Import of Interfaces from Postman to ApiChain Projects
-    5. Supports Selecting and Copying Environment Variables Between Different Server Environments
+## 📦 Software Download
 
-Windows platform：[ApiChain_v1.2.1_windows.zip](https://gitee.com/onlinetool/mypostman/releases/download/v1.2.1/ApiChain_v1.2.1_windows.zip)
+| Platform    | Download Link                                                     |
+| ------- | ------------------------------------------------------------ |
+| Windows | [ApiChain_v1.2.3_windows.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| Linux   | [ApiChain_v1.2.3_linux.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| macOS   | [ApiChain_v1.2.3_macos.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
 
-Linux platform：[ApiChain_v1.2.1_linux.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.2.1/ApiChain_v1.2.1_linux.zip)
+> **Note**：Mac users encountering issues opening the app can run the command `sudo spctl --master-disable` in the terminal to resolve it.
 
-Mac platform：[ApiChain_v1.2.1_macos.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.2.1/ApiChain_v1.2.1_macos.zip)
+---
 
-If you can't open an application on your Mac, run `sudo spctl --master-disable` in the terminal and it should open normally.
+## 📚 Key Terms
 
-## Introduction
+- **Environment**：Includes local, dev, sit (testing), pre (pre-release), and pro (production) environments to isolate data at different stages.
+- **Project**：A business may consist of multiple microservices, each considered a project.
+- **Iteration**：A set of business functionalities completed within a specific time period, potentially involving API development across multiple projects.
+- **Environment Variables**：Key-value datasets specific to development environments, categorized as global, project, iteration, or unit test variables.(For detailed usage, see[Environment Variables Tutorial](https://github.com/jiangliuer326442/ApiChain/wiki/6.-Environment-variables))
+- **Unit Test**：Validates specific business processes through chained network requests, supporting assertion verification.
 
-* In the course of version iteration, we manage our interfaces on a project-by-project and folder-by-folder basis, and generate corresponding interface documentation.
+---
 
-![image-20250207142703109](doc/images/en/image-20250207142703109.png)
+## 🧪 Quick Start: Query City Weather
 
+For a detailed illustrated tutorial,[click here](https://github.com/jiangliuer326442/ApiChain/wiki/4.Example-1_Query-weather-forecast-for-any-city).
 
-![image-20250207142758343](doc/images/en/image-20250207142758343.png)
+### 1. Join a Team
 
-- Send a network request
+- On first launch, select “Online Version” and enter the test server address:`https://runner.apichain.app`。
+- Create a team (e.g., “Weather Forecast Development Team”) by clicking the “Create” button.
 
-  Enable the sending of network requests, supporting path variables. You can use variables from iterations, global, and project-scope environments, as well as randomly generated, non-repeating data from built-in functions for data. The returned data includes cookie and header information. It also features the ability to track 302 redirects, capturing comprehensive header and cookie information from the entire chain of redirect paths.
+For more on team version usage and setting up your own intranet server,[see here](https://github.com/jiangliuer326442/ApiChain/wiki/2.Team-Edition)
 
-![image-20250207150415296](doc/images/en/image-20250207150415296.png)
+### 2. Configure Environment and Project
 
-* Interface Details Page
+- **Environment**：Go to “Settings -> Environment -> Add” to configure the environment for API requests (e.g., local environment).
+- **Project**：Go to “Settings -> Project -> Add,” enter the project name, programming language (e.g., Java), and framework (e.g., Spring Boot).
+- **Environment Variables**：Set the API request host address (e.g., `https://pay.apichain.app/test/weather-report/`) in the “Environment Variables” menu.
 
-  You have the ability to view various details concerning our interfaces. This includes the parameters input into the interface, examples of what is returned, explanations of the interface itself, and definitions for each field. Additionally, it encompasses documentation for supplementary information such as headers and cookies that are returned.
+### 3. Create an Iteration
 
-![image-20250207143526413](doc/images/en/image-20250207143526413.png)
+- Go to “Settings -> Iteration -> Add,” enter the iteration name (e.g., “Weather Forecast 2406”), and select the involved microservices.
+- Iteration descriptions support Markdown for easy team viewing.
 
-![image-20250207143608029](doc/images/en/image-20250207143608029.png)
+### 4. API Testing
 
-![image-20250207143703674](doc/images/en/image-20250207143703674.png)
+For a detailed illustrated tutorial on sending network requests,[click here](https://github.com/jiangliuer326442/ApiChain/wiki/7.Sending-network-requests)
 
-* Interface Documentation Page
+#### Global Request Parameters
 
-  Interface documentation is created for each iteration. This documentation provides a space to add notes and reminders specific to that iteration. It can be easily shared by exporting the document, or by directly sharing the webpage via a browser.
+- Configure global request headers in “Project -> Global Parameters -> Headers -> Batch Edit”:
 
-  Mock Server: In the local development phase for the frontend, developers do not need to invoke the interfaces from the test environment. Instead, they can call the interfaces available through the URL of the interface documentation. This will return the mock data that has been pre-configured in the documentation. This mock data can then be used to design and develop the interface, eliminating the need to rely on live data from the test environment during this phase.
+  ```
+  Content-Type: application/x-www-form-urlencoded
+  lang: zh
+  ```
 
-  ![image-20250207144022705](doc/images/en/image-20250207144022705.png)
+#### Query City List
 
-  ![image-20250207144110274](doc/images/en/image-20250207144110274.png)
+- Send Request: Select project (Weather Forecast) -> Environment (Local) -> Request Method (POST) -> Address（`city-list`）。
+- Save the API to the iteration document, including API description, parameter meanings, and response field explanations.
 
-  ![image-20250207144139808](doc/images/en/image-20250207144139808.png)
+#### Query City Weather
 
-* Iteration and Project Unit Test Page
+- Send a request from the iteration, using iteration-specific environment variables (which take precedence over project variables).
+- Request Address:`query-city-weather`，Parameter `cityId` set to `1`(representing Ankara).
+- When saving the API, configure `cityId` as a selector, allowing users to choose from the city list.
 
-  Chaining together the input parameters and return data from a series of interfaces involved in this iteration forms a test case for these iteration interfaces. These sequences of steps can be automatically executed in order, or they can be paused at any particular step, awaiting a manual click of the 'continue' button for execution to resume.
+---
 
-  Should any test case fail during its execution, you can click on the request URL to jump directly to the page for sending requests. From there, you can re-send the single test request, which can help you to reproduce and debug any bugs that may have occurred.
+## 📄 Writing Documentation
 
-  You have the option to select multiple test cases for sequential execution, providing you with the capability to perform regression testing for both the iteration and the entire project.
+- View the API list in the iteration document, with filtering by address, description, project, or folder.
+- Click “Export” to export the document as HTML or Markdown files.
+- Copy the document link via “Membership -> Iteration Document” for online sharing.
 
-![image-20250207150559689](doc/images/en/image-20250207150559689.png)
+---
 
-![image-20250207150704742](doc/images/en/image-20250207150704742.png)
+## 🧪 Writing and Executing Unit Test Cases
 
-![image-20250207150739236](doc/images/en/image-20250207150739236.png)
+For an illustrated tutorial on writing unit test cases,[see here](https://github.com/jiangliuer326442/ApiChain/wiki/8.-Writing-iterative-unit-test-cases)
 
-![image-20250207150807116](doc/images/en/image-20250207150807116.png)
+- **Unit Test Goal**：Ensure that selecting any city from the city list returns the city’s weather.
+- **Steps**：
+  1. Query the city list.
+  2. Randomly select a city from the results and call the weather query API.
+- **Assertions**：Add assertions for each step to verify if the API response meets expectations.
+- **Execute Test**：Select the environment (e.g., local), check the test case, and click “Execute Case.”
 
-![image-20250207150838012](doc/images/en/image-20250207150838012.png)
+---
 
-* Filling in unit test parameters
+## 🔄 Iteration Unit Tests and Project Regression Testing
 
-  We iteratively write unit test parameters and assertions to support a large number of common scenario inputs, such as data that triggers previous steps, reading project environment variable data, etc. Variables support random strings (uuid), random integers, current time, and even custom data processing logic using the **eval** function. The unit tests designed in this way, as long as the interface remains unchanged, can be executed repeatedly in the future without modification. They are used for iterative testing as well as project regression testing.
+For more on the relationship between iterations and projects,[see this link](https://github.com/jiangliuer326442/ApiChain/wiki/9.-From-Iteration-to-Project)
 
-![image-20250207151238151](doc/images/en/image-20250207151238151.png)
+- **Export Unit Tests to Project**：On the iteration unit test page, click “Export to Project” to copy tests to the project level.
+- **Close Iteration**：After completing an iteration, close it to automatically merge APIs into the project.
+- **Project Regression Testing**：Execute unit test cases in the project, supporting multi-selection to ensure new versions don’t break existing functionality.
 
-- Project Interface Management & Unit Test List Page
+---
 
-  When an iteration is closed, all interfaces involved in this iteration of all projects will be merged into their corresponding projects. You can view all the interface names, meanings, fields, and return value descriptions of this project by clicking on it. You can also retain the unit test cases that you consider worthy of regression testing from this iteration in the relevant projects, which can be used for regression testing of the projects.
+## 🔐 User Registration and Login Authentication Example
 
-![image-20250207151641196](doc/images/en/image-20250207151641196.png)
+For a detailed illustrated tutorial,[click here](https://github.com/jiangliuer326442/ApiChain/wiki/5.-Example-2_User-registration,-login-and-authentication)
 
-![image-20250207151715995](doc/images/en/image-20250207151715995.png)
+### 1. Initialize
 
-Each unit test case in the project can have its own set of environment variables. These environment variables serve as shared data for a series of steps in this unit test.
+- Add a new project (e.g., “User Management”) and configure the API address prefix (e.g.,`https://pay.apichain.app/test/user/`）。
+- Create an iteration and provide an iteration description.
 
-![image-20250207153058041](doc/images/en/image-20250207153058041.png)
+### 2. User Registration
 
-## Relevant Terminologies
+- API Address：`register`，submit data as follows:
 
-- **Development Environment**  
+  ```json
+  {
+    "userName": "{{$randomString}}",
+    "password": "{{$randomString}}",
+    "email": "{{$randomEmail}}",
+    "age": "{{$randomAge}}"
+  }
+  ```
 
-  Normally, our development environments include local (local), development (dev), system integration test (sit), user acceptance test (uat), pre-release (pre), and production (pro) environments. Typically, data in different development environments is isolated. The development environment serves as the container for our **environment variables**.
+- Use built-in functions to generate random data to avoid duplicate registrations.
 
-- **Project**  
+### 3. Get User Avatar
 
-  Usually, a specific business is realized through the mutual invocation of different microservices internally, providing a single external entry point. These microservices are referred to as projects. Of course, single-machine projects consisting of just one microservice are also supported.
+- API Address：`avatar/`，path variable：
 
-- **Iteration**  
+  ```
+  nickname: Mustafa
+  ```
 
-  Within a certain period, the functional goals that need to be accomplished in the business are called an iteration. For example, implementing a voice room. This involves developing interfaces for various projects, including live streaming, instant messaging (IM), gifts, and game microservices. Therefore, an iteration is a combination of different projects within a certain period.
-  
-- **Environment Variables**  
+### 4. Get Logged-In User Information
 
-  Environment variables are a set of key-value formatted data provided for a specific development environment, allowing us to conveniently modify data, making these somewhat common data more reusable.  Environment variables can be categorized into:    
-  
-  - Global Environment Variables:Visible to all projects in a specific environment, such as a specific User ID for testing.    
-  
-  - Project Environment Variables: Data visible only in a specific project, such as the API address (api_host).    
-  - Iteration Environment Variables: Data that is only usable for the current version iteration of developing specific features, such as a temporary high-privilege account for verifying specific features. This data should be destroyed upon completion of iteration testing to avoid polluting the global data set.    
+- Use the JWT (bearer token) returned from the registration API to call the `get-login-user` API to verify login status.
 
-  - Unit Test Environment Variables: Data sources used to run through unit tests in a specific environment, effective for this unit test process in the long term.
+### 5. Login Methods
 
-- **Unit Test**  
+- **application/json Method**：
 
-  It is a set of interface combinations and judgments on the success of interface return information, realized through continuous, chained network requests to implement and verify a specific function without depending on the user interface.    
-  For example, the process of creating a folder, creating a file, writing data, deleting the file, and deleting the folder. The success of adding or deleting a file is verified by checking if the newly created file is in the file list.    
-  
-  To make unit tests reusable, without modifying data for each execution, unit tests should support the **random string** feature, using random strings as the initial data for unit tests. Simultaneously, there should be a capability to take the input data from any previous step, and compare it with the output data from the current step's execution result, to confirm if the current step is executed correctly.
+  ```json
+  {
+    "type": "by_email",
+    "email": "username@email.com",
+    "password": "password"
+  }
+  ```
 
-## Start the journey
+- **jsonString Method**：
 
-Don't know how to use it? Learn by following the examples slowly.
+  ```json
+  {
+    "type": "by_email",
+    "email": "username@email.com",
+    "password": "password"
+  }
+  ```
 
-#### Download and import our sample demo data
+---
 
-- Click [here](http://cdn.fanghailiang.cn/demo_database_en.json) to download the sample database.
-- Click on the top menu - Data - Restore Database, and select the downloaded sample database file.
-- Click on the top menu - Page - Refresh Current Page, and you will be able to see the imported sample data, including sample environments, projects, interfaces, unit tests, etc. Learn about their configuration and usage by viewing, editing, and sending network requests!
+## 📦 Version Release Notes
 
-The sample database contains two examples; one demonstrates the basic use of ApiChain, while the other includes advanced usage of ApiChain. You can follow the tutorial step by step to learn and get familiar with using this software during the learning process. Here are the links to the detailed operation procedures for these two examples.
+### v1.2.3
 
-[Beginner Tutorial 1: Query the Weather Forecast for Any City - Basic Usage of ApiChain](https://github.com/jiangliuer326442/ApiChain/wikis/入门教程1：用任意城市查询天气预报-ApiChain基本使用)
+- Added team version functionality, supporting intranet Runner deployment.
+- AI integration for searching project-related APIs using large language models.
+- Support for project-level global request parameter configuration.
+- Support for API parameter enum types.
+- Support for quick API creation via browser packet capture.
+- Optimized handling of JSON string-type request parameters.
 
-[Beginner Tutorial 2: User Registration, Login, and Authentication - Advanced Usage of ApiChain](https://github.com/jiangliuer326442/ApiChain/wikis/入门教程2：用户注册登录鉴权-ApiChain高阶使用)
+### v1.0.9
 
-#### Import Your API Data from PostMan
+- Optimized startup speed.
+- Set SSH Key as the default user.
+- Fixed various bugs.
+- Improved interface scrollbar.
 
-Here, it is assumed that you need to import API data from PostMan. First, you need to export the API data from PostMan and then import the API data in ApiChain. The specific steps are as follows:
+---
 
-- Click [here](http://cdn.fanghailiang.cn/demo_postman.json) to download the backup file of PostMan.
+## 🛠️ Build from Source
 
-- Click on Settings - Projects - Add Microservice, fill in “fly” for the project identifier, and “drone” for the remarks, then click the confirm button to add the project.
+### Dependencies
 
-- In the left-side project menu, find the "drone" project, click on Project Environment Variables, select the environment as Local Environment, and you will see an environment variable named "api_host". This represents the domain name address of the project's APIs. It serves as the address prefix for all APIs in this project and needs to start with "http://" or "https://" and end with "/". Click the edit button next to it, fill in the parameter value as **http://127.0.0.1:8081/**, and click the confirm button to save.
+- Node.js：v20.12.2
+- Electron：v26.2.4
 
-- Click on the "Documentation" menu in the left-side menu of the current project, where you will see a red "Import from PostMan" button. Click this button and select the PostMan backup file downloaded in the first step.
+### Build Steps
 
-- After seeing the "PostMan Import Successful" message but not seeing the API data? Don't worry, click on Page - Refresh Current Page at the top, and you will be able to see the data just imported from PostMan.
+1. Install and configure Yarn:
 
-- Select an API just imported, click the send request button to test the API, and you can see that it is a network request in application/json format.
+   ```bash
+   npm install -g yarn
+   yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
+   yarn config set registry https://registry.npmmirror.com/
+   ```
 
-  For more tutorials, please refer to our [documentation](https://github.com/jiangliuer326442/ApiChain/wikis), which will also be updated with new features after version updates.
+2. Install dependencies：
 
-## Compilation from Source Code
+   ```bash
+   yarn
+   ```
 
-Version Dependencies:
+3. Generate executable file：
 
-- nodejs：v20.12.2
-- electron：26.2.4
+   ```bash
+   yarn package
+   ```
 
-1. Install & Configure yarn
+---
 
-```cmd
-npm install -g yarn
-yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
-yarn config set ELECTRON_BUILDER_BINARIES_MIRROR https://registry.npmmirror.com/-/binary/electron-builder-binaries/
-yarn config set registry https://registry.npmmirror.com/
-```
+## 📬 Interact with the Author
 
-2. Download dependencies
+If you have suggestions or issues with the software, feel free to contact us via **WeChat**：
 
-```cmd
-yarn
-```
+![微信二维码](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/image-20240619222612484.png)
 
-3. Generate executable files
+If you find this tool helpful, consider supporting development with a small donation：
 
-```cmd
-yarn package
-```
+![打赏二维码](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/image-20240619222828912.png)
 
+---
 
+## 🌟 Support Us
 
-## Interact with the author
-
-If you have any critical suggestions for the software, you can contact me via **WeChat**. The QR code is as follows:
-
-<img src="doc/images/zh/image-20240619222612484.png" width="50%" />
-
-If you feel that this has helped you, feel free to buy me a meal, the donation QR code is as follows:
-
-<img src="doc/images/zh/image-20240619222828912.png" width="50%" />
+If you like this project, please [give it a Star](https://github.com/jiangliuer326442/ApiChain) to support us! Your support is our motivation to keep improving 💖
