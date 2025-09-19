@@ -31,3 +31,10 @@ jobs:
           git checkout windows
           git merge main --no-edit
           git push origin windows
+
+      - name: Merge main into gitee branch
+        run: |
+          git fetch origin gitee:gitee
+          git checkout gitee
+          git merge main --no-edit
+          git push origin gitee
