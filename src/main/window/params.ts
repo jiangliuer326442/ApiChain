@@ -12,7 +12,6 @@ import { getClientType, getClientHost, getTeamId } from '../store/config/team'
 import { pingHost, postRequest } from '../util/teamUtil';
 import { urlEncode } from '../../renderer/util';
 import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE } from '../../config/team';
-import { getDemoDatabaseFile, getDemoPostmanFile } from '../../config/url';
 import { osLocale } from '../third_party/os-locale';
 import { 
     getIpV4,
@@ -58,8 +57,6 @@ function doGetInitParams(packageJson : any, showCkCodeRet : any, userLang : stri
     let appVersion = packageJson.version;
     let appName = packageJson.name;
     let defaultRunnerUrl = packageJson.defaultRunnerUrl;
-    let demoDatabaseFile = getDemoDatabaseFile(packageJson.staticUrl);
-    let demoPostmanFile = getDemoPostmanFile(packageJson.staticUrl);
     let minServerVersion = packageJson.minServerVersion;
     let aiModels = packageJson.aiModels;
     let allowedChains = packageJson.allowedChains;
@@ -84,8 +81,6 @@ function doGetInitParams(packageJson : any, showCkCodeRet : any, userLang : stri
         "$$" + base64Encode("appVersion=" + appVersion),
         "$$" + base64Encode("appName=" + appName),
         "$$" + base64Encode("defaultRunnerUrl=" + defaultRunnerUrl),
-        "$$" + base64Encode("demoDatabaseFile=" + demoDatabaseFile),
-        "$$" + base64Encode("demoPostmanFile=" + demoPostmanFile),
         "$$" + base64Encode("minServerVersion=" + minServerVersion),
         "$$" + base64Encode("aiModels=" + aiModels),
         "$$" + base64Encode("allowedChains=" + allowedChains),

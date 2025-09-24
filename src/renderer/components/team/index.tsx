@@ -28,6 +28,7 @@ import {
     ChannelsTeamSetInfoResultStr,
 } from '@conf/channel';
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
+import { getWikiTeamVersion } from '@conf/url';
 import { SYNC_TABLES } from '@conf/global_config';
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
@@ -190,7 +191,9 @@ class TeamModel extends Component {
     render() : ReactNode {
         return (          
             <Modal
-                title={langTrans("team topup title")}
+                title={<>
+                {langTrans("team topup title")} <Text type="secondary"><Link href={ getWikiTeamVersion() }>{langTrans("link team version")}</Link></Text>
+                </>}
                 open={this.props.showTeam}
                 onOk={this.commitTeam}
                 onCancel={this.canelTeam}

@@ -6,6 +6,7 @@ import { SendOutlined, } from '@ant-design/icons';
 
 import './index.less';
 
+import { getWikiAiAssistant } from '@conf/url';
 import { LAST_ASYNC_VECTOR_TIME, AI_LINK_PROJECT, AI_MODEL } from '@conf/storage';
 import { VECTOR_MAKE_URL } from '@conf/team';
 import { langTrans } from '@lang/i18n';
@@ -15,7 +16,7 @@ import MarkdownView from '@comp/markdown/show';
 import { sendTeamMessage } from '@act/message';
 
 const { TextArea } = Input;
-const { Paragraph } = Typography;
+const { Paragraph, Link, Text } = Typography;
 
 let argsObjects = getStartParams();
 let aiModels = argsObjects.aiModels.split(",");
@@ -167,7 +168,9 @@ class AiChatBox extends Component {
 
     render() : ReactNode {
         return (
-            <Card title={langTrans("chatbox title")} style={{ width: 1050 }}>
+            <Card title={<>
+            { langTrans("chatbox title") } <Text type="secondary"><Link href={ getWikiAiAssistant() }>{langTrans("link robot chat")}</Link></Text>
+            </>} style={{ width: 1050 }}>
                 <div 
                   className='chat-box'
                   ref={this.scrollContainerRef}

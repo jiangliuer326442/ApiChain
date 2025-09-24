@@ -546,6 +546,8 @@
     "setting basic table index6": "Action",
     "setting basic table index7": "Effective",
     "setting basic table title": "Token Management",
+    "link team version": "How to use the Team Edition?",
+    "link robot chat": "How to use the AI Assistant?",
     "welcome": "Hello, ApiChain is here to spend a brand new day with you.",
     "greeting": "Hello, {{name}}!"
 }
