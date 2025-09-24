@@ -5,7 +5,6 @@
   "defaultRunnerUrl": "https://runner.apichain.app",
   "payJumpUrl": "https://pay.apichain.app/pay/jump/",
   "payQueryUrl": "https://pay.apichain.app/pay/query/",
-  "staticUrl": "http://cdn.fanghailiang.cn/",
   "aiModels": "gpt-4o,grok-4,deepseek-chat",
   "allowedChains": "42161,137",
   "description": "是一款类似 PostMan 的接口请求软件",
