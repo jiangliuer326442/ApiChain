@@ -1,4 +1,3 @@
-import log from 'electron-log';
 import { setLang } from '../../lang/i18n';
 import { getUuid, getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
@@ -13,7 +12,6 @@ import { getClientType, getClientHost, getTeamId } from '../store/config/team'
 import { pingHost, postRequest } from '../util/teamUtil';
 import { urlEncode } from '../../renderer/util';
 import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE } from '../../config/team';
-import { getDemoDatabaseFile, getDemoPostmanFile } from '../../config/url';
 import { osLocale } from '../third_party/os-locale';
 import { 
     getIpV4,
@@ -39,15 +37,17 @@ export async function getInitParams() : Promise<string[]> {
         teamName = urlEncode(ret[1]);
     }
 
+    let showCkCodeRet = await isShowCkcode();
+
     let firstLauch = isFirstLauch();
     if (firstLauch) {
         giftVip(3);
     }
 
-    return await doGetInitParams(packageJson, userLang, userCountry, teamName, firstLauch);
+    return doGetInitParams(packageJson, showCkCodeRet, userLang, userCountry, teamName, firstLauch);
 }
 
-async function doGetInitParams(packageJson : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
+function doGetInitParams(packageJson : any, showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean) : string[] {
     let uuid = getUuid();
     let uname = getUname();
     let ip = getIpV4();
@@ -57,17 +57,15 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
     let appVersion = packageJson.version;
     let appName = packageJson.name;
     let defaultRunnerUrl = packageJson.defaultRunnerUrl;
-    let demoDatabaseFile = getDemoDatabaseFile(packageJson.staticUrl);
-    let demoPostmanFile = getDemoPostmanFile(packageJson.staticUrl);
     let minServerVersion = packageJson.minServerVersion;
     let aiModels = packageJson.aiModels;
+    let allowedChains = packageJson.allowedChains;
     let clientType = getClientType();
     let clientHost = getClientHost();
     let teamId = getTeamId();
     if (isStringEmpty(teamName)) {
         clientType = CLIENT_TYPE_SINGLE;
     }
-    let showCkCodeRet = isShowCkcode();
 
     return [
         "$$" + base64Encode("uuid=" + uuid),
@@ -83,10 +81,9 @@ async function doGetInitParams(packageJson : any, userLang : string, userCountry
         "$$" + base64Encode("appVersion=" + appVersion),
         "$$" + base64Encode("appName=" + appName),
         "$$" + base64Encode("defaultRunnerUrl=" + defaultRunnerUrl),
-        "$$" + base64Encode("demoDatabaseFile=" + demoDatabaseFile),
-        "$$" + base64Encode("demoPostmanFile=" + demoPostmanFile),
         "$$" + base64Encode("minServerVersion=" + minServerVersion),
         "$$" + base64Encode("aiModels=" + aiModels),
+        "$$" + base64Encode("allowedChains=" + allowedChains),
         "$$" + base64Encode("userLang=" + userLang),
         "$$" + base64Encode("userCountry=" + userCountry),
         "$$" + base64Encode("firstLauch=" + firstLauch),

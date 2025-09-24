@@ -6,11 +6,34 @@ import {FunctionsClient} from '@chainlink/contracts/src/v0.8/functions/v1_0_0/Fu
 import {ConfirmedOwner} from '@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol';
 import {FunctionsRequest} from '@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol';
 
-contract ApichainPayment is FunctionsClient, ConfirmedOwner {
+// ERC-20接口
+interface IERC20 {
+  function transferFrom(
+    address sender,
+    address recipient,
+    uint256 amount
+  ) external returns (bool);
+
+  function balanceOf(address account) external view returns (uint256);
+
+  function transfer(address recipient, uint256 amount) external returns (bool);
+
+  function approve(address spender, uint256 amount) external returns (bool);
+
+  function allowance(
+    address owner,
+    address spender
+  ) external view returns (uint256);
+}
+
+contract ApichainPolygonPayment is FunctionsClient, ConfirmedOwner {
   using FunctionsRequest for FunctionsRequest.Request;
   using Strings for uint256;
 
-  address payable private immutable i_owner;
+  address private immutable i_owner;
+
+  // WETH代币合约
+  IERC20 private weth;
 
   // State variables to store the last request ID, response, and error
   bytes32 public s_lastRequestId;
@@ -42,13 +65,15 @@ contract ApichainPayment is FunctionsClient, ConfirmedOwner {
    * @notice Initializes the contract with the Chainlink router address and sets the contract owner
    */
   constructor(
+    address wethAddress,
     address router,
     bytes32 donID,
     uint32 gasLimit
   ) FunctionsClient(router) ConfirmedOwner(msg.sender) {
-    i_owner = payable(msg.sender);
+    i_owner = msg.sender;
     i_donId = donID;
     i_gasLimit = gasLimit;
+    weth = IERC20(wethAddress);
   }
 
   /**
@@ -60,12 +85,18 @@ contract ApichainPayment is FunctionsClient, ConfirmedOwner {
   function sendRequest(
     uint64 subscriptionId,
     string[] calldata args
-  ) external payable returns (bytes32 requestId) {
+  ) external returns (bytes32 requestId) {
     FunctionsRequest.Request memory req;
     req.initializeRequestForInlineJavaScript(source);
-    string memory payData = args[0];
+    string memory amountStr = args[0];
+    uint256 amount = stringToUint(amountStr);
+    require(
+      weth.transferFrom(msg.sender, address(this), amount),
+      'WETH transfer failed'
+    );
+    string memory payData = args[1];
     string[] memory requestArgs = new string[](2);
-    requestArgs[0] = msg.value.toString();
+    requestArgs[0] = amountStr;
     requestArgs[1] = payData;
     req.setArgs(requestArgs);
     s_lastRequestId = _sendRequest(
@@ -97,8 +128,27 @@ contract ApichainPayment is FunctionsClient, ConfirmedOwner {
   }
 
   function withdraw() external onlyOwner {
-    uint256 balance = address(this).balance;
+    uint256 balance = weth.balanceOf(address(this));
     require(balance > 0, 'No funds to withdraw');
-    i_owner.transfer(balance);
+    require(weth.transfer(i_owner, balance), 'WETH withdrawal failed');
+  }
+
+  // 将字符串转换为uint256
+  function stringToUint(string memory s) internal pure returns (uint256) {
+    // 确保字符串不为空
+    require(bytes(s).length > 0, 'Empty string');
+
+    uint256 result = 0;
+    bytes memory b = bytes(s);
+
+    // 遍历字符串的每个字符
+    for (uint256 i = 0; i < b.length; i++) {
+      // 检查字符是否为数字（ASCII 48-57 对应 '0'-'9'）
+      require(b[i] >= 0x30 && b[i] <= 0x39, 'Invalid character in string');
+      // 将字符转换为数字并累加（result * 10 + 当前数字）
+      result = result * 10 + (uint8(b[i]) - 0x30);
+    }
+
+    return result;
   }
 }

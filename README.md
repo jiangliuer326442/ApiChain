@@ -1,248 +1,246 @@
-![image-20250201163316510](doc/images/zh/image-20250201163316510.png)
+# ApiChain - API Management and Testing Tool
 
-ApiChain是一款基于版本迭代和项目视角的文档生成和接口自动化测试软件，完成从若干项目创建迭代，针对迭代涉及的接口进行api调用、给迭代涉及接口生成api文档并分享，对迭代内的接口编写可自动化执行的测试用例。迭代完成代码合并上线时，将迭代内接口和自动化测试用例合并到项目中，并对项目进行回归测试的完整流程。相比于postman这样的外来品，ApiChain 更“懂”你。
+![咨询AI](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-08-29_11-17-00.png)
 
-ApiChain拥有如下特色：
+ApiChain is an API management and testing tool designed specifically for developers. It helps manage APIs across different projects and iterations from both an iteration and project perspective. By generating API documentation based on iterations and integrating AI technology, it enables developers to quickly search and understand API functionalities and send network requests. (For more on using the AI assistant, see the [AI Assistant Tutorial](https://github.com/jiangliuer326442/ApiChain/wiki/3.AI-Assistant)。
 
-1. 接口测试发送网络请求，支持Uri路径参数、发送json报文，提交数据可以来源于全局、项目、迭代环境变量，也支持通过内置函数生成各种类型的随机不重复数据，包括 uuid、当前时间、不重复邮箱等，可以拿到接口请求返回的header、cookie等信息，基于这些信息编写迭代完整、进行自动化接口测试等；
-2. 迭代文档可导出html、markdown格式，也可以生成内网链接实时共享；
-3. 自动化测试对项目和迭代内涉及的接口采用链式调用，起始数据源为固定值、环境变量、内置函数生成的随机数据经过层层的链式调用，将返回json报文、返回header、返回cookie以及前面步骤使用的数据作为下一个接口调用的输入数据源，制作出可无限重复执行的测试用例，在每个步骤断言该步骤是否达成了预期效果；
-4. 自动化测试支持对json转的string类型的数据进行自动构造；
-5. 自动化测试步骤之间可选择手动执行下一步、等待固定时间自动执行下一步等，也可针对项目和迭代选择多个测试用例依次执行，进行项目的回归测试；
-6. 纯内网，无需连接互联网，既保证高性能，也确保安全性。
+---
 
-🔥🔥🔥如果你也认可Ta更“懂”你，不妨 [点击这里给个star](https://gitee.com/onlinetool/mypostman) 支持一下呗 (*￣︶￣)💋💋💋
+## 🚀 Key Features
 
-## 软件下载
+- **Team Collaboration and Intranet Deployment**：The new team version supports deploying a Runner on an intranet, allowing team members to share data and access iteration development documents via an intranet browser, with API calls forwarded through the Runner.
+- **AI-Powered Search**：After configuring the project’s programming language and framework, leverage large language models to understand the project and search for relevant APIs.
+- **Global Request Parameter Configuration**：Configure global request parameters (e.g., headers, body) for projects.
+- **API Parameter Enum Support**：Enhanced support for parameter types, including enums.
+- **Browser Packet Capture for Quick API Creation**：Generate API request configurations quickly via browser packet capture.
+- **JSON String Parameter Optimization**：Improved handling of JSON string-type request parameters.
 
-v1.2.1:
+---
 
-    1. 支持JsonString类型参数的自动化测试
-    2. 自动化测试可以多选执行
-    3. 自动化测试支持等待一定时间后执行
-    4. 强化从postMan导入接口到ApiChain项目
-    5. 支持环境变量在不同服务器环境间选择拷贝
+## 📦 Software Download
 
-windows 平台：[ApiChain_v1.2.1_windows.zip](https://gitee.com/onlinetool/mypostman/releases/download/v1.2.1/ApiChain_v1.2.1_windows.zip)
+| Platform    | Download Link                                                     |
+| ------- | ------------------------------------------------------------ |
+| Windows | [ApiChain_v1.2.3_windows.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| Linux   | [ApiChain_v1.2.3_linux.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| macOS   | [ApiChain_v1.2.3_macos.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
 
-linux 平台：[ApiChain_v1.2.1_linux.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.2.1/ApiChain_v1.2.1_linux.zip)
+> **Note**：Mac users encountering issues opening the app can run the command `sudo spctl --master-disable` in the terminal to resolve it.
 
-mac 平台：[ApiChain_v1.2.1_macos.zip](https://gitcode.com/fanghailiang2016/apichain/releases/download/v1.2.1/ApiChain_v1.2.1_macos.zip)
+---
 
-mac如果遇到无法打开应用的情况，在终端执行命令`sudo spctl --master-disable` 后即可正常打开。
-另外，由于linux和mac平台的包大小超过gitee允许的最大附件大小（100M），故提供外站（gitcode.com）的下载地址。
+## 📚 Key Terms
 
-## 简介
+- **Environment**：Includes local, dev, sit (testing), pre (pre-release), and pro (production) environments to isolate data at different stages.
+- **Project**：A business may consist of multiple microservices, each considered a project.
+- **Iteration**：A set of business functionalities completed within a specific time period, potentially involving API development across multiple projects.
+- **Environment Variables**：Key-value datasets specific to development environments, categorized as global, project, iteration, or unit test variables.(For detailed usage, see[Environment Variables Tutorial](https://github.com/jiangliuer326442/ApiChain/wiki/6.-Environment-variables))
+- **Unit Test**：Validates specific business processes through chained network requests, supporting assertion verification.
 
-* 在版本迭代中按照项目、文件夹管理我们的接口，并生成接口文档
+---
 
+## 🧪 Quick Start: Query City Weather
 
-![image-20250129184724573](doc/images/zh/image-20250129184724573.png)
+For a detailed illustrated tutorial,[click here](https://github.com/jiangliuer326442/ApiChain/wiki/4.Example-1_Query-weather-forecast-for-any-city).
 
-- 发送网络请求
+### 1. Join a Team
 
-  发送网络请求，支持路径变量，数据可以使用迭代、全局、项目范围的环境变量，以及内置函数生成的随机不重复数据，返回数据包括了cookie、header信息等，同时能够跟踪302跳转拿到所有跳转路径的全部header、cookie信息。
+- On first launch, select “Online Version” and enter the test server address:`https://runner.apichain.app`。
+- Create a team (e.g., “Weather Forecast Development Team”) by clicking the “Create” button.
 
-![image-20250129184912567](doc/images/zh/image-20250129184912567.png)
+For more on team version usage and setting up your own intranet server,[see here](https://github.com/jiangliuer326442/ApiChain/wiki/2.Team-Edition)
 
-* 接口详情页
+### 2. Configure Environment and Project
 
-  可以查看我们接口的入参和返回示例、接口说明、字段含义说明等，包括了返回的header、cookie等信息的文档说明。
+- **Environment**：Go to “Settings -> Environment -> Add” to configure the environment for API requests (e.g., local environment).
+- **Project**：Go to “Settings -> Project -> Add,” enter the project name, programming language (e.g., Java), and framework (e.g., Spring Boot).
+- **Environment Variables**：Set the API request host address (e.g., `https://pay.apichain.app/test/weather-report/`) in the “Environment Variables” menu.
 
-![image-20250129185653338](doc/images/zh/image-20250129185653338.png)
+### 3. Create an Iteration
 
-![image-20250129185726301](doc/images/zh/image-20250129185726301.png)
+- Go to “Settings -> Iteration -> Add,” enter the iteration name (e.g., “Weather Forecast 2406”), and select the involved microservices.
+- Iteration descriptions support Markdown for easy team viewing.
 
-![image-20250129185800680](doc/images/zh/image-20250129185800680.png)
+### 4. API Testing
 
-* 接口文档页
+For a detailed illustrated tutorial on sending network requests,[click here](https://github.com/jiangliuer326442/ApiChain/wiki/7.Sending-network-requests)
 
-  以迭代为单位，生成接口文档，可以标注一些这个迭代的注意事项，可导出分享，也可直接通过浏览器共享页面。
+#### Global Request Parameters
 
-  mock服务器：前端在本地开发阶段，可以不必调用测试环境接口，而是调用接口文档地址的接口，返回文档中配置的mock数据，以此来画界面。
-  
-  ![image-20250129185948052](doc/images/zh/image-20250129185948052.png)
-  
-  ![image-20250129190011909](doc/images/zh/image-20250129190011909.png)
-  
-  ![image-20250129190037820](doc/images/zh/image-20250129190037820.png)
+- Configure global request headers in “Project -> Global Parameters -> Headers -> Batch Edit”:
 
-* 迭代、项目单测页
+  ```
+  Content-Type: application/x-www-form-urlencoded
+  lang: zh
+  ```
 
-  把这个迭代涉及的一系列接口入参和返回串联起来调用，就构成了这个迭代接口的一个测试用例。这些一系列的步骤之间可以顺序自动执行，也可以执行到某一步暂停下来，等待你手动按下继续执行的按钮。
+#### Query City List
 
-  若某个测试用例执行失败，可以点击请求地址跳转到发送请求的页面，可以重复发送单测的请求，用来复现并调试bug。
-  
-  可以选择多个测试用例依次执行，进行迭代和整个项目的回归测试。
+- Send Request: Select project (Weather Forecast) -> Environment (Local) -> Request Method (POST) -> Address（`city-list`）。
+- Save the API to the iteration document, including API description, parameter meanings, and response field explanations.
 
-![image-20250129190341901](doc/images/zh/image-20250129190341901.png)
+#### Query City Weather
 
-![image-20250129190609901](doc/images/zh/image-20250129190609901.png)
+- Send a request from the iteration, using iteration-specific environment variables (which take precedence over project variables).
+- Request Address:`query-city-weather`，Parameter `cityId` set to `1`(representing Ankara).
+- When saving the API, configure `cityId` as a selector, allowing users to choose from the city list.
 
-![image-20250129190630661](doc/images/zh/image-20250129190630661.png)
+---
 
-![image-20250129190652605](doc/images/zh/image-20250129190652605.png)
+## 📄 Writing Documentation
 
-![image-20250129190715834](doc/images/zh/image-20250129190715834.png)
+- View the API list in the iteration document, with filtering by address, description, project, or folder.
+- Click “Export” to export the document as HTML or Markdown files.
+- Copy the document link via “Membership -> Iteration Document” for online sharing.
 
-* 填写单测参数
+---
 
-  我们迭代编写单测入参和断言支持大量常用的情景输入，如引起前面步骤的数据，读取项目环境变量数据等，变量支持随机字符串（uuid）、随机整数、当前时间，甚至使用 **eval** 函数自定义您对数据的处理逻辑。这样设计出来的单测，只要接口未做变更，未来无需修改可反复执行。用于迭代的测试以及项目回归测试。
+## 🧪 Writing and Executing Unit Test Cases
 
-![image-20250129190825705](doc/images/zh/image-20250129190825705.png)
+For an illustrated tutorial on writing unit test cases,[see here](https://github.com/jiangliuer326442/ApiChain/wiki/8.-Writing-iterative-unit-test-cases)
 
-- 项目接口管理 & 单测列表页
+- **Unit Test Goal**：Ensure that selecting any city from the city list returns the city’s weather.
+- **Steps**：
+  1. Query the city list.
+  2. Randomly select a city from the results and call the weather query API.
+- **Assertions**：Add assertions for each step to verify if the API response meets expectations.
+- **Execute Test**：Select the environment (e.g., local), check the test case, and click “Execute Case.”
 
-  迭代结束被关闭时候，这个迭代涉及的所有项目的接口会合并到对应的项目中，点击该项目可以查看这个项目所有的接口名称、含义、字段和返回值说明。你也可以把这个迭代认为值得回归测试的单测用例保留到相关的项目中，用于对项目的回归测试。
+---
 
-![image-20250129190929161](doc/images/zh/image-20250129190929161.png)
+## 🔄 Iteration Unit Tests and Project Regression Testing
 
-![image-20250129191002128](doc/images/zh/image-20250129191002128.png)
+For more on the relationship between iterations and projects,[see this link](https://github.com/jiangliuer326442/ApiChain/wiki/9.-From-Iteration-to-Project)
 
-项目的每个单测用例，都可以有自己的环境变量，这些环境变量属于这个单测一系列步骤的共享数据。
+- **Export Unit Tests to Project**：On the iteration unit test page, click “Export to Project” to copy tests to the project level.
+- **Close Iteration**：After completing an iteration, close it to automatically merge APIs into the project.
+- **Project Regression Testing**：Execute unit test cases in the project, supporting multi-selection to ensure new versions don’t break existing functionality.
 
-![image-20250129191024256](doc/images/zh/image-20250129191024256.png)
+---
 
-## 相关术语
+## 🔐 User Registration and Login Authentication Example
 
-- 开发环境
+For a detailed illustrated tutorial,[click here](https://github.com/jiangliuer326442/ApiChain/wiki/5.-Example-2_User-registration,-login-and-authentication)
 
-  正常情况下，我们的开发环境包括本地local、dev、sit、uat 测试环境、pre 预发布环境、pro 线上环境 等。通常不同开发环境的数据是隔离的，开发环境是我们存放**环境变量**的容器。
+### 1. Initialize
 
-- 项目
+- Add a new project (e.g., “User Management”) and configure the API address prefix (e.g.,`https://pay.apichain.app/test/user/`）。
+- Create an iteration and provide an iteration description.
 
-  通常一个具体的业务会通过内部不同微服务相互调用并对外提供唯一入口，这些微服务称为项目，当然单机项目只有一个微服务也是支持的。
+### 2. User Registration
 
-- 迭代
+- API Address：`register`，submit data as follows:
 
-  一个时间段内，业务上需要完成的功能目标称为一个迭代，比如实现一个语音房。涉及到给不同的项目，包括直播、im、礼物、游戏微服务等，开发接口。因此，迭代是一个周期内，不同项目的一个组合。
+  ```json
+  {
+    "userName": "{{$randomString}}",
+    "password": "{{$randomString}}",
+    "email": "{{$randomEmail}}",
+    "age": "{{$randomAge}}"
+  }
+  ```
 
-- 环境变量
+- Use built-in functions to generate random data to avoid duplicate registrations.
 
-  环境变量是 针对特定开发环境提供的 key-value 格式的数据集，可以方便我们修改数据，让这些有一定共性的数据变得更加可复用。
+### 3. Get User Avatar
 
-  环境变量分为：
+- API Address：`avatar/`，path variable：
 
-    - 全局环境变量：在特定环境中的所有项目都可见，比如用于测试的特定UID。
-    - 项目环境变量：只在特定项目可见的数据，比如接口的api地址（api_host）
-    - 迭代环境变量：针对当前开发特定功能的版本迭代才可使用的数据，比如临时申请的验证特定功能的高权限账号，迭代测试完成就要销毁，不便污染全局数据集。
-    - 单测环境变量：为了跑通特定环境的单测而使用的数据源，长期对这个单测流程有效。
+  ```
+  nickname: Mustafa
+  ```
 
-- 单测
-  就是不依赖于用户界面，通过连续的，链式的网络请求 来实现特定功能，并可验证该功能确实实现的一套接口组合以及对接口返回信息的是否成功的判断。
-  比如 新建文件夹、创建文件、写入数据、删除文件、删除文件夹这个流程。通过获取文件列表判断新建的文件是否在该文件列表中来验证新增文件或者删除文件是否成功。
-  为了让单测变得可复用，不要每次执行单测都要修改数据，单测就要支持 **随机字符串** 这个特性，用随机字符串作为单测的初始数据。同时需要**能够取前面任何一个步骤的输入数据**，与当前步骤执行结果的输出数据进行比较，确认当前步骤是否执行正确
+### 4. Get Logged-In User Information
 
-## 开始旅程
+- Use the JWT (bearer token) returned from the registration API to call the `get-login-user` API to verify login status.
 
-不会使用？跟着示例慢慢学
+### 5. Login Methods
 
-#### 下载并导入我们的示例demo数据
+- **application/json Method**：
 
-- 点击[这里](http://cdn.fanghailiang.cn/demo_database_zh.json)下载示例数据库
+  ```json
+  {
+    "type": "by_email",
+    "email": "username@email.com",
+    "password": "password"
+  }
+  ```
 
-- 点击顶部菜单-数据-还原数据库，选择下载的示例数据库文件
+- **jsonString Method**：
 
-- 点击顶部菜单-页面-刷新当前页面，就可以看到已经导入的示例数据了，包含示例的环境、项目、接口、单侧等，通过查看编辑、发送网络请求等，学习他的配置和使用哦！
+  ```json
+  {
+    "type": "by_email",
+    "email": "username@email.com",
+    "password": "password"
+  }
+  ```
 
-  
+---
 
-  示例数据库包含了两个示例，一个演示了 Apichain 的基本使用，另一个包含了 Apichain 的高阶使用，你可以参照教程一步步学习，在学习的过程中熟悉对这款软件的使用。以下是这两个示例的详细操作流程的链接。
+## 📦 Version Release Notes
 
-  [入门教程1：用任意城市查询天气预报-ApiChain基本使用](https://gitee.com/onlinetool/mypostman/wikis/入门教程1：用任意城市查询天气预报-ApiChain基本使用)
+### v1.2.3
 
-  [入门教程2：用户注册登录鉴权-ApiChain高阶使用](https://gitee.com/onlinetool/mypostman/wikis/入门教程2：用户注册登录鉴权-ApiChain高阶使用)
+- Added team version functionality, supporting intranet Runner deployment.
+- AI integration for searching project-related APIs using large language models.
+- Support for project-level global request parameter configuration.
+- Support for API parameter enum types.
+- Support for quick API creation via browser packet capture.
+- Optimized handling of JSON string-type request parameters.
 
-#### 从PostMan导入您的接口数据
+### v1.0.9
 
-这里假设你需要从PostMan导入接口数据，首先你需要在PostMan中导出接口数据，然后在ApiChain中导入接口数据。具体步骤如下：
+- Optimized startup speed.
+- Set SSH Key as the default user.
+- Fixed various bugs.
+- Improved interface scrollbar.
 
-- 点击[这里](http://cdn.fanghailiang.cn/demo_postman.json)下载 PostMan 的备份文件。
+---
 
-- 点击设置-项目-添加微服务，项目标识 填写 “fly”，备注填写 “无人机”，确定按钮新增项目。
+## 🛠️ Build from Source
 
-- 在左侧项目菜单找到“无人机”项目，点击项目环境变量，选择环境，本地环境，可以看到一个名为“api_host”的环境变量，这代表这个项目的接口域名地址。是这个项目所有接口的地址前缀，需要 “http://”或者“https://”开头，“/”结尾。点击旁边的编辑按钮，参数值填写 **http://127.0.0.1:8081/**，点击确定按钮保存。
+### Dependencies
 
-- 点击当前项目左侧菜单的“文档”菜单，可以看到红色的“从PostMan导入”按钮，点击这个按钮，选择第一步下载的 PostMan 备份为难。
+- Node.js：v20.12.2
+- Electron：v26.2.4
 
-- 看到“导入PostMan成功”的提示，但是没有看到接口数据？别着急，点击顶部的页面-刷新当前页面，就可以看到刚刚从PostMan导入的数据了。
+### Build Steps
 
-- 选择一个刚刚导入的接口，点击发送请求按钮，就可以测试接口了，可以看到这是一个 application/json 格式的网络请求。
+1. Install and configure Yarn:
 
-  更多教程请查阅我们的[文档](https://gitee.com/onlinetool/mypostman/wikis)，版本更新后新增功能也会同步更新到该文档中。
+   ```bash
+   npm install -g yarn
+   yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
+   yarn config set registry https://registry.npmmirror.com/
+   ```
 
-## 版本发布记录
+2. Install dependencies：
 
-v1.0.9:
+   ```bash
+   yarn
+   ```
 
-    1. 启动速度优化
-    2. 使用ssh key作为默认用户
-    3. 修复bug
-    4. 界面滚动条优化
+3. Generate executable file：
 
-v1.0.8:
+   ```bash
+   yarn package
+   ```
 
-  1. 支持将本次迭代部分接口因功能不上线移动到另一个迭代中
-  2. 支持选择部分环境变量拷贝到另一个开发环境
-  3. 支持将部分项目导出到另一个用户电脑，实现项目接口的共享
-  4. 将原有收费功能价格调整为1元
+---
 
-v1.0.7:
-  1. 单测链支持引用前面步骤cookie作为入参
-  2. 网络请求和单测统计接口耗时
-  3. 支持将迭代的单测导出到项目用于项目回归测试
+## 📬 Interact with the Author
 
-v1.0.6:
-  1. 修复历史记录无法使用迭代环境变量的问题
+If you have suggestions or issues with the software, feel free to contact us via **WeChat**：
 
-v1.0.5:
-  1. 完善发送网络请求和迭代单元测试相关功能，支持从迭代到项目的可复用单元测试
+![微信二维码](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/image-20240619222612484.png)
 
-v0.0.5:
-  1. 增加VIP充值和mock服务器功能
+If you find this tool helpful, consider supporting development with a small donation：
 
-v0.0.4
-  1. 迭代支持接口先行方式添加 api
-  2. header 支持 application/json，multipart/form-data 两种方式的 api
-  3. 迭代自动化测试支持手动和自动两种触发方式
-  4. 其他 bug 修复和界面调整
+![打赏二维码](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/image-20240619222828912.png)
 
-## 从源码编译
+---
 
-版本依赖：
+## 🌟 Support Us
 
-- nodejs：v20.12.2
-- electron：26.2.4
-
-1. 安装 & 配置 yarn
-
-```cmd
-npm install -g yarn
-yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
-yarn config set ELECTRON_BUILDER_BINARIES_MIRROR https://registry.npmmirror.com/-/binary/electron-builder-binaries/
-yarn config set registry https://registry.npmmirror.com/
-```
-
-2. 下载依赖包
-
-```cmd
-yarn
-```
-
-3. 生成可执行文件
-
-```cmd
-yarn package
-```
-
-##
-
-## 与作者交互
-
-您对软件有任何批评建议，可以加我微信沟通，二维码如下：
-
-<img src="doc/images/zh/image-20240619222612484.png" width="50%" />
-
-如果觉得帮到了你，可以不吝打赏一个鸡腿哦，打赏二维码如下：
-
-<img src="doc/images/zh/image-20240619222828912.png" width="50%" />
+If you like this project, please [give it a Star](https://github.com/jiangliuer326442/ApiChain) to support us! Your support is our motivation to keep improving 💖

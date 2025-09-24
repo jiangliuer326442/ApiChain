@@ -32,6 +32,7 @@ import {
   ChannelsVipStr,
   ChannelsVipCloseCkCodeStr,
 } from '@conf/channel';
+import { getProjectUrl } from '@conf/url';
 import {
   TABLE_VERSION_ITERATION_REQUEST_NAME,
   TABLE_USER_FIELDS,
@@ -64,7 +65,7 @@ import TeamModel from '@comp/team';
 import { langFormat, langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
-const { Title, Text } = Typography;
+const { Title, Text, Link } = Typography;
 
 const db_field_uname = TABLE_USER_FIELDS.FIELD_UNAME;
 
@@ -93,6 +94,7 @@ class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      projectUrl: getProjectUrl(),
       user: {
         "uname": argsObject.uname,
         "register_time": 0,
@@ -499,7 +501,7 @@ class Home extends Component {
             </Flex>
           </Content>
           <Footer style={{ textAlign: 'center' }}>
-          { this.props.appName } ©{new Date().getFullYear()} Created by 方海亮
+          <Link href={ this.state.projectUrl }>{ this.props.appName }</Link> ©{new Date().getFullYear()} Created by 方海亮
           </Footer>
         </Layout>
     );

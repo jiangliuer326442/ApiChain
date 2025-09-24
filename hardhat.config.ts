@@ -1,26 +1,55 @@
-import { HardhatUserConfig } from "hardhat/config"
 import "hardhat-deploy"
 import "@nomicfoundation/hardhat-toolbox"
 import "dotenv/config"
 
-const config: HardhatUserConfig = {
-  defaultNetwork: "ganache",
+import contractConfig from './src/config/contract.json';
+const { supportedChains } = contractConfig;
+
+const config = {
+  defaultNetwork: "arbitrumTestnet",
   networks: {
-    ganache: {
-      url: "http://192.168.1.3:7545",
-      chainId: 1337,
-      accounts: [process.env.GANACHE_ACCOUNT!]
+    // ganache: {
+    //   url: supportedChains["1337"].rpc,
+    //   chainId: 1337,
+    //   accounts: [process.env.GANACHE_ACCOUNT!],
+    // },
+    // sepolia: {
+    //   url: supportedChains["11155111"].rpc,
+    //   chainId: 11155111,
+    //   accounts: [process.env.EVM_ACCOUNT!],
+    // },
+    arbitrumTestnet: {
+      url: supportedChains["421614"].rpc,
+      chainId: 421614,
+      accounts: [process.env.EVM_ACCOUNT!],
+      linkToken: process.env.ARBITRUM_SEPOLIA_LINK_TOKEN!,
+      functionsRouter: process.env.ARBITRUM_SEPOLIA_FUNCTION_ROUTER!,
+      donIdName: process.env.ARBITRUM_SEPOLIA_DONID_NAME!,
+      donIdAddress: process.env.ARBITRUM_SEPOLIA_DONID_ADDRESS!
     },
-    sepolia: {
-      url: "https://eth-sepolia.g.alchemy.com/v2/ZNgnhTTA2JO77B7gk6vQU",
-      chainId: 11155111,
-      accounts: [process.env.SEPOLIA_ACCOUNT!],
+    arbitrum: {
+      url: supportedChains["42161"].rpc,
+      chainId: 42161,
+      accounts: [process.env.EVM_ACCOUNT!],
+      linkToken: process.env.ARBITRUM_LINK_TOKEN!,
+      functionsRouter: process.env.ARBITRUM_FUNCTION_ROUTER!,
+      donIdName: process.env.ARBITRUM_DONID_NAME!,
+      donIdAddress: process.env.ARBITRUM_DONID_ADDRESS!
+    },
+    polygon: {
+      url: supportedChains["137"].rpc,
+      chainId: 137,
+      accounts: [process.env.EVM_ACCOUNT!],
+      linkToken: process.env.POLYGON_LINK_TOKEN!,
+      functionsRouter: process.env.POLYGON_FUNCTION_ROUTER!,
+      donIdName: process.env.POLYGON_DONID_NAME!,
+      donIdAddress: process.env.POLYGON_DONID_ADDRESS!
     }
   },
   paths: {
     root: "./src/solidity",
   },
-  solidity: "0.8.28",
+  solidity: "0.8.30",
   namedAccounts: {
     deployer: {
         default: 0,

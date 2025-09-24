@@ -32,7 +32,7 @@ import {
     postRequest
 } from '../../util/teamUtil'
 
-const { usdEthRate } = contractConfig;
+const { usdEthRate, cnyEthRate } = contractConfig;
 
 export default function (){
 
@@ -64,9 +64,17 @@ export default function (){
                 money = "14";
             } else if (productName === "product11") {
                 money = "28";
+            } else if (productName === "token1") {
+                money = "10";
+            } else if (productName === "token2") {
+                money = "50";
+            } else if (productName === "token3") {
+                money = "100";
             }
             if (productName.indexOf("product") >= 0) {
                 money = money * 1000000 * usdEthRate / 1000000;
+            } else if (productName.indexOf("token") >= 0) {
+                money = money * 1000000 * cnyEthRate / 1000000;
             }
             let params = await genCheckCodeUrl(productName, payMethod);
             setContractChain(contractChain);
@@ -102,13 +110,11 @@ export default function (){
         let url = "";
         //拿订单号
         let tradeNo = getOutTradeNo();
-        let payMethod = getLatestPayMethod();
-        if (payMethod !== "dollerpay" && !isStringEmpty(tradeNo)) {
+        if (!isStringEmpty(tradeNo)) {
             url = await getCheckCodeUrl();
         }
-        let product = getLatestProduct();
 
-        event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, product, tradeNo, url);
+        event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, url);
     });
 
     ipcMain.on(ChannelsVipStr, (event, action) => {
