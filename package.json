@@ -241,8 +241,8 @@
       }
     ],
     "releaseInfo": {
-      "releaseDate": "2025-07-20",
-      "releaseNotes": "版本 1.2.3\n- 新增功能 X\n- 修复问题 Y\n- 提升性能"
+      "releaseDate": "2025-09-24",
+      "releaseNotes": "- Team version support allows running runner on the intranet, with data stored internally and shared among team members.\n- AI-enhanced interface retrieval and project inquiry.\n- Public request parameters.\n- Batch copy and paste\n- Optimization of JSON network request parameters"
     }
   },
   "devEngines": {
