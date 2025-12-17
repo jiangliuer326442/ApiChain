@@ -1,6 +1,6 @@
 # ApiChain - API Management and Testing Tool
 
-![咨询AI](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/Apichain_2025-08-29_11-17-00.png)
+![咨询AI](https://raw.githubusercontent.com/jiangliuer326442/apichain_documents/refs/heads/main/images/ApiChain_25029242327.webp)
 
 ApiChain is an API management and testing tool designed specifically for developers. It helps manage APIs across different projects and iterations from both an iteration and project perspective. By generating API documentation based on iterations and integrating AI technology, it enables developers to quickly search and understand API functionalities and send network requests. (For more on using the AI assistant, see the [AI Assistant Tutorial](https://github.com/jiangliuer326442/ApiChain/wiki/3.AI-Assistant)。
 
@@ -19,11 +19,11 @@ ApiChain is an API management and testing tool designed specifically for develop
 
 ## 📦 Software Download
 
-| Platform    | Download Link                                                     |
-| ------- | ------------------------------------------------------------ |
-| Windows | [ApiChain_v1.2.3_windows.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
-| Linux   | [ApiChain_v1.2.3_linux.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
-| macOS   | [ApiChain_v1.2.3_macos.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| Platform | Download Link                                                |
+| -------- | ------------------------------------------------------------ |
+| Windows  | [ApiChain_v1.2.3_windows.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| Linux    | [ApiChain_v1.2.3_linux.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| macOS    | [ApiChain_v1.2.3_macos.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
 
 > **Note**：Mac users encountering issues opening the app can run the command `sudo spctl --master-disable` in the terminal to resolve it.
 
@@ -233,11 +233,11 @@ For a detailed illustrated tutorial,[click here](https://github.com/jiangliuer32
 
 If you have suggestions or issues with the software, feel free to contact us via **WeChat**：
 
-![微信二维码](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/image-20240619222612484.png)
+![微信二维码](https://raw.githubusercontent.com/jiangliuer326442/apichain_documents/refs/heads/main/images/image-20240619222612484.png)
 
 If you find this tool helpful, consider supporting development with a small donation：
 
-![打赏二维码](https://gitee.com/onlinetool/apichain-chinese-documentation/raw/main/images/image-20240619222828912.png)
+![打赏二维码](https://raw.githubusercontent.com/jiangliuer326442/apichain_documents/refs/heads/main/images/image-20240619222828912.png)
 
 ---
 
