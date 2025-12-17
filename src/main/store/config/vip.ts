@@ -1,12 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { sm2 } from 'sm-crypto';
-import { ethers } from 'ethers';
-import log from 'electron-log';
 import crypto from 'crypto';
 
 import getCache from './index';
 import { getUuid, getSalt } from './user';
-import { base64Decode, base64Encode, getPackageJson } from '../../util/util'
+import { base64Encode, getPackageJson } from '../../util/util'
 import { isStringEmpty } from '../../../renderer/util';
 
 export const TABLE_NAME = "vip.status";
