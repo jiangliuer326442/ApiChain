@@ -206,6 +206,8 @@
       "target": "nsis"
     },
     "linux": {
+      "icon": "assets/icon.png",
+      "category": "Development",
       "target": [
         "AppImage"
       ]
