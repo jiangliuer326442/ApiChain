@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import Store from 'electron-store';
 
 import { 
     postRequest,
@@ -23,15 +24,15 @@ import {
 } from '../../store/config/team';
 import { isStringEmpty } from '../../../renderer/util';
 
-export default async function (){
+export default async function (uuid : string, store : Store){
     ipcMain.on(ChannelsTeamStr, async (event, action, clientHost) => {
 
         if (action !== ChannelsTeamTestHostStr) return;
 
-        let errorMessage = await pingHost(clientHost);
+        let errorMessage = await pingHost(uuid, clientHost, store);
         if (isStringEmpty(errorMessage)) {
-            setClientHost(clientHost);
-            let teamListResult = await postRequest(TEAM_LIST_URL, {})
+            setClientHost(clientHost, store);
+            let teamListResult = await postRequest(uuid, TEAM_LIST_URL, {}, store)
             let errorMessage = teamListResult[0];
             let teamList = teamListResult[1];
             if (isStringEmpty(errorMessage)) {
@@ -52,28 +53,27 @@ export default async function (){
     ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, users, dbJson) => {
 
         if (action !== ChannelsTeamSetInfoStr) return;
-
         let responseTeamId = "";
         let errorMessage = "";
 
         if (teamType === "create") {
 
-            let result = await postRequest(TEAM_CREATE_URL, {
+            let result = await postRequest(uuid, TEAM_CREATE_URL, {
                 "uname": uname,
                 "teamName": teamName,
                 "users": users,
                 "dbJson": dbJson,
-            })
+            }, store)
 
             errorMessage = result[0];
             responseTeamId = result[1];
         } else {
-            let result = await postRequest(TEAM_JOIN_URL, {
+            let result = await postRequest(uuid, TEAM_JOIN_URL, {
                 "uname": uname,
                 "teamId": teamId,
                 "users": users,
                 "dbJson": dbJson,
-            })
+            }, store)
 
             errorMessage = result[0];
             responseTeamId = result[1];
@@ -81,8 +81,8 @@ export default async function (){
 
         let _teamName = "";
         if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
-            setClientInfo("team", responseTeamId)
-            let ret = await postRequest(TEAM_QUERY_NAME, {teamId: responseTeamId})
+            setClientInfo("team", responseTeamId, store)
+            let ret = await postRequest(uuid, TEAM_QUERY_NAME, {teamId: responseTeamId}, store)
             _teamName = ret[1];
         }
 

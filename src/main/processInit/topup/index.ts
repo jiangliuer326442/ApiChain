@@ -1,7 +1,5 @@
+import Store from 'electron-store';
 import { ipcMain, shell } from 'electron';
-import log from 'electron-log';
-
-import contractConfig from '../../../config/contract.json';
 import { 
     ChannelsVipStr, 
     ChannelsVipGenUrlStr, 
@@ -12,15 +10,11 @@ import {
 import { 
     AI_TOKEN_SET_URL, 
 } from '../../../config/team';
-import { getUuid } from '../../store/config/user';
 import {
     getOutTradeNo, 
-    isVip, 
-    setContractChain,
+    isVip,
     setExpireTime, 
     getExpireTime, 
-    getLatestProduct, 
-    getLatestPayMethod,
     genDecryptString,
     incBuyTimes, 
     clearVipCacheFlg,
@@ -31,10 +25,12 @@ import { isStringEmpty } from '../../../renderer/util';
 import { 
     postRequest
 } from '../../util/teamUtil'
+import {
+    getUid
+} from '../../util/util';
 
-const { usdEthRate, cnyEthRate } = contractConfig;
-
-export default function (){
+export default function (privateKey : string, publicKey : string, store: Store){
+    let uid = getUid(privateKey);
 
     ipcMain.on(ChannelsVipStr, async (event, action, productName, payMethod, contractChain) => {
 
@@ -57,50 +53,26 @@ export default function (){
         }
 
         let money = "1000";
-        if (payMethod === "dollerpay") {
-            if (productName === "product9") {
-                money = "2";
-            } else if (productName === "product10") {
-                money = "14";
-            } else if (productName === "product11") {
-                money = "28";
-            } else if (productName === "token1") {
-                money = "10";
-            } else if (productName === "token2") {
-                money = "50";
-            } else if (productName === "token3") {
-                money = "100";
-            }
-            if (productName.indexOf("product") >= 0) {
-                money = money * 1000000 * usdEthRate / 1000000;
-            } else if (productName.indexOf("token") >= 0) {
-                money = money * 1000000 * cnyEthRate / 1000000;
-            }
-            let params = await genCheckCodeUrl(productName, payMethod);
-            setContractChain(contractChain);
-            event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money, params);
-        } else {
-            if (productName === "product9") {
-                money = "10";
-            } else if (productName === "product10") {
-                money = "100";
-            } else if (productName === "product11") {
-                money = "200";
-            } else if (productName === "product12") {
-                money = "1";
-            } else if (productName === "product13") {
-                money = "5";
-            } else if (productName === "token1") {
-                money = "10";
-            } else if (productName === "token2") {
-                money = "50";
-            } else if (productName === "token3") {
-                money = "100";
-            }
-            let url = await genCheckCodeUrl(productName, payMethod);
-            await shell.openExternal(url)
-            event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money);
+        if (productName === "product9") {
+            money = "10";
+        } else if (productName === "product10") {
+            money = "100";
+        } else if (productName === "product11") {
+            money = "200";
+        } else if (productName === "product12") {
+            money = "1";
+        } else if (productName === "product13") {
+            money = "5";
+        } else if (productName === "token1") {
+            money = "10";
+        } else if (productName === "token2") {
+            money = "50";
+        } else if (productName === "token3") {
+            money = "100";
         }
+        let url = await genCheckCodeUrl(productName, payMethod, privateKey, publicKey, store);
+        await shell.openExternal(url)
+        event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money);
     });
 
     ipcMain.on(ChannelsVipStr, async (event, action) => {
@@ -109,9 +81,9 @@ export default function (){
 
         let url = "";
         //拿订单号
-        let tradeNo = getOutTradeNo();
+        let tradeNo = getOutTradeNo(store);
         if (!isStringEmpty(tradeNo)) {
-            url = await getCheckCodeUrl();
+            url = await getCheckCodeUrl(privateKey, publicKey, store);
         }
 
         event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, url);
@@ -120,13 +92,13 @@ export default function (){
     ipcMain.on(ChannelsVipStr, (event, action) => {
         if (action !== ChannelsVipCloseCkCodeStr) return;
 
-        clearVipCacheFlg();
+        clearVipCacheFlg(store);
     });
 
     ipcMain.on(ChannelsVipStr, async (event, action, ckCode) => {
         if (action !== ChannelsVipDoCkCodeStr) return;
 
-        let ret = genDecryptString(ckCode);
+        let ret = genDecryptString(ckCode, uid, store);
         if (ret[0] == "member") {
             let days = ret[1];
             if (isStringEmpty(days)) {
@@ -135,29 +107,29 @@ export default function (){
                 return;
             }
             let expireTime = 0;
-            if (isVip()) {
-                expireTime = getExpireTime();
+            if (isVip(store)) {
+                expireTime = getExpireTime(store);
                 expireTime += 86400 * 1000 * Number(days);
             } else {
                 expireTime = Date.now() + 86400 * 1000 * Number(days);
             }
     
             //设置会员过期时间
-            setExpireTime(expireTime);
+            setExpireTime(expireTime, store);
             //累计购买次数
-            let buyTimes = incBuyTimes();
+            let buyTimes = incBuyTimes(store);
     
             //核销成功
-            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), expireTime, buyTimes);
+            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, expireTime, buyTimes);
         } else if (ret[0] == "chat_token") {
             let apiKey = ret[1];
             let orderNo = ret[2];
-            await postRequest(AI_TOKEN_SET_URL, {
+            await postRequest(privateKey, AI_TOKEN_SET_URL, {
                 token: apiKey,
                 orderNo,
-            })
+            }, store)
             //核销成功
-            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, getUuid(), apiKey, orderNo);
+            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, apiKey, orderNo);
         }
 
     });

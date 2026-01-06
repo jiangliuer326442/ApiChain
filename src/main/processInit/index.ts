@@ -1,3 +1,5 @@
+import Store from 'electron-store';
+
 import { BrowserWindow } from 'electron';
 import MarkdownInitFunc from './markdown';
 import PostManInitFunc from './postman';
@@ -10,15 +12,15 @@ import dbInitFunc from './database';
 import restartFunc from './system/restart';
 import reloadFunc from './system/reload';
 
-export default function (mainWindow : BrowserWindow){
+export default function (mainWindow : BrowserWindow, privateKey : string, publicKey : string, store : Store){
     dbInitFunc(mainWindow);
-    MarkdownInitFunc(mainWindow);
+    MarkdownInitFunc(mainWindow, store);
     PostManInitFunc();
     UpdaterInitFunc();
-    TopupInitFunc();
-    TeamInitFunc();
-    MockServerInitFunc(mainWindow);
-    NetworkSendInitFunc();
+    TopupInitFunc(privateKey, publicKey, store);
+    TeamInitFunc(privateKey, store);
+    MockServerInitFunc(mainWindow, store);
+    NetworkSendInitFunc(privateKey, store);
     restartFunc();
     reloadFunc(mainWindow);
 }

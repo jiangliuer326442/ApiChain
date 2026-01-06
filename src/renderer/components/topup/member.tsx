@@ -3,8 +3,6 @@ import { connect } from 'react-redux';
 import { 
     Modal, Button, Form, Radio, Input, Flex, message,
 } from "antd";
-import { EthereumProvider } from '@walletconnect/ethereum-provider';
-import { ethers } from 'ethers';
 import { RadioChangeEvent } from 'antd/lib';
 import qrcode from 'qrcode';
 
@@ -14,16 +12,11 @@ import {
     ChannelsVipCkCodeStr,
     ChannelsVipDoCkCodeStr,
 } from '@conf/channel';
-import contractConfig from '@conf/contract.json';
 import { SET_DEVICE_INFO } from '@conf/redux';
-import { isStringEmpty, getdayjs, getStartParams } from '@rutil/index';
+import { isStringEmpty, getdayjs } from '@rutil/index';
 import { langFormat, langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
-const { supportedChains, erc20Chains } = contractConfig;
-
-let argsObjects = getStartParams();
-let allowedChains = argsObjects.allowedChains.split(",");
 
 class PayMemberModel extends Component {
 
@@ -69,162 +62,6 @@ class PayMemberModel extends Component {
         }
     }
 
-    getWalletConnectUri = () => {
-        return new Promise(async (resolve, reject) => {
-            if (this.state.wcProvider === null) {
-                try {
-                    const { projectId } = contractConfig;
-                    let rpcMap = {};
-                    for (let chainId of allowedChains) {
-                        rpcMap[chainId] = supportedChains[chainId].rpc;
-                    }
-                    
-                    this.state.wcProvider = await EthereumProvider.init({
-                        projectId,
-                        metadata: {
-                            name: this.props.appName,
-                            description: this.props.appName,
-                            url: "http://localhost:1212",
-                            icons: ["https://apichain.app/icon.ico"],
-                        },
-                        chains: [this.state.contractChain],
-                        optionalChains: [this.state.contractChain],
-                        showQrModal: false,
-                        disableProviderPing: true,
-                        rpcMap
-                    });
-                    this.state.wcProvider.on('display_uri', async (url) => {
-                        try {
-                            await resolve(url);
-                        } catch (error) {
-                            console.error("display_uri error", error)
-                            this.cancelPay();
-                            return;
-                        }
-                    });
-                    this.state.wcProvider.on('session_update', ({ topic, params }) => {
-                        console.log('Session updated:', params);
-                        const chainId = params.namespaces.eip155.chains[0].split(':')[1];
-                        console.log('Current chainId:', chainId);
-                    });
-                    this.state.wcProvider.on('session_event', ({ topic, params }) => {
-                        if (params.event.name === 'chainChanged') {
-                            console.log('Chain changed to:', params.event.data);
-                        }
-                    });
-                    this.state.wcProvider.on('connect', (session) => {
-                        const chainId = parseInt(session.chainId, 16);
-                        console.log('Initial chainId:', chainId, this.state.contractChain);
-                    });
-
-                    this.state.wcProvider.on('disconnect', (error, payload) => {
-                        console.error('WalletConnect disconnected:', error, payload);
-                        if (error?.message?.includes('expired') || error?.code === 'SESSION_EXPIRED') {
-                            console.error('Session expired. Please reconnect.');
-                            this.cancelPay();
-                        }
-                    });
-
-                    if (this.state.wcProvider.session) {
-                        await this.state.wcProvider.disconnect();
-                    }
-                    
-                    await this.state.wcProvider.connect();
-
-                    this.state.etherProvider = new ethers.providers.Web3Provider(this.state.wcProvider);
-                    this.state.signer = this.state.etherProvider.getSigner();
-                    this.doWithContract();
-                } catch (error) {
-                    console.error("init wcProvider error", error);
-                    this.cancelPay();
-                    return;
-                }
-            } else {
-                await resolve("");
-                this.doWithContract();
-            }
-        });
-    }
-
-    disconnectWallet = async () => {
-        if (this.state.wcProvider) {
-            await this.state.wcProvider.disconnect();
-            this.setState({
-                wcProvider: null,
-                etherProvider: null,
-                signer: null,
-            });
-        }
-    }
-
-    doWithContract = async () => {
-        const chainId = this.state.contractChain;
-        const etherValue = ethers.utils.parseEther(this.state.money.toString());
-
-        const { contractName } = contractConfig;
-        const contractInfo = contractConfig[contractName];
-        const contractABI = contractInfo.abi;
-        const contractAddress = contractInfo.address[chainId];
-
-        let contract;
-        if (erc20Chains.includes(chainId.toString())) {
-            const erc20Contract = contractConfig.erc20;
-            const erc20ContractABI = erc20Contract.abi;
-            const erc20ContractAddress = erc20Contract.address[chainId];
-
-            try {
-                contract = new ethers.Contract(erc20ContractAddress, erc20ContractABI, this.state.signer);
-            } catch (error) {
-                console.error('sign contract error:', error);
-                this.cancelPay();
-            }
-
-            try {
-                let erc20Result = await contract["approve"](contractAddress, etherValue.toNumber());
-                console.log("erc20Result", erc20Result);
-            } catch (error) {
-                console.error('Error sending transaction:', error);
-                this.cancelPay();
-            }
-        }
-
-        try {
-            contract = new ethers.Contract(contractAddress, contractABI, this.state.signer);
-        } catch (error) {
-            console.error('sign contract error:', error);
-            this.cancelPay();
-        }
-
-        let contractParams = this.state.contractParams;
-        const methodName = 'sendRequest';
-        const subscriptionId = supportedChains[chainId].subscription;
-        if (erc20Chains.includes(chainId.toString())) {
-            const params = [subscriptionId, [
-                etherValue.toString(),
-                contractParams
-            ]];
-            try {
-                contract[methodName](...params, {
-                    gasLimit: 400000,
-                });
-            } catch (error) {
-                console.error('Error sending transaction:', error);
-                this.cancelPay();
-            }
-        } else {
-            const params = [subscriptionId, [contractParams]];
-            try {
-                contract[methodName](...params, {
-                    value: ethers.utils.parseEther(this.state.money.toString()).toString(),
-                    gasLimit: 400000,
-                });
-            } catch (error) {
-                console.error('Error sending transaction:', error);
-                this.cancelPay();
-            }
-        }
-    }
-
     setProductName = (e: RadioChangeEvent) => {
         this.setState({productName: e.target.value});
         this.checkAndGenPayPng(e.target.value, null, null);
@@ -263,32 +100,10 @@ class PayMemberModel extends Component {
             let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, params : string) => {
                 if (action !== ChannelsVipGenUrlStr) return;
                 listener();
-                if (payMethod === "dollerpay") {
-                    try {
-                        let url = await this.getWalletConnectUri();
-                        this.state.money = money;
-                        if (!isStringEmpty(url)) {
-                            const qrCodeDataURL = await qrcode.toDataURL(url);
-                            this.setState({
-                                showPayQrCode1: true,
-                                qrcode: qrCodeDataURL,
-                            });
-                        } else {
-                            this.setState({
-                                showPayQrCode1: true,
-                                qrcode: "",
-                            });
-                        }
-                        this.state.contractParams = params;
-                    } catch (error) {
-                        console.error('Error checkAndGenPayPng:', error);
-                    }
-                } else {
-                    this.setState({
-                        showPayQrCode1: true,
-                        money,
-                    });
-                }
+                this.setState({
+                    showPayQrCode1: true,
+                    money,
+                });
             });
 
             window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipGenUrlStr, productName, payMethod, contractChain);
@@ -296,7 +111,6 @@ class PayMemberModel extends Component {
     }
 
     cancelPay = () => {
-        this.disconnectWallet();
         this.setState({
             showPayQrCode: false,
             showPayQrCode1: false,
@@ -405,7 +219,6 @@ class PayMemberModel extends Component {
         });
         //发消息进行核销
         window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipDoCkCodeStr, ckCode);
-        this.disconnectWallet();
     }
 
     canelCkCode = () => {
@@ -422,7 +235,6 @@ class PayMemberModel extends Component {
             ckCode: "",
             lodingCkCode: false,
         });
-        this.disconnectWallet();
         this.props.cb(false);
     }
 
@@ -474,42 +286,11 @@ class PayMemberModel extends Component {
                                 </Radio.Group>
                                 }
                             </Form.Item>
-                    {this.state.payMethod === 'dollerpay' ? 
-                            <Form.Item label={langTrans("member topup network")}>
-                        {
-                            allowedChains.map(chainId => {
-                                return (
-                                <Radio.Group key={chainId} onChange={this.setContractChain} value={this.state.contractChain}>
-                                    <Radio value={chainId}>{supportedChains[chainId].name}</Radio>
-                                </Radio.Group>
-                                )
-                            })
-                        }
-                            </Form.Item>
-                    : null}
                         </Form>
                         {this.state.showPayQrCode1 ? 
-                            (this.state.payMethod === 'dollerpay' ? 
-                                <>
-                                <p style={isStringEmpty(this.state.qrcode) ? {marginTop: 0, marginBottom: 0} : {}}>
-                                {this.state.walletAccount ? 
-                                    langFormat("member topup paycontent3", {
-                                        "money": this.state.money,
-                                        "network": supportedChains[this.state.contractChain].name,
-                                        "account": this.state.walletAccount
-                                    })
-                                :
-                                    langFormat("member topup paycontent2", {
-                                        "money": this.state.money,
-                                        "network": supportedChains[this.state.contractChain].name
-                                    })
-                                }
-                                </p>
-                                {!isStringEmpty(this.state.qrcode) ? <img src={ this.state.qrcode } /> : null}
-                                </>
-                            :<p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
+                            <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
                                 "money": this.state.money
-                            })}</p>)
+                            })}</p>
                         : null}
                     </Flex>
                 </Modal>

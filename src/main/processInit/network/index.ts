@@ -1,4 +1,5 @@
 import { ipcMain, IpcMainEvent } from 'electron';
+import Store from 'electron-store';
 
 import { 
     ChannelsAxioBreidgeStr, 
@@ -11,7 +12,7 @@ import {
 import { doRequest } from '../../util/util';
 import { postRequest } from '../../util/teamUtil';
 
-export default function() {
+export default function(uuid : string, store : Store) {
 
     ipcMain.on(ChannelsAxioBreidgeStr, async (event : IpcMainEvent, action, method : string, url : string, headData, postData, fileData) => {
         if(action !== ChannelsAxioBreidgeSendStr) return;
@@ -61,7 +62,7 @@ export default function() {
     ipcMain.on(ChannelsAxioBreidgeStr, async (event : IpcMainEvent, action, url : string, postData) => {
         if(action !== ChannelsAxioTeanSendStr) return;
 
-        let result = await postRequest(url, postData);
+        let result = await postRequest(uuid, url, postData, store);
 
         let errorMessage = result[0];
         let response = result[1];
