@@ -1,4 +1,5 @@
 import log from 'electron-log';
+import Store from 'electron-store';
 import { ipcMain, BrowserWindow } from 'electron'
 
 import {
@@ -43,21 +44,21 @@ export function getRequestByIterator(paramIteratorId : string, paramProjectId : 
     res = paramRes;
 }
 
-export default function (mainWindow : BrowserWindow) {
+export default function (mainWindow : BrowserWindow, store : Store) {
 
     window = mainWindow;
 
     //设置mock 服务器 可见性
     ipcMain.on(ChannelsMockServerStr, (event, action : string,  iteratorId : string, visibility : boolean) => {
         if (action !== ChannelsMockServerAccessSetStr) return;
-        setAccess(iteratorId, visibility);
+        setAccess(iteratorId, visibility, store);
         event.reply(ChannelsMockServerStr, ChannelsMockServerAccessSetResultStr, iteratorId, visibility);
     });
 
     //获取mock 服务器 可见性
     ipcMain.on(ChannelsMockServerStr, (event, action : string,  iteratorId : string) => {
         if (action !== ChannelsMockServerAccessGetStr) return;
-        let access = getAccess(iteratorId);
+        let access = getAccess(iteratorId, store);
         event.reply(ChannelsMockServerStr, ChannelsMockServerAccessSetResultStr, iteratorId, access);
     });
 
@@ -75,7 +76,7 @@ export default function (mainWindow : BrowserWindow) {
         }
 
         //不是会员，迭代文档停止共享
-        if (!isVip()) {
+        if (!isVip(store)) {
             const data = {
                 code: 403,
                 message: '对方没有开通会员，已停止迭代文档的共享',
@@ -86,7 +87,7 @@ export default function (mainWindow : BrowserWindow) {
 
         let iterationUUID = versionIteration[version_iterator_uuid];
         if (iterationUUID === iteratorId) {
-            let access = getAccess(iterationUUID);
+            let access = getAccess(iterationUUID, store);
             if (!access) {
                 const data = {
                     code: 403,

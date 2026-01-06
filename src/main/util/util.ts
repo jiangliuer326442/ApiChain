@@ -1,12 +1,12 @@
 /* eslint import/prefer-default-export: off */
 import { URL } from 'url';
+import fernet from 'fernet';
 import path from 'path';
 import { app } from 'electron';
 import os from 'os';
 import crypto from 'crypto';
 import axios from 'axios';
 import fs from 'fs-extra';
-import { machineIdSync } from 'node-machine-id';
 
 import { REQUEST_METHOD_POST, REQUEST_METHOD_GET } from '../../config/global_config';
 
@@ -59,6 +59,30 @@ export function getAssetPath(...paths: string[]): string {
   return path.join(RESOURCES_PATH, ...paths);
 }
 
+export function rsaEncrypt(plaintext: string, publicKey : string, privateKey : string) : string {
+    const signature = crypto.publicEncrypt({
+        key: publicKey,
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+        oaepHash: 'sha256',
+    }, Buffer.from(plaintext, 'utf8'))
+
+    const data = base64Encode(signature.toString('base64') + "&" + privateKey)
+    return data;
+}
+
+export function fernetDecrypt(encryptText: string, key : string) : string {
+    let realKey = base64Encode(key)
+    const secret = new fernet.Secret(realKey);
+    const token = new fernet.Token({secret: secret, token: encryptText, ttl: 3600});
+    const line = token.decode();
+    return line;
+}
+
+export function getUid(privateKey : string) : string {
+  let uid = md5(privateKey);
+  return uid;
+}
+
 export function base64Encode(data : string) : string {
   const base64Str = Buffer.from(data).toString('base64');
   return base64Str;
@@ -71,16 +95,6 @@ export function base64Decode(base64Str : string) : string {
 
 export function md5(str : string) {
   return crypto.createHash('md5').update(str).digest('hex');
-}
-
-let deviceId = "";
-export function getDeviceId() {
-    if (deviceId === "") {
-        let uuid = machineIdSync(true);
-        deviceId = uuid;
-    }
-
-    return deviceId;
 }
 
 export async function doRequest(method : any, url : string, headData : any, postData : any, fileData : any, cookieMap : any) {

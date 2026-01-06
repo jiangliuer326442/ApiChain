@@ -1,6 +1,7 @@
 import log from 'electron-log';
 import { BrowserWindow, ipcMain, app, dialog } from 'electron';
 import fs from 'fs-extra';
+import Store from 'electron-store';
 import * as Showdown from 'showdown';
 
 import {
@@ -14,7 +15,6 @@ import { getIpV4 } from '../../util/util';
 import { isVip } from '../../store/config/vip';
 import { 
     TABLE_ENV_FIELDS,
-    TABLE_ENV_VAR_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS, 
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
@@ -132,21 +132,21 @@ export function getMarkdownContentByIteratorId(paramIteratorId : string, paramRe
     res = paramRes;
 }
 
-export default function (mainWindow : BrowserWindow){
+export default function (mainWindow : BrowserWindow, store : Store){
 
     window = mainWindow;
 
     //设置文档可见性
     ipcMain.on(ChannelsMarkdownStr, (event, action : string,  iteratorId : string, visibility : boolean) => {
         if (action !== ChannelsMarkdownAccessSetStr) return;
-        setAccess(iteratorId, visibility);
+        setAccess(iteratorId, visibility, store);
         event.reply(ChannelsMarkdownStr, ChannelsMarkdownAccessSetResultStr, iteratorId, visibility);
     });
 
     //获取文档可见性
     ipcMain.on(ChannelsMarkdownStr, (event, action : string,  iteratorId : string) => {
         if (action !== ChannelsMarkdownAccessGetStr) return;
-        let access = getAccess(iteratorId);
+        let access = getAccess(iteratorId, store);
         event.reply(ChannelsMarkdownStr, ChannelsMarkdownAccessSetResultStr, iteratorId, access);
     });
 
@@ -164,7 +164,7 @@ export default function (mainWindow : BrowserWindow){
         }
 
         //不是会员，迭代文档停止共享
-        if (!isVip()) {
+        if (!isVip(store)) {
             const data = {
                 code: 403,
                 message: '对方没有开通会员，已停止迭代文档的共享',
@@ -175,7 +175,7 @@ export default function (mainWindow : BrowserWindow){
 
         let iterationUUID = versionIteration[version_iterator_uuid];
         if (iterationUUID === iteratorId) {
-            let access = getAccess(iterationUUID);
+            let access = getAccess(iterationUUID, store);
             if (!access) {
                 const data = {
                     code: 403,

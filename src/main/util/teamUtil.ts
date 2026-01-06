@@ -1,7 +1,8 @@
 import semver from 'semver';
+import Store from 'electron-store';
 
 import { osLocale } from '../third_party/os-locale';
-import { doRequest, getPackageJson } from './util'
+import { doRequest, getPackageJson, md5 } from './util'
 import { isStringEmpty } from '../../renderer/util';
 import {
     CONTENT_TYPE_URLENCODE
@@ -22,20 +23,17 @@ import {
     getTeamId,
     getClientHost
 } from '../store/config/team';
-import { 
-    getUuid
-} from '../store/config/user'
 import { langFormat } from '../../lang/i18n';
 
-export async function pingHost(clientHost : string|null) {
+export async function pingHost(uuid : string, clientHost : string|null, store : Store) {
     if (clientHost === null) {
-        clientHost = getClientHost();
+        clientHost = getClientHost(store);
     }
     if (isStringEmpty(clientHost)) {
         return "error";
     }
     let packageJson = await getPackageJson();
-    let result = await postRequest2(clientHost, PING_URL, {});
+    let result = await postRequest2(uuid, clientHost, PING_URL, {}, store);
     let errorMessage = result[0];
     let serverVersion = result[1];
     if (isStringEmpty(errorMessage)) {
@@ -51,12 +49,12 @@ export async function pingHost(clientHost : string|null) {
     return errorMessage;
 }
 
-export async function postRequest(urlPrefix : string, postData : object) {
-    let clientHost = getClientHost();
-    return await postRequest2(clientHost, urlPrefix, postData);
+export async function postRequest(uuid : string, urlPrefix : string, postData : object, store : Store) {
+    let clientHost = getClientHost(store);
+    return await postRequest2(uuid, clientHost, urlPrefix, postData, store);
 }
 
-async function postRequest2(clientHost : string, urlPrefix : string, postData : object) {
+async function postRequest2(uuid : string, clientHost : string, urlPrefix : string, postData : object, store : Store) {
     let lang = await osLocale();
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
@@ -67,8 +65,8 @@ async function postRequest2(clientHost : string, urlPrefix : string, postData : 
     headData[SYS_LANG] = userLang;
     headData[SYS_COUNTRY] = userCountry;
     headData[SYS_CLIENT_VERSION] = packageJson.version;
-    headData[SYS_UID] = getUuid();
-    headData[SYS_TEAM] = getTeamId();
+    headData[SYS_UID] = md5(uuid);
+    headData[SYS_TEAM] = getTeamId(store);
 
     let url = clientHost + urlPrefix;
 

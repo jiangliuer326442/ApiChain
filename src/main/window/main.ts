@@ -5,7 +5,6 @@ import {
 } from 'electron';
 import path from 'path';
 import MenuBuilder from './menu';
-import bindIpcEvents from '../processInit';
 
 import { 
     getAssetPath,
@@ -18,7 +17,7 @@ import {
 
 let mainWindow: BrowserWindow;
 
-export function createWindow(initParms : string[]) : BrowserWindow {
+export function createWindow(initParms : string[], cb) : BrowserWindow {
     mainWindow = new BrowserWindow({
         show: false,
         width: WINDOW_WIDTH,
@@ -38,7 +37,7 @@ export function createWindow(initParms : string[]) : BrowserWindow {
     menuBuilder.buildMenu();
 
     bindMainWindowEvents();
-    bindIpcEvents(mainWindow);
+    cb(mainWindow);
 
     return mainWindow;
 }
