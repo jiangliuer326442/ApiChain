@@ -7,30 +7,16 @@ import {
     ChannelsVipDoCkCodeStr,
     ChannelsVipCloseCkCodeStr,
 } from '../../../config/channel';
-import { 
-    AI_TOKEN_SET_URL, 
-} from '../../../config/team';
 import {
     getOutTradeNo, 
-    isVip,
-    setExpireTime, 
-    getExpireTime, 
-    genDecryptString,
-    incBuyTimes, 
     clearVipCacheFlg,
     genCheckCodeUrl,
     getCheckCodeUrl,
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
-import { 
-    postRequest
-} from '../../util/teamUtil'
-import {
-    getUid
-} from '../../util/util';
+import { topUpCallback } from '../../logic/topup';
 
 export default function (privateKey : string, publicKey : string, store: Store){
-    let uid = getUid(privateKey);
 
     ipcMain.on(ChannelsVipStr, async (event, action, productName, payMethod, contractChain) => {
 
@@ -97,40 +83,16 @@ export default function (privateKey : string, publicKey : string, store: Store){
 
     ipcMain.on(ChannelsVipStr, async (event, action, ckCode) => {
         if (action !== ChannelsVipDoCkCodeStr) return;
-
-        let ret = genDecryptString(ckCode, uid, store);
-        if (ret[0] == "member") {
-            let days = ret[1];
-            if (isStringEmpty(days)) {
-                //核销失败
+        topUpCallback(ckCode, privateKey, 
+            () => {
                 event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, false);
-                return;
-            }
-            let expireTime = 0;
-            if (isVip(store)) {
-                expireTime = getExpireTime(store);
-                expireTime += 86400 * 1000 * Number(days);
-            } else {
-                expireTime = Date.now() + 86400 * 1000 * Number(days);
-            }
-    
-            //设置会员过期时间
-            setExpireTime(expireTime, store);
-            //累计购买次数
-            let buyTimes = incBuyTimes(store);
-    
-            //核销成功
-            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, expireTime, buyTimes);
-        } else if (ret[0] == "chat_token") {
-            let apiKey = ret[1];
-            let orderNo = ret[2];
-            await postRequest(privateKey, AI_TOKEN_SET_URL, {
-                token: apiKey,
-                orderNo,
-            }, store)
-            //核销成功
-            event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, apiKey, orderNo);
-        }
-
+            },
+            (uid, expireTime, buyTimes) => {
+                event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, expireTime, buyTimes);
+            },
+            (uid, apiKey, orderNo) => {
+                event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, apiKey, orderNo);
+            },
+            store);
     });
 }
