@@ -6,12 +6,11 @@
   "payJumpUrl": "https://runner.fanghailiang.cn/pay/jump/",
   "payQueryUrl": "https://runner.fanghailiang.cn/pay/query/",
   "aiModels": "gpt-4o,grok-4,deepseek-chat",
-  "allowedChains": "42161,137",
-  "description": "是一款类似 PostMan 的接口请求软件",
+  "description": "接口文档与单元测试工具",
   "license": "MIT",
   "author": {
-    "name": "方海亮",
-    "email": "fanghailiang2016@gmail.com",
+    "name": "Mustafa Fang",
+    "email": "jiangliuer3264@gmail.com",
     "url": "https://blog.csdn.net/fanghailiang2016"
   },
   "main": "./dist/main/main.js",

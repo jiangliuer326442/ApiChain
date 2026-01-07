@@ -31,8 +31,9 @@ export function resolveHtmlPath(htmlFileName: string) {
     const url = new URL(`http://localhost:${port}`);
     url.pathname = htmlFileName;
     return url.href;
+  } else {
+    return 'apichain://./' + htmlFileName;
   }
-  return `file://${path.resolve(__dirname, '../renderer/', htmlFileName)}`;
 }
 
 let packageJson = "";

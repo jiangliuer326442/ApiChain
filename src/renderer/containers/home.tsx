@@ -501,7 +501,7 @@ class Home extends Component {
             </Flex>
           </Content>
           <Footer style={{ textAlign: 'center' }}>
-          <Link href={ this.state.projectUrl }>{ this.props.appName }</Link> ©{new Date().getFullYear()} Created by 方海亮
+          <Link href={ this.state.projectUrl }>{ this.props.appName }</Link> ©{new Date().getFullYear()} Created by Mustafa Fang
           </Footer>
         </Layout>
     );
