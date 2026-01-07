@@ -127,7 +127,7 @@ class UnittestExecutorList extends Component {
                     <Table columns={this.state.column} dataSource={ this.state.datas } />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
-                ApiChain ©{new Date().getFullYear()} Created by 方海亮
+                ApiChain ©{new Date().getFullYear()} Created by Mustafa Fang
                 </Footer>
             </Layout>
         )

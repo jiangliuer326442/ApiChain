@@ -1,46 +1,28 @@
-import { app, BrowserWindow } from 'electron';
-import Store from 'electron-store';
-import crypto from 'crypto';
-import fs from 'fs-extra';
+import { app, BrowserWindow, dialog } from 'electron';
+import serve from 'electron-serve'
 import log from 'electron-log';
-import path from 'path';
 
+import {
+  ChannelsVipStr,
+  ChannelsVipDoCkCodeStr
+} from '../config/channel'
+import { isStringEmpty } from '../renderer/util';
 import bindIpcEvents from './processInit';
+import { topUpCallback } from './logic/topup';
 import { createWindow as createMainWindow, getWindow as getMainWindow } from './window/main';
-import { getInitParams } from './window/params';
+import { getInitParams, systemInit } from './window/params';
 
-// 定义初始化文件路径
-let basePath = app.getPath('userData')
-const installFilePath = path.join(basePath, '.lock');
-const pubKeyPath = path.join(basePath, '.pub');
-const priKeyPath = path.join(basePath, '.rsa');
-let exportPrivateKey = "";
-let exportPublicKey = "";
-if (!fs.existsSync(installFilePath)) {
-  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-    publicKeyEncoding: {
-      type: 'spki',
-      format: 'pem'
-    },
-    privateKeyEncoding: {
-      type: 'pkcs8',
-      format: 'pem',
-      cipher: 'aes-256-cbc',
-      passphrase: 'BE1BDEC0AA74B4DCB079943E70528096CCA985F8'
-    }
-  });
-  exportPublicKey = publicKey;
-  exportPrivateKey = privateKey;
+const PROTOCOL = 'com-mustafa-apichain';
 
-  fs.writeFileSync(pubKeyPath, exportPublicKey);
-  fs.writeFileSync(priKeyPath, exportPrivateKey);
-  fs.writeFileSync(installFilePath, '');
+const isProd: boolean = process.env.NODE_ENV === 'production'
+
+if (isProd) {
+  serve({ directory: './dist/renderer/', scheme: 'apichain' })
 } else {
-  exportPublicKey = fs.readFileSync(pubKeyPath).toString();
-  exportPrivateKey = fs.readFileSync(priKeyPath).toString();
+  app.setPath('userData', `${app.getPath('userData')}_dev`)
 }
-let store = new Store({encryptionKey : exportPrivateKey});
+
+const { exportPrivateKey, exportPublicKey, store } = systemInit();
 
 //获取启动参数创建主窗口
 const createWindow = async () => {
@@ -56,12 +38,49 @@ app.on('window-all-closed', () => {
   }
 });
 
-app
-  .whenReady()
-  .then(() => {
-    createWindow(); 
-    app.on('activate', () => {
-      if (getMainWindow() === null) createWindow();
-    });
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  // 如果获取锁失败，说明已有实例在运行，直接关闭当前进程
+  app.quit();
+} else {
+  app.on('second-instance', async (_event, args) => {
+    const url = args.find((arg) =>
+      arg.startsWith(`${PROTOCOL}://`)
+    )
+    if (url == undefined) {
+      return;
+    }
+    log.info('second-instance url:', url);
+    const mainWindow = getMainWindow();
+
+    let coreStr = url.replace(/^com-mustafa-apichain:\/\//, '');
+    coreStr = coreStr.replace(/^member\/yuanreturn\//, '');
+    //注册激活事件
+    if (!isStringEmpty(coreStr)) {
+      topUpCallback(coreStr, exportPrivateKey, 
+        () => {
+          dialog.showErrorBox('会员充值失败', '会员充值失败，请稍后再试');
+        },
+        (uid, expireTime, buyTimes) => {
+          app.relaunch()
+          app.exit(0);
+        },
+        (uid, apiKey, orderNo) => {
+          mainWindow.webContents.send(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, apiKey, orderNo);
+        },
+        store);
+    }
   })
-  .catch(log.error);
+
+  app
+    .whenReady()
+    .then(() => {
+      app.setAsDefaultProtocolClient(PROTOCOL);
+      createWindow(); 
+      app.on('activate', () => {
+        if (getMainWindow() === null) createWindow();
+      });
+    })
+    .catch(log.error);
+}

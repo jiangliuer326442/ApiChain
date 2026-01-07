@@ -1,4 +1,8 @@
+import { app } from 'electron';
 import Store from 'electron-store';
+import crypto from 'crypto';
+import fs from 'fs-extra';
+import path from 'path';
 import { setLang } from '../../lang/i18n';
 import { getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
@@ -21,6 +25,42 @@ import {
     base64Encode,
 } from '../util/util';
 import { isStringEmpty } from '../../renderer/util';
+
+export function systemInit() {
+    // 定义初始化文件路径
+    let basePath = app.getPath('userData')
+    const installFilePath = path.join(basePath, '.lock');
+    const pubKeyPath = path.join(basePath, '.pub');
+    const priKeyPath = path.join(basePath, '.rsa');
+    let exportPrivateKey = "";
+    let exportPublicKey = "";
+    if (!fs.existsSync(installFilePath)) {
+        const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+            modulusLength: 2048,
+            publicKeyEncoding: {
+            type: 'spki',
+            format: 'pem'
+            },
+            privateKeyEncoding: {
+            type: 'pkcs8',
+            format: 'pem',
+            cipher: 'aes-256-cbc',
+            passphrase: 'BE1BDEC0AA74B4DCB079943E70528096CCA985F8'
+            }
+        });
+        exportPublicKey = publicKey;
+        exportPrivateKey = privateKey;
+
+        fs.writeFileSync(pubKeyPath, exportPublicKey);
+        fs.writeFileSync(priKeyPath, exportPrivateKey);
+        fs.writeFileSync(installFilePath, '');
+    } else {
+        exportPublicKey = fs.readFileSync(pubKeyPath).toString();
+        exportPrivateKey = fs.readFileSync(priKeyPath).toString();
+    }
+    let store = new Store({encryptionKey : exportPrivateKey});
+    return { exportPrivateKey, exportPublicKey, store };
+}
 
 export async function getInitParams(privateKey : string, publicKey : string, store : Store) : Promise<string[]> {
     let packageJson = await getPackageJson();
