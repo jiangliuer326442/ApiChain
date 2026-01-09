@@ -10,3 +10,6 @@
 *.ttf   binary
 *.woff  binary
 *.woff2 binary
+*.7z	binary
+*.zip	binary
+*.tar.gz	binary
