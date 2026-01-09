@@ -3,7 +3,7 @@ import { getUsers } from '@act/user';
 import {
     OS_ENV_VALUE_SET_URL,
     AI_TOKENS_GET_URL,
-    OS_ENV_VALUE_GET_URL,
+    AI_BIG_MODELS_URL,
     AI_TOKENS_GAS_QUERY_URL,
     AI_TOKENS_CHANGE_URL,
     CLIENT_TYPE_TEAM 
@@ -11,12 +11,7 @@ import {
 import { sendTeamMessage } from '@act/message';
 
 export async function getTeamSetting() {
-    let ret1 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_API_KEY"});
-    let ret2 = await sendTeamMessage(OS_ENV_VALUE_GET_URL, {key: "OPENAI_BASE_URL"});
-    return {
-        apiKey: ret1 ? ret1 : "", 
-        baseUrl: ret2 ? ret2 : "",
-    };
+    return await sendTeamMessage(AI_BIG_MODELS_URL, {key: "OPENAI_API_KEY"});
 }
 
 export async function queryRemainGas(tokenName : string) {
