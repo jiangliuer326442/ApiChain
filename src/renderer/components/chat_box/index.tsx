@@ -57,7 +57,7 @@ class AiChatBox extends Component {
     }
 
     componentDidMount(): void {
-      this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/network/ws/" + this.props.uid);
+      this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/ai/ws/" + this.props.uid);
 
       this.ws.onopen = (event) => {
           console.log("WebSocket opened:", event);
