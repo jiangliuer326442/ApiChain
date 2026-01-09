@@ -121,10 +121,11 @@ class BasicSetting extends Component {
 
     async componentDidMount() {
         if (this.props.clientType === CLIENT_TYPE_TEAM) {
-            const { apiKey, baseUrl } = await getTeamSetting();
+            let bigModelProviders = await getTeamSetting();
+            console.log(bigModelProviders);
             this.setState({
-                apiKey, 
-                baseUrl,
+                apiKey: "", 
+                baseUrl: "",
                 tokens: await getTokens(),
                 loaded: true
             })
