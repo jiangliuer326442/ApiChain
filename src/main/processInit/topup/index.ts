@@ -65,14 +65,13 @@ export default function (privateKey : string, publicKey : string, store: Store){
 
         if (action !== ChannelsVipCkCodeStr) return;
 
-        let url = "";
         //拿订单号
         let tradeNo = getOutTradeNo(store);
-        if (!isStringEmpty(tradeNo)) {
-            url = await getCheckCodeUrl(privateKey, publicKey, store);
+        if (isStringEmpty(tradeNo)) {
+            return;
         }
-
-        event.reply(ChannelsVipStr, ChannelsVipCkCodeStr, url);
+        const url = await getCheckCodeUrl(store);
+        await shell.openExternal(url)
     });
 
     ipcMain.on(ChannelsVipStr, (event, action) => {

@@ -99,7 +99,6 @@ class MyRouter extends Component {
             showCkCode : argsObject.showCkCode === "true" ? true : false, 
             ckCodeType : argsObject.ckCodeType,
             payMethod : argsObject.payMethod,
-            payParam : argsObject.payParam,
             expireTime : parseInt(argsObject.expireTime),
             buyTimes : parseInt(argsObject.buyTimes),
             clientType,

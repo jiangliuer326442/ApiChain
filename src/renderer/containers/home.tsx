@@ -30,6 +30,7 @@ import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
   ChannelsVipStr,
+  ChannelsVipCkCodeStr,
   ChannelsVipCloseCkCodeStr,
 } from '@conf/channel';
 import { getProjectUrl } from '@conf/url';
@@ -100,7 +101,6 @@ class Home extends Component {
         "register_time": 0,
       },
       showPay: false,
-      showPayWriteOff: false,
       showTeam: false,
       teamType: "create",
       searchPrj: "",
@@ -219,9 +219,10 @@ class Home extends Component {
       }, 2000);
   }
 
-  showCkCode = (e) => {
+  handleCkCode = (e) => {
     if (!this.state.closeShowPay) {
-      this.setState({showPayWriteOff: true})
+      //发消息生成核销码
+      window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCkCodeStr);
     }
   }
 
@@ -373,15 +374,13 @@ class Home extends Component {
               type="warning" 
               closable 
               onClose={this.closeShowPay} 
-              onClick={this.showCkCode}
+              onClick={this.handleCkCode}
             /> : null}
 
             <PayMemberModel 
-              showPay={this.state.showPay} 
-              showPayWriteOff={this.state.showPayWriteOff} 
+              showPay={this.state.showPay}
               payMethod={this.props.payMethod}
-              payParam={this.props.payParam}
-              cb={showPay => this.setState({showPay, showPayWriteOff: showPay})} 
+              cb={showPay => this.setState({showPay})} 
               />
             {this.state.showTeam ? 
             <TeamModel 
@@ -517,7 +516,6 @@ function mapStateToProps (state) {
     showCkCode: state.device.showCkCode,
     ckCodeType: state.device.ckCodeType,
     payMethod: state.device.payMethod,
-    payParam: state.device.payParam,
     expireTime: state.device.expireTime,
     projects: state.prj.list,
     versionIterators : state['version_iterator'].list,

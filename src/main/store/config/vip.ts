@@ -45,7 +45,7 @@ export function getLatestPayMethod(store : Store) : string {
     return latestPayMethod;
 }
 
-export async function isShowCkcode(privateKey : string, publicKey : string, store : Store) {
+export async function isShowCkcode(store : Store) {
     let myOrderNo = store.get(VIP_LATEST_TRADE);
     let myProductName = store.get(VIP_LATEST_PRODUCT);
     let payMethod = store.get(VIP_LATEST_PAYMETHOD);
@@ -56,11 +56,10 @@ export async function isShowCkcode(privateKey : string, publicKey : string, stor
         } else if (myProductName.indexOf("token") >= 0) {
             returnType = "chat_token";
         }
-        let params = await getCheckCodeUrl(privateKey, publicKey, store);
         
-        return [true, returnType, payMethod, params]
+        return [true, returnType, payMethod]
     }
-    return [false, null, "", ""]
+    return [false, null, ""]
 }
 
 export function isVip(store : Store) {
@@ -142,11 +141,10 @@ export function clearVipCacheFlg(store : Store) {
     store.delete(VIP_LATEST_PAYMETHOD);
 }
 
-export async function getCheckCodeUrl(privateKey : string, publicKey : string, store : Store) {
+export async function getCheckCodeUrl(store : Store) {
     let packageJson = await getPackageJson();
     let myOrderNo = store.get(VIP_LATEST_TRADE);
-    let data = rsaEncrypt(myOrderNo, publicKey, privateKey);
-    let url = packageJson.payQueryUrl + data;
+    let url = packageJson.payQueryUrl + myOrderNo;
     return url;
 }
 
