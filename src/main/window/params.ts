@@ -51,6 +51,7 @@ export function systemInit() {
         exportPublicKey = publicKey;
         exportPrivateKey = privateKey;
 
+        fs.ensureDirSync(basePath);
         fs.writeFileSync(pubKeyPath, exportPublicKey);
         fs.writeFileSync(priKeyPath, exportPrivateKey);
         fs.writeFileSync(installFilePath, '');
@@ -79,7 +80,7 @@ export async function getInitParams(privateKey : string, publicKey : string, sto
         teamName = urlEncode(ret[1]);
     }
 
-    let showCkCodeRet = await isShowCkcode(privateKey, publicKey, store);
+    let showCkCodeRet = await isShowCkcode(store);
 
     let firstLauch = isFirstLauch(store);
     if (firstLauch) {
@@ -118,7 +119,6 @@ function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, u
         "$$" + base64Encode("showCkCode=" + showCkCodeRet[0]),
         "$$" + base64Encode("ckCodeType=" + showCkCodeRet[1]),
         "$$" + base64Encode("payMethod=" + showCkCodeRet[2]),
-        "$$" + base64Encode("payParam=" + showCkCodeRet[3]),
         "$$" + base64Encode("expireTime=" + expireTime),
         "$$" + base64Encode("buyTimes=" + buyTimes),
         "$$" + base64Encode("appVersion=" + appVersion),

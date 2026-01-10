@@ -52,6 +52,10 @@ class BasicSetting extends Component {
         this.state = {
             loaded: false,
             checkAutoUpgrade,
+            bigModelProviders:[],
+            selectedProvider: "yunwu",
+            providers: [],
+            baseUrls: [],
             baseUrl: "",
             apiKey: "",
             showPay: false,
@@ -122,10 +126,17 @@ class BasicSetting extends Component {
     async componentDidMount() {
         if (this.props.clientType === CLIENT_TYPE_TEAM) {
             let bigModelProviders = await getTeamSetting();
-            console.log(bigModelProviders);
+            let providers = [];
+            for (let bigModelProvider of bigModelProviders) {
+                let providerRow = bigModelProvider.provider;
+                let providerArr = providerRow.split(":");
+                providers.push({label:providerArr[0], value:providerArr[1]})
+            }
+            let baseUrlArr = this.getBaseUrl(bigModelProviders, null);
             this.setState({
-                apiKey: "", 
-                baseUrl: "",
+                bigModelProviders,
+                providers,
+                baseUrls : baseUrlArr,
                 tokens: await getTokens(),
                 loaded: true
             })
@@ -134,8 +145,45 @@ class BasicSetting extends Component {
         }
     }
 
+    getBaseUrl = (bigModelProviders, selectedProvider) => {
+        if (bigModelProviders == null) {
+            bigModelProviders = this.state.bigModelProviders;
+        }
+        if (selectedProvider == null) {
+            selectedProvider = this.state.selectedProvider;
+        }
+        let retBaseUrlArr = [];
+        for (let bigModelProvider of bigModelProviders) {
+            let providerRow = bigModelProvider.provider;
+            let providerArr = providerRow.split(":");
+            if (providerArr[1] == selectedProvider) {
+                let rawBaseUrl = bigModelProvider.chatApiUrl;
+                let baseUrlArr = rawBaseUrl.split(",");
+                for (let baseUrlItem of baseUrlArr) {
+                    let baseUrlArr = baseUrlItem.split(/:(.+)/);
+                    let baseUrlArr_tmp = baseUrlItem.split(":");
+                    if (baseUrlArr_tmp.length > 2) {
+                        retBaseUrlArr.push({label:baseUrlArr[0], value:baseUrlArr[1]});
+                    } else {
+                        retBaseUrlArr.push(baseUrlItem);
+                    }
+                }
+                break;
+            }
+        }
+        return retBaseUrlArr;
+    }
+
     checkForUpgrade = () => {
         window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
+    }
+
+    setProvider = (newProvider) => {
+        let baseUrlArr = this.getBaseUrl(null, newProvider);
+        this.setState({
+            selectedProvider : newProvider,
+            baseUrls : baseUrlArr,
+        });
     }
 
     setBaseUrl = async (baseUrl : string) => { 
@@ -183,7 +231,6 @@ class BasicSetting extends Component {
                         showPay={this.state.showPay} 
                         showPayWriteOff={this.state.showPayWriteOff} 
                         payMethod={this.props.payMethod}
-                        payParam={this.props.payParam}
                         refresh={async () => {
                             const { apiKey } = await getTeamSetting();
                             this.setState({
@@ -201,17 +248,36 @@ class BasicSetting extends Component {
                         {this.props.clientType === CLIENT_TYPE_TEAM ? 
                     <>
                         <Form.Item
-                            label={langTrans("setting basic url label")}
+                            label={langTrans("setting basic provider label")}
                         >
                             <Select 
                                 size='large' 
-                                value={ this.state.baseUrl }
-                                onChange={ this.setBaseUrl }
-                            >
-                                <Select.Option value="https://yunwu.zeabur.app/v1">{ langTrans("setting basic url mainland") }</Select.Option>
-                                <Select.Option value="https://yunwu.ai/v1">{ langTrans("setting basic url other") }</Select.Option>
-                            </Select>
+                                value={ this.state.selectedProvider }
+                                options={this.state.providers}
+                                onChange={ this.setProvider }
+                            />
                         </Form.Item>
+                        <Form.Item
+                            label={langTrans("setting basic url label")}
+                        >
+                        {this.state.baseUrls.length > 1 ? 
+                            <Select 
+                                size='large' 
+                                value={ this.state.baseUrl ? this.state.baseUrl : this.state.baseUrls[0].value }
+                                onChange={ this.setBaseUrl }
+                                options={this.state.baseUrls}
+                            />
+                        :
+                            <Input 
+                                value={ this.state.baseUrl ? this.state.baseUrl : this.state.baseUrls[0] } 
+                                onChange={ event => this.setBaseUrl(event.target.value) }
+                                readOnly={ this.state.selectedProvider == "zhaohang" }
+                            />
+                        }
+
+                        </Form.Item>
+                    {
+                        this.state.selectedProvider == "yunwu"? 
                         <Form.Item
                             label={langTrans("setting basic key label")}
                             help={
@@ -232,6 +298,8 @@ class BasicSetting extends Component {
                                 placeholder={langTrans("setting basic key placeholder")} 
                             />
                         </Form.Item>
+                        : null
+                    }
                     </>
                         : null}
                 
@@ -279,7 +347,6 @@ function mapStateToProps (state) {
         showCkCode: state.device.showCkCode,
         ckCodeType: state.device.ckCodeType,
         payMethod: state.device.payMethod,
-        payParam: state.device.payParam,
     }
 }
 

@@ -4,12 +4,10 @@ import {
     Modal, Button, Form, Radio, Input, Flex, message,
 } from "antd";
 import { RadioChangeEvent } from 'antd/lib';
-import qrcode from 'qrcode';
 
 import {
     ChannelsVipStr,
     ChannelsVipGenUrlStr, 
-    ChannelsVipCkCodeStr,
     ChannelsVipDoCkCodeStr,
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
@@ -41,25 +39,6 @@ class PayMemberModel extends Component {
             etherProvider: null,
             signer: null,
         };
-    }
-
-    async componentDidUpdate(prevProps, prevState) {
-        if (isStringEmpty(prevProps.payMethod) || isStringEmpty(prevProps.payParam) || !this.props.showPayWriteOff) {
-            return;
-        }
-        if (prevProps.payParam != prevState.cacheCkCodeUrl) {
-            let cacheCkCodeUrl = prevProps.payParam;
-            try {
-                const qrCodeDataURL = await qrcode.toDataURL(cacheCkCodeUrl);
-                this.setState({
-                    cacheCkCodeUrl,
-                    showPayQrCode: true,
-                    qrcode: qrCodeDataURL,
-                });
-            } catch (error) {
-                console.error('Error generating QR code:', error);
-            }
-        }
     }
 
     setProductName = (e: RadioChangeEvent) => {
@@ -128,52 +107,6 @@ class PayMemberModel extends Component {
         this.props.cb(false);
     }
 
-    payDone = () => {
-        let productName = this.state.productName;
-        let payMethod = this.state.payMethod;
-        if (isStringEmpty(productName) || isStringEmpty(payMethod)) {
-            message.error(langTrans("team topup check1"));
-            return;
-        }
-        //拿核销二维码
-        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, url : string) => {
-            if (action !== ChannelsVipCkCodeStr) return;
-            listener();
-            this.props.dispatch({
-                type : SET_DEVICE_INFO,
-                showCkCode : true,
-                ckCodeType: "member",
-                payParam: url,
-                payMethod,
-            });
-            try {
-                const qrCodeDataURL = await qrcode.toDataURL(url);
-                this.setState({
-                    showPayQrCode: true,
-                    qrcode: qrCodeDataURL,
-                });
-            } catch (error) {
-                console.error('Error generating QR code:', error);
-            }
-        });
-        //发消息生成核销码
-        window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCkCodeStr);
-        this.setState({
-            showPayWriteOff: true,
-            showPay: false,
-            showPayQrCode: false,
-            showPayQrCode1: false,
-            cacheCkCodeUrl: "",
-            lodingCkCode: false,
-            productName: "",
-            payMethod: "",
-            money: "",
-            qrcode: "",
-            ckCode: "",
-        });
-        this.props.cb(false);
-    }
-
     payCheck = () => {
         let ckCode = this.state.ckCode;
         if (isStringEmpty(ckCode)) {
@@ -197,7 +130,6 @@ class PayMemberModel extends Component {
                 buyTimes,
                 showCkCode : false,
                 ckCodeType: "",
-                payParam: "",
                 payMethod: "",
             });
 
@@ -244,15 +176,11 @@ class PayMemberModel extends Component {
                 <Modal
                     title={langTrans("member topup title")}
                     open={this.props.showPay}
-                    onOk={this.payDone}
                     onCancel={this.cancelPay}
                     width={500}
                     footer={[
                         <Button key="back" onClick={this.cancelPay}>
                             {langTrans("member topup btn cancel")}
-                        </Button>,
-                        <Button key="submit" type="primary" onClick={this.payDone}>
-                            {langTrans("member topup btn finish")}
                         </Button>
                     ]}
                 >
