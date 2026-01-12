@@ -179,3 +179,5 @@ export const AI_TOKENS_CHANGE_URL = "/os_env_value/enable";
 export const AI_TOKENS_GAS_QUERY_URL = "/os_env_value/queryRemainGas";
 
 export const AI_BIG_MODELS_URL = "/ai/bigmodels";
+
+export const AI_LANGUAGE_MODELS_URL = "/ai/languageModels";

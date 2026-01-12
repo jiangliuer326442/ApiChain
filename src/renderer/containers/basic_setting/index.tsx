@@ -34,6 +34,9 @@ import { getdayjs } from '@rutil/index';
 import { 
     getTokens, 
     setBaseUrl, 
+    setApiKey,
+    setChatModel,
+    setProvider,
     getTeamSetting,
     enableToken,
     queryRemainGas
@@ -59,6 +62,7 @@ class BasicSetting extends Component {
             languageModels: [],
             baseUrl: "",
             languageModel: "",
+            initApiKey: "",
             apiKey: "",
             showPay: false,
             columns: [{
@@ -138,11 +142,14 @@ class BasicSetting extends Component {
             }
             let baseUrlArr = this.getBaseUrl(bigModelProviders, selectedProvider);
             let langguageModelArr = this.getLanguageModels(bigModelProviders, selectedProvider);
+            let apiKey = this.getApiKey(bigModelProviders, selectedProvider);
             this.setState({
                 selectedProvider,
                 bigModelProviders,
                 providers,
                 baseUrls : baseUrlArr,
+                apiKey,
+                initApiKey: apiKey,
                 languageModels: langguageModelArr,
                 tokens: await getTokens(),
                 loaded: true
@@ -150,6 +157,25 @@ class BasicSetting extends Component {
         } else {
             this.setState({loaded: true})
         }
+    }
+
+    getApiKey = (bigModelProviders, selectedProvider) => {
+        if (bigModelProviders == null) {
+            bigModelProviders = this.state.bigModelProviders;
+        }
+        if (selectedProvider == null) {
+            selectedProvider = this.state.selectedProvider;
+        }
+        let apiKey = "";
+        for (let bigModelProvider of bigModelProviders) {
+            let providerRow = bigModelProvider.provider;
+            let providerArr = providerRow.split(":");
+            if (providerArr[1] == selectedProvider) {
+                apiKey = bigModelProvider.chatApiKey;
+                break;
+            }
+        }
+        return apiKey;
     }
 
     getLanguageModels = (bigModelProviders, selectedProvider) => {
@@ -213,26 +239,55 @@ class BasicSetting extends Component {
         window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
     }
 
-    setProvider = (newProvider) => {
-        let baseUrlArr = this.getBaseUrl(null, newProvider);
-        let langguageModelArr = this.getLanguageModels(null, newProvider);
-        this.setState({
-            selectedProvider : newProvider,
-            baseUrls : baseUrlArr,
-            languageModels: langguageModelArr,
+    setProvider = async (newProvider : string) => {
+        await setProvider(newProvider).then(()=> {
+            let baseUrlArr = this.getBaseUrl(null, newProvider);
+            let langguageModelArr = this.getLanguageModels(null, newProvider);
+            let apiKey = this.getApiKey(null, newProvider);
+            this.setState({
+                selectedProvider : newProvider,
+                baseUrls : baseUrlArr,
+                languageModels: langguageModelArr,
+                apiKey,
+                initApiKey: apiKey,
+            });
+            message.success(langTrans("prj unittest status2"))
         });
     }
 
-    setBaseUrl = async (baseUrl : string) => { 
-        await setBaseUrl(baseUrl).then(()=> {
+    setBaseUrl = async (baseUrl : string) => {
+        this.setState({baseUrl});
+    }
+
+    setBaseUrl2 = async (baseUrl : string) => { 
+        await setBaseUrl(this.state.selectedProvider, baseUrl).then(()=> {
             this.setState({baseUrl});
             message.success(langTrans("prj unittest status2"))
         });
     }
 
-    setLanguageModel = (newLanguageModel) => {
-        this.setState({
-            languageModel : newLanguageModel,
+    setLanguageModel = async (newLanguageModel) => {
+        this.setState({languageModel : newLanguageModel});
+    }
+
+    setLanguageModel2 = async (languageModel) => {
+        await setChatModel(this.state.selectedProvider, languageModel).then(()=> {
+            this.setState({languageModel});
+            message.success(langTrans("prj unittest status2"))
+        });
+    }
+
+    setApiKey = async (apiKey) => {
+        this.setState({apiKey});
+    }
+
+    setApiKey2 = async (apiKey) => {
+        if (apiKey == this.state.initApiKey) {
+            return;
+        }
+        await setApiKey(this.state.selectedProvider, apiKey).then(()=> {
+            this.setState({apiKey});
+            message.success(langTrans("prj unittest status2"))
         });
     }
 
@@ -307,14 +362,14 @@ class BasicSetting extends Component {
                             <Select 
                                 size='large' 
                                 value={ this.state.baseUrl ? this.state.baseUrl : this.state.baseUrls[0].value }
-                                onChange={ this.setBaseUrl }
+                                onChange={ this.setBaseUrl2 }
                                 options={this.state.baseUrls}
                             />
                         :
                             <Input 
                                 value={ this.state.baseUrl ? this.state.baseUrl : this.state.baseUrls[0] } 
                                 onChange={ event => this.setBaseUrl(event.target.value) }
-                                readOnly={ this.state.selectedProvider == "zhaohang" }
+                                onBlur={ event => this.setBaseUrl2(event.target.value) }
                             />
                         }
 
@@ -326,23 +381,21 @@ class BasicSetting extends Component {
                             <Select 
                                 size='large' 
                                 value={ this.state.languageModel ? this.state.languageModel : this.state.languageModels[0].value }
-                                onChange={ this.setLanguageModel }
+                                onChange={ this.setLanguageModel2 }
                                 options={this.state.languageModels}
                             />
                         :
                             <Input 
                                 value={ this.state.languageModel ? this.state.languageModel : this.state.languageModels[0] } 
                                 onChange={ event => this.setLanguageModel(event.target.value) }
-                                readOnly={ this.state.selectedProvider == "zhaohang" }
+                                onBlur={ event => this.setLanguageModel2(event.target.value) }
                             />
                         }
 
                         </Form.Item>
-                    {
-                        this.state.selectedProvider == "yunwu"? 
                         <Form.Item
                             label={langTrans("setting basic key label")}
-                            help={
+                            help={this.state.selectedProvider == "YUNWU" ? (
                                 <span>
                                     {langTrans("setting basic key help1")}
                                     <Link onClick={() => this.setState({showPay: true})}>
@@ -350,28 +403,18 @@ class BasicSetting extends Component {
                                     </Link>
                                     {langTrans("setting basic key help3")}
                                 </span>
-                            }
+                            ):null}
                         >
                             <Input.Password
-                                readOnly
+                                readOnly={this.state.selectedProvider == "YUNWU"}
                                 size='large'
                                 allowClear
                                 value={this.state.apiKey}
+                                onChange={ event => this.setApiKey(event.target.value) }
+                                onBlur={ event => this.setApiKey2(event.target.value) }
                                 placeholder={langTrans("setting basic key placeholder")} 
                             />
                         </Form.Item>
-                        :
-                        <Form.Item
-                            label={langTrans("setting basic key label")}
-                        >
-                            <Input.Password
-                                size='large'
-                                allowClear
-                                value={this.state.apiKey}
-                                placeholder={langTrans("setting basic key placeholder")} 
-                            />
-                        </Form.Item>
-                    }
                     </>
                         : null}
                 

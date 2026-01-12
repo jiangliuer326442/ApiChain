@@ -102,7 +102,6 @@ function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, u
     let appName = packageJson.name;
     let defaultRunnerUrl = packageJson.defaultRunnerUrl;
     let minServerVersion = packageJson.minServerVersion;
-    let aiModels = packageJson.aiModels;
     let allowedChains = packageJson.allowedChains;
     let clientType = getClientType(store);
     let clientHost = getClientHost(store);
@@ -125,7 +124,6 @@ function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, u
         "$$" + base64Encode("appName=" + appName),
         "$$" + base64Encode("defaultRunnerUrl=" + defaultRunnerUrl),
         "$$" + base64Encode("minServerVersion=" + minServerVersion),
-        "$$" + base64Encode("aiModels=" + aiModels),
         "$$" + base64Encode("allowedChains=" + allowedChains),
         "$$" + base64Encode("userLang=" + userLang),
         "$$" + base64Encode("userCountry=" + userCountry),
