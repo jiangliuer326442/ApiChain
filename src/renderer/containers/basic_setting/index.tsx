@@ -53,10 +53,12 @@ class BasicSetting extends Component {
             loaded: false,
             checkAutoUpgrade,
             bigModelProviders:[],
-            selectedProvider: "yunwu",
+            selectedProvider: "",
             providers: [],
             baseUrls: [],
+            languageModels: [],
             baseUrl: "",
+            languageModel: "",
             apiKey: "",
             showPay: false,
             columns: [{
@@ -125,24 +127,57 @@ class BasicSetting extends Component {
 
     async componentDidMount() {
         if (this.props.clientType === CLIENT_TYPE_TEAM) {
-            let bigModelProviders = await getTeamSetting();
+            const ret = await getTeamSetting();
+            let selectedProvider = ret.currentProvider;
+            let bigModelProviders = ret.providers;
             let providers = [];
             for (let bigModelProvider of bigModelProviders) {
                 let providerRow = bigModelProvider.provider;
                 let providerArr = providerRow.split(":");
                 providers.push({label:providerArr[0], value:providerArr[1]})
             }
-            let baseUrlArr = this.getBaseUrl(bigModelProviders, null);
+            let baseUrlArr = this.getBaseUrl(bigModelProviders, selectedProvider);
+            let langguageModelArr = this.getLanguageModels(bigModelProviders, selectedProvider);
             this.setState({
+                selectedProvider,
                 bigModelProviders,
                 providers,
                 baseUrls : baseUrlArr,
+                languageModels: langguageModelArr,
                 tokens: await getTokens(),
                 loaded: true
             })
         } else {
             this.setState({loaded: true})
         }
+    }
+
+    getLanguageModels = (bigModelProviders, selectedProvider) => {
+        if (bigModelProviders == null) {
+            bigModelProviders = this.state.bigModelProviders;
+        }
+        if (selectedProvider == null) {
+            selectedProvider = this.state.selectedProvider;
+        }
+        let retLanguageModels = [];
+        for (let bigModelProvider of bigModelProviders) {
+            let providerRow = bigModelProvider.provider;
+            let providerArr = providerRow.split(":");
+            if (providerArr[1] == selectedProvider) {
+                let rawChatApiModel = bigModelProvider.chatApiModel;
+                let langguageModelArr = rawChatApiModel.split(",");
+                for (let langguageModelItem of langguageModelArr) {
+                    let langguageModelArr = langguageModelItem.split(/:(.+)/);
+                    if (langguageModelArr.length >= 2) {
+                        retLanguageModels.push({label:langguageModelArr[0], value:langguageModelArr[1]});
+                    } else {
+                        retLanguageModels.push(langguageModelItem);
+                    }
+                }
+                break;
+            }
+        }
+        return retLanguageModels;
     }
 
     getBaseUrl = (bigModelProviders, selectedProvider) => {
@@ -180,9 +215,11 @@ class BasicSetting extends Component {
 
     setProvider = (newProvider) => {
         let baseUrlArr = this.getBaseUrl(null, newProvider);
+        let langguageModelArr = this.getLanguageModels(null, newProvider);
         this.setState({
             selectedProvider : newProvider,
             baseUrls : baseUrlArr,
+            languageModels: langguageModelArr,
         });
     }
 
@@ -190,6 +227,12 @@ class BasicSetting extends Component {
         await setBaseUrl(baseUrl).then(()=> {
             this.setState({baseUrl});
             message.success(langTrans("prj unittest status2"))
+        });
+    }
+
+    setLanguageModel = (newLanguageModel) => {
+        this.setState({
+            languageModel : newLanguageModel,
         });
     }
 
@@ -276,6 +319,25 @@ class BasicSetting extends Component {
                         }
 
                         </Form.Item>
+                        <Form.Item
+                            label={langTrans("setting basic aimodels label")}
+                        >
+                        {this.state.languageModels.length > 1 ? 
+                            <Select 
+                                size='large' 
+                                value={ this.state.languageModel ? this.state.languageModel : this.state.languageModels[0].value }
+                                onChange={ this.setLanguageModel }
+                                options={this.state.languageModels}
+                            />
+                        :
+                            <Input 
+                                value={ this.state.languageModel ? this.state.languageModel : this.state.languageModels[0] } 
+                                onChange={ event => this.setLanguageModel(event.target.value) }
+                                readOnly={ this.state.selectedProvider == "zhaohang" }
+                            />
+                        }
+
+                        </Form.Item>
                     {
                         this.state.selectedProvider == "yunwu"? 
                         <Form.Item
@@ -298,7 +360,17 @@ class BasicSetting extends Component {
                                 placeholder={langTrans("setting basic key placeholder")} 
                             />
                         </Form.Item>
-                        : null
+                        :
+                        <Form.Item
+                            label={langTrans("setting basic key label")}
+                        >
+                            <Input.Password
+                                size='large'
+                                allowClear
+                                value={this.state.apiKey}
+                                placeholder={langTrans("setting basic key placeholder")} 
+                            />
+                        </Form.Item>
                     }
                     </>
                         : null}
