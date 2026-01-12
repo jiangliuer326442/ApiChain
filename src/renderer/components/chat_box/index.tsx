@@ -7,19 +7,16 @@ import { SendOutlined, } from '@ant-design/icons';
 import './index.less';
 
 import { getWikiAiAssistant } from '@conf/url';
-import { LAST_ASYNC_VECTOR_TIME, AI_LINK_PROJECT, AI_MODEL } from '@conf/storage';
-import { VECTOR_MAKE_URL } from '@conf/team';
+import { AI_LINK_PROJECT, AI_MODEL } from '@conf/storage';
+import { AI_LANGUAGE_MODELS_URL } from '@conf/team';
+import { sendTeamMessage } from '@act/message';
 import { langTrans } from '@lang/i18n';
-import { replaceHttpWithWs, getStartParams, isStringEmpty, getNowdayjs, } from '@rutil/index';
+import { replaceHttpWithWs, isStringEmpty, } from '@rutil/index';
 import { addNewlineBeforeTripleBackticks } from '@rutil/markdown';
 import MarkdownView from '@comp/markdown/show';
-import { sendTeamMessage } from '@act/message';
 
 const { TextArea } = Input;
 const { Paragraph, Link, Text } = Typography;
-
-let argsObjects = getStartParams();
-let aiModels = argsObjects.aiModels.split(",");
 
 class AiChatBox extends Component {
 
@@ -40,6 +37,7 @@ class AiChatBox extends Component {
           messages,
           input: "",
           loading: false,
+          aiModels: [],
           tmpResponse: {},
           messageLength: messages.length,
           linkOperators: [
@@ -57,37 +55,40 @@ class AiChatBox extends Component {
     }
 
     componentDidMount(): void {
-      this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/ai/ws/" + this.props.uid);
+      sendTeamMessage(AI_LANGUAGE_MODELS_URL, {}).then( (response) => {
+        this.setState({ aiModels: response })
+      });
+      this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/ai/ws/" + this.props.teamId + "/" + this.props.uid);
 
       this.ws.onopen = (event) => {
           console.log("WebSocket opened:", event);
       };
 
       this.ws.onmessage = async (event) => {
-          let message = JSON.parse(JSON.parse(event.data));
-          if (message.id >= this.state.messages.length) {
-            let tmpMessage = { 
-              role: 'assistant', 
-              content: message.content
-            }
-            this.state.messages.push(tmpMessage);
-            this.setState({ 
-              messages: cloneDeep(this.state.messages),
-              messageLength: this.state.messageLength + 1,
-              loading: false,
-            });
-            if (isStringEmpty(localStorage.getItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId)) || (getNowdayjs().unix() - parseInt(localStorage.getItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId))) > 86400 ) {
-              await sendTeamMessage(VECTOR_MAKE_URL, {});
-              localStorage.setItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId, getNowdayjs().unix() + "");
-            }
-          } else {
-            let tmpMessage = this.state.messages[message.id];
-            tmpMessage.content += message.content;
-            this.state.messages[message.id] = tmpMessage;
-            this.setState({ 
-              messages: cloneDeep(this.state.messages),
-            });
+        let message = JSON.parse(JSON.parse(event.data));
+        if (message.id >= this.state.messages.length) {
+          let tmpMessage = { 
+            role: 'assistant', 
+            content: message.content
           }
+          this.state.messages.push(tmpMessage);
+          this.setState({ 
+            messages: cloneDeep(this.state.messages),
+            messageLength: this.state.messageLength + 1,
+            loading: false,
+          });
+          // if (isStringEmpty(localStorage.getItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId)) || (getNowdayjs().unix() - parseInt(localStorage.getItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId))) > 86400 ) {
+          //   await sendTeamMessage(VECTOR_MAKE_URL, {});
+          //   localStorage.setItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId, getNowdayjs().unix() + "");
+          // }
+        } else {
+          let tmpMessage = this.state.messages[message.id];
+          tmpMessage.content += message.content;
+          this.state.messages[message.id] = tmpMessage;
+          this.setState({ 
+            messages: cloneDeep(this.state.messages),
+          });
+        }
       };
 
       this.ws.onclose = (event) => {
@@ -241,10 +242,10 @@ class AiChatBox extends Component {
                       <Button onClick={()=>this.setState({messages: [], messageLength: 0})}>{langTrans("chatbox empty record")}</Button>
                       <Popover placement="top" title={langTrans("chatbox aimodel select")} content={
                         <Select 
-                        value={this.state.aiModel}
-                        onChange={ this.handleSetAiModel }
-                        style={{width: 200}}
-                        options={aiModels.map(item=>({label: item, value: item}))}
+                          value={this.state.aiModel}
+                          onChange={ this.handleSetAiModel }
+                          style={{width: 200}}
+                          options={this.state.aiModels}
                         />
                       }>
                         <Button>{this.state.aiModel ? this.state.aiModel : langTrans("chatbox aimodel select")}</Button>
