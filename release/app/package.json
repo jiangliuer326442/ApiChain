@@ -5,8 +5,7 @@
   "defaultRunnerUrl": "http://runner.fanghailiang.cn",
   "payJumpUrl": "http://runner.fanghailiang.cn/pay/jump/",
   "payQueryUrl": "http://runner.fanghailiang.cn/pay/query/",
-  "aiModels": "gpt-4o,grok-4,deepseek-chat",
-  "description": "接口文档与单元测试工具",
+  "description": "tool for API documents and unit testing",
   "license": "MIT",
   "author": {
     "name": "Mustafa Fang",
