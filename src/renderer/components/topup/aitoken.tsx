@@ -1,36 +1,26 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import {
-    Modal, Button, Form, Radio, Input, Flex, message,
+    Modal, Button, Form, Radio, Flex,
 } from "antd";
 import { RadioChangeEvent } from 'antd/lib';
-import qrcode from 'qrcode';
 
 import {
     ChannelsVipStr,
     ChannelsVipGenUrlStr,
-    ChannelsVipCkCodeStr,
-    ChannelsVipDoCkCodeStr,
 } from '@conf/channel';
-import { SET_DEVICE_INFO } from '@conf/redux';
 import { langTrans, langFormat } from '@lang/i18n';
 import { isStringEmpty } from '@rutil/index';
-
-const { TextArea } = Input;
 
 class PayAiTokenModel extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            showPayWriteOff: false,
             showPayQrCode1: false,
-            showPayQrCode: false,
             lodingCkCode: false,
             productName: "",
             payMethod: "",
-            contractChain: "",
             money: "",
-            qrcode: "",
             ckCode: "",
             cacheCkCodeUrl: "",
             contractParams: "",
@@ -41,57 +31,25 @@ class PayAiTokenModel extends Component {
         };
     }
 
-    async componentDidUpdate(prevProps, prevState) {
-        if (isStringEmpty(prevProps.payMethod) || isStringEmpty(prevProps.payParam) || !this.props.showPayWriteOff) {
-            return;
-        }
-        if (prevProps.payParam != prevState.cacheCkCodeUrl) {
-            let cacheCkCodeUrl = prevProps.payParam;
-            try {
-                const qrCodeDataURL = await qrcode.toDataURL(cacheCkCodeUrl);
-                this.setState({
-                    cacheCkCodeUrl,
-                    showPayQrCode: true,
-                    qrcode: qrCodeDataURL,
-                });
-            } catch (error) {
-                console.error('Error generating QR code:', error);
-            }
-        }
-    }
-
     setProductName = (e: RadioChangeEvent) => {
         this.setState({productName: e.target.value});
-        this.checkAndGenPayPng(e.target.value, null, null);
+        this.checkAndGenPayPng(e.target.value, null);
     };
 
     setPayMethod = (e: RadioChangeEvent) => {
         this.setState({payMethod: e.target.value});
-        this.checkAndGenPayPng(null, e.target.value, null);
+        this.checkAndGenPayPng(null, e.target.value);
     };
 
-    setContractChain = (e: RadioChangeEvent) => {
-        const contractChain = e.target.value;
-        this.setState({contractChain});
-        this.checkAndGenPayPng(null, null, contractChain);
-    }
-
     //生成支付二维码
-    checkAndGenPayPng = (productName : string | null, payMethod : string | null, contractChain : string | null) => {
+    checkAndGenPayPng = (productName : string | null, payMethod : string | null) => {
         if (productName === null) {
             productName = this.state.productName;
         }
         if (payMethod === null) {
             payMethod = this.state.payMethod;
         }
-        if (contractChain === null) {
-            contractChain = this.state.contractChain;
-        }
         if (!(isStringEmpty(productName) || isStringEmpty(payMethod))) {
-            //美元支付必须选择支付网络
-            if (payMethod === "dollerpay" && isStringEmpty(contractChain)) {
-                return;
-            }
 
             //拿支付二维码生成结果
             let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, money, params : string) => {
@@ -103,113 +61,23 @@ class PayAiTokenModel extends Component {
                 });
             });
 
-            window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipGenUrlStr, productName, payMethod, contractChain);
+            window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipGenUrlStr, productName, payMethod);
         }
     }
 
     cancelPay = () => {
         this.setState({
-            showPayQrCode: false,
             showPayQrCode1: false,
             cacheCkCodeUrl: "",
             productName: "",
             payMethod: "",
             money: "",
-            qrcode: "",
             walletAccount: "",
             wcProvider: null,
             etherProvider: null,
             signer: null,
         });
         this.props.cb(false);
-    }
-
-    payDone = () => {
-        let productName = this.state.productName;
-        let payMethod = this.state.payMethod;
-        if (isStringEmpty(productName) || isStringEmpty(payMethod)) {
-            message.error(langTrans("aitoken topup check1"));
-            return;
-        }
-        //拿核销二维码
-        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, url : string) => {
-            if (action !== ChannelsVipCkCodeStr) return;
-            listener();
-            this.props.dispatch({
-                type : SET_DEVICE_INFO,
-                showCkCode : true,
-                ckCodeType: "chat_token",
-                payParam: url,
-                payMethod,
-            });
-            try {
-                const qrCodeDataURL = await qrcode.toDataURL(url);
-                this.setState({
-                    showPayQrCode: true,
-                    qrcode: qrCodeDataURL,
-                });
-            } catch (error) {
-                console.error('Error generating QR code:', error);
-            }
-        });
-        //发消息生成核销码
-        window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCkCodeStr);
-        this.setState({
-            showPayWriteOff: true,
-            showPay: false,
-            showPayQrCode: false,
-            showPayQrCode1: false,
-            cacheCkCodeUrl: "",
-            lodingCkCode: false,
-            productName: "",
-            payMethod: "",
-            money: "",
-            qrcode: "",
-            ckCode: "",
-        });
-        this.props.cb(false);
-    }
-
-    payCheck = () => {
-        let ckCode = this.state.ckCode;
-        if (isStringEmpty(ckCode)) {
-            message.error(langTrans("team topup check2"));
-            return;
-        }
-        this.setState({lodingCkCode: true})
-        //进行核销操作
-        let listener = window.electron.ipcRenderer.on(ChannelsVipStr, async (action, result, myuid, apiKey, orderNo) => {
-            if (action !== ChannelsVipDoCkCodeStr) return;
-            listener();
-            if (!result) {
-                message.error(langTrans("member checkout error"));
-                return;
-            }
-            this.props.dispatch({
-                type: SET_DEVICE_INFO,
-                uuid: myuid,
-                showCkCode : false,
-                ckCodeType: "",
-                payParam: "",
-                payMethod: "",
-            });
-            this.setState({
-                showPayWriteOff: false,
-                showPayQrCode1: false,
-                showPayQrCode: false,
-                cacheCkCodeUrl: "",
-                productName: "",
-                payMethod: "",
-                money: "",
-                qrcode: "",
-                ckCode: "",
-                lodingCkCode: false,
-            });
-            message.success(langFormat("aitoken checkout success", {"orderNo": orderNo, "token": apiKey}));
-            this.props.refresh();
-        });
-        //发消息进行核销
-        window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipDoCkCodeStr, ckCode);
     }
 
     canelCkCode = () => {
@@ -272,41 +140,6 @@ class PayAiTokenModel extends Component {
                             <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
                                 "money": this.state.money
                             })}</p>
-                        : null}
-                    </Flex>
-                </Modal>
-                <Modal
-                    title={langTrans("member checkout title1")}
-                    open={this.state.showPayWriteOff || this.props.showPayWriteOff}
-                    confirmLoading={this.state.lodingCkCode}
-                    onOk={this.payCheck}
-                    onCancel={this.canelCkCode}
-                    width={350}
-                    footer={[
-                        <Button key="back" onClick={this.canelCkCode}>
-                            {langTrans("member checkout btn cancel")}
-                        </Button>,
-                        <Button key="submit" type="primary" loading={this.state.lodingCkCode} onClick={this.payCheck}>
-                            {langTrans("member checkout btn finish")}
-                        </Button>
-                    ]}
-                >
-                    <Flex gap="small" vertical>
-                        <Form>
-                            <Form.Item label={langTrans("member checkout form")}>
-                                <TextArea value={ this.state.ckCode } autoSize={{ minRows: 6 }}                                  
-                                    onChange={(e) => {
-                                        let content = e.target.value;
-                                        this.setState({ ckCode: content });
-                                    }} 
-                                />
-                            </Form.Item>
-                        </Form>
-                        {this.state.showPayQrCode ? 
-                        <>
-                            <p>{langTrans("member checkout paycontent1")}</p>
-                            <img src={ this.state.qrcode } />
-                        </>
                         : null}
                     </Flex>
                 </Modal>
