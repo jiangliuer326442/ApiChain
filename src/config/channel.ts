@@ -129,8 +129,6 @@ export const ChannelsVipGenUrlStr = 'pipeline_vip_genurl';
 
 export const ChannelsVipCkCodeStr = 'pipeline_vip_ckcode';
 
-export const ChannelsVipDoCkCodeStr = 'pipeline_vip_dock';
-
 export const ChannelsVipCloseCkCodeStr = 'pipeline_vip_closeck';
 
 export type ChannelsAxioBreidge = "axio_bridge";

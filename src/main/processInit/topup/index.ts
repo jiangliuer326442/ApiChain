@@ -4,7 +4,6 @@ import {
     ChannelsVipStr, 
     ChannelsVipGenUrlStr, 
     ChannelsVipCkCodeStr, 
-    ChannelsVipDoCkCodeStr,
     ChannelsVipCloseCkCodeStr,
 } from '../../../config/channel';
 import {
@@ -14,7 +13,6 @@ import {
     getCheckCodeUrl,
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
-import { topUpCallback } from '../../logic/topup';
 
 export default function (privateKey : string, publicKey : string, store: Store){
 
@@ -78,20 +76,5 @@ export default function (privateKey : string, publicKey : string, store: Store){
         if (action !== ChannelsVipCloseCkCodeStr) return;
 
         clearVipCacheFlg(store);
-    });
-
-    ipcMain.on(ChannelsVipStr, async (event, action, ckCode) => {
-        if (action !== ChannelsVipDoCkCodeStr) return;
-        topUpCallback(ckCode, privateKey, 
-            () => {
-                event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, false);
-            },
-            (uid, expireTime, buyTimes) => {
-                event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, expireTime, buyTimes);
-            },
-            (uid, apiKey, orderNo) => {
-                event.reply(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, apiKey, orderNo);
-            },
-            store);
     });
 }

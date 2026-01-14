@@ -3,8 +3,7 @@ import serve from 'electron-serve'
 import log from 'electron-log';
 
 import {
-  ChannelsVipStr,
-  ChannelsVipDoCkCodeStr
+  ChannelsVipStr
 } from '../config/channel'
 import { isStringEmpty } from '../renderer/util';
 import bindIpcEvents from './processInit';
@@ -67,7 +66,8 @@ if (!gotTheLock) {
           app.exit(0);
         },
         (uid, apiKey, orderNo) => {
-          mainWindow.webContents.send(ChannelsVipStr, ChannelsVipDoCkCodeStr, true, uid, apiKey, orderNo);
+          app.relaunch()
+          app.exit(0);
         },
         store);
     }
