@@ -20,9 +20,9 @@ import { isStringEmpty } from '../../renderer/util';
 export async function topUpCallback(
     ckCode : string, 
     privateKey : string, 
-    memberFailFunc : () => void,
-    memberSuccessFunc : (uid : string, expireTime : number, buyTimes : number) => void,
-    aiSuccessFunc : (uid : string, apiKey : string, orderNo : string) => void,
+    memberFailFunc : () => void, //会员失败回调
+    memberSuccessFunc : (uid : string, expireTime : number, buyTimes : number) => void, //会员成功回调
+    aiSuccessFunc : (uid : string, apiKey : string, orderNo : string) => void, //ai key购买成功回调
     store: Store
 ) {
     let uid = getUid(privateKey);
