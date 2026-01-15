@@ -77,10 +77,6 @@ class AiChatBox extends Component {
             messageLength: this.state.messageLength + 1,
             loading: false,
           });
-          // if (isStringEmpty(localStorage.getItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId)) || (getNowdayjs().unix() - parseInt(localStorage.getItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId))) > 86400 ) {
-          //   await sendTeamMessage(VECTOR_MAKE_URL, {});
-          //   localStorage.setItem(LAST_ASYNC_VECTOR_TIME + "@@" + this.props.teamId, getNowdayjs().unix() + "");
-          // }
         } else {
           let tmpMessage = this.state.messages[message.id];
           tmpMessage.content += message.content;
@@ -244,11 +240,11 @@ class AiChatBox extends Component {
                         <Select 
                           value={this.state.aiModel}
                           onChange={ this.handleSetAiModel }
-                          style={{width: 200}}
+                          style={{width: 120}}
                           options={this.state.aiModels}
                         />
                       }>
-                        <Button>{this.state.aiModel ? this.state.aiModel : langTrans("chatbox aimodel select")}</Button>
+                        <Button>{(this.state.aiModels.length > 0 && this.state.aiModel) ? this.state.aiModels.find(model => model.value === this.state.aiModel).label : langTrans("chatbox aimodel select")}</Button>
                       </Popover>
                     </Space>
                     <Button
