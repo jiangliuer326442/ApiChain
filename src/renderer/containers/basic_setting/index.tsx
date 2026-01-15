@@ -109,16 +109,21 @@ class BasicSetting extends Component {
                 render: (_, record) => {
                     return (
                       <Space size="middle">
+                        {record["use_flg"] ? 
+                        langTrans("setting basic table index8")
+                        :
                         <Button type="link" onClick={async () => {
                             let tokenName = record["token_name"];
                             await enableToken(tokenName).then(async () => {
-                                const { apiKey } = await getTeamSetting();
+                                message.success(langTrans("prj unittest status2"));
+                                let selectedProvider = "YUNWU";
                                 this.setState({
-                                    apiKey, 
+                                    selectedProvider,
                                     tokens: await getTokens(),
                                 });
                             })
                         }}>{langTrans("setting basic table index7")}</Button>
+                        }
                       </Space>
                     )
                 }
@@ -143,6 +148,7 @@ class BasicSetting extends Component {
             let baseUrlArr = this.getBaseUrl(bigModelProviders, selectedProvider);
             let langguageModelArr = this.getLanguageModels(bigModelProviders, selectedProvider);
             let apiKey = this.getApiKey(bigModelProviders, selectedProvider);
+            const tokenList = await getTokens();
             this.setState({
                 selectedProvider,
                 bigModelProviders,
@@ -151,7 +157,7 @@ class BasicSetting extends Component {
                 apiKey,
                 initApiKey: apiKey,
                 languageModels: langguageModelArr,
-                tokens: await getTokens(),
+                tokens: tokenList,
                 loaded: true
             })
         } else {
