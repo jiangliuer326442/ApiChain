@@ -2,9 +2,6 @@ import { app, BrowserWindow, dialog } from 'electron';
 import serve from 'electron-serve'
 import log from 'electron-log';
 
-import {
-  ChannelsVipStr
-} from '../config/channel'
 import { isStringEmpty } from '../renderer/util';
 import bindIpcEvents from './processInit';
 import { topUpCallback } from './logic/topup';

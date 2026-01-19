@@ -138,10 +138,6 @@ class AiChatBox extends Component {
             messageLength,
           }
         );
-        const container = this.scrollContainerRef.current;
-        if (container) {
-          container.scrollTop = container.scrollHeight;
-        }
 
         this.ws.send(JSON.stringify({
           type: "text", 
@@ -161,6 +157,13 @@ class AiChatBox extends Component {
             history: historyMessage,
           }
         }));
+
+        setTimeout(() => {
+          const container = this.scrollContainerRef.current;
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+          }
+        }, 3000);
     };
 
     render() : ReactNode {
@@ -240,7 +243,7 @@ class AiChatBox extends Component {
                         <Select 
                           value={this.state.aiModel}
                           onChange={ this.handleSetAiModel }
-                          style={{width: 120}}
+                          style={{width: 170}}
                           options={this.state.aiModels}
                         />
                       }>

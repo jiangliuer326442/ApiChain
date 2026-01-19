@@ -391,7 +391,7 @@ class RequestSaveContainer extends Component {
                 });
             }
         } else {
-            this.simpleBootByRequestHistoryRecord(record, prj, method, uri, false);
+            this.simpleBootByRequestHistoryRecord(record, prj, method, uri, true);
         }
     }
 

@@ -74,7 +74,7 @@ export function rsaEncrypt(plaintext: string, publicKey : string, privateKey : s
 export function fernetDecrypt(encryptText: string, key : string) : string {
     let realKey = base64Encode(key)
     const secret = new fernet.Secret(realKey);
-    const token = new fernet.Token({secret: secret, token: encryptText, ttl: 3600});
+    const token = new fernet.Token({secret: secret, token: encryptText, ttl: 0});
     const line = token.decode();
     return line;
 }
