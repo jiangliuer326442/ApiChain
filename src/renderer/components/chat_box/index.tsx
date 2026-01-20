@@ -7,12 +7,12 @@ import { SendOutlined, } from '@ant-design/icons';
 import './index.less';
 
 import { getWikiAiAssistant } from '@conf/url';
-import { AI_LINK_PROJECT, AI_MODEL } from '@conf/storage';
+import { AI_LINK_PROJECT, AI_MODEL, AI_RECORD } from '@conf/storage';
 import { AI_LANGUAGE_MODELS_URL } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
 import { langTrans } from '@lang/i18n';
 import { replaceHttpWithWs, isStringEmpty, } from '@rutil/index';
-import { addNewlineBeforeTripleBackticks } from '@rutil/markdown';
+import { addNewlineBeforeTripleBackticks, addCodeMarkdown } from '@rutil/markdown';
 import MarkdownView from '@comp/markdown/show';
 
 const { TextArea } = Input;
@@ -31,11 +31,17 @@ class AiChatBox extends Component {
         if (isStringEmpty(aiModel)) {
           aiModel = "";
         }
-
-        let messages = [];
+        let messages
+        let chatRecord = localStorage.getItem(AI_RECORD);
+        if (isStringEmpty(chatRecord)) {
+          messages = [];
+        } else {
+          messages = JSON.parse(chatRecord);
+        }
         this.state = {
           messages,
           input: "",
+          codeBlock: "",
           loading: false,
           aiModels: [],
           tmpResponse: {},
@@ -127,13 +133,24 @@ class AiChatBox extends Component {
 
         let historyMessage = this.state.messages.length > 10 ? cloneDeep(this.state.messages.slice(-10)) : cloneDeep(this.state.messages)
 
-        const userMessage = { role: 'user', content: this.state.input };
+        let sendContent = this.state.input.trim();
+        if (!isStringEmpty(this.state.codeBlock)) {
+          sendContent += "\n\n" + "```\n" + this.state.codeBlock + "```\n"
+        }
+
+        const userMessage = { 
+          role: 'user', 
+          content: this.state.input,
+          codeBlock: this.state.codeBlock
+        };
         this.state.messages.push(userMessage);
+        localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
         messageLength++;
         this.setState(
           {
             messages: cloneDeep( this.state.messages),
-            input: '',
+            input: "",
+            codeBlock: "",
             loading: true,
             messageLength,
           }
@@ -142,7 +159,7 @@ class AiChatBox extends Component {
         this.ws.send(JSON.stringify({
           type: "text", 
           id: messageLength, 
-          content:this.state.input,
+          content:sendContent,
           header: {
             'Sys_Lang': this.props.userLang,
             'Sys_Country': this.props.userCountry,
@@ -180,12 +197,21 @@ class AiChatBox extends Component {
                       renderItem={(item) => (
                       <List.Item
                           style={{
-                          justifyContent: item.role === 'user' ? 'flex-end' : 'flex-start',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-end',
+                            justifyContent: item.role === 'user' ? 'flex-end' : 'flex-start',
                           }}
                       >
-                        {item.role === 'user' ? 
+                        {item.role === 'user' ? <>
                           <Paragraph copyable>{item.content}</Paragraph>
-                        :
+                          {!isStringEmpty(item.codeBlock) ? 
+                          <MarkdownView 
+                              content={ addCodeMarkdown(item.codeBlock) } 
+                              width={500}
+                          />
+                          : null}
+                        </>:
                           <MarkdownView 
                               content={ addNewlineBeforeTripleBackticks(item.content) } 
                               width={800}
@@ -202,7 +228,7 @@ class AiChatBox extends Component {
                       placeholder={langTrans("chatbox question tips")}
                       autoSize={{ minRows: 1, maxRows: 10 }}
                       onPressEnter={(e) => {
-                      if (!e.shiftKey) {
+                      if (!e.shiftKey && !e.ctrlKey) {
                           e.preventDefault();
                           this.handleSend();
                       }
@@ -238,7 +264,11 @@ class AiChatBox extends Component {
                       }>
                         <Button>{this.state.linkOperator ? this.state.linkOperators.find(_operator => _operator.value === this.state.linkOperator).label : langTrans("chatbox link action")}</Button>
                       </Popover>
-                      <Button onClick={()=>this.setState({messages: [], messageLength: 0})}>{langTrans("chatbox empty record")}</Button>
+                      <Button onClick={()=>{
+                        localStorage.removeItem(AI_RECORD);
+                        this.setState({messages: [], codeBlock: "", messageLength: 0});
+                      }}>{langTrans("chatbox empty record")}</Button>
+                      {this.state.aiModels.length > 1 ?
                       <Popover placement="top" title={langTrans("chatbox aimodel select")} content={
                         <Select 
                           value={this.state.aiModel}
@@ -247,7 +277,17 @@ class AiChatBox extends Component {
                           options={this.state.aiModels}
                         />
                       }>
-                        <Button>{(this.state.aiModels.length > 0 && this.state.aiModel) ? this.state.aiModels.find(model => model.value === this.state.aiModel).label : langTrans("chatbox aimodel select")}</Button>
+                        <Button>{this.state.aiModel ? this.state.aiModels.find(model => model.value === this.state.aiModel).label : langTrans("chatbox aimodel select")}</Button>
+                      </Popover>
+                      : null}
+                      <Popover placement="top" title={langTrans("chatbox code block help")} content={
+                        <TextArea allowClear
+                          style={{width: 500}}
+                          rows = {14}
+                          value={this.state.codeBlock} 
+                          onChange={ e=>this.setState({codeBlock : e.target.value}) } />
+                      }>
+                        <Button>{ langTrans("chatbox code block") }</Button>
                       </Popover>
                     </Space>
                     <Button
@@ -257,7 +297,7 @@ class AiChatBox extends Component {
                         loading={this.state.loading}
                         disabled={!this.state.input.trim()}
                     >
-                        发送
+                        {langTrans("chatbox send")}
                     </Button>
                   </Flex>
                 </Flex>

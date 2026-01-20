@@ -8,6 +8,8 @@ export const AI_LINK_PROJECT = "storage.chatBox.project";
 
 export const AI_MODEL = "storage.chatBox.aimodel";
 
+export const AI_RECORD = "storage.chatBox.record";
+
 export const DOC_ITERATOR = "iterator_doc_iteratorId";
 
 export const UUID = "device.uuid";
