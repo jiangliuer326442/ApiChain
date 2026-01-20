@@ -277,7 +277,12 @@ class AiChatBox extends Component {
                           options={this.state.aiModels}
                         />
                       }>
-                        <Button>{this.state.aiModel ? this.state.aiModels.find(model => model.value === this.state.aiModel).label : langTrans("chatbox aimodel select")}</Button>
+                        <Button>{
+                        (this.state.aiModel && this.state.aiModels.find(model => model.value === this.state.aiModel)) 
+                        ? 
+                        this.state.aiModels.find(model => model.value === this.state.aiModel).label 
+                        : 
+                        langTrans("chatbox aimodel select")}</Button>
                       </Popover>
                       : null}
                       <Popover placement="top" title={langTrans("chatbox code block help")} content={

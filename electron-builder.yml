@@ -9,6 +9,7 @@ mac:
   target: dmg
 
 win:
+  icon: assets/icon.ico
   target: nsis
 
 linux:
