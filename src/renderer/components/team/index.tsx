@@ -238,6 +238,7 @@ class TeamModel extends Component {
 -e DB_USER=[MYSQL_HOST_USER]
 -e DB_PASS=[MYSQL_HOST_PWD]
 -e DB_NAME=apichain_runner
+-e DEPLOY_COUNTRY=${this.props.userCountry}
 -e APICHAIN_SUPER_UID=${this.props.uid}
 -e APICHAIN_SUPER_UNAME=${this.props.uname}
 -v [/path/to/local/dir]:/opt/cache

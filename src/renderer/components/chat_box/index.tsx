@@ -50,6 +50,10 @@ class AiChatBox extends Component {
             {
               value: "searchInterfaces",
               label: langTrans("chatbox link action1"),
+            },
+            {
+              value: "retrieveiterationDocuments",
+              label: langTrans("chatbox link action2"),
             }
           ],
           linkProject,
@@ -81,15 +85,19 @@ class AiChatBox extends Component {
           this.setState({ 
             messages: cloneDeep(this.state.messages),
             messageLength: this.state.messageLength + 1,
-            loading: false,
           });
         } else {
-          let tmpMessage = this.state.messages[message.id];
-          tmpMessage.content += message.content;
-          this.state.messages[message.id] = tmpMessage;
-          this.setState({ 
-            messages: cloneDeep(this.state.messages),
-          });
+          if (message.hasFinish) {
+            this.scrollToBottom();
+            localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
+          } else {
+            let tmpMessage = this.state.messages[message.id];
+            tmpMessage.content += message.content;
+            this.state.messages[message.id] = tmpMessage;
+            this.setState({ 
+              messages: cloneDeep(this.state.messages),
+            });
+          }
         }
       };
 
@@ -176,12 +184,17 @@ class AiChatBox extends Component {
         }));
 
         setTimeout(() => {
-          const container = this.scrollContainerRef.current;
-          if (container) {
-            container.scrollTop = container.scrollHeight;
-          }
+          this.setState({ loading: false });
+          this.scrollToBottom()
         }, 3000);
     };
+
+    scrollToBottom = () => {
+      const container = this.scrollContainerRef.current;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
 
     render() : ReactNode {
         return (
@@ -302,7 +315,7 @@ class AiChatBox extends Component {
                         loading={this.state.loading}
                         disabled={!this.state.input.trim()}
                     >
-                        {langTrans("chatbox send")}
+                        {this.state.loading ? langTrans("chatbox sending") : langTrans("chatbox send")}
                     </Button>
                   </Flex>
                 </Flex>
