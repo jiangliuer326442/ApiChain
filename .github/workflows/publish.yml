@@ -46,7 +46,7 @@ jobs:
       - name: Publish releases
         run: |
           yarn electron-builder -- --publish never ${{ matrix.build_args }}
-          rimraf release/build/${{ matrix.unpack_folder }}
+          yarn rimraf release/build/${{ matrix.unpack_folder }}
           
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
