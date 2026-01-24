@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+    types: [closed]
 
 jobs:
   publish:
@@ -21,10 +25,10 @@ jobs:
           - os: macos-latest
             artifact_name: ApiChain_macos
             build_args: --mac
-            unpack_folder: macos-unpacked
+            unpack_folder: mac-arm64
           - os: linux-latest
             artifact_name: ApiChain_linux
-            build_args: --mac
+            build_args: --linux
             unpack_folder: linux-unpacked
 
     steps:
