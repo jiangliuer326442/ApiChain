@@ -100,7 +100,8 @@
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.0",
     "showdown": "^2.1.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "rimraf": "^5.0.1"
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
@@ -163,7 +164,6 @@
     "prettier": "^3.0.3",
     "react-refresh": "^0.14.0",
     "react-test-renderer": "^18.2.0",
-    "rimraf": "^5.0.1",
     "sass": "^1.67.0",
     "sass-loader": "^13.3.2",
     "style-loader": "^3.3.3",
