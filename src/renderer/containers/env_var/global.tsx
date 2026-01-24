@@ -241,9 +241,12 @@ class EnvVar extends Component {
                 disabled={ isEmptyEnv }>
                   {isEmptyEnv ? langTrans("envvar global add before check") : langTrans("envvar global add")}
               </Button>
-              <AddEnvVarComponent cb={()=>{
-                this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
-              }} />
+              <AddEnvVarComponent 
+                env={this.state.env ? this.state.env : this.props.env}
+                cb={()=>{
+                  this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
+                }} 
+                />
             </Flex>
             <Table style={{marginTop: 25}} 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}

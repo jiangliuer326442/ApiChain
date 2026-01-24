@@ -295,9 +295,12 @@ class EnvVar extends Component {
                   </Form.Item>
               </Form>
               <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
-              <AddEnvVarComponent cb={()=>{
-                this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
-              }}  />
+              <AddEnvVarComponent 
+                env={this.state.env ? this.state.env : this.props.env}
+                cb={()=>{
+                  this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                }}  
+                />
             </Flex>
             <Table style={{marginTop: 25}}
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
