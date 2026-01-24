@@ -1,40 +1,55 @@
-name: Sync Main to Platform Branches
+name: Publish
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  merge-main-to-platforms:
-    runs-on: ubuntu-latest
+  publish:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: ApiChain_windows
+            build_args: --windows
+            unpack_folder: win-unpacked
+          - os: macos-latest
+            artifact_name: ApiChain_macos
+            build_args: --mac
+            unpack_folder: macos-unpacked
+          - os: linux-latest
+            artifact_name: ApiChain_linux
+            build_args: --mac
+            unpack_folder: linux-unpacked
+
     steps:
-      - name: Checkout repository
+      - name: Checkout git repo
         uses: actions/checkout@v4
+
+      - name: Install Node and NPM
+        uses: actions/setup-node@v4
         with:
-          fetch-depth: 0  # 获取所有历史记录和分支
+          node-version: 20
+          cache: 'yarn'
 
-      - name: Set up Git config
+      - name: Install and build
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          yarn install
+          yarn postinstall
+          yarn build
 
-      - name: Merge main into macos branch
+      - name: Publish releases
         run: |
-          git fetch origin macos:macos
-          git checkout macos
-          git merge main --no-edit
-          git push origin macos
-
-      - name: Merge main into windows branch
-        run: |
-          git fetch origin windows:windows
-          git checkout windows
-          git merge main --no-edit
-          git push origin windows
-
-      - name: Merge main into gitee branch
-        run: |
-          git fetch origin gitee:gitee
-          git checkout gitee
-          git merge main --no-edit
-          git push origin gitee
+          yarn electron-builder -- --publish never ${{ matrix.build_args }}
+          rimraf release/build/${{ matrix.unpack_folder }}
+          
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: release/build/
