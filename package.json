@@ -1,6 +1,23 @@
 {
   "name": "ApiChain",
   "version": "1.2.4",
+  "downloadUrls": {
+    "gitee": {
+      "win32": "https://www.baidu.com",
+      "darwin": "https://www.baidu.com",
+      "linux": "https://www.baidu.com"
+    },
+    "github": {
+      "win32": "https://cn.bing.com",
+      "darwin": "https://www.baidu.com",
+      "linux": "https://www.baidu.com"
+    }
+  },
+  "releaseNotes": {
+    "zh-CN": "aaaaaaaa\nbbbbbbbb\n",
+    "zh-TW": "cccccccc\nddddddddd\n",
+    "en-US": "eeeeeeeeee\ffffffffff\n"
+  },
   "minServerVersion": "1.2.4",
   "defaultRunnerUrl": "http://127.0.0.1:6588",
   "payJumpUrl": "http://runner.fanghailiang.cn/pay/jump/",
