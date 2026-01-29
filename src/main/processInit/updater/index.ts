@@ -2,7 +2,7 @@ import log from 'electron-log';
 import { app, ipcMain, shell } from 'electron';
 import axios from 'axios';
 import { getLang } from '../../../lang/i18n';
-import { getPackageJson, compareVersions } from '../../util/util'
+import { compareVersions } from '../../util/util'
 
 import { 
     ChannelsAutoUpgradeStr, 
@@ -13,9 +13,12 @@ import {
 } from '../../../config/channel';
 
 async function getUpdateUrl() {
-    let packageJson = await getPackageJson();
-    let defaultRunnerUrl = packageJson.defaultRunnerUrl;
-    let checkUpdateUrl = defaultRunnerUrl + "/version.json";
+    let lang = getLang();
+    let checkUpdateUrl = "https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/package.json";
+    if (lang === "zh-CN") {
+        checkUpdateUrl = "https://gitee.com/onlinetool/apichain/raw/main/package.json";
+    }
+
     return checkUpdateUrl;
 }
 
