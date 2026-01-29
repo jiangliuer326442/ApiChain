@@ -18,7 +18,7 @@ jobs:
           #   artifact_name: ApiChain_windows
           - os: macos-latest
             artifact_name: ApiChain_macos
-          - os: linux-latest
+          - os: ubuntu-latest
             artifact_name: ApiChain_linux
 
     steps:
@@ -37,10 +37,8 @@ jobs:
           yarn build
 
       - name: Publish releases
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          yarn electron-builder build
+          yarn electron-builder build --publish never
           yarn ts-node ./.erb/scripts/remove-unpack-dir.js
           
       - name: Upload Build Artifacts
