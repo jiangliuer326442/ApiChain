@@ -19,6 +19,9 @@ const distMainPath = path.join(distPath, 'main');
 const distRendererPath = path.join(distPath, 'renderer');
 
 const buildPath = path.join(releasePath, 'build');
+const buildWindowsPath = path.join(buildPath, 'win-unpacked');
+const buildMacosPath = path.join(releasePath, 'mac-arm64');
+const buildLinuxPath = path.join(releasePath, 'linux-unpacked');
 
 export default {
   rootPath,
@@ -35,4 +38,7 @@ export default {
   distMainPath,
   distRendererPath,
   buildPath,
+  buildWindowsPath,
+  buildMacosPath,
+  buildLinuxPath,
 };

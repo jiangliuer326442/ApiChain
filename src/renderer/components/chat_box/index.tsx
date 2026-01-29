@@ -8,8 +8,7 @@ import './index.less';
 
 import { getWikiAiAssistant } from '@conf/url';
 import { AI_LINK_PROJECT, AI_MODEL, AI_RECORD } from '@conf/storage';
-import { AI_LANGUAGE_MODELS_URL } from '@conf/team';
-import { sendTeamMessage } from '@act/message';
+import { getBigModels } from '@act/ai';
 import { langTrans } from '@lang/i18n';
 import { replaceHttpWithWs, isStringEmpty, } from '@rutil/index';
 import { addNewlineBeforeTripleBackticks, addCodeMarkdown } from '@rutil/markdown';
@@ -65,7 +64,7 @@ class AiChatBox extends Component {
     }
 
     componentDidMount(): void {
-      sendTeamMessage(AI_LANGUAGE_MODELS_URL, {}).then( (response) => {
+      getBigModels().then( (response) => {
         this.setState({ aiModels: response })
       });
       this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/ai/ws/" + this.props.teamId + "/" + this.props.uid);
@@ -87,17 +86,16 @@ class AiChatBox extends Component {
             messageLength: this.state.messageLength + 1,
           });
         } else {
-          if (message.hasFinish) {
-            this.scrollToBottom();
-            localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
-          } else {
             let tmpMessage = this.state.messages[message.id];
             tmpMessage.content += message.content;
             this.state.messages[message.id] = tmpMessage;
             this.setState({ 
               messages: cloneDeep(this.state.messages),
             });
-          }
+            if (tmpMessage.hasFinish) {
+              this.scrollToBottom();
+              localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
+            }
         }
       };
 
@@ -124,9 +122,11 @@ class AiChatBox extends Component {
 
     handleLinkOperator = oroginOperator => {
       if (isStringEmpty(oroginOperator)) {
-        this.setState( {linkOperator : ""} );
-      } else {
-        this.setState( {linkOperator : oroginOperator} );
+        this.setState( {input : ""} );
+      } else if (oroginOperator === "searchInterfaces") {
+        this.setState( {input : "【" + langTrans("chatbox link action1") + "】" + this.state.input} );
+      } else if (oroginOperator === "retrieveiterationDocuments") {
+        this.setState( {input : "【" + langTrans("chatbox link action2") + "】" + this.state.input} );
       }
     }
 

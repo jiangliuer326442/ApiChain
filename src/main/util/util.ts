@@ -98,6 +98,28 @@ export function md5(str : string) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
+/**
+ * 比较两个版本号字符串
+ * @param {string} v1 - 第一个版本号
+ * @param {string} v2 - 第二个版本号
+ * @returns {number} -1 表示 v1 < v2，0 表示相等，1 表示 v1 > v2
+ */
+export function compareVersions(v1, v2) {
+  const v1Parts = v1.split('.').map(Number);
+  const v2Parts = v2.split('.').map(Number);
+  const maxLength = Math.max(v1Parts.length, v2Parts.length);
+
+  for (let i = 0; i < maxLength; i++) {
+    const num1 = v1Parts[i] || 0;
+    const num2 = v2Parts[i] || 0;
+
+    if (num1 > num2) return 1;
+    if (num1 < num2) return -1;
+  }
+
+  return 0; // 相等
+}
+
 export async function doRequest(method : any, url : string, headData : any, postData : any, fileData : any, cookieMap : any) {
   let response = null;
   let errorMessage = "";

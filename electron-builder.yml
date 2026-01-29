@@ -28,17 +28,3 @@ protocols:
   - name: ApiChain
     schemes:
       - com-mustafa-apichain
-
-publish:
-  - provider: github
-    owner: jiangliuer326442
-    repo: ApiChain
-
-releaseInfo:
-  releaseDate: '2025-09-24'
-  releaseNotes: |
-    - Team version support allows running runner on the intranet, with data stored internally and shared among team members.
-    - AI-enhanced interface retrieval and project inquiry.
-    - Public request parameters.
-    - Batch copy and paste
-    - Optimization of JSON network request parameters

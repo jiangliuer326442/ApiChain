@@ -1,6 +1,8 @@
-import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import { ipcMain } from 'electron';
+import { app, ipcMain, shell } from 'electron';
+import axios from 'axios';
+import { getLang } from '../../../lang/i18n';
+import { getPackageJson, compareVersions } from '../../util/util'
 
 import { 
     ChannelsAutoUpgradeStr, 
@@ -10,32 +12,55 @@ import {
     ChannelsAutoUpgradeNewVersionStr, 
 } from '../../../config/channel';
 
+async function getUpdateUrl() {
+    let packageJson = await getPackageJson();
+    let defaultRunnerUrl = packageJson.defaultRunnerUrl;
+    let checkUpdateUrl = defaultRunnerUrl + "/version.json";
+    return checkUpdateUrl;
+}
+
 export default function (){
-    autoUpdater.logger = log;
-    autoUpdater.fullChangelog = true;
-    autoUpdater.disableWebInstaller = false;
-    autoUpdater.autoDownload = false;
-    autoUpdater.on('error', (error) => {
-        log.error(['检查更新失败', error])
-    });
 
-    ipcMain.on(ChannelsAutoUpgradeStr, (event, action) => {
+    ipcMain.on(ChannelsAutoUpgradeStr, async (event, action) => {
         if (action !== ChannelsAutoUpgradeCheckStr) return;
-        autoUpdater.checkForUpdates();
-        autoUpdater.on('update-available', (info) => {
-            if (info !== null) {
-                autoUpdater.downloadUpdate().then(paths => {
-                    event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeNewVersionStr, info);
-                });
+        let lang = getLang();
+        const checkUpdateUrl = await getUpdateUrl();
+        axios.get(checkUpdateUrl)
+        .then(response => {
+            let originResponse = response.data;
+            const newVersion = originResponse.version;
+            const currentVersion = app.getVersion();
+            if (compareVersions(newVersion, currentVersion) != 1) {
+                event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeLatestStr); 
+                return;
             }
-        });
-        autoUpdater.on('update-not-available', () => {  
-            event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeLatestStr); 
+            event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeNewVersionStr, {
+                "version":newVersion,
+                "releaseNotes":originResponse.releaseNotes[lang]
+            });
+        })
+        .catch(error => {
+          log.error("检测更新报错", error);
         });
     });
 
-    ipcMain.on(ChannelsAutoUpgradeStr, (event, action) => {
+    ipcMain.on(ChannelsAutoUpgradeStr, async (event, action) => {
         if (action !== ChannelsAutoUpgradeDownloadStr) return;
-        autoUpdater.quitAndInstall();
+        const checkUpdateUrl = await getUpdateUrl();
+        axios.get(checkUpdateUrl)
+        .then(response => {
+            let originResponse = response.data;
+
+            let lang = getLang();
+            let source = "github";
+            if (lang === "zh-CN") {
+                source = "gitee";
+            }
+            let os = process.platform;
+    
+            const downloadUrl = originResponse.downloadUrls[source][os];
+            log.info("downloadUrl:", downloadUrl);
+            shell.openExternal(downloadUrl)
+        });
     });
 }

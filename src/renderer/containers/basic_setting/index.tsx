@@ -12,7 +12,8 @@ import {
     Flex, 
     Layout, 
     message, 
-    Select 
+    Select, 
+    Popconfirm
 } from 'antd';
 import { ReloadOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { Component, ReactNode } from 'react';
@@ -41,6 +42,10 @@ import {
     enableToken,
     queryRemainGas
 } from '@act/team';
+import {
+    vectorModels,
+    reVectorModels
+} from '@act/ai';
 import PayAiTokenModel from '@comp/topup/aitoken';
 
 const { Header, Content, Footer } = Layout;
@@ -420,6 +425,26 @@ class BasicSetting extends Component {
                                 onBlur={ event => this.setApiKey2(event.target.value) }
                                 placeholder={langTrans("setting basic key placeholder")} 
                             />
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("konwledge management")}
+                            style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.85)', paddingTop: '12px' }}
+                        >
+                            <Space size="middle">
+                                <Button onClick={async ()=>{
+                                    await vectorModels();
+                                    message.success(langTrans("prj unittest status2"));
+                                }} type="primary">{langTrans("konwledge management update")}</Button>
+                                <Popconfirm
+                                    title={langTrans("konwledge management rebuild confirm")}
+                                    onConfirm={async ()=>{
+                                        await reVectorModels();
+                                        message.success(langTrans("prj unittest status2"));
+                                    }}
+                                >
+                                    <Button type="primary" danger>{langTrans("konwledge management rebuild")}</Button>
+                                </Popconfirm>
+                            </Space>
                         </Form.Item>
                     </>
                         : null}
