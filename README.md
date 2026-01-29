@@ -21,9 +21,9 @@ ApiChain is an API management and testing tool designed specifically for develop
 
 | Platform | Download Link                                                |
 | -------- | ------------------------------------------------------------ |
-| Windows  | [ApiChain_v1.2.3_windows.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
-| Linux    | [ApiChain_v1.2.3_linux.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
-| macOS    | [ApiChain_v1.2.3_macos.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| Windows  | [ApiChain_v1.2.4_windows.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| Linux    | [ApiChain_v1.2.4_linux.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
+| macOS    | [ApiChain_v1.2.4_macos.zip](https://github.com/jiangliuer326442/ApiChain/releases) |
 
 > **Note**：Mac users encountering issues opening the app can run the command `sudo spctl --master-disable` in the terminal to resolve it.
 
