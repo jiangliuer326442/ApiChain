@@ -13,8 +13,7 @@ import { getUsers } from '@act/user';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
-let prj_program = TABLE_MICRO_SERVICE_FIELDS.FIELD_PROGRAM;
-let prj_frame = TABLE_MICRO_SERVICE_FIELDS.FIELD_FRAME;
+let prj_info = TABLE_MICRO_SERVICE_FIELDS.FIELD_INFO;
 let prj_cuid = TABLE_MICRO_SERVICE_FIELDS.FIELD_CUID;
 let prj_ctime = TABLE_MICRO_SERVICE_FIELDS.FIELD_CTIME;
 let prj_delFlg = TABLE_MICRO_SERVICE_FIELDS.FIELD_DELFLG;
@@ -108,21 +107,19 @@ export async function addPrj(
     clientType : string, teamId : string, 
     prjName : string, 
     remark : string, 
-    programming : string, 
-    framework : string, 
+    info : string,
     device : object
 ) {
     if (clientType === CLIENT_TYPE_TEAM) {
         await sendTeamMessage(PRJS_SET_URL, {
-            label: prjName, remark, programming, framework
+            label: prjName, remark, info
         });
     }
 
     let prj : any = {};
     prj[prj_label] = prjName;
     prj[prj_remark] = remark;
-    prj[prj_program] = programming;
-    prj[prj_frame] = framework;
+    prj[prj_info] = info;
     prj[prj_cuid] = device.uuid;
     prj[prj_ctime] = Date.now();
     prj[prj_delFlg] = 0;

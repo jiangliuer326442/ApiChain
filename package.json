@@ -2,7 +2,7 @@
   "name": "ApiChain",
   "version": "1.2.4",
   "minServerVersion": "1.2.4",
-  "defaultRunnerUrl": "http://runner.fanghailiang.cn",
+  "defaultRunnerUrl": "http://127.0.0.1:6588",
   "payJumpUrl": "http://runner.fanghailiang.cn/pay/jump/",
   "payQueryUrl": "http://runner.fanghailiang.cn/pay/query/",
   "description": "tool for API documents and unit testing",
@@ -38,7 +38,7 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && yarn build:dll",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
-    "package": "ts-node ./.erb/scripts/clean.js dist && yarn build && electron-builder build --publish never && rimraf release/build/linux-unpacked && rimraf release/build/win-unpacked && yarn build:dll",
+    "package": "ts-node ./.erb/scripts/clean.js dist && yarn build && electron-builder build && ts-node ./.erb/scripts/remove-unpack-dir.js && yarn build:dll",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
@@ -77,7 +77,6 @@
     "electron-log": "^4.4.8",
     "electron-serve": "^1.3.0",
     "electron-store": "^8.2.0",
-    "electron-updater": "^6.1.4",
     "fernet": "^0.3.3",
     "fs-extra": "^11.2.0",
     "github-markdown-css": "^5.5.1",
@@ -100,8 +99,7 @@
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.0",
     "showdown": "^2.1.0",
-    "uuid": "^9.0.1",
-    "rimraf": "^5.0.1"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
@@ -164,6 +162,7 @@
     "prettier": "^3.0.3",
     "react-refresh": "^0.14.0",
     "react-test-renderer": "^18.2.0",
+    "rimraf": "^6.1.2",
     "sass": "^1.67.0",
     "sass-loader": "^13.3.2",
     "style-loader": "^3.3.3",

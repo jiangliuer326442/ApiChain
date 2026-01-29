@@ -3,13 +3,11 @@ import fs from 'fs';
 import webpackPaths from '../configs/webpack.paths';
 
 const foldersToRemove = [
-  webpackPaths.distPath,
-  webpackPaths.buildPath,
-  webpackPaths.dllPath,
+  webpackPaths.buildWindowsPath,
+  webpackPaths.buildMacosPath,
+  webpackPaths.buildLinuxPath,
 ];
 
 foldersToRemove.forEach((folder) => {
-  if (fs.existsSync(folder)) {
-    rimrafSync(folder);
-  }
+  if (fs.existsSync(folder)) rimrafSync(folder);
 });

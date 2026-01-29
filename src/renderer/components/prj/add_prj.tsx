@@ -13,6 +13,8 @@ import { addPrj } from '@act/project';
 import { langTrans } from '@lang/i18n';
 import { ChannelsLoadAppStr } from '@conf/channel';
 
+const { TextArea } = Input;
+
 class AddPrjComponent extends Component {
 
     constructor(props) {
@@ -22,8 +24,7 @@ class AddPrjComponent extends Component {
             loadingFlg: false,
             prjValue: "",
             remarkValue: "",
-            programValue: "",
-            frameworkValue: "",
+            infoValue: "",
         };
     }
 
@@ -35,8 +36,7 @@ class AddPrjComponent extends Component {
                 actionType: "edit",
                 prjValue: nextProps.prj,
                 remarkValue: nextProps.remark,
-                programValue: nextProps.programming == null ? "" : nextProps.programming,
-                frameworkValue: nextProps.framework == null ? "" : nextProps.framework,
+                infoValue: nextProps.info == null ? "" : nextProps.info,
             });
         }
     }
@@ -44,8 +44,7 @@ class AddPrjComponent extends Component {
     handleOk = async () => {
         const prjValue = this.state.prjValue.trim();
         const remarkValue = this.state.remarkValue.trim();
-        const programValue = this.state.programValue.trim();
-        const frameworkValue = this.state.frameworkValue.trim();
+        const infoValue = this.state.infoValue.trim();
 
         if (isStringEmpty(prjValue)) {
             message.error(langTrans("prj add check1"));
@@ -57,16 +56,6 @@ class AddPrjComponent extends Component {
             return;
         }
 
-        if (isStringEmpty(programValue)) {
-            message.error(langTrans("prj add check3"));
-            return;
-        }
-
-        if (isStringEmpty(frameworkValue)) {
-            message.error(langTrans("prj add check4"));
-            return;
-        }
-
         this.setState({
             loadingFlg: true
         });
@@ -74,7 +63,7 @@ class AddPrjComponent extends Component {
         await addPrj(
             this.props.clientType, this.props.teamId, 
             prjValue, remarkValue, 
-            programValue, frameworkValue,
+            infoValue,
             this.props.device);
 
         window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
@@ -93,8 +82,7 @@ class AddPrjComponent extends Component {
             loadingFlg: false,
             prjValue: "",
             remarkValue: "",
-            programValue: "",
-            frameworkValue: "",
+            infoValue: "",
         });
     }
 
@@ -118,10 +106,13 @@ class AddPrjComponent extends Component {
                         <Input placeholder={langTrans("prj add form2")} value={this.state.remarkValue} onChange={ event=>this.setState({remarkValue : event.target.value}) } />
                     </Form.Item>
                     <Form.Item>
-                        <Input placeholder={langTrans("prj add form3")} value={this.state.programValue} onChange={ event=>this.setState({programValue : event.target.value}) } />
-                    </Form.Item>
-                    <Form.Item>
-                        <Input placeholder={langTrans("prj add form4")} value={this.state.frameworkValue} onChange={ event=>this.setState({frameworkValue : event.target.value}) } />
+                        <TextArea 
+                            allowClear
+                            autoSize
+                            value={this.state.infoValue} 
+                            placeholder={langTrans("prj add form3 placeholder")}
+                            onChange={ e=>this.setState({infoValue : e.target.value}) }
+                        />
                     </Form.Item>
                 </Form>
             </Modal>

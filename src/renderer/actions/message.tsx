@@ -173,7 +173,7 @@ export default function() : void {
             if (action !== ChannelsAutoUpgradeNewVersionStr) {
               return;
             }
-            let items = newVersion.releaseNotes.split("\\n");
+            let items = newVersion.releaseNotes.split("\n");
             notification.open({
               message: langFormat("upgrade message", {"version": newVersion.version}),
               description:(<Card title={ langTrans("upgrade title") } style={{ width: 300 }}>

@@ -18,18 +18,12 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - os: windows-latest
-            artifact_name: ApiChain_windows
-            build_args: --windows
-            unpack_folder: win-unpacked
+          # - os: windows-latest
+          #   artifact_name: ApiChain_windows
           - os: macos-latest
             artifact_name: ApiChain_macos
-            build_args: --mac
-            unpack_folder: mac-arm64
           - os: linux-latest
             artifact_name: ApiChain_linux
-            build_args: --linux
-            unpack_folder: linux-unpacked
 
     steps:
       - name: Checkout git repo
@@ -43,14 +37,13 @@ jobs:
 
       - name: Install and build
         run: |
-          yarn install
-          yarn postinstall
+          yarn
           yarn build
 
       - name: Publish releases
         run: |
-          yarn electron-builder -- --publish never ${{ matrix.build_args }}
-          yarn rimraf release/build/${{ matrix.unpack_folder }}
+          yarn electron-builder build
+          yarn ts-node ./.erb/scripts/remove-unpack-dir.js
           
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4

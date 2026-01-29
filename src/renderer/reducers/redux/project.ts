@@ -39,8 +39,7 @@ export default function (state = {
     showAddPrjModelFlg: false,
     prj: "",
     remark: "",
-    programming: "",
-    framework: "",
+    info: "",
     list: [],
   }, action : object) {
     switch(action.type) {
@@ -49,16 +48,14 @@ export default function (state = {
                 showAddPrjModelFlg : action.open,
                 prj: "",
                 remark: "",
-                programming: "",
-                framework: "",
+                info: "",
             });
         case SHOW_EDIT_PRJ_MODEL:
           return Object.assign({}, state, {
             showAddPrjModelFlg : action.open,
             prj : action.prj,
             remark : action.remark,
-            programming: action.programming,
-            framework: action.framework,
+            info: action.info,
           });
         case GET_PRJS:
           const list = action.prjs.map(item => ({
