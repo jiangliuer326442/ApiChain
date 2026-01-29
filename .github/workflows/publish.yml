@@ -37,6 +37,8 @@ jobs:
           yarn build
 
       - name: Publish releases
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           yarn electron-builder build
           yarn ts-node ./.erb/scripts/remove-unpack-dir.js
