@@ -14,8 +14,8 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          # - os: windows-latest
-          #   artifact_name: ApiChain_windows
+          - os: windows-latest
+            artifact_name: ApiChain_windows
           - os: macos-latest
             artifact_name: ApiChain_macos
           - os: ubuntu-latest
