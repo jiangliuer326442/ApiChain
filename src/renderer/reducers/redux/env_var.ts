@@ -6,7 +6,7 @@ import {
 } from '@conf/redux';
 
 import {
-    PRJ, ENV, ITERATOR
+    AI_LINK_PROJECT, ENV, ITERATOR
 } from '@conf/storage';
 
 import { isStringEmpty } from '@rutil/index';
@@ -29,7 +29,7 @@ export default function (state = {
               unittest: action.unittest,
             });
         case GET_ENV_VALS:
-            localStorage.setItem(PRJ, action.prj);
+            localStorage.setItem(AI_LINK_PROJECT, action.prj);
             localStorage.setItem(ENV, action.env);
             return Object.assign({}, state, {
               prj: action.prj,
@@ -58,7 +58,7 @@ export default function (state = {
             premark : action.premark,
           });
         default:
-            state.prj = localStorage.getItem(PRJ);
+            state.prj = localStorage.getItem(AI_LINK_PROJECT);
             state.env = localStorage.getItem(ENV);
             state.iterator = localStorage.getItem(ITERATOR);
             return state;

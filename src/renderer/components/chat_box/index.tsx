@@ -41,7 +41,8 @@ class AiChatBox extends Component {
           messages,
           input: "",
           codeBlock: "",
-          loading: false,
+          loadingTimeout: false,
+          loadingWaitMessage: false,
           aiModels: [],
           tmpResponse: {},
           messageLength: messages.length,
@@ -85,6 +86,10 @@ class AiChatBox extends Component {
             messages: cloneDeep(this.state.messages),
             messageLength: this.state.messageLength + 1,
           });
+          setTimeout(() => {
+            this.setState({ loadingWaitMessage: false });
+            this.scrollToBottom()
+          }, 1000);
         } else {
             let tmpMessage = this.state.messages[message.id];
             tmpMessage.content += message.content;
@@ -159,7 +164,8 @@ class AiChatBox extends Component {
             messages: cloneDeep( this.state.messages),
             input: "",
             codeBlock: "",
-            loading: true,
+            loadingTimeout: true,
+            loadingWaitMessage: true,
             messageLength,
           }
         );
@@ -184,12 +190,15 @@ class AiChatBox extends Component {
         }));
 
         setTimeout(() => {
-          this.setState({ loading: false });
+          this.setState({ loadingTimeout: false });
           this.scrollToBottom()
         }, 3000);
     };
 
     scrollToBottom = () => {
+      if (this.state.loadingTimeout || this.state.loadingWaitMessage) {
+        return;
+      }
       const container = this.scrollContainerRef.current;
       if (container) {
         container.scrollTop = container.scrollHeight;
@@ -312,7 +321,7 @@ class AiChatBox extends Component {
                         type="primary"
                         icon={<SendOutlined />}
                         onClick={this.handleSend}
-                        loading={this.state.loading}
+                        loading={this.state.loadingTimeout || this.state.loadingWaitMessage}
                         disabled={!this.state.input.trim()}
                     >
                         {this.state.loading ? langTrans("chatbox sending") : langTrans("chatbox send")}
