@@ -35,7 +35,7 @@
     "knowledge management": "知識庫管理",
     "knowledge management update": "更新知識庫",
     "knowledge management rebuild": "重建知識庫",
-    "kknowledge management rebuild confirm": "該操作將刪除舊知識庫並重新建立新知識庫，是否操作？",
+    "knowledge management rebuild confirm": "該操作將刪除舊知識庫並重新建立新知識庫，是否操作？",
     "member welcome": "尊敬的會員",
     "member expired": "（會員到期日 {{date}})",
     "member renew": "續費",

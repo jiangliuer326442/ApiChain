@@ -35,7 +35,7 @@
     "knowledge management": "Knowledge Management",
     "knowledge management update": "Knowledge Management Update",
     "knowledge management rebuild": "Knowledge Management Rebuild",
-    "kknowledge management rebuild confirm": "This operation will delete the existing knowledge base and create a new one. Are you sure?",
+    "knowledge management rebuild confirm": "This operation will delete the existing knowledge base and create a new one. Are you sure?",
     "member welcome": "Dear Member ",
     "member expired": "(Membership expires on {{date}})",
     "member renew": "Renew",

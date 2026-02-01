@@ -427,22 +427,34 @@ class BasicSetting extends Component {
                             />
                         </Form.Item>
                         <Form.Item
-                            label={langTrans("konwledge management")}
+                            label={langTrans("knowledge management")}
                             style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.85)', paddingTop: '12px' }}
                         >
                             <Space size="middle">
-                                <Button onClick={async ()=>{
-                                    await vectorModels();
-                                    message.success(langTrans("prj unittest status2"));
-                                }} type="primary">{langTrans("konwledge management update")}</Button>
+                                <Button
+                                     variant="outlined" 
+                                    onClick={async ()=>{
+                                        try {
+                                            await vectorModels();
+                                            message.success(langTrans("prj unittest status2"));
+                                        } catch (error) {
+                                            message.error(error.errorMessage);
+                                        }
+                                }} color="primary">{langTrans("knowledge management update")}</Button>
                                 <Popconfirm
-                                    title={langTrans("konwledge management rebuild confirm")}
+                                    title={langTrans("knowledge management rebuild confirm")}
                                     onConfirm={async ()=>{
-                                        await reVectorModels();
-                                        message.success(langTrans("prj unittest status2"));
+                                        try {
+                                            await reVectorModels();
+                                            message.success(langTrans("prj unittest status2"));
+                                        } catch (error) {
+                                            message.error(error.errorMessage);
+                                        }
                                     }}
                                 >
-                                    <Button type="primary" danger>{langTrans("konwledge management rebuild")}</Button>
+                                    <Button 
+                                        variant="outlined" 
+                                        color="primary" danger>{langTrans("knowledge management rebuild")}</Button>
                                 </Popconfirm>
                             </Space>
                         </Form.Item>

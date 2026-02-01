@@ -76,10 +76,12 @@ class AiChatBox extends Component {
 
       this.ws.onmessage = async (event) => {
         let message = JSON.parse(JSON.parse(event.data));
+        let tmpMessage;
         if (message.id >= this.state.messages.length) {
-          let tmpMessage = { 
+          tmpMessage = { 
             role: 'assistant', 
-            content: message.content
+            content: message.content,
+            hasFinish: message.hasFinish
           }
           this.state.messages.push(tmpMessage);
           this.setState({ 
@@ -91,16 +93,17 @@ class AiChatBox extends Component {
             this.scrollToBottom()
           }, 1000);
         } else {
-            let tmpMessage = this.state.messages[message.id];
-            tmpMessage.content += message.content;
-            this.state.messages[message.id] = tmpMessage;
-            this.setState({ 
-              messages: cloneDeep(this.state.messages),
-            });
-            if (tmpMessage.hasFinish) {
-              this.scrollToBottom();
-              localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
-            }
+          tmpMessage = this.state.messages[message.id];
+          tmpMessage.content += message.content;
+          tmpMessage.hasFinish = message.hasFinish;
+          this.state.messages[message.id] = tmpMessage;
+          this.setState({ 
+            messages: cloneDeep(this.state.messages),
+          });
+        }
+        if (tmpMessage.hasFinish) {
+          this.scrollToBottom();
+          localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
         }
       };
 
