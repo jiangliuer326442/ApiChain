@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog } from 'electron';
 import serve from 'electron-serve'
 import log from 'electron-log';
 
+import { ArgsMemberBuySuccess, ArgsTokenBuySuccess } from '../config/startArgs';
 import { isStringEmpty } from '../renderer/util';
 import bindIpcEvents from './processInit';
 import { topUpCallback } from './logic/topup';
@@ -59,11 +60,19 @@ if (!gotTheLock) {
           dialog.showErrorBox('会员充值失败', '会员充值失败，请稍后再试');
         },
         (uid, expireTime, buyTimes) => {
-          app.relaunch()
+          app.relaunch({
+              args: process.argv.slice(1).concat([
+                  '--action=' + ArgsMemberBuySuccess
+              ])
+          });
           app.exit(0);
         },
         (uid, apiKey, orderNo) => {
-          app.relaunch()
+          app.relaunch({
+              args: process.argv.slice(1).concat([
+                  '--action=' + ArgsTokenBuySuccess
+              ])
+          });
           app.exit(0);
         },
         store);

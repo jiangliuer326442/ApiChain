@@ -1,5 +1,6 @@
 import { app } from 'electron';
 import Store from 'electron-store';
+import log from 'electron-log';
 import crypto from 'crypto';
 import fs from 'fs-extra';
 import path from 'path';
@@ -42,10 +43,10 @@ export function systemInit() {
             format: 'pem'
             },
             privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem',
-            cipher: 'aes-256-cbc',
-            passphrase: 'BE1BDEC0AA74B4DCB079943E70528096CCA985F8'
+                type: 'pkcs8',
+                format: 'pem',
+                cipher: 'aes-256-cbc',
+                passphrase: 'BE1BDEC0AA74B4DCB079943E70528096CCA985F8'
             }
         });
         exportPublicKey = publicKey;
@@ -102,7 +103,6 @@ function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, u
     let appName = packageJson.name;
     let defaultRunnerUrl = packageJson.defaultRunnerUrl;
     let minServerVersion = packageJson.minServerVersion;
-    let allowedChains = packageJson.allowedChains;
     let clientType = getClientType(store);
     let clientHost = getClientHost(store);
     let teamId = getTeamId(store);
@@ -110,7 +110,7 @@ function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, u
         clientType = CLIENT_TYPE_SINGLE;
     }
 
-    return [
+    let response = [
         "$$" + base64Encode("uuid=" + uid),
         "$$" + base64Encode("uname=" + uname),
         "$$" + base64Encode("ip=" + ip),
@@ -124,7 +124,6 @@ function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, u
         "$$" + base64Encode("appName=" + appName),
         "$$" + base64Encode("defaultRunnerUrl=" + defaultRunnerUrl),
         "$$" + base64Encode("minServerVersion=" + minServerVersion),
-        "$$" + base64Encode("allowedChains=" + allowedChains),
         "$$" + base64Encode("userLang=" + userLang),
         "$$" + base64Encode("userCountry=" + userCountry),
         "$$" + base64Encode("firstLauch=" + firstLauch),
@@ -132,5 +131,19 @@ function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, u
         "$$" + base64Encode("teamName=" + teamName),
         "$$" + base64Encode("clientHost=" + clientHost),
         "$$" + base64Encode("teamId=" + teamId),
-    ];
+    ]
+
+    const args = process.argv.slice(1);
+    args.forEach(arg => {
+        if (arg.startsWith('--')) {
+            const [key, value] = arg.split('=');
+            const paramName = key.slice(2);
+            const paramValue = value;
+            response.push("$$" + base64Encode(paramName + "=" + paramValue));
+        }
+    });
+
+    log.info('restart params:', response);
+
+    return response;
 }

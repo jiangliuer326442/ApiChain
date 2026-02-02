@@ -522,6 +522,7 @@
     "team topup form3 radio2": "Join Team",
     "team topup form4": "Team Name",
     "team topup form5": "Select Team",
+    "team topup form6": "Reason for Application",
     "team topup btn1": "Create",
     "team topup btn2": "Join",
     "team topup btn3": "Cancel",
@@ -558,6 +559,7 @@
     "setting basic table title": "Token Management",
     "link team version": "How to use the Team Edition?",
     "link robot chat": "How to use the AI Assistant?",
+    "db export error": "Database export failed",
     "welcome": "Hello, ApiChain is here to spend a brand new day with you.",
     "greeting": "Hello, {{name}}!"
 }

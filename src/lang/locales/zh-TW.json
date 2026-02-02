@@ -522,6 +522,7 @@
     "team topup form3 radio2": "加入團隊",
     "team topup form4": "團隊名稱",
     "team topup form5": "選擇團隊",
+    "team topup form6": "申請理由",
     "team topup btn1": "創建",
     "team topup btn2": "加入",
     "team topup btn3": "取消",
@@ -558,6 +559,7 @@
     "setting basic table title": "令牌管理",
     "link team version": "團隊版如何使用？",
     "link robot chat": "如何使用AI助手？",
+    "db export error": "資料庫匯出失敗",
     "welcome": "你好，ApiChain 陪你度過嶄新的一天。",
     "greeting": "你好，{{name}}！"
 }

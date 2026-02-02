@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, app, dialog } from 'electron';
 import Store from 'electron-store';
 
 import { 
@@ -13,10 +13,12 @@ import {
     ChannelsTeamTestHostResultStr,
 } from '../../../config/channel';
 import {
+    ArgsCreateTeamSuccess
+} from '../../../config/startArgs';
+import {
     TEAM_CREATE_URL,
     TEAM_JOIN_URL,
     TEAM_LIST_URL,
-    TEAM_QUERY_NAME,
 } from '../../../config/team';
 import {
     setClientHost,
@@ -50,7 +52,7 @@ export default async function (uuid : string, store : Store){
 
     })
 
-    ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, users, dbJson) => {
+    ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, applyReason, users, dbJson) => {
 
         if (action !== ChannelsTeamSetInfoStr) return;
         let responseTeamId = "";
@@ -59,33 +61,46 @@ export default async function (uuid : string, store : Store){
         if (teamType === "create") {
 
             let result = await postRequest(uuid, TEAM_CREATE_URL, {
-                "uname": uname,
                 "teamName": teamName,
+                "uname": uname,
                 "users": users,
                 "dbJson": dbJson,
             }, store)
 
             errorMessage = result[0];
             responseTeamId = result[1];
+
+            if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
+                setClientInfo("team", responseTeamId, store);
+                app.relaunch({
+                    args: process.argv.slice(1).concat([
+                        '--action=' + ArgsCreateTeamSuccess,
+                        '--tmpTeamId=' + responseTeamId
+                    ])
+                });
+                app.exit(0);
+            } else {
+                dialog.showErrorBox('error', errorMessage)
+            }
+
         } else {
             let result = await postRequest(uuid, TEAM_JOIN_URL, {
                 "uname": uname,
                 "teamId": teamId,
-                "users": users,
-                "dbJson": dbJson,
+                "applyReason": applyReason
             }, store)
 
             errorMessage = result[0];
             responseTeamId = result[1];
+            // let _teamName = "";
+            // if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
+            //     setClientInfo("team", responseTeamId, store)
+            //     let ret = await postRequest(uuid, TEAM_QUERY_NAME, {teamId: responseTeamId}, store)
+            //     _teamName = ret[1];
+            // }
+    
+            event.reply(ChannelsTeamStr, ChannelsTeamSetInfoResultStr, errorMessage, responseTeamId, _teamName);
         }
 
-        let _teamName = "";
-        if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
-            setClientInfo("team", responseTeamId, store)
-            let ret = await postRequest(uuid, TEAM_QUERY_NAME, {teamId: responseTeamId}, store)
-            _teamName = ret[1];
-        }
-
-        event.reply(ChannelsTeamStr, ChannelsTeamSetInfoResultStr, errorMessage, responseTeamId, _teamName);
     });
 }

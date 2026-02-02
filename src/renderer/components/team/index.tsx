@@ -24,15 +24,13 @@ import {
     ChannelsTeamTestHostStr,
     ChannelsTeamTestHostResultStr,
     ChannelsTeamSetInfoStr,
-    ChannelsRestartAppStr,
-    ChannelsTeamSetInfoResultStr,
 } from '@conf/channel';
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
 import { getWikiTeamVersion } from '@conf/url';
-import { SYNC_TABLES } from '@conf/global_config';
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 
+const { TextArea } = Input
 const { Paragraph, Text, Link } = Typography;
 
 class TeamModel extends Component {
@@ -46,58 +44,53 @@ class TeamModel extends Component {
             teamType: this.props.teamType,
             teamName: "",
             teamId: "",
+            applyReason: "",
             teams: [],
             networkIng: false,
         }
     }
 
-    commitTeam = () => {
+    commitTeam = async () => {
         if (this.state.networkIng) {
             return;
         }
-        const idbDatabase = window.db.backendDB();
-        IDBExportImport.exportToJsonString(idbDatabase, async (err, dbJson) => {
-            if (err) {
-                message.error("数据库导出失败")
-            } else {
-                let user = await getUser(CLIENT_TYPE_SINGLE, this.props.uid);
-                let uname = user.uname;
-                let users = await getUsers(CLIENT_TYPE_SINGLE);
-                let usersList = [this.props.uid + "$$" + uname];
-                for (const [_uid, _uname] of users) {
-                    usersList.push(_uid + "$$" + _uname);
-                }
-                let usersStr = usersList.join(",")
-                console.debug("usersStr", usersStr);
-                if (this.state.teamType === "create") {
-                    this.setState({networkIng: true});
-                    this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr, dbJson)
-                    .then(async response => await this.handleResponse(response))
-                    .catch(err => {
-                        message.error(err.message);
-                    })
-                    .finally(() => {
-                        this.setState({networkIng: false});
-                    })
-                } else if (this.state.teamType === "join") {
-                    this.setState({networkIng: true});
-                    this.setTeamInfoPromise(uname, this.state.teamId, null, usersStr, dbJson)
-                    .then(async response => await this.handleResponse(response))
-                    .catch(err => {
-                        message.error(err.message);
-                    })
-                    .finally(() => {
-                        this.setState({networkIng: false});
-                    })
-                }
-            }
-        });
-    }
 
-    handleResponse = async (response) => {
-        let teamId = response.teamId;
-        await this.updateAllRecords(teamId);
-        window.electron.ipcRenderer.sendMessage(ChannelsRestartAppStr);
+        let user = await getUser(CLIENT_TYPE_SINGLE, this.props.uid);
+        let uname = user.uname;
+        if (this.state.teamType === "create") {
+            this.setState({networkIng: true});
+
+            const idbDatabase = window.db.backendDB();
+            IDBExportImport.exportToJsonString(idbDatabase, async (err, dbJson) => {
+                if (err) {
+                    message.error(langTrans("db export error"))
+                } else {
+                    let users = await getUsers(CLIENT_TYPE_SINGLE);
+                    let usersList = [this.props.uid + "$$" + uname];
+                    for (const [_uid, _uname] of users) {
+                        usersList.push(_uid + "$$" + _uname);
+                    }
+                    let usersStr = usersList.join(",")
+
+                    window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
+                        this.state.teamType, 
+                        uname, null, this.state.teamName, 
+                        null, usersStr, dbJson);
+                }
+            });
+        } else if (this.state.teamType === "join") {
+            this.setState({networkIng: true});
+            // this.setTeamInfoPromise(uname, this.state.teamId, null, this.state.applyReason, null, null)
+            // .then(response => {
+            //     console.log("join team response", response)
+            // })
+            // .catch(err => {
+            //     message.error(err.message);
+            // })
+            // .finally(() => {
+            //     this.setState({networkIng: false});
+            // })
+        }
     }
 
     canelTeam = () => {
@@ -111,24 +104,6 @@ class TeamModel extends Component {
     setTeamType = (e: RadioChangeEvent) => {
         this.setState({teamType: e.target.value});
     };
-
-    setTeamInfoPromise = (uname, teamId, teamName, users, dbJson) => {
-        return new Promise((resolve, reject) => {
-
-            let addTeamSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, errorMessage, retTeamId, retTeamName) => {
-                if (action === ChannelsTeamSetInfoResultStr) {
-                    addTeamSendListener();
-                    if (isStringEmpty(errorMessage)) {
-                        resolve({teamId: retTeamId, teamName: retTeamName})
-                    } else {
-                        reject({message: errorMessage})
-                    }
-                }
-            });
-
-            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, this.state.teamType, uname, teamId, teamName, users, dbJson);
-        })
-    }
 
     ckHostPromise = () => {
         return new Promise((resolve, reject) => {
@@ -150,26 +125,6 @@ class TeamModel extends Component {
                 window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamTestHostStr, _clientHost);
             }
         });
-    }
-
-    // 更新所有表的所有记录
-    updateAllRecords = async (teamId : string) => {
-        // 获取所有表的名称
-        const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
-    
-        for (const tableName of tableNames) {
-            const table = window.db.table(tableName);
-        
-            // 获取所有记录
-            const records = await table.toArray();
-        
-            // 更新每个记录
-            for (const record of records) {
-                record.upload_flg = 1;
-                record.team_id = teamId;
-                await table.put(record);
-            }
-        }
     }
 
     ckHostClick = async () => {
@@ -277,11 +232,18 @@ ${this.props.userCountry === 'CN' ? "registry.cn-shanghai.aliyuncs.com/apichain/
                                     <Input value={ this.state.teamName } onChange={ event=>this.setState({teamName : event.target.value}) } />
                                 </Form.Item>
                                 : null}
-                                {this.state.teamType === "join" ? 
+                            {this.state.teamType === "join" ? 
+                            <>
                                 <Form.Item label={langTrans("team topup form5")}>
-                                    <Select options={this.state.teams} defaultValue={this.props.teamId} onChange={_teamId => this.setState({teamId: _teamId})} />
+                                    <Select options={this.state.teams} onChange={_teamId => this.setState({teamId: _teamId})} />
                                 </Form.Item>
-                                : null}
+                                <Form.Item label={langTrans("team topup form6")}>
+                                    <TextArea allowClear rows={ 3 }
+                                        value={this.state.applyReason} 
+                                        onChange={ e=>this.setState({applyReason : e.target.value}) } />
+                                </Form.Item>
+                            </>
+                            : null}
                                 
                             </>
                             : null}

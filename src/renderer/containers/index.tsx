@@ -10,26 +10,8 @@ import {
     USERCOUNTRY,
     USERLANG,
 } from '@conf/storage';
+import { SYNC_TABLES } from '@conf/global_config';
 import { SET_DEVICE_INFO } from '@conf/redux';
-import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
-import { getOpenVersionIterators } from "@act/version_iterator";
-import { getPrjs } from "@act/project";
-import registerMessageHook from "@act/message";
-
-let argsObject = getStartParams();
-let userCountry = argsObject.userCountry;
-let userLang = argsObject.userLang;
-let uuid = argsObject.uuid;
-let clientType = argsObject.clientType;
-
-if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
-    userCountry = sessionStorage.getItem(USERCOUNTRY);
-    userLang = sessionStorage.getItem(USERLANG);
-}
-
-setLang(userCountry, userLang);
-
-
 import { 
     BASIC_SETTING_ROUTE,
     ENV_LIST_ROUTE, 
@@ -63,6 +45,27 @@ import {
     ITERATOR_ADD_REQUEST_ROUTE,
     WELCOME_ROUTE 
 } from '@conf/routers';
+import {
+    ArgsCreateTeamSuccess
+} from '@conf/startArgs'
+import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
+import { getOpenVersionIterators } from "@act/version_iterator";
+import { getPrjs } from "@act/project";
+import registerMessageHook from "@act/message";
+
+let argsObject = getStartParams();
+let userCountry = argsObject.userCountry;
+let userLang = argsObject.userLang;
+let uuid = argsObject.uuid;
+let clientType = argsObject.clientType;
+
+if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
+    userCountry = sessionStorage.getItem(USERCOUNTRY);
+    userLang = sessionStorage.getItem(USERLANG);
+}
+
+setLang(userCountry, userLang);
+
 import Nav from '@comp/nav';
 import HomePage from "@contain/home";
 import BasicSettingPage from "@contain/basic_setting";
@@ -150,7 +153,26 @@ class MyRouter extends Component {
         registerMessageHook();
     }
 
-    cb = () => {
+    cb = async () => {
+        if ("action" in argsObject && ArgsCreateTeamSuccess === argsObject.action) {
+            // 获取所有表的名称
+            const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
+        
+            for (const tableName of tableNames) {
+                const table = window.db.table(tableName);
+            
+                // 获取所有记录
+                const records = await table.toArray();
+            
+                // 更新每个记录
+                for (const record of records) {
+                    record.upload_flg = 1;
+                    record.team_id = argsObject.tmpTeamId;
+                    await table.put(record);
+                }
+            }
+        }
+        console.log("argsObject", argsObject);
         getPrjs(clientType, this.props.dispatch);
         getOpenVersionIterators(clientType, this.props.dispatch);
         this.state.initNavFlg = true;
