@@ -9,19 +9,20 @@ import {
 import { 
     ChannelsTeamStr, 
     ChannelsTeamSetInfoStr, 
-    ChannelsTeamSetInfoResultStr,
     ChannelsTeamTestHostStr,
     ChannelsTeamTestHostResultStr,
     ChannelsMessageStr,
     ChannelsMessageErrorStr,
 } from '../../../config/channel';
 import {
-    ArgsCreateTeamSuccess
+    ArgsCreateTeamSuccess,
+    ArgsJoinTeamSuccess
 } from '../../../config/startArgs';
 import {
     TEAM_CREATE_URL,
     TEAM_JOIN_URL,
     TEAM_LIST_URL,
+    CLIENT_TYPE_TEAM,
 } from '../../../config/team';
 import {
     setClientHost,
@@ -73,7 +74,7 @@ export default async function (uuid : string, store : Store){
             const responseTeamId = result[1];
 
             if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
-                setClientInfo("team", responseTeamId, store);
+                setClientInfo(CLIENT_TYPE_TEAM, responseTeamId, store);
                 app.relaunch({
                     args: process.argv.slice(1).concat([
                         '--action=' + ArgsCreateTeamSuccess,
@@ -97,7 +98,20 @@ export default async function (uuid : string, store : Store){
             if (!isStringEmpty(errorMessage)) {
                 event.reply(ChannelsMessageStr, ChannelsMessageErrorStr, errorMessage);
             } else {
-                log.info("join team response:", responseContent);
+                if (responseContent.result == 3) {
+                    let responseTeamId = responseContent.teamId;
+                    log.info("responseTeamId", responseTeamId);
+                    setClientInfo(CLIENT_TYPE_TEAM, responseTeamId, store);
+                    app.relaunch({
+                        args: process.argv.slice(1).concat([
+                            '--action=' + ArgsJoinTeamSuccess,
+                            '--tmpTeamId=' + responseTeamId
+                        ])
+                    });
+                    app.exit(0);
+                } else if (responseContent.result == 1) {
+                    log.info("已提交申请，正在等待该团队管理员审核");
+                }
             }
             // let _teamName = "";
             // if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
@@ -105,8 +119,6 @@ export default async function (uuid : string, store : Store){
             //     let ret = await postRequest(uuid, TEAM_QUERY_NAME, {teamId: responseTeamId}, store)
             //     _teamName = ret[1];
             // }
-    
-            event.reply(ChannelsTeamStr, ChannelsTeamSetInfoResultStr, errorMessage, responseTeamId, _teamName);
         }
 
     });

@@ -80,6 +80,10 @@ class TeamModel extends Component {
             });
         } else if (this.state.teamType === "join") {
             this.setState({networkIng: true});
+            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
+                this.state.teamType, 
+                uname, this.state.teamId, null, 
+                this.state.applyReason, null, null);
             // this.setTeamInfoPromise(uname, this.state.teamId, null, this.state.applyReason, null, null)
             // .then(response => {
             //     console.log("join team response", response)

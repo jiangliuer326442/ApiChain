@@ -46,7 +46,8 @@ import {
     WELCOME_ROUTE 
 } from '@conf/routers';
 import {
-    ArgsCreateTeamSuccess
+    ArgsCreateTeamSuccess,
+    ArgsJoinTeamSuccess,
 } from '@conf/startArgs'
 import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
 import { getOpenVersionIterators } from "@act/version_iterator";
@@ -154,7 +155,7 @@ class MyRouter extends Component {
     }
 
     cb = async () => {
-        if ("action" in argsObject && ArgsCreateTeamSuccess === argsObject.action) {
+        if ("action" in argsObject && (ArgsCreateTeamSuccess === argsObject.action || ArgsJoinTeamSuccess === argsObject.action)) {
             // 获取所有表的名称
             const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
         

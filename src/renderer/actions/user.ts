@@ -27,7 +27,8 @@ export async function getUser(clientType : string, uid : string) {
         }
         return null;
     } else {
-        return await sendTeamMessage(USERS_GET_URL, {uid});
+        let user = await sendTeamMessage(USERS_GET_URL, {uid});
+        return user;
     }
 }
 
