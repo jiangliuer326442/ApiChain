@@ -39,6 +39,7 @@ import {
     ChannelsAxioTeamReplyStr,
     ChannelsMessageStr,
     ChannelsMessageErrorStr,
+    ChannelsMessageInfoStr,
 } from '@conf/channel';
 import {
     NETWORK_REQUEST_URL
@@ -283,7 +284,11 @@ export default function() : void {
 
         window.electron.ipcRenderer.on(ChannelsMessageStr, (action, content : string) => {
             if (action === ChannelsMessageErrorStr) {
-                message.error(content);
+                message.error(content, 5);
+                return;
+            }
+            if (action === ChannelsMessageInfoStr) {
+                message.info(content, 5);
                 return;
             }
         })

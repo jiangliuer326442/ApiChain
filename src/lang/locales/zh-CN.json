@@ -528,6 +528,7 @@
     "team topup btn1": "创建",
     "team topup btn2": "加入",
     "team topup btn3": "取消",
+    "team join waiting": "已提交申请，正在等待该团队管理员审核",
     "chatbox link action1": "搜索api",
     "chatbox link action2": "检索迭代文档",
     "chatbox link project": "关联项目",

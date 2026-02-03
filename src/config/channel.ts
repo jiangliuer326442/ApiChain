@@ -99,6 +99,7 @@ export const ChannelsRestartAppStr = 'pipeline_restart';
 export type ChannelsMessage = 'pipeline_message';
 export const ChannelsMessageStr = 'pipeline_message';
 export const ChannelsMessageErrorStr = 'pipeline_message_error';
+export const ChannelsMessageInfoStr = 'pipeline_message_info';
 export type ChannelsLoadApp = 'pipeline_reload';
 export const ChannelsLoadAppStr = 'pipeline_reload';
 

@@ -526,6 +526,7 @@
     "team topup btn1": "Create",
     "team topup btn2": "Join",
     "team topup btn3": "Cancel",
+    "team join waiting": "Application submitted, awaiting review by the team administrator",
     "team topup check1": "Please select the purchase duration and payment method",
     "team topup check2": "Please fill in the verification code",
     "chatbox link action1": "Search API",

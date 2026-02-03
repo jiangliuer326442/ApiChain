@@ -526,6 +526,7 @@
     "team topup btn1": "創建",
     "team topup btn2": "加入",
     "team topup btn3": "取消",
+    "team join waiting": "已提交申請，正在等待該團隊管理員審核",
     "team topup check1": "請選擇購買時長和支付方式",
     "team topup check2": "請填寫核銷碼",
     "chatbox link action1": "搜尋API",

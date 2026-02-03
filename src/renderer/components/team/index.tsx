@@ -55,8 +55,6 @@ class TeamModel extends Component {
             return;
         }
 
-        let user = await getUser(CLIENT_TYPE_SINGLE, this.props.uid);
-        let uname = user.uname;
         if (this.state.teamType === "create") {
             this.setState({networkIng: true});
 
@@ -66,7 +64,7 @@ class TeamModel extends Component {
                     message.error(langTrans("db export error"))
                 } else {
                     let users = await getUsers(CLIENT_TYPE_SINGLE);
-                    let usersList = [this.props.uid + "$$" + uname];
+                    let usersList = [this.props.uid + "$$" + this.props.uname];
                     for (const [_uid, _uname] of users) {
                         usersList.push(_uid + "$$" + _uname);
                     }
@@ -74,7 +72,7 @@ class TeamModel extends Component {
 
                     window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
                         this.state.teamType, 
-                        uname, null, this.state.teamName, 
+                        this.props.uname, null, this.state.teamName, 
                         null, usersStr, dbJson);
                 }
             });
@@ -82,7 +80,7 @@ class TeamModel extends Component {
             this.setState({networkIng: true});
             window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
                 this.state.teamType, 
-                uname, this.state.teamId, null, 
+                this.props.uname, this.state.teamId, null, 
                 this.state.applyReason, null, null);
             // this.setTeamInfoPromise(uname, this.state.teamId, null, this.state.applyReason, null, null)
             // .then(response => {
@@ -199,7 +197,6 @@ class TeamModel extends Component {
 -e DB_NAME=apichain_runner
 -e DEPLOY_COUNTRY=${this.props.userCountry}
 -e APICHAIN_SUPER_UID=${this.props.uid}
--e APICHAIN_SUPER_UNAME=${this.props.uname}
 -v [/path/to/local/dir]:/opt/cache
 --name apichain-runner
 ${this.props.userCountry === 'CN' ? "registry.cn-shanghai.aliyuncs.com/apichain/runner" : "jiangliuer326442/apichain-runner"}:${this.props.defaultRunnerVersion}`}

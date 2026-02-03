@@ -13,6 +13,7 @@ import {
     ChannelsTeamTestHostResultStr,
     ChannelsMessageStr,
     ChannelsMessageErrorStr,
+    ChannelsMessageInfoStr,
 } from '../../../config/channel';
 import {
     ArgsCreateTeamSuccess,
@@ -23,12 +24,14 @@ import {
     TEAM_JOIN_URL,
     TEAM_LIST_URL,
     CLIENT_TYPE_TEAM,
+    CLIENT_TYPE_SINGLE,
 } from '../../../config/team';
 import {
     setClientHost,
     setClientInfo
 } from '../../store/config/team';
 import { isStringEmpty } from '../../../renderer/util';
+import { langTrans } from '../../../lang/i18n';
 
 export default async function (uuid : string, store : Store){
     ipcMain.on(ChannelsTeamStr, async (event, action, clientHost) => {
@@ -98,9 +101,9 @@ export default async function (uuid : string, store : Store){
             if (!isStringEmpty(errorMessage)) {
                 event.reply(ChannelsMessageStr, ChannelsMessageErrorStr, errorMessage);
             } else {
+                log.info("responseContent", responseContent);
                 if (responseContent.result == 3) {
                     let responseTeamId = responseContent.teamId;
-                    log.info("responseTeamId", responseTeamId);
                     setClientInfo(CLIENT_TYPE_TEAM, responseTeamId, store);
                     app.relaunch({
                         args: process.argv.slice(1).concat([
@@ -110,7 +113,8 @@ export default async function (uuid : string, store : Store){
                     });
                     app.exit(0);
                 } else if (responseContent.result == 1) {
-                    log.info("已提交申请，正在等待该团队管理员审核");
+                    setClientInfo(CLIENT_TYPE_SINGLE, null, store)
+                    event.reply(ChannelsMessageStr, ChannelsMessageInfoStr, langTrans("team join waiting"));
                 }
             }
             // let _teamName = "";
