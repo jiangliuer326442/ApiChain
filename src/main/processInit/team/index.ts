@@ -1,4 +1,5 @@
 import { ipcMain, app } from 'electron';
+import log from 'electron-log';
 import Store from 'electron-store';
 
 import { 
@@ -57,7 +58,6 @@ export default async function (uuid : string, store : Store){
     ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, applyReason, users, dbJson) => {
 
         if (action !== ChannelsTeamSetInfoStr) return;
-        let responseTeamId = "";
         let errorMessage = "";
 
         if (teamType === "create") {
@@ -70,7 +70,7 @@ export default async function (uuid : string, store : Store){
             }, store)
 
             errorMessage = result[0];
-            responseTeamId = result[1];
+            const responseTeamId = result[1];
 
             if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
                 setClientInfo("team", responseTeamId, store);
@@ -93,7 +93,12 @@ export default async function (uuid : string, store : Store){
             }, store)
 
             errorMessage = result[0];
-            responseTeamId = result[1];
+            let responseContent = result[1];
+            if (!isStringEmpty(errorMessage)) {
+                event.reply(ChannelsMessageStr, ChannelsMessageErrorStr, errorMessage);
+            } else {
+                log.info("join team response:", responseContent);
+            }
             // let _teamName = "";
             // if (isStringEmpty(errorMessage) && !isStringEmpty(responseTeamId)) {
             //     setClientInfo("team", responseTeamId, store)
