@@ -96,6 +96,9 @@ export const ChannelsDbProjectImportResultStr = 'pipeline_database_projects_impo
  */
 export type ChannelsRestartApp = 'pipeline_restart';
 export const ChannelsRestartAppStr = 'pipeline_restart';
+export type ChannelsMessage = 'pipeline_message';
+export const ChannelsMessageStr = 'pipeline_message';
+export const ChannelsMessageErrorStr = 'pipeline_message_error';
 export type ChannelsLoadApp = 'pipeline_reload';
 export const ChannelsLoadAppStr = 'pipeline_reload';
 

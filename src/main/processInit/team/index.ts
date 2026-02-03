@@ -1,4 +1,4 @@
-import { ipcMain, app, dialog } from 'electron';
+import { ipcMain, app } from 'electron';
 import Store from 'electron-store';
 
 import { 
@@ -11,6 +11,8 @@ import {
     ChannelsTeamSetInfoResultStr,
     ChannelsTeamTestHostStr,
     ChannelsTeamTestHostResultStr,
+    ChannelsMessageStr,
+    ChannelsMessageErrorStr,
 } from '../../../config/channel';
 import {
     ArgsCreateTeamSuccess
@@ -80,7 +82,7 @@ export default async function (uuid : string, store : Store){
                 });
                 app.exit(0);
             } else {
-                dialog.showErrorBox('error', errorMessage)
+                event.reply(ChannelsMessageStr, ChannelsMessageErrorStr, errorMessage);
             }
 
         } else {
