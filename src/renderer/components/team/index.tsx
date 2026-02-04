@@ -18,7 +18,7 @@ import IDBExportImport from 'indexeddb-export-import';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
-import { getUser, getUsers } from '@act/user';
+import { getUsers } from '@act/user';
 import {
     ChannelsTeamStr, 
     ChannelsTeamTestHostStr,
@@ -74,6 +74,9 @@ class TeamModel extends Component {
                         this.state.teamType, 
                         this.props.uname, null, this.state.teamName, 
                         null, usersStr, dbJson);
+                    setTimeout(() => {
+                        this.setState({networkIng: false});
+                    }, 5000);
                 }
             });
         } else if (this.state.teamType === "join") {
@@ -82,16 +85,9 @@ class TeamModel extends Component {
                 this.state.teamType, 
                 this.props.uname, this.state.teamId, null, 
                 this.state.applyReason, null, null);
-            // this.setTeamInfoPromise(uname, this.state.teamId, null, this.state.applyReason, null, null)
-            // .then(response => {
-            //     console.log("join team response", response)
-            // })
-            // .catch(err => {
-            //     message.error(err.message);
-            // })
-            // .finally(() => {
-            //     this.setState({networkIng: false});
-            // })
+            setTimeout(() => {
+                this.setState({networkIng: false});
+            }, 5000);
         }
     }
 

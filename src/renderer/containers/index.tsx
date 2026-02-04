@@ -14,6 +14,7 @@ import { SYNC_TABLES } from '@conf/global_config';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { 
     BASIC_SETTING_ROUTE,
+    TEAM_MEMBER_ROUTE,
     ENV_LIST_ROUTE, 
     PROJECT_LIST_ROUTE,
     ENVVAR_PRJ_LIST_ROUTE,
@@ -70,6 +71,7 @@ setLang(userCountry, userLang);
 import Nav from '@comp/nav';
 import HomePage from "@contain/home";
 import BasicSettingPage from "@contain/basic_setting";
+import TeamMemberPage from "@contain/team_member";
 import EnvListPage from "@contain/env";
 import ProjectListPage from "@contain/prj";
 import EnvVarPrjectPage from "@contain/env_var/project";
@@ -187,6 +189,7 @@ class MyRouter extends Component {
                     <Layout>
                         <Switch>
                             <Route path={ BASIC_SETTING_ROUTE } component={BasicSettingPage} />
+                            <Route path={ TEAM_MEMBER_ROUTE } component={TeamMemberPage} />
                             <Route path={ ENV_LIST_ROUTE } component={EnvListPage} />
                             <Route path={ PROJECT_LIST_ROUTE } component={ProjectListPage} />
                             <Route path={ ENVVAR_PRJ_LIST_ROUTE } component={EnvVarPrjectPage} />
