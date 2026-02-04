@@ -33,18 +33,18 @@ import {
 } from '@conf/team';
 import { getdayjs } from '@rutil/index';
 import { 
-    getTokens, 
     setBaseUrl, 
     setApiKey,
     setChatModel,
     setProvider,
-    getTeamSetting,
-    enableToken,
-    queryRemainGas
 } from '@act/team';
 import {
+    getTokens, 
+    getTeamSetting,
+    enableToken,
     vectorModels,
-    reVectorModels
+    reVectorModels,
+    queryRemainGas
 } from '@act/ai';
 import PayAiTokenModel from '@comp/topup/aitoken';
 
