@@ -1,6 +1,8 @@
 import {
     OS_ENV_VALUE_SET_URL,
     TEAM_APPLY_USERS_URL,
+    TEAM_APPLY_URL,
+    TEAM_APPLY_REFUSE_URL,
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
 
@@ -34,4 +36,18 @@ export async function setApiKey(provider : string, apiKey : string) {
 
 export async function getApplyUsers() {
     return await sendTeamMessage(TEAM_APPLY_USERS_URL, {});
+}
+
+export async function applyUser(tuid: string, tname: string) {
+    return await sendTeamMessage(TEAM_APPLY_URL, {
+        tuid: tuid,
+        tname: tname,
+    });
+}
+
+export async function refuseUser(tuid: string, refuseReason: string) {
+    return await sendTeamMessage(TEAM_APPLY_REFUSE_URL, {
+        tuid,
+        refuseReason,
+    });
 }

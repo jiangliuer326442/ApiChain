@@ -567,7 +567,7 @@
     "setting member apply table btn1": "Approve",
     "setting member apply table btn2": "Reject",
     "setting member apply table btn1 box title": "Approve Team Join Application",
-    "setting member apply table btn1 box form1": "Team Nickname",
+    "setting member apply table btn1 box form1": "Member Name",
     "setting member apply table btn2 box title": "Confirm Rejection of This Application?",
     "setting member apply table btn2 box form1": "Rejection Reason",
     "setting member users title": "Member List",

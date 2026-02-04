@@ -5,14 +5,28 @@ import {
     List, 
     Breadcrumb,
     Divider,
+    Form,
+    Input,
     Flex, 
-    Layout 
+    Layout,
+    message,
+    Modal,
+    Spin,
 } from 'antd';
 
+import { getStartParams, } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
-import { getApplyUsers } from '@act/team'
+import {
+    applyUser, 
+    getApplyUsers,
+    refuseUser,
+} from '@act/team'
 
 const { Header, Content, Footer } = Layout;
+
+const argsObject = getStartParams();
+const isAdmin = argsObject.isAdmin;
+const isSuperAdmin = argsObject.isSuperAdmin;
 
 class TeamMember extends Component {
 
@@ -20,18 +34,92 @@ class TeamMember extends Component {
         super(props);
         this.state = {
             initLoading: true,
+            showApproveDialog: false,
+            approveDialogLoading: false,
+            approveNickName: "",
+            approveUid: "",
+            showRefuseDialog: false,
+            refuseDialogLoading: false,
+            refuseReason: "",
+            refuseUid: "",
             applyList: [],
         }
     }
 
     async componentDidMount() {
+        if (isAdmin == 1) {
+            this.componentGetApplyUsers();
+        }
+    }
+
+    componentGetApplyUsers = async () => {
         getApplyUsers().then((res) => {
-            console.log("getApplyUsers res=", res);
             const results = Array.isArray(res) ? res : [];
             this.setState({
                 initLoading: false,
                 applyList: results,
             });
+        });
+    }
+
+    showApproveDialog = (uid, uname) => {
+        this.setState({
+            showApproveDialog: true,
+            approveDialogLoading: false,
+            approveNickName: uname,
+            approveUid: uid,
+        });
+    }
+
+    closeApproveDialog = () => {
+        this.setState({
+            showApproveDialog: false,
+            approveDialogLoading: false,
+            approveNickName: "",
+            approveUid: "",
+        });
+    }
+
+    handleApprove = () => {
+        this.setState({
+            approveDialogLoading: true,
+        });
+        applyUser(this.state.approveUid, this.state.approveNickName).then((response) => {
+            this.componentGetApplyUsers();
+        }).catch((err) => {
+            message.error(err.errorMessage);
+        }).finally(() => {
+            this.closeApproveDialog();
+        });
+    }
+
+    showRefuseDialog = (uid) => {
+        this.setState({
+            showRefuseDialog: true,
+            refuseDialogLoading: false,
+            refuseUid: uid,
+        });
+    }
+
+    closeRefuseDialog = () => {
+        this.setState({
+            showRefuseDialog: false,
+            refuseDialogLoading: false,
+            refuseReason: "",
+            refuseUid: "",
+        });
+    }
+
+    handleRefuse = () => {
+        this.setState({
+            refuseDialogLoading: true,
+        });
+        refuseUser(this.state.refuseUid, this.state.refuseReason).then((response) => {
+            this.componentGetApplyUsers();
+        }).catch((err) => {
+            message.error(err.errorMessage);
+        }).finally(() => {
+            this.closeRefuseDialog();
         });
     }
 
@@ -45,6 +133,36 @@ class TeamMember extends Component {
                     <Flex justify="space-between" align="center">
                         <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting member") }]} />
                     </Flex>
+            {isAdmin == 1 ? 
+                <>
+                    <Modal
+                        title={langTrans("setting member apply table btn1 box title")}
+                        open={this.state.showApproveDialog}
+                        onOk={this.handleApprove}
+                        onCancel={this.closeApproveDialog}
+                    >
+                        <Spin spinning={this.state.approveDialogLoading}>
+                            <Form>
+                                <Form.Item label={langTrans("setting member apply table btn1 box form1")}>
+                                    <Input value={ this.state.approveNickName } onChange={ event=>this.setState({approveNickName : event.target.value}) } />
+                                </Form.Item>
+                            </Form>
+                        </Spin>
+                    </Modal>
+                    <Modal
+                        title={langTrans("setting member apply table btn2 box title")}
+                        open={this.state.showRefuseDialog}
+                        onOk={this.handleRefuse}
+                        onCancel={this.closeRefuseDialog}
+                    >
+                        <Spin spinning={this.state.refuseDialogLoading}>
+                            <Form>
+                                <Form.Item label={langTrans("setting member apply table btn2 box form1")}>
+                                    <Input value={ this.state.refuseReason } onChange={ event=>this.setState({refuseReason : event.target.value}) } />
+                                </Form.Item>
+                            </Form>
+                        </Spin>
+                    </Modal>
                     <Divider orientation="left">{langTrans("setting member apply title")}</Divider>
                     <div
                         style={{paddingLeft: 58, paddingRight: 58}}
@@ -57,8 +175,15 @@ class TeamMember extends Component {
                             renderItem={(item) => (
                                 <List.Item
                                 actions={[
-                                    <Button type='link'>{langTrans("setting member apply table btn1")}</Button>, 
-                                    <Button type='text' danger>{langTrans("setting member apply table btn2")}</Button>
+                                    <Button 
+                                        type='link'
+                                        onClick={()=>this.showApproveDialog(item.uid, item.uname)}
+                                        >{langTrans("setting member apply table btn1")}</Button>, 
+                                    <Button 
+                                        type='text' 
+                                        onClick={()=>this.showRefuseDialog(item.uid)}
+                                        danger
+                                        >{langTrans("setting member apply table btn2")}</Button>
                                 ]}
                                 >
                                     <List.Item.Meta
@@ -70,6 +195,8 @@ class TeamMember extends Component {
                             )}
                         />
                     </div>
+                </>
+            : null}
                     <Divider orientation="left">{langTrans("setting member users title")}</Divider>
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>

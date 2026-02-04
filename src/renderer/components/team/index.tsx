@@ -168,23 +168,23 @@ class TeamModel extends Component {
                                 <Radio value={ CLIENT_TYPE_TEAM }>{langTrans("team topup form1 select2")}</Radio>
                             </Radio.Group>
                         </Form.Item>
-                        {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
-                        <>
-                            <Form.Item label={
-                                    <Tooltip 
-                                        title={
-                                        <Paragraph>
-                                            {langTrans("team topup form2 tip1")} 
-                                            <Link onClick={() => {
-                                                this.setState({clientHost: this.props.defaultRunnerUrl});
-                                            }}>{this.props.defaultRunnerUrl}</Link>
-                                            {langTrans("team topup form2 tip2")}
-                                            <SyntaxHighlighter
-                                            language="shell"
-                                            style={tomorrow}
-                                            wrapLines
-                                            >
-                                                {`docker run -d 
+                    {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
+                    <>
+                        <Form.Item label={
+                                <Tooltip 
+                                    title={
+                                    <Paragraph>
+                                        {langTrans("team topup form2 tip1")} 
+                                        <Link onClick={() => {
+                                            this.setState({clientHost: this.props.defaultRunnerUrl});
+                                        }}>{this.props.defaultRunnerUrl}</Link>
+                                        {langTrans("team topup form2 tip2")}
+                                        <SyntaxHighlighter
+                                        language="shell"
+                                        style={tomorrow}
+                                        wrapLines
+                                        >
+                                            {`docker run -d 
 -p 6588:6588 
 -e DB_HOST=[MYSQL_HOST_URL]
 -e DB_PORT=[MYSQL_HOST_PORT]
@@ -196,56 +196,56 @@ class TeamModel extends Component {
 -v [/path/to/local/dir]:/opt/cache
 --name apichain-runner
 ${this.props.userCountry === 'CN' ? "registry.cn-shanghai.aliyuncs.com/apichain/runner" : "jiangliuer326442/apichain-runner"}:${this.props.defaultRunnerVersion}`}
-                                            </SyntaxHighlighter>
-                                        </Paragraph>}
-                                        overlayStyle={{ maxWidth: 500 }}>
-                                        <Text>{langTrans("team topup form2")}<QuestionCircleTwoTone /></Text>
-                                    </Tooltip>
-                                }
-                            >
-                                <Input.Group compact style={{ display: 'flex' }}>
-                                    <Input 
-                                        value={ this.state.clientHost } 
-                                        placeholder={this.props.defaultRunnerUrl}
-                                        onChange={ event=> {
-                                            this.setState({
-                                                clientHost : event.target.value,
-                                                clientHostValid: false
-                                            })
-                                        } } />
-                                    <Button onClick={this.ckHostClick}>{langTrans("team topup form2 btn1")}</Button>
-                                </Input.Group>
-                            </Form.Item>
-                            {this.state.clientHostValid ? 
-                            <>
-                                <Form.Item label={langTrans("team topup form3")}>
-                                    <Radio.Group onChange={this.setTeamType} value={this.state.teamType}>
-                                        <Radio value="create">{langTrans("team topup form3 radio1")}</Radio>
-                                        <Radio value="join">{langTrans("team topup form3 radio2")}</Radio>
-                                    </Radio.Group>
-                                </Form.Item>
-                                {this.state.teamType === "create" ? 
-                                <Form.Item label={langTrans("team topup form4")}>
-                                    <Input value={ this.state.teamName } onChange={ event=>this.setState({teamName : event.target.value}) } />
-                                </Form.Item>
-                                : null}
-                            {this.state.teamType === "join" ? 
-                            <>
-                                <Form.Item label={langTrans("team topup form5")}>
-                                    <Select options={this.state.teams} onChange={_teamId => this.setState({teamId: _teamId})} />
-                                </Form.Item>
-                                <Form.Item label={langTrans("team topup form6")}>
-                                    <TextArea allowClear rows={ 3 }
-                                        value={this.state.applyReason} 
-                                        onChange={ e=>this.setState({applyReason : e.target.value}) } />
-                                </Form.Item>
-                            </>
-                            : null}
-                                
-                            </>
-                            : null}
-                        </>
-                        : null}
+                                        </SyntaxHighlighter>
+                                    </Paragraph>}
+                                    overlayStyle={{ maxWidth: 500 }}>
+                                    <Text>{langTrans("team topup form2")}<QuestionCircleTwoTone /></Text>
+                                </Tooltip>
+                            }
+                        >
+                            <Input.Group compact style={{ display: 'flex' }}>
+                                <Input 
+                                    value={ this.state.clientHost } 
+                                    placeholder={this.props.defaultRunnerUrl}
+                                    onChange={ event=> {
+                                        this.setState({
+                                            clientHost : event.target.value,
+                                            clientHostValid: false
+                                        })
+                                    } } />
+                                <Button onClick={this.ckHostClick}>{langTrans("team topup form2 btn1")}</Button>
+                            </Input.Group>
+                        </Form.Item>
+                    {this.state.clientHostValid ? 
+                    <>
+                        <Form.Item label={langTrans("team topup form3")}>
+                            <Radio.Group onChange={this.setTeamType} value={this.state.teamType}>
+                                <Radio value="create">{langTrans("team topup form3 radio1")}</Radio>
+                                <Radio value="join">{langTrans("team topup form3 radio2")}</Radio>
+                            </Radio.Group>
+                        </Form.Item>
+                    {this.state.teamType === "create" ? 
+                        <Form.Item label={langTrans("team topup form4")}>
+                            <Input value={ this.state.teamName } onChange={ event=>this.setState({teamName : event.target.value}) } />
+                        </Form.Item>
+                    : null}
+                    {this.state.teamType === "join" ? 
+                    <>
+                        <Form.Item label={langTrans("team topup form5")}>
+                            <Select options={this.state.teams} onChange={_teamId => this.setState({teamId: _teamId})} />
+                        </Form.Item>
+                        <Form.Item label={langTrans("team topup form6")}>
+                            <TextArea allowClear rows={ 3 }
+                                value={this.state.applyReason} 
+                                onChange={ e=>this.setState({applyReason : e.target.value}) } />
+                        </Form.Item>
+                    </>
+                    : null}
+                        
+                    </>
+                    : null}
+                </>
+            : null}
                     </Form>
                 </Spin>
             </Modal>
