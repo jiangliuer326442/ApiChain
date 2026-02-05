@@ -23,8 +23,7 @@ import {
     getApplyUsers,
     refuseUser,
     getTeamMembers,
-} from '@act/team'
-import member from '@comp/topup/member';
+} from '@act/team';
 
 const { Header, Content, Footer } = Layout;
 
