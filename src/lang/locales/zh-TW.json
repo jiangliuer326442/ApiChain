@@ -577,6 +577,8 @@
     "setting member users table btn1": "設為管理員",
     "setting member users table btn2": "移出團隊",
     "setting member users table btn3": "修改昵稱",
+    "setting member users table confirm1": "變更管理員後，您將失去管理員權限，確定繼續？",
+    "setting member users table confirm2": "確定要將對方移出當前團隊？",
     "link team version": "團隊版如何使用？",
     "link robot chat": "如何使用AI助手？",
     "db export error": "資料庫匯出失敗",

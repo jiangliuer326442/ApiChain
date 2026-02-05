@@ -1,19 +1,9 @@
 import {  Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { 
-    Button, 
-    List, 
-    Breadcrumb,
-    Divider,
-    Form,
-    Input,
-    Table,
-    Flex, 
-    Layout,
-    message,
-    Modal,
-    Space,
-    Spin,
+    Button, List, Breadcrumb, Divider,
+    Form, Input, Table, Flex, Layout, message,
+    Modal, Space, Spin, Popconfirm, Typography,
 } from 'antd';
 
 import { getStartParams, isStringEmpty, } from '@rutil/index';
@@ -26,6 +16,7 @@ import {
 } from '@act/team';
 
 const { Header, Content, Footer } = Layout;
+const { Text } = Typography;
 
 const argsObject = getStartParams();
 const isAdmin = argsObject.isAdmin;
@@ -53,10 +44,12 @@ class TeamMember extends Component {
                 dataIndex: "uname",
                 render: (uname, record) => {
                     return (
-                        <Space size="middle">
-                            <span>{uname} {record.uid}</span>
-                            <Button type="link">{langTrans("setting member users table btn3")}</Button>
-                        </Space>
+                        <Text 
+                            copyable={{text: record.uid}}
+                            editable={{ onChange: (newUserName) => {
+                                this.setMemberUname(record.uid, newUserName);
+                            } }}
+                        >{uname}</Text>
                     )
                 }
             },{
@@ -68,8 +61,22 @@ class TeamMember extends Component {
                 render: (_, record) => {
                     return (
                         <Space size="middle">
-                            <Button type="link">{langTrans("setting member users table btn1")}</Button>
-                            <Button type="link">{langTrans("setting member users table btn2")}</Button>
+                        {(((isAdmin == 1) || (isSuperAdmin == 1)) && record.uid != this.props.uid) ? 
+                            <Popconfirm
+                              title={langTrans("setting member users table btn1")}
+                              description={langTrans("setting member users table confirm1")}
+                              >
+                                <Button type="text" danger>{langTrans("setting member users table btn1")}</Button>
+                            </Popconfirm>
+                        : null}
+                        {(((isAdmin == 1) || (isSuperAdmin == 1)) && record.uid != this.props.uid) ? 
+                            <Popconfirm
+                                title={langTrans("setting member users table btn2")}
+                                description={langTrans("setting member users table confirm2")}
+                            >
+                                <Button type="text" danger>{langTrans("setting member users table btn2")}</Button>
+                            </Popconfirm>
+                        : null}
                         </Space>
                     )
                 }
@@ -90,6 +97,13 @@ class TeamMember extends Component {
         ).then((res) => {
             this.setState({memberList: res});
         });
+    }
+
+    setMemberUname = async (memberUid : string, memberUname : string) => {
+        if ((isAdmin == 1) || (isSuperAdmin == 1)) {
+            //@todo 
+            console.log("设置用户昵称，用户ID：" + memberUid + " ，用户昵称：" + memberUname + "，然后刷新成员列表");
+        }
     }
 
     componentGetApplyUsers = async () => {
@@ -126,6 +140,7 @@ class TeamMember extends Component {
         });
         applyUser(this.state.approveUid, this.state.approveNickName).then((response) => {
             this.componentGetApplyUsers();
+            this.componentGetTeamMembers();
         }).catch((err) => {
             message.error(err.errorMessage);
         }).finally(() => {
@@ -156,6 +171,7 @@ class TeamMember extends Component {
         });
         refuseUser(this.state.refuseUid, this.state.refuseReason).then((response) => {
             this.componentGetApplyUsers();
+            this.componentGetTeamMembers();
         }).catch((err) => {
             message.error(err.errorMessage);
         }).finally(() => {
@@ -173,7 +189,7 @@ class TeamMember extends Component {
                     <Flex justify="space-between" align="center">
                         <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting member") }]} />
                     </Flex>
-            {isAdmin == 1 ? 
+            {(isAdmin == 1 && this.state.applyList.length > 0) ? 
                 <>
                     <Modal
                         title={langTrans("setting member apply table btn1 box title")}
@@ -252,6 +268,7 @@ class TeamMember extends Component {
 function mapStateToProps (state) {
     return {
         teamId: state.device.teamId,
+        uid: state.device.uuid,
     }
 }
 

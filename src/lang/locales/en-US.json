@@ -577,6 +577,8 @@
     "setting member users table btn1": "Set as Admin",
     "setting member users table btn2": "Remove from Team",
     "setting member users table btn3": "Change Nickname",
+    "setting member users table confirm1": "After changing the admin, you will lose admin privileges. Are you sure you want to continue?",
+    "setting member users table confirm2": "Are you sure you want to remove the user from the current team?",
     "link team version": "How to use the Team Edition?",
     "link robot chat": "How to use the AI Assistant?",
     "db export error": "Database export failed",
