@@ -7,20 +7,24 @@ import {
     Divider,
     Form,
     Input,
+    Table,
     Flex, 
     Layout,
     message,
     Modal,
+    Space,
     Spin,
 } from 'antd';
 
-import { getStartParams, } from '@rutil/index';
+import { getStartParams, isStringEmpty, } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 import {
     applyUser, 
     getApplyUsers,
     refuseUser,
+    getTeamMembers,
 } from '@act/team'
+import member from '@comp/topup/member';
 
 const { Header, Content, Footer } = Layout;
 
@@ -42,7 +46,35 @@ class TeamMember extends Component {
             refuseDialogLoading: false,
             refuseReason: "",
             refuseUid: "",
+            teamId: "",
             applyList: [],
+            memberList: [],
+            columns: [{
+                title: langTrans("setting member users table index1"),
+                dataIndex: "uname",
+                render: (uname, record) => {
+                    return (
+                        <Space size="middle">
+                            <span>{uname} {record.uid}</span>
+                            <Button type="link">{langTrans("setting member users table btn3")}</Button>
+                        </Space>
+                    )
+                }
+            },{
+                title: langTrans("setting member users table index2"),
+                dataIndex: "registerTime",
+            },{
+                title: langTrans("setting basic table index6"),
+                dataIndex: "operator",
+                render: (_, record) => {
+                    return (
+                        <Space size="middle">
+                            <Button type="link">{langTrans("setting member users table btn1")}</Button>
+                            <Button type="link">{langTrans("setting member users table btn2")}</Button>
+                        </Space>
+                    )
+                }
+            }],
         }
     }
 
@@ -50,6 +82,15 @@ class TeamMember extends Component {
         if (isAdmin == 1) {
             this.componentGetApplyUsers();
         }
+        this.componentGetTeamMembers();
+    }
+
+    componentGetTeamMembers = async () => {
+        getTeamMembers(
+            (isSuperAdmin && !isStringEmpty(this.state.teamId)) ? this.state.teamId : this.props.teamId
+        ).then((res) => {
+            this.setState({memberList: res});
+        });
     }
 
     componentGetApplyUsers = async () => {
@@ -198,6 +239,7 @@ class TeamMember extends Component {
                 </>
             : null}
                     <Divider orientation="left">{langTrans("setting member users title")}</Divider>
+                    <Table rowKey={"uid"} columns={this.state.columns} dataSource={ this.state.memberList } pagination={ false } />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                 ApiChain ©{new Date().getFullYear()} Created by Mustafa Fang
@@ -210,6 +252,7 @@ class TeamMember extends Component {
 
 function mapStateToProps (state) {
     return {
+        teamId: state.device.teamId,
     }
 }
 

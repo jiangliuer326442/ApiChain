@@ -276,7 +276,7 @@ class AiChatBox extends Component {
                           value={this.state.linkProject}
                         />
                       }>
-                        <Button>{(this.state.linkProject && this.props.projects.length > 0) ? this.props.projects.find(_prj => _prj.value === this.state.linkProject).label : langTrans("chatbox link project")}</Button>
+                        <Button>{(this.state.linkProject && this.props.projects.length > 0 && this.props.projects.find(_prj => _prj.value === this.state.linkProject)) ? this.props.projects.find(_prj => _prj.value === this.state.linkProject).label : langTrans("chatbox link project")}</Button>
                       </Popover>
                       <Popover placement="top" title={langTrans("chatbox link action")} content={
                         <Select 

@@ -3,6 +3,7 @@ import {
     TEAM_APPLY_USERS_URL,
     TEAM_APPLY_URL,
     TEAM_APPLY_REFUSE_URL,
+    TEAM_MEMBERS_URL,
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
 
@@ -36,6 +37,10 @@ export async function setApiKey(provider : string, apiKey : string) {
 
 export async function getApplyUsers() {
     return await sendTeamMessage(TEAM_APPLY_USERS_URL, {});
+}
+
+export async function getTeamMembers(teamId: string) {
+    return await sendTeamMessage(TEAM_MEMBERS_URL, {teamId});
 }
 
 export async function applyUser(tuid: string, tname: string) {
