@@ -14,6 +14,12 @@ export const TEAM_APPLY_URL = "/team/apply-approve";
 
 export const TEAM_APPLY_REFUSE_URL = "/team/apply-refuse";
 
+export const TEAM_MEMBER_UNAME_URL = "/team/set-member-name";
+
+export const TEAM_MEMBER_AWAY_URL = "/team/leave-member-away";
+
+export const TEAM_MEMBER_ADMIN_URL = "/team/set-member-admin";
+
 export const TEAM_MEMBERS_URL = "/team/members";
 
 export const TEAM_LIST_URL = "/team/teams";

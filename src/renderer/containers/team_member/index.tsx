@@ -6,14 +6,18 @@ import {
     Modal, Space, Spin, Popconfirm, Typography,
 } from 'antd';
 
-import { getStartParams, isStringEmpty, } from '@rutil/index';
+import { getStartParams, } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 import {
     applyUser, 
     getApplyUsers,
     refuseUser,
     getTeamMembers,
+    setMemberName,
+    setMemberAway,
+    setMemberAdmin,
 } from '@act/team';
+import { ChannelsRestartAppStr } from '@conf/channel';
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -36,7 +40,7 @@ class TeamMember extends Component {
             refuseDialogLoading: false,
             refuseReason: "",
             refuseUid: "",
-            teamId: "",
+            teamId: this.props.teamId,
             applyList: [],
             memberList: [],
             columns: [{
@@ -46,9 +50,9 @@ class TeamMember extends Component {
                     return (
                         <Text 
                             copyable={{text: record.uid}}
-                            editable={{ onChange: (newUserName) => {
+                            editable={((isAdmin == 1) || (isSuperAdmin == 1) || (this.props.uid == record.uid)) ?  { onChange: (newUserName) => {
                                 this.setMemberUname(record.uid, newUserName);
-                            } }}
+                            } } : false}
                         >{uname}</Text>
                     )
                 }
@@ -65,14 +69,16 @@ class TeamMember extends Component {
                             <Popconfirm
                               title={langTrans("setting member users table btn1")}
                               description={langTrans("setting member users table confirm1")}
+                              onConfirm={() => this.setMemberAdmin(record.uid)}
                               >
                                 <Button type="text" danger>{langTrans("setting member users table btn1")}</Button>
                             </Popconfirm>
                         : null}
-                        {(((isAdmin == 1) || (isSuperAdmin == 1)) && record.uid != this.props.uid) ? 
+                        {(((isAdmin == 1) || (isSuperAdmin == 1)) || record.uid == this.props.uid) ? 
                             <Popconfirm
                                 title={langTrans("setting member users table btn2")}
                                 description={langTrans("setting member users table confirm2")}
+                                onConfirm={() => this.setMemberAway(record.uid)}
                             >
                                 <Button type="text" danger>{langTrans("setting member users table btn2")}</Button>
                             </Popconfirm>
@@ -92,18 +98,39 @@ class TeamMember extends Component {
     }
 
     componentGetTeamMembers = async () => {
-        getTeamMembers(
-            (isSuperAdmin && !isStringEmpty(this.state.teamId)) ? this.state.teamId : this.props.teamId
-        ).then((res) => {
+        getTeamMembers(this.state.teamId).then((res) => {
             this.setState({memberList: res});
         });
     }
 
+    setMemberAway = async (memberUid : string) => {
+        setMemberAway(this.state.teamId, memberUid).then((response) => {
+            //移出自己，应该让应用重启
+            if (memberUid == this.props.uid) {
+                window.electron.ipcRenderer.sendMessage(ChannelsRestartAppStr);
+            } else {
+                this.componentGetTeamMembers();
+            }
+        }).catch((err) => {
+            message.error(err.errorMessage);
+        })
+    }
+
+    setMemberAdmin = async (memberUid : string) => {
+        setMemberAdmin(this.state.teamId, memberUid).then((response) => {
+            //对方是管理员，自己则退出管理员资格，重启应用
+            window.electron.ipcRenderer.sendMessage(ChannelsRestartAppStr);
+        }).catch((err) => {
+            message.error(err.errorMessage);
+        })
+    }
+
     setMemberUname = async (memberUid : string, memberUname : string) => {
-        if ((isAdmin == 1) || (isSuperAdmin == 1)) {
-            //@todo 
-            console.log("设置用户昵称，用户ID：" + memberUid + " ，用户昵称：" + memberUname + "，然后刷新成员列表");
-        }
+        setMemberName(this.state.teamId, memberUid, memberUname).then((response) => {
+            this.componentGetTeamMembers();
+        }).catch((err) => {
+            message.error(err.errorMessage);
+        })
     }
 
     componentGetApplyUsers = async () => {

@@ -10,6 +10,7 @@ import MockServerInitFunc from './mockserver';
 import NetworkSendInitFunc from './network';
 import dbInitFunc from './database';
 import reloadFunc from './system/reload';
+import restartFunc from './system/restart';
 
 export default function (mainWindow : BrowserWindow, privateKey : string, publicKey : string, store : Store){
     dbInitFunc(mainWindow);
@@ -21,4 +22,5 @@ export default function (mainWindow : BrowserWindow, privateKey : string, public
     MockServerInitFunc(mainWindow, store);
     NetworkSendInitFunc(privateKey, store);
     reloadFunc(mainWindow);
+    restartFunc();
 }

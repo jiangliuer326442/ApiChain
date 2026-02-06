@@ -4,6 +4,9 @@ import {
     TEAM_APPLY_URL,
     TEAM_APPLY_REFUSE_URL,
     TEAM_MEMBERS_URL,
+    TEAM_MEMBER_UNAME_URL,
+    TEAM_MEMBER_AWAY_URL,
+    TEAM_MEMBER_ADMIN_URL,
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
 
@@ -54,5 +57,27 @@ export async function refuseUser(tuid: string, refuseReason: string) {
     return await sendTeamMessage(TEAM_APPLY_REFUSE_URL, {
         tuid,
         refuseReason,
+    });
+}
+
+export async function setMemberName(teamId: string, tuid: string, tname: string) {
+    return await sendTeamMessage(TEAM_MEMBER_UNAME_URL, {
+        teamId,
+        tuid,
+        tname,
+    });
+}
+
+export async function setMemberAway(teamId: string, tuid: string) {
+    return await sendTeamMessage(TEAM_MEMBER_AWAY_URL, {
+        teamId,
+        tuid,
+    });
+}
+
+export async function setMemberAdmin(teamId: string, tuid: string) {
+    return await sendTeamMessage(TEAM_MEMBER_ADMIN_URL, {
+        teamId,
+        tuid,
     });
 }
