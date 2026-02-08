@@ -26,6 +26,10 @@ export const TEAM_LIST_URL = "/team/teams";
 
 export const TEAM_QUERY_NAME = "/team/getTeamName";
 
+export const TEAM_DISSOLVE_URL = "/team/close-team";
+
+export const TEAM_RENAME_URL = "/team/rename-team";
+
 export const TEAM_DB_SYNC_URL = "/team/syncDb";
 
 export const ENVS_LIST_URL = "/envs/page";

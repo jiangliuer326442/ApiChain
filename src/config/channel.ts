@@ -155,6 +155,10 @@ export const ChannelsTeamTestHostStr = 'pipeline_test_host';
 
 export const ChannelsTeamTestHostResultStr = 'pipeline_test_host_result';
 
+export const ChannelsTeamListStr = 'pipeline_team_list';
+
+export const ChannelsTeamListResultStr = 'pipeline_team_list_result';
+
 export const ChannelsTeamSetInfoStr = 'pipeline_set_team_info';
 
 export const ChannelsTeamSetInfoResultStr = 'pipeline_set_team_info_result';

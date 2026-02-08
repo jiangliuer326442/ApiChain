@@ -351,8 +351,9 @@ class BasicSetting extends Component {
                         />
                 {this.state.loaded ? 
                     <Form
-                        labelCol={{ span: 10 }}
+                        labelCol={{ span: 5 }}
                         wrapperCol={{ span: 14 }}
+                        style={{width: 800}}
                     >
                         {this.props.clientType === CLIENT_TYPE_TEAM ? 
                     <>

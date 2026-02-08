@@ -1,12 +1,12 @@
 import {  Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { 
-    Button, List, Breadcrumb, Divider,
+    Button, List, Breadcrumb, Divider, Select,
     Form, Input, Table, Flex, Layout, message,
     Modal, Space, Spin, Popconfirm, Typography,
 } from 'antd';
 
-import { getStartParams, } from '@rutil/index';
+import { getStartParams, isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 import {
     applyUser, 
@@ -16,8 +16,15 @@ import {
     setMemberName,
     setMemberAway,
     setMemberAdmin,
+    dissolveTeam,
+    renameTeam,
 } from '@act/team';
-import { ChannelsRestartAppStr } from '@conf/channel';
+import { 
+    ChannelsRestartAppStr,
+    ChannelsTeamStr,
+    ChannelsTeamListStr,
+    ChannelsTeamListResultStr,
+} from '@conf/channel';
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -40,7 +47,8 @@ class TeamMember extends Component {
             refuseDialogLoading: false,
             refuseReason: "",
             refuseUid: "",
-            teamId: this.props.teamId,
+            teamId: props.teamId,
+            teams: [],
             applyList: [],
             memberList: [],
             columns: [{
@@ -87,6 +95,8 @@ class TeamMember extends Component {
                     )
                 }
             }],
+            oldTeamName: "",
+            newTeamName: "",
         }
     }
 
@@ -95,6 +105,7 @@ class TeamMember extends Component {
             this.componentGetApplyUsers();
         }
         this.componentGetTeamMembers();
+        this.getTeams();
     }
 
     componentGetTeamMembers = async () => {
@@ -152,6 +163,48 @@ class TeamMember extends Component {
         });
     }
 
+    handleTeamChange = (newTeamId) => {
+        this.state.teamId = newTeamId;
+        let oldTeamName =this.state.teams.find(item => item.value === this.state.teamId) ? this.state.teams.find(item => item.value === this.state.teamId).label : "";
+        this.setState({
+            oldTeamName,
+            newTeamName: oldTeamName,
+        });
+        this.componentGetTeamMembers();
+    }
+
+    getTeams = async () => {
+        this.teamListPromise()
+        .then((response) => {
+            this.state.teams = response.teams.map(item => ({
+                value: item.id,
+                label: item.name
+            }));
+            this.handleTeamChange(this.state.teamId);
+        })
+        .catch(err => {
+            message.error(err.errorMessage);
+        })
+    }
+
+    teamListPromise = () => {
+        return new Promise((resolve, reject) => {
+    
+            let testTeamListListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, errorMessage, teams) => {
+                if (action === ChannelsTeamListResultStr) {
+                    testTeamListListener();
+                    if (isStringEmpty(errorMessage)) {
+                        resolve({teams})
+                    } else {
+                        reject({errorMessage})
+                    }
+                }
+            });
+
+            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamListStr);
+        });
+    }
+
     closeApproveDialog = () => {
         this.setState({
             showApproveDialog: false,
@@ -204,6 +257,27 @@ class TeamMember extends Component {
         }).finally(() => {
             this.closeRefuseDialog();
         });
+    }
+
+    dissolveTeam = () => {
+        dissolveTeam(this.state.teamId).then((response) => {
+            //解散后重启应用
+            window.electron.ipcRenderer.sendMessage(ChannelsRestartAppStr);
+        }).catch((err) => {
+            message.error(err.errorMessage);
+        });
+    }
+
+    renameTeam = () => {
+        let newTeanName = this.state.newTeamName.trim();
+        if ((newTeanName != this.state.oldTeamName) && ((isSuperAdmin == 1) || (isAdmin == 1))) {
+            renameTeam(this.state.teamId, newTeanName).then((response) => {
+                //重命名后重启应用
+                window.electron.ipcRenderer.sendMessage(ChannelsRestartAppStr);
+            }).catch((err) => {
+                message.error(err.errorMessage);
+            });
+        }
     }
 
     render(): ReactNode {
@@ -280,8 +354,54 @@ class TeamMember extends Component {
                     </div>
                 </>
             : null}
-                    <Divider orientation="left">{langTrans("setting member users title")}</Divider>
+                    <Divider orientation="left">
+                        <span>{langTrans("setting member users title")}</span>
+                    </Divider>
                     <Table rowKey={"uid"} columns={this.state.columns} dataSource={ this.state.memberList } pagination={ false } />
+                    <Form
+                        labelCol={{ span: 5 }}
+                        wrapperCol={{ span: 14 }}
+                        style={{width: 800, marginTop: 40}}
+                    >
+                        <Form.Item
+                            label={langTrans("setting member team select")}
+                        >
+                            <Select 
+                                options={this.state.teams} 
+                                value={this.state.teamId} 
+                                onChange={this.handleTeamChange} 
+                                disabled={ !(isSuperAdmin == 1) }
+                                style={{width: 184}}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("setting member team name")}
+                        >
+                        {((isSuperAdmin == 1) || (isAdmin == 1)) ? 
+                            <Space.Compact style={{ width: '100%' }}>
+                                <Input value={this.state.newTeamName} onChange={(e) => this.setState({newTeamName: e.target.value})} />
+                                <Button type="link" onClick={this.renameTeam}>{langTrans("iterator edit btn")}</Button>
+                            </Space.Compact>
+                        :
+                            <Input value={this.state.newTeamName} readOnly />
+                        }
+
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("setting member team operator")}
+                        >
+                            <Popconfirm
+                                title={langTrans("setting member team confirm1")}
+                                onConfirm={this.dissolveTeam}
+                            >
+                                <Button 
+                                    variant="outlined" 
+                                    color="primary" danger>
+                                    {langTrans("setting member team operator1")}
+                                </Button>
+                            </Popconfirm>
+                        </Form.Item>
+                    </Form>
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                 ApiChain ©{new Date().getFullYear()} Created by Mustafa Fang

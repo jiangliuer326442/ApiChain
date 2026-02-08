@@ -11,6 +11,8 @@ import {
     ChannelsTeamSetInfoStr, 
     ChannelsTeamTestHostStr,
     ChannelsTeamTestHostResultStr,
+    ChannelsTeamListStr,
+    ChannelsTeamListResultStr,
     ChannelsMessageStr,
     ChannelsMessageErrorStr,
     ChannelsMessageInfoStr,
@@ -55,6 +57,27 @@ export default async function (uuid : string, store : Store){
             }
         } else {
             event.reply(ChannelsTeamStr, ChannelsTeamTestHostResultStr, errorMessage, []);
+        }
+
+    })
+
+    ipcMain.on(ChannelsTeamStr, async (event, action, clientHost) => {
+
+        if (action !== ChannelsTeamListStr) return;
+
+        let teamListResult = await postRequest(uuid, TEAM_LIST_URL, {}, store)
+        let errorMessage = teamListResult[0];
+        let teamList = teamListResult[1];
+        if (isStringEmpty(errorMessage)) {
+            event.reply(
+                ChannelsTeamStr, 
+                ChannelsTeamListResultStr,
+                "",
+                teamList
+            );
+            return;
+        } else {
+            event.reply(ChannelsTeamStr, ChannelsTeamListResultStr, errorMessage, []);
         }
 
     })

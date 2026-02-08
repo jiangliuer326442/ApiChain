@@ -7,6 +7,8 @@ import {
     TEAM_MEMBER_UNAME_URL,
     TEAM_MEMBER_AWAY_URL,
     TEAM_MEMBER_ADMIN_URL,
+    TEAM_DISSOLVE_URL,
+    TEAM_RENAME_URL,
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
 
@@ -80,4 +82,17 @@ export async function setMemberAdmin(teamId: string, tuid: string) {
         teamId,
         tuid,
     });
+}
+
+export async function dissolveTeam(teamId: string) {
+    return await sendTeamMessage(TEAM_DISSOLVE_URL, {
+        teamId
+    })
+}
+
+export async function renameTeam(teamId: string, teamName: string) {
+    return await sendTeamMessage(TEAM_RENAME_URL, {
+        teamId,
+        teamName
+    })
 }
