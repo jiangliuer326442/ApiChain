@@ -1,8 +1,15 @@
 import { v4 as uuidv4 } from 'uuid';
 import Store from 'electron-store';
 
-import { getPackageJson, rsaEncrypt, fernetDecrypt } from '../../util/util'
+import { 
+    getPackageJson, 
+    rsaEncrypt, 
+    fernetDecrypt, 
+    getPayJump, 
+    getPayQuery 
+} from '../../util/util'
 import { isStringEmpty } from '../../../renderer/util';
+import { getLang } from '../../../lang/i18n';
 
 export const TABLE_NAME = "vip.status";
 
@@ -141,25 +148,23 @@ export function clearVipCacheFlg(store : Store) {
     store.delete(VIP_LATEST_PAYMETHOD);
 }
 
-export async function getCheckCodeUrl(store : Store) {
-    let packageJson = await getPackageJson();
+export function getCheckCodeUrl(store : Store) {
     let myOrderNo = store.get(VIP_LATEST_TRADE);
-    let url = packageJson.payQueryUrl + myOrderNo;
+    let url = getPayQuery(getLang()) + myOrderNo;
     return url;
 }
 
-export async function genCheckCodeUrl(productName : string, payMethod : string, privateKey : string, publicKey : string, store : Store) {
+export function genCheckCodeUrl(productName : string, payMethod : string, privateKey : string, publicKey : string, store : Store) {
     let outTradeNo = uuidv4() as string;
     store.set(VIP_LATEST_TRADE, outTradeNo);
     store.set(VIP_LATEST_PRODUCT, productName);
     store.set(VIP_LATEST_PAYMETHOD, payMethod);
 
-    return await genEncryptString(outTradeNo, productName, payMethod, privateKey, publicKey);
+    return genEncryptString(outTradeNo, productName, payMethod, privateKey, publicKey);
 }
 
-async function genEncryptString(outTradeNo : string, productName : string, payMethod : string, privateKey : string, publicKey : string) : Promise<string> {
+function genEncryptString(outTradeNo : string, productName : string, payMethod : string, privateKey : string, publicKey : string) : string {
     const plaintext = productName + ":" + payMethod + ":" + outTradeNo;
     let data = rsaEncrypt(plaintext, publicKey, privateKey);
-    let packageJson = await getPackageJson();
-    return packageJson.payJumpUrl + data;
+    return getPayJump(getLang()) + data;
 }

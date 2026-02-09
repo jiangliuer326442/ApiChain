@@ -19,9 +19,6 @@
     "zh-TW": "- 團隊版支援在企業內網運行 runner，資料內部儲存並在團隊成員間共享。\n- AI 增強的介面檢索與專案查詢。\n- 公開請求參數。\n- 批量複製貼上\n- JSON 網路請求參數優化",
     "en-US": "- Team version support allows running runner on the intranet, with data stored internally and shared among team members.\n- AI-enhanced interface retrieval and project inquiry.\n- Public request parameters.\n- Batch copy and paste\n- Optimization of JSON network request parameters"
   },
-  "defaultRunnerUrl": "http://127.0.0.1:6588",
-  "payJumpUrl": "http://runner.fanghailiang.cn/pay/jump/",
-  "payQueryUrl": "http://runner.fanghailiang.cn/pay/query/",
   "description": "tool for API documents and unit testing",
   "keywords": [
     "postman",

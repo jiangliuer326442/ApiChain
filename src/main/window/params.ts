@@ -4,7 +4,10 @@ import log from 'electron-log';
 import crypto from 'crypto';
 import fs from 'fs-extra';
 import path from 'path';
-import { setLang } from '../../lang/i18n';
+import { 
+    setLang,
+    getLang,
+} from '../../lang/i18n';
 import { getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { 
@@ -16,15 +19,16 @@ import {
 } from '../store/config/vip';
 import { getClientHost, setClientInfo } from '../store/config/team'
 import { pingHost, postRequest } from '../util/teamUtil';
-import { md5 } from '../util/util';
-import { urlEncode } from '../../renderer/util';
-import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '../../config/team';
-import { osLocale } from '../third_party/os-locale';
 import { 
+    md5, 
+    getDefaultRunner,
     getIpV4,
     getPackageJson,
     base64Encode,
 } from '../util/util';
+import { urlEncode } from '../../renderer/util';
+import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '../../config/team';
+import { osLocale } from '../third_party/os-locale';
 import { isStringEmpty } from '../../renderer/util';
 
 export function systemInit() {
@@ -106,13 +110,19 @@ export async function getInitParams(privateKey : string, publicKey : string, sto
 
     let uid = md5(privateKey);
 
-    return doGetInitParams(uid, packageJson, showCkCodeRet, userLang, userCountry, teamName, firstLauch, 
+    let syslang = getLang();
+
+    let defaultRunner = getDefaultRunner(syslang);
+
+    return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, syslang, userCountry, teamName, firstLauch, 
         teamId, clientHost, clientType, isSuperAdmin, isAdmin,
         store);
 }
 
 function doGetInitParams(
-    uid : string, packageJson : any, showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, 
+    uid : string, packageJson : any, 
+    defaultRunner : string,
+    showCkCodeRet : any, syslang : string, userCountry : string, teamName : string, 
     firstLauch : boolean, 
     teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean,
     store : Store) : string[] {
@@ -123,7 +133,6 @@ function doGetInitParams(
     let buyTimes = getBuyTimes(store);
     let appVersion = packageJson.version;
     let appName = packageJson.name;
-    let defaultRunnerUrl = packageJson.defaultRunnerUrl;
     let minServerVersion = packageJson.minServerVersion;
 
     let response = [
@@ -138,9 +147,9 @@ function doGetInitParams(
         "buyTimes=" + buyTimes,
         "appVersion=" + appVersion,
         "appName=" + appName,
-        "defaultRunnerUrl=" + defaultRunnerUrl,
+        "defaultRunnerUrl=" + defaultRunner,
         "minServerVersion=" + minServerVersion,
-        "userLang=" + userLang,
+        "userLang=" + syslang,
         "userCountry=" + userCountry,
         "firstLauch=" + firstLauch,
         "clientType=" + clientType,

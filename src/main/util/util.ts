@@ -98,6 +98,22 @@ export function md5(str : string) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
+export function getDefaultRunner(lang : string) : string {
+  if (process.env.NODE_ENV === 'development') {
+    return "http://127.0.0.1:6588";
+  } else {
+    return "http://runner.fanghailiang.cn";
+  }
+}
+
+export function getPayJump(lang : string) : string {
+  return getDefaultRunner(lang) + "/pay/jump/"
+}
+
+export function getPayQuery(lang : string) : string {
+  return getDefaultRunner(lang) + "/pay/query/";
+}
+
 /**
  * 比较两个版本号字符串
  * @param {string} v1 - 第一个版本号

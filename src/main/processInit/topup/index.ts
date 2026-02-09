@@ -68,7 +68,7 @@ export default function (privateKey : string, publicKey : string, store: Store){
         if (isStringEmpty(tradeNo)) {
             return;
         }
-        const url = await getCheckCodeUrl(store);
+        const url = getCheckCodeUrl(store);
         await shell.openExternal(url)
     });
 
