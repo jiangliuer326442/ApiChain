@@ -2,8 +2,7 @@ import {
     Alert,
     Button, 
     Form, 
-    Input, 
-    Checkbox, 
+    Input,
     Divider, 
     Table,
     Typography, 
@@ -21,13 +20,10 @@ import { connect } from 'react-redux';
 
 import { langTrans } from '@lang/i18n';
 import {
-    ChannelsAutoUpgradeStr, 
-    ChannelsAutoUpgradeCheckStr, 
     ChannelsVipStr,
     ChannelsVipCloseCkCodeStr,
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
-import { IS_AUTO_UPGRADE } from '@conf/storage';
 import {
     CLIENT_TYPE_TEAM 
 } from '@conf/team';
@@ -55,11 +51,8 @@ class BasicSetting extends Component {
 
     constructor(props) {
         super(props);
-        let checkAutoUpgrade = localStorage.getItem(IS_AUTO_UPGRADE);
-        checkAutoUpgrade = checkAutoUpgrade == null ? 1 : checkAutoUpgrade;
         this.state = {
             loaded: false,
-            checkAutoUpgrade,
             bigModelProviders:[],
             selectedProvider: "",
             providers: [],
@@ -244,10 +237,6 @@ class BasicSetting extends Component {
             }
         }
         return retBaseUrlArr;
-    }
-
-    checkForUpgrade = () => {
-        window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
     }
 
     setProvider = async (newProvider : string) => {
@@ -461,30 +450,6 @@ class BasicSetting extends Component {
                         </Form.Item>
                     </>
                         : null}
-                
-                        <Form.Item
-                            label={langTrans("update checkbox")}
-                        >
-                            <Space size="middle">
-                                <Checkbox 
-                                    checked={this.state.checkAutoUpgrade == 1}
-                                    onChange={e => {
-                                        if (e.target.checked) {
-                                            this.setState({checkAutoUpgrade: 1});
-                                            localStorage.setItem(IS_AUTO_UPGRADE, "1");
-                                            this.checkForUpgrade();
-                                        } else {
-                                            this.setState({checkAutoUpgrade: 0});
-                                            localStorage.setItem(IS_AUTO_UPGRADE, "0");
-                                        }
-                                    }}
-                                >
-                                </Checkbox>
-                            {this.state.checkAutoUpgrade == 0 ? 
-                                <Button type="primary" onClick={this.checkForUpgrade}>{langTrans("update manual")}</Button>
-                            : null}
-                            </Space>
-                        </Form.Item>
                     </Form>
                 : null}
                     <Divider>{langTrans("setting basic table title")}</Divider>

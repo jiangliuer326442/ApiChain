@@ -111,10 +111,9 @@ export async function getInitParams(privateKey : string, publicKey : string, sto
     let uid = md5(privateKey);
 
     let syslang = getLang();
-
     let defaultRunner = getDefaultRunner(syslang);
 
-    return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, syslang, userCountry, teamName, firstLauch, 
+    return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, userLang, userCountry, teamName, firstLauch, 
         teamId, clientHost, clientType, isSuperAdmin, isAdmin,
         store);
 }
@@ -122,7 +121,7 @@ export async function getInitParams(privateKey : string, publicKey : string, sto
 function doGetInitParams(
     uid : string, packageJson : any, 
     defaultRunner : string,
-    showCkCodeRet : any, syslang : string, userCountry : string, teamName : string, 
+    showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, 
     firstLauch : boolean, 
     teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean,
     store : Store) : string[] {
@@ -149,7 +148,7 @@ function doGetInitParams(
         "appName=" + appName,
         "defaultRunnerUrl=" + defaultRunner,
         "minServerVersion=" + minServerVersion,
-        "userLang=" + syslang,
+        "userLang=" + userLang,
         "userCountry=" + userCountry,
         "firstLauch=" + firstLauch,
         "clientType=" + clientType,
