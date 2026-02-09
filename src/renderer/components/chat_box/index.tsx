@@ -41,7 +41,8 @@ class AiChatBox extends Component {
           messages,
           input: "",
           codeBlock: "",
-          loading: false,
+          loadingTimeout: false,
+          loadingWaitMessage: false,
           aiModels: [],
           tmpResponse: {},
           messageLength: messages.length,
@@ -75,27 +76,34 @@ class AiChatBox extends Component {
 
       this.ws.onmessage = async (event) => {
         let message = JSON.parse(JSON.parse(event.data));
+        let tmpMessage;
         if (message.id >= this.state.messages.length) {
-          let tmpMessage = { 
+          tmpMessage = { 
             role: 'assistant', 
-            content: message.content
+            content: message.content,
+            hasFinish: message.hasFinish
           }
           this.state.messages.push(tmpMessage);
           this.setState({ 
             messages: cloneDeep(this.state.messages),
             messageLength: this.state.messageLength + 1,
           });
+          setTimeout(() => {
+            this.setState({ loadingWaitMessage: false });
+            this.scrollToBottom()
+          }, 1000);
         } else {
-            let tmpMessage = this.state.messages[message.id];
-            tmpMessage.content += message.content;
-            this.state.messages[message.id] = tmpMessage;
-            this.setState({ 
-              messages: cloneDeep(this.state.messages),
-            });
-            if (tmpMessage.hasFinish) {
-              this.scrollToBottom();
-              localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
-            }
+          tmpMessage = this.state.messages[message.id];
+          tmpMessage.content += message.content;
+          tmpMessage.hasFinish = message.hasFinish;
+          this.state.messages[message.id] = tmpMessage;
+          this.setState({ 
+            messages: cloneDeep(this.state.messages),
+          });
+        }
+        if (tmpMessage.hasFinish) {
+          this.scrollToBottom();
+          localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
         }
       };
 
@@ -159,7 +167,8 @@ class AiChatBox extends Component {
             messages: cloneDeep( this.state.messages),
             input: "",
             codeBlock: "",
-            loading: true,
+            loadingTimeout: true,
+            loadingWaitMessage: true,
             messageLength,
           }
         );
@@ -184,12 +193,15 @@ class AiChatBox extends Component {
         }));
 
         setTimeout(() => {
-          this.setState({ loading: false });
+          this.setState({ loadingTimeout: false });
           this.scrollToBottom()
         }, 3000);
     };
 
     scrollToBottom = () => {
+      if (this.state.loadingTimeout || this.state.loadingWaitMessage) {
+        return;
+      }
       const container = this.scrollContainerRef.current;
       if (container) {
         container.scrollTop = container.scrollHeight;
@@ -264,7 +276,7 @@ class AiChatBox extends Component {
                           value={this.state.linkProject}
                         />
                       }>
-                        <Button>{(this.state.linkProject && this.props.projects.length > 0) ? this.props.projects.find(_prj => _prj.value === this.state.linkProject).label : langTrans("chatbox link project")}</Button>
+                        <Button>{(this.state.linkProject && this.props.projects.length > 0 && this.props.projects.find(_prj => _prj.value === this.state.linkProject)) ? this.props.projects.find(_prj => _prj.value === this.state.linkProject).label : langTrans("chatbox link project")}</Button>
                       </Popover>
                       <Popover placement="top" title={langTrans("chatbox link action")} content={
                         <Select 
@@ -312,7 +324,7 @@ class AiChatBox extends Component {
                         type="primary"
                         icon={<SendOutlined />}
                         onClick={this.handleSend}
-                        loading={this.state.loading}
+                        loading={this.state.loadingTimeout || this.state.loadingWaitMessage}
                         disabled={!this.state.input.trim()}
                     >
                         {this.state.loading ? langTrans("chatbox sending") : langTrans("chatbox send")}

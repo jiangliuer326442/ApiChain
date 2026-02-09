@@ -1,5 +1,7 @@
 //基础设置
 export const BASIC_SETTING_ROUTE = "/basic_setting";
+//成员管理
+export const TEAM_MEMBER_ROUTE = "/team_members";
 //环境管理
 export const ENV_LIST_ROUTE = "/envs";
 //微服务管理

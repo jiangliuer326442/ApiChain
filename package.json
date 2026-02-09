@@ -3,25 +3,9 @@
   "version": "1.2.4",
   "minServerVersion": "1.2.4",
   "downloadUrls": {
-    "gitee": {
-      "win32": "https://gitee.com/onlinetool/apichain/releases/download/v1.2.4/ApiChain_1.2.4_x64.exe",
-      "darwin": "https://github.com/jiangliuer326442/ApiChain/releases/download/v1.2.4/ApiChain_1.2.4_arm64.dmg",
-      "linux": "https://gitee.com/onlinetool/apichain/releases/download/v1.2.4/ApiChain_1.2.4_amd64.deb"
-    },
-    "github": {
-      "win32": "https://github.com/jiangliuer326442/ApiChain/releases/download/v1.2.4/ApiChain_1.2.4_x64.exe",
-      "darwin": "https://github.com/jiangliuer326442/ApiChain/releases/download/v1.2.4/ApiChain_1.2.4_arm64.dmg",
-      "linux": "https://github.com/jiangliuer326442/ApiChain/releases/download/v1.2.4/ApiChain_1.2.4_amd64.deb"
-    }
+    "gitee": "https://gitee.com/onlinetool/apichain/releases/download/v1.2.4/app.asar",
+    "github": "https://github.com/jiangliuer326442/ApiChain/releases/download/v1.2.4/app.asar"
   },
-  "releaseNotes": {
-    "zh-CN": "- 团队版支持在企业内网运行 runner，数据内部存储并在团队成员间共享。\n- AI 增强的接口检索与项目查询。\n- 公开请求参数。\n- 批量复制粘贴\n- JSON 网络请求参数优化",
-    "zh-TW": "- 團隊版支援在企業內網運行 runner，資料內部儲存並在團隊成員間共享。\n- AI 增強的介面檢索與專案查詢。\n- 公開請求參數。\n- 批量複製貼上\n- JSON 網路請求參數優化",
-    "en-US": "- Team version support allows running runner on the intranet, with data stored internally and shared among team members.\n- AI-enhanced interface retrieval and project inquiry.\n- Public request parameters.\n- Batch copy and paste\n- Optimization of JSON network request parameters"
-  },
-  "defaultRunnerUrl": "http://127.0.0.1:6588",
-  "payJumpUrl": "http://runner.fanghailiang.cn/pay/jump/",
-  "payQueryUrl": "http://runner.fanghailiang.cn/pay/query/",
   "description": "tool for API documents and unit testing",
   "keywords": [
     "postman",
@@ -55,7 +39,8 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && yarn build:dll",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
-    "package": "ts-node ./.erb/scripts/clean.js dist && yarn build && electron-builder build && ts-node ./.erb/scripts/remove-unpack-dir.js && yarn build:dll",
+    "package": "yarn build:asar && electron-builder build && yarn build:dll",
+    "build:asar": "ts-node ./.erb/scripts/clean.js dist && yarn build && mkdirp release/build && asar pack release/app release/build/app.asar",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",

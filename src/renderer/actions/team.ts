@@ -1,37 +1,16 @@
-import { getMapValueOrDefault } from '@rutil/index';
-import { getUsers } from '@act/user';
 import {
     OS_ENV_VALUE_SET_URL,
-    AI_TOKENS_GET_URL,
-    AI_BIG_MODELS_URL,
-    AI_TOKENS_GAS_QUERY_URL,
-    AI_TOKENS_CHANGE_URL,
-    CLIENT_TYPE_TEAM 
+    TEAM_APPLY_USERS_URL,
+    TEAM_APPLY_URL,
+    TEAM_APPLY_REFUSE_URL,
+    TEAM_MEMBERS_URL,
+    TEAM_MEMBER_UNAME_URL,
+    TEAM_MEMBER_AWAY_URL,
+    TEAM_MEMBER_ADMIN_URL,
+    TEAM_DISSOLVE_URL,
+    TEAM_RENAME_URL,
 } from '@conf/team';
 import { sendTeamMessage } from '@act/message';
-
-export async function getTeamSetting() {
-    return await sendTeamMessage(AI_BIG_MODELS_URL, {key: "OPENAI_API_KEY"});
-}
-
-export async function queryRemainGas(tokenName : string) {
-    await sendTeamMessage(AI_TOKENS_GAS_QUERY_URL, {tokenName});
-}
-
-export async function enableToken(tokenName : string) {
-    await sendTeamMessage(AI_TOKENS_CHANGE_URL, {tokenName});
-}
-
-export async function getTokens() {
-    let users = await getUsers(CLIENT_TYPE_TEAM);
-    let response = await sendTeamMessage(AI_TOKENS_GET_URL, {});
-    let tokens = response.list;
-    for (let token of tokens) {
-        let createUid = token["create_uid"];
-        token["create_name"] = getMapValueOrDefault(users, createUid, "");
-    }
-    return tokens;
-}
 
 export async function setProvider(provider : string) {
     await sendTeamMessage(OS_ENV_VALUE_SET_URL, {
@@ -59,4 +38,61 @@ export async function setApiKey(provider : string, apiKey : string) {
         key: provider + "_OPENAI_API_KEY",
         value: apiKey
     });
+}
+
+export async function getApplyUsers() {
+    return await sendTeamMessage(TEAM_APPLY_USERS_URL, {});
+}
+
+export async function getTeamMembers(teamId: string) {
+    return await sendTeamMessage(TEAM_MEMBERS_URL, {teamId});
+}
+
+export async function applyUser(tuid: string, tname: string) {
+    return await sendTeamMessage(TEAM_APPLY_URL, {
+        tuid: tuid,
+        tname: tname,
+    });
+}
+
+export async function refuseUser(tuid: string, refuseReason: string) {
+    return await sendTeamMessage(TEAM_APPLY_REFUSE_URL, {
+        tuid,
+        refuseReason,
+    });
+}
+
+export async function setMemberName(teamId: string, tuid: string, tname: string) {
+    return await sendTeamMessage(TEAM_MEMBER_UNAME_URL, {
+        teamId,
+        tuid,
+        tname,
+    });
+}
+
+export async function setMemberAway(teamId: string, tuid: string) {
+    return await sendTeamMessage(TEAM_MEMBER_AWAY_URL, {
+        teamId,
+        tuid,
+    });
+}
+
+export async function setMemberAdmin(teamId: string, tuid: string) {
+    return await sendTeamMessage(TEAM_MEMBER_ADMIN_URL, {
+        teamId,
+        tuid,
+    });
+}
+
+export async function dissolveTeam(teamId: string) {
+    return await sendTeamMessage(TEAM_DISSOLVE_URL, {
+        teamId
+    })
+}
+
+export async function renameTeam(teamId: string, teamName: string) {
+    return await sendTeamMessage(TEAM_RENAME_URL, {
+        teamId,
+        teamName
+    })
 }

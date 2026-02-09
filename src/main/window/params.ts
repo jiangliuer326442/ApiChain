@@ -1,9 +1,13 @@
 import { app } from 'electron';
 import Store from 'electron-store';
+import log from 'electron-log';
 import crypto from 'crypto';
 import fs from 'fs-extra';
 import path from 'path';
-import { setLang } from '../../lang/i18n';
+import { 
+    setLang,
+    getLang,
+} from '../../lang/i18n';
 import { getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { 
@@ -13,17 +17,18 @@ import {
     getBuyTimes, 
     giftVip 
 } from '../store/config/vip';
-import { getClientType, getClientHost, getTeamId } from '../store/config/team'
+import { getClientHost, setClientInfo } from '../store/config/team'
 import { pingHost, postRequest } from '../util/teamUtil';
-import { md5 } from '../util/util';
-import { urlEncode } from '../../renderer/util';
-import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE } from '../../config/team';
-import { osLocale } from '../third_party/os-locale';
 import { 
+    md5, 
+    getDefaultRunner,
     getIpV4,
     getPackageJson,
     base64Encode,
 } from '../util/util';
+import { urlEncode } from '../../renderer/util';
+import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '../../config/team';
+import { osLocale } from '../third_party/os-locale';
 import { isStringEmpty } from '../../renderer/util';
 
 export function systemInit() {
@@ -42,10 +47,10 @@ export function systemInit() {
             format: 'pem'
             },
             privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem',
-            cipher: 'aes-256-cbc',
-            passphrase: 'BE1BDEC0AA74B4DCB079943E70528096CCA985F8'
+                type: 'pkcs8',
+                format: 'pem',
+                cipher: 'aes-256-cbc',
+                passphrase: 'BE1BDEC0AA74B4DCB079943E70528096CCA985F8'
             }
         });
         exportPublicKey = publicKey;
@@ -75,10 +80,26 @@ export async function getInitParams(privateKey : string, publicKey : string, sto
 
     let teamServerErrorMessage = await pingHost(privateKey, null, store);
     let teamName = "";
+    let teamId = "";
+    let clientType = CLIENT_TYPE_SINGLE;
+    let isAdmin = false;
+    let isSuperAdmin = false;
     if (isStringEmpty(teamServerErrorMessage)) {
         let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store)
-        teamName = urlEncode(ret[1]);
+        log.info('get team name ret:', ret);
+        if (isStringEmpty(ret[1].teamId)) {
+            setClientInfo(CLIENT_TYPE_SINGLE, null, store)
+        } else {
+            teamId = ret[1].teamId;
+            teamName = urlEncode(ret[1].teamName);
+            setClientInfo(CLIENT_TYPE_TEAM, teamId, store);
+            clientType = CLIENT_TYPE_TEAM;
+            isAdmin = ret[1].isAdmin;
+            isSuperAdmin = ret[1].isSuperAdmin;
+        }
     }
+
+    let clientHost = getClientHost(store);
 
     let showCkCodeRet = await isShowCkcode(store);
 
@@ -89,10 +110,21 @@ export async function getInitParams(privateKey : string, publicKey : string, sto
 
     let uid = md5(privateKey);
 
-    return doGetInitParams(uid, packageJson, showCkCodeRet, userLang, userCountry, teamName, firstLauch, store);
+    let syslang = getLang();
+    let defaultRunner = getDefaultRunner(syslang);
+
+    return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, userLang, userCountry, teamName, firstLauch, 
+        teamId, clientHost, clientType, isSuperAdmin, isAdmin,
+        store);
 }
 
-function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, firstLauch : boolean, store : Store) : string[] {
+function doGetInitParams(
+    uid : string, packageJson : any, 
+    defaultRunner : string,
+    showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, 
+    firstLauch : boolean, 
+    teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean,
+    store : Store) : string[] {
     let uname = getUname();
     let ip = getIpV4();
     let vipFlg = isVip(store);
@@ -100,37 +132,46 @@ function doGetInitParams(uid : string, packageJson : any, showCkCodeRet : any, u
     let buyTimes = getBuyTimes(store);
     let appVersion = packageJson.version;
     let appName = packageJson.name;
-    let defaultRunnerUrl = packageJson.defaultRunnerUrl;
     let minServerVersion = packageJson.minServerVersion;
-    let allowedChains = packageJson.allowedChains;
-    let clientType = getClientType(store);
-    let clientHost = getClientHost(store);
-    let teamId = getTeamId(store);
-    if (isStringEmpty(teamName)) {
-        clientType = CLIENT_TYPE_SINGLE;
-    }
 
-    return [
-        "$$" + base64Encode("uuid=" + uid),
-        "$$" + base64Encode("uname=" + uname),
-        "$$" + base64Encode("ip=" + ip),
-        "$$" + base64Encode("vipFlg=" + vipFlg),
-        "$$" + base64Encode("showCkCode=" + showCkCodeRet[0]),
-        "$$" + base64Encode("ckCodeType=" + showCkCodeRet[1]),
-        "$$" + base64Encode("payMethod=" + showCkCodeRet[2]),
-        "$$" + base64Encode("expireTime=" + expireTime),
-        "$$" + base64Encode("buyTimes=" + buyTimes),
-        "$$" + base64Encode("appVersion=" + appVersion),
-        "$$" + base64Encode("appName=" + appName),
-        "$$" + base64Encode("defaultRunnerUrl=" + defaultRunnerUrl),
-        "$$" + base64Encode("minServerVersion=" + minServerVersion),
-        "$$" + base64Encode("allowedChains=" + allowedChains),
-        "$$" + base64Encode("userLang=" + userLang),
-        "$$" + base64Encode("userCountry=" + userCountry),
-        "$$" + base64Encode("firstLauch=" + firstLauch),
-        "$$" + base64Encode("clientType=" + clientType),
-        "$$" + base64Encode("teamName=" + teamName),
-        "$$" + base64Encode("clientHost=" + clientHost),
-        "$$" + base64Encode("teamId=" + teamId),
-    ];
+    let response = [
+        "uuid=" + uid,
+        "uname=" + uname,
+        "ip=" + ip,
+        "vipFlg=" + vipFlg,
+        "showCkCode=" + showCkCodeRet[0],
+        "ckCodeType=" + showCkCodeRet[1],
+        "payMethod=" + showCkCodeRet[2],
+        "expireTime=" + expireTime,
+        "buyTimes=" + buyTimes,
+        "appVersion=" + appVersion,
+        "appName=" + appName,
+        "defaultRunnerUrl=" + defaultRunner,
+        "minServerVersion=" + minServerVersion,
+        "userLang=" + userLang,
+        "userCountry=" + userCountry,
+        "firstLauch=" + firstLauch,
+        "clientType=" + clientType,
+        "teamName=" + teamName,
+        "clientHost=" + clientHost,
+        "teamId=" + teamId,
+        "isSuperAdmin=" + (isSuperAdmin ? "1" : "0"),
+        "isAdmin=" + (isAdmin ? "1" : "0")
+    ]
+
+    const args = process.argv.slice(1);
+    args.forEach(arg => {
+        if (arg.startsWith('--')) {
+            const [key, value] = arg.split('=');
+            const paramName = key.slice(2);
+            const paramValue = value;
+            response.push(paramName + "=" + paramValue);
+        }
+    });
+
+    log.info('restart params:', response);
+
+    const base64Response = response.map(row => `$$${base64Encode(row)}`);
+
+    return base64Response;
 }

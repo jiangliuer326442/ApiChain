@@ -24,7 +24,6 @@ import {
 
 import { 
   LAST_SHOWTEAM_TIME,
-  IS_AUTO_UPGRADE 
 } from '@conf/storage';
 import {
   ChannelsAutoUpgradeStr, 
@@ -167,11 +166,7 @@ class Home extends Component {
       if (showTeam) {
         localStorage.setItem(LAST_SHOWTEAM_TIME, getNowdayjs().unix() + "");
       }
-      let checkAutoUpgrade = localStorage.getItem(IS_AUTO_UPGRADE);
-      checkAutoUpgrade = checkAutoUpgrade == null ? 1 : checkAutoUpgrade;
-      if (checkAutoUpgrade == 1) {
-        this.checkForUpgrade();
-      }
+      this.checkForUpgrade();
 
       let uname = argsObject.uname;
       let ip = argsObject.ip;

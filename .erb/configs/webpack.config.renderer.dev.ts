@@ -141,6 +141,7 @@ const configuration: webpack.Configuration = {
      */
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'development',
+      UPGRADE_CHECK: !((process.env.CHAT_PROVIDER || "") == "ZHAOHANG")
     }),
 
     new webpack.LoaderOptionsPlugin({

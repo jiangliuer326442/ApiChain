@@ -1,15 +1,15 @@
 import log from 'electron-log';
-import { app, ipcMain, shell } from 'electron';
+import { app, ipcMain } from 'electron';
 import axios from 'axios';
+import path from 'path'
+import fs from 'fs';
 import { getLang } from '../../../lang/i18n';
 import { compareVersions } from '../../util/util'
 
 import { 
     ChannelsAutoUpgradeStr, 
     ChannelsAutoUpgradeCheckStr, 
-    ChannelsAutoUpgradeDownloadStr,
     ChannelsAutoUpgradeLatestStr,
-    ChannelsAutoUpgradeNewVersionStr, 
 } from '../../../config/channel';
 
 async function getUpdateUrl() {
@@ -23,13 +23,13 @@ async function getUpdateUrl() {
 }
 
 export default function (){
-
+    if (!app.isPackaged) return;
     ipcMain.on(ChannelsAutoUpgradeStr, async (event, action) => {
         if (action !== ChannelsAutoUpgradeCheckStr) return;
-        let lang = getLang();
+        if (!(process.env.UPGRADE_CHECK == "true")) return;
         const checkUpdateUrl = await getUpdateUrl();
         axios.get(checkUpdateUrl)
-        .then(response => {
+        .then(async response => {
             let originResponse = response.data;
             const newVersion = originResponse.version;
             const currentVersion = app.getVersion();
@@ -37,33 +37,49 @@ export default function (){
                 event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeLatestStr); 
                 return;
             }
-            event.reply(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeNewVersionStr, {
-                "version":newVersion,
-                "releaseNotes":originResponse.releaseNotes[lang]
-            });
-        })
-        .catch(error => {
-          log.error("检测更新报错", error);
-        });
-    });
-
-    ipcMain.on(ChannelsAutoUpgradeStr, async (event, action) => {
-        if (action !== ChannelsAutoUpgradeDownloadStr) return;
-        const checkUpdateUrl = await getUpdateUrl();
-        axios.get(checkUpdateUrl)
-        .then(response => {
-            let originResponse = response.data;
-
+            //下载app.asar文件到临时目录
             let lang = getLang();
             let source = "github";
             if (lang === "zh-CN") {
                 source = "gitee";
             }
-            let os = process.platform;
-    
-            const downloadUrl = originResponse.downloadUrls[source][os];
-            log.info("downloadUrl:", downloadUrl);
-            shell.openExternal(downloadUrl)
+            const downloadUrl = originResponse.downloadUrls[source];
+            const tempFilePath = path.join(app.getPath('temp'), `apichain-${Date.now()}.tmp`);
+            const targetFilePath = app.getAppPath();
+
+            try {
+                // 创建写入流
+                const writer = fs.createWriteStream(tempFilePath);
+
+                // 使用 axios 发起下载请求，并设置 responseType 为 'stream'
+                const response = await axios.get(downloadUrl, {
+                    responseType: 'stream'
+                });
+
+                // 将响应流写入文件
+                response.data.pipe(writer);
+
+                // 等待写入完成
+                await new Promise((resolve, reject) => {
+                    writer.on('finish', resolve);
+                    writer.on('error', reject);
+                });
+
+                  // 重命名文件
+                fs.rename(tempFilePath, targetFilePath, (err) => {
+                    if (err) {
+                        log.error('Error renaming file:', err);
+                    } else {
+                        log.info('File renamed successfully to:', targetFilePath);
+                    }
+                });
+            } catch (err) {
+                log.error('Error downloading or renaming file:', err);
+                fs.unlink(tempFilePath, () => {});
+            }
+        })
+        .catch(error => {
+            log.error("检测更新报错", error);
         });
     });
 }

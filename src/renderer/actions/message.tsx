@@ -1,13 +1,13 @@
 import IDBExportImport from 'indexeddb-export-import';
 import axios from 'axios';
 
-import { Button, Card, notification, Space } from 'antd';
+import { Button, Card, message, notification, Space } from 'antd';
 
 import { getStartParams, isStringEmpty } from '@rutil/index';
 import {
     IS_AUTO_UPGRADE,
     UNITTEST_ENV,
-    PRJ,
+    AI_LINK_PROJECT,
     ENV,
 } from '@conf/storage';
 import { 
@@ -37,6 +37,9 @@ import {
     ChannelsAxioTeanSendStr,
     ChannelsAutoUpgradeNewVersionStr,
     ChannelsAxioTeamReplyStr,
+    ChannelsMessageStr,
+    ChannelsMessageErrorStr,
+    ChannelsMessageInfoStr,
 } from '@conf/channel';
 import {
     NETWORK_REQUEST_URL
@@ -169,6 +172,7 @@ export function sendAjaxMessageByRunner(method : string, url : string, headData,
 export default function() : void {
     if('electron' in window) {
 
+        //版本更新
         window.electron.ipcRenderer.on(ChannelsAutoUpgradeStr, (action, newVersion) => {
             if (action !== ChannelsAutoUpgradeNewVersionStr) {
               return;
@@ -241,7 +245,7 @@ export default function() : void {
 
                     localStorage.removeItem(IS_AUTO_UPGRADE);
                     localStorage.removeItem(UNITTEST_ENV);
-                    localStorage.removeItem(PRJ);
+                    localStorage.removeItem(AI_LINK_PROJECT);
                     localStorage.removeItem(ENV);
                     alert(langTrans("db clean success"));
                 },
@@ -250,7 +254,7 @@ export default function() : void {
         });
 
         //刷迭代文档
-        window.electron.ipcRenderer.on(ChannelsMarkdownLongStr, async (action, iteratorId) => {
+        window.electron.ipcRenderer.on(ChannelsMarkdownLongStr, async (action, iteratorId : string) => {
             if (action !== ChannelsMarkdownQueryStr) return;
             let prjs = await getPrjs(clientType, null);
             let envs = await getEnvs(clientType, null);
@@ -271,11 +275,22 @@ export default function() : void {
         });
 
         //mock 接口处理
-        window.electron.ipcRenderer.on(ChannelsMockServerLongStr, async (action, iteratorId, projectId, method, uri) => {
+        window.electron.ipcRenderer.on(ChannelsMockServerLongStr, async (action, iteratorId : string, projectId : string, method, uri) => {
             if (action !== ChannelsMockServerQueryStr) return;
             let versionIteration = await getRemoteVersionIterator(clientType, iteratorId);
             let requests = await getSimpleVersionIteratorRequests(clientType, iteratorId, projectId, null, "", uri);
             window.electron.ipcRenderer.sendMessage(ChannelsMockServerLongStr, ChannelsMockServerQueryResultStr, versionIteration, requests);
         });
+
+        window.electron.ipcRenderer.on(ChannelsMessageStr, (action, content : string) => {
+            if (action === ChannelsMessageErrorStr) {
+                message.error(content, 5);
+                return;
+            }
+            if (action === ChannelsMessageInfoStr) {
+                message.info(content, 5);
+                return;
+            }
+        })
     }
 }

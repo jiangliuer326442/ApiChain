@@ -96,6 +96,10 @@ export const ChannelsDbProjectImportResultStr = 'pipeline_database_projects_impo
  */
 export type ChannelsRestartApp = 'pipeline_restart';
 export const ChannelsRestartAppStr = 'pipeline_restart';
+export type ChannelsMessage = 'pipeline_message';
+export const ChannelsMessageStr = 'pipeline_message';
+export const ChannelsMessageErrorStr = 'pipeline_message_error';
+export const ChannelsMessageInfoStr = 'pipeline_message_info';
 export type ChannelsLoadApp = 'pipeline_reload';
 export const ChannelsLoadAppStr = 'pipeline_reload';
 
@@ -150,6 +154,10 @@ export const ChannelsTeamStr = 'pipeline_team';
 export const ChannelsTeamTestHostStr = 'pipeline_test_host';
 
 export const ChannelsTeamTestHostResultStr = 'pipeline_test_host_result';
+
+export const ChannelsTeamListStr = 'pipeline_team_list';
+
+export const ChannelsTeamListResultStr = 'pipeline_team_list_result';
 
 export const ChannelsTeamSetInfoStr = 'pipeline_set_team_info';
 

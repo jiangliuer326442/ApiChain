@@ -42,7 +42,11 @@ export function setClientHost(clientHost : string, store : Store) {
     store.set(TEAM_CLIENT_HOST, clientHost);
 }
 
-export function setClientInfo(clientType : string, teamId : string, store : Store) {
+export function setClientInfo(clientType : string, teamId : string | null, store : Store) {
     store.set(TEAM_CLIENT_TYPE, clientType);
-    store.set(TEAM_CLIENT_TEAMID, teamId);
+    if (teamId === null) {
+        store.delete(TEAM_CLIENT_TEAMID);
+    } else {
+        store.set(TEAM_CLIENT_TEAMID, teamId);
+    }
 }

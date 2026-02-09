@@ -18,21 +18,19 @@ import IDBExportImport from 'indexeddb-export-import';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
-import { getUser, getUsers } from '@act/user';
+import { getUsers } from '@act/user';
 import {
     ChannelsTeamStr, 
     ChannelsTeamTestHostStr,
     ChannelsTeamTestHostResultStr,
     ChannelsTeamSetInfoStr,
-    ChannelsRestartAppStr,
-    ChannelsTeamSetInfoResultStr,
 } from '@conf/channel';
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
 import { getWikiTeamVersion } from '@conf/url';
-import { SYNC_TABLES } from '@conf/global_config';
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 
+const { TextArea } = Input
 const { Paragraph, Text, Link } = Typography;
 
 class TeamModel extends Component {
@@ -46,58 +44,51 @@ class TeamModel extends Component {
             teamType: this.props.teamType,
             teamName: "",
             teamId: "",
+            applyReason: "",
             teams: [],
             networkIng: false,
         }
     }
 
-    commitTeam = () => {
+    commitTeam = async () => {
         if (this.state.networkIng) {
             return;
         }
-        const idbDatabase = window.db.backendDB();
-        IDBExportImport.exportToJsonString(idbDatabase, async (err, dbJson) => {
-            if (err) {
-                message.error("数据库导出失败")
-            } else {
-                let user = await getUser(CLIENT_TYPE_SINGLE, this.props.uid);
-                let uname = user.uname;
-                let users = await getUsers(CLIENT_TYPE_SINGLE);
-                let usersList = [this.props.uid + "$$" + uname];
-                for (const [_uid, _uname] of users) {
-                    usersList.push(_uid + "$$" + _uname);
-                }
-                let usersStr = usersList.join(",")
-                console.debug("usersStr", usersStr);
-                if (this.state.teamType === "create") {
-                    this.setState({networkIng: true});
-                    this.setTeamInfoPromise(uname, null, this.state.teamName, usersStr, dbJson)
-                    .then(async response => await this.handleResponse(response))
-                    .catch(err => {
-                        message.error(err.message);
-                    })
-                    .finally(() => {
-                        this.setState({networkIng: false});
-                    })
-                } else if (this.state.teamType === "join") {
-                    this.setState({networkIng: true});
-                    this.setTeamInfoPromise(uname, this.state.teamId, null, usersStr, dbJson)
-                    .then(async response => await this.handleResponse(response))
-                    .catch(err => {
-                        message.error(err.message);
-                    })
-                    .finally(() => {
-                        this.setState({networkIng: false});
-                    })
-                }
-            }
-        });
-    }
 
-    handleResponse = async (response) => {
-        let teamId = response.teamId;
-        await this.updateAllRecords(teamId);
-        window.electron.ipcRenderer.sendMessage(ChannelsRestartAppStr);
+        if (this.state.teamType === "create") {
+            this.setState({networkIng: true});
+
+            const idbDatabase = window.db.backendDB();
+            IDBExportImport.exportToJsonString(idbDatabase, async (err, dbJson) => {
+                if (err) {
+                    message.error(langTrans("db export error"))
+                } else {
+                    let users = await getUsers(CLIENT_TYPE_SINGLE);
+                    let usersList = [this.props.uid + "$$" + this.props.uname];
+                    for (const [_uid, _uname] of users) {
+                        usersList.push(_uid + "$$" + _uname);
+                    }
+                    let usersStr = usersList.join(",")
+
+                    window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
+                        this.state.teamType, 
+                        this.props.uname, null, this.state.teamName, 
+                        null, usersStr, dbJson);
+                    setTimeout(() => {
+                        this.setState({networkIng: false});
+                    }, 5000);
+                }
+            });
+        } else if (this.state.teamType === "join") {
+            this.setState({networkIng: true});
+            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
+                this.state.teamType, 
+                this.props.uname, this.state.teamId, null, 
+                this.state.applyReason, null, null);
+            setTimeout(() => {
+                this.setState({networkIng: false});
+            }, 5000);
+        }
     }
 
     canelTeam = () => {
@@ -111,24 +102,6 @@ class TeamModel extends Component {
     setTeamType = (e: RadioChangeEvent) => {
         this.setState({teamType: e.target.value});
     };
-
-    setTeamInfoPromise = (uname, teamId, teamName, users, dbJson) => {
-        return new Promise((resolve, reject) => {
-
-            let addTeamSendListener = window.electron.ipcRenderer.on(ChannelsTeamStr, (action, errorMessage, retTeamId, retTeamName) => {
-                if (action === ChannelsTeamSetInfoResultStr) {
-                    addTeamSendListener();
-                    if (isStringEmpty(errorMessage)) {
-                        resolve({teamId: retTeamId, teamName: retTeamName})
-                    } else {
-                        reject({message: errorMessage})
-                    }
-                }
-            });
-
-            window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, this.state.teamType, uname, teamId, teamName, users, dbJson);
-        })
-    }
 
     ckHostPromise = () => {
         return new Promise((resolve, reject) => {
@@ -150,26 +123,6 @@ class TeamModel extends Component {
                 window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamTestHostStr, _clientHost);
             }
         });
-    }
-
-    // 更新所有表的所有记录
-    updateAllRecords = async (teamId : string) => {
-        // 获取所有表的名称
-        const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
-    
-        for (const tableName of tableNames) {
-            const table = window.db.table(tableName);
-        
-            // 获取所有记录
-            const records = await table.toArray();
-        
-            // 更新每个记录
-            for (const record of records) {
-                record.upload_flg = 1;
-                record.team_id = teamId;
-                await table.put(record);
-            }
-        }
     }
 
     ckHostClick = async () => {
@@ -215,23 +168,23 @@ class TeamModel extends Component {
                                 <Radio value={ CLIENT_TYPE_TEAM }>{langTrans("team topup form1 select2")}</Radio>
                             </Radio.Group>
                         </Form.Item>
-                        {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
-                        <>
-                            <Form.Item label={
-                                    <Tooltip 
-                                        title={
-                                        <Paragraph>
-                                            {langTrans("team topup form2 tip1")} 
-                                            <Link onClick={() => {
-                                                this.setState({clientHost: this.props.defaultRunnerUrl});
-                                            }}>{this.props.defaultRunnerUrl}</Link>
-                                            {langTrans("team topup form2 tip2")}
-                                            <SyntaxHighlighter
-                                            language="shell"
-                                            style={tomorrow}
-                                            wrapLines
-                                            >
-                                                {`docker run -d 
+                    {(isStringEmpty(this.state.clientType) ? this.props.clientType : this.state.clientType) === "team" ? 
+                    <>
+                        <Form.Item label={
+                                <Tooltip 
+                                    title={
+                                    <Paragraph>
+                                        {langTrans("team topup form2 tip1")} 
+                                        <Link onClick={() => {
+                                            this.setState({clientHost: this.props.defaultRunnerUrl});
+                                        }}>{this.props.defaultRunnerUrl}</Link>
+                                        {langTrans("team topup form2 tip2")}
+                                        <SyntaxHighlighter
+                                        language="shell"
+                                        style={tomorrow}
+                                        wrapLines
+                                        >
+                                            {`docker run -d 
 -p 6588:6588 
 -e DB_HOST=[MYSQL_HOST_URL]
 -e DB_PORT=[MYSQL_HOST_PORT]
@@ -240,53 +193,59 @@ class TeamModel extends Component {
 -e DB_NAME=apichain_runner
 -e DEPLOY_COUNTRY=${this.props.userCountry}
 -e APICHAIN_SUPER_UID=${this.props.uid}
--e APICHAIN_SUPER_UNAME=${this.props.uname}
 -v [/path/to/local/dir]:/opt/cache
 --name apichain-runner
 ${this.props.userCountry === 'CN' ? "registry.cn-shanghai.aliyuncs.com/apichain/runner" : "jiangliuer326442/apichain-runner"}:${this.props.defaultRunnerVersion}`}
-                                            </SyntaxHighlighter>
-                                        </Paragraph>}
-                                        overlayStyle={{ maxWidth: 500 }}>
-                                        <Text>{langTrans("team topup form2")}<QuestionCircleTwoTone /></Text>
-                                    </Tooltip>
-                                }
-                            >
-                                <Input.Group compact style={{ display: 'flex' }}>
-                                    <Input 
-                                        value={ this.state.clientHost } 
-                                        placeholder={this.props.defaultRunnerUrl}
-                                        onChange={ event=> {
-                                            this.setState({
-                                                clientHost : event.target.value,
-                                                clientHostValid: false
-                                            })
-                                        } } />
-                                    <Button onClick={this.ckHostClick}>{langTrans("team topup form2 btn1")}</Button>
-                                </Input.Group>
-                            </Form.Item>
-                            {this.state.clientHostValid ? 
-                            <>
-                                <Form.Item label={langTrans("team topup form3")}>
-                                    <Radio.Group onChange={this.setTeamType} value={this.state.teamType}>
-                                        <Radio value="create">{langTrans("team topup form3 radio1")}</Radio>
-                                        <Radio value="join">{langTrans("team topup form3 radio2")}</Radio>
-                                    </Radio.Group>
-                                </Form.Item>
-                                {this.state.teamType === "create" ? 
-                                <Form.Item label={langTrans("team topup form4")}>
-                                    <Input value={ this.state.teamName } onChange={ event=>this.setState({teamName : event.target.value}) } />
-                                </Form.Item>
-                                : null}
-                                {this.state.teamType === "join" ? 
-                                <Form.Item label={langTrans("team topup form5")}>
-                                    <Select options={this.state.teams} defaultValue={this.props.teamId} onChange={_teamId => this.setState({teamId: _teamId})} />
-                                </Form.Item>
-                                : null}
-                                
-                            </>
-                            : null}
-                        </>
-                        : null}
+                                        </SyntaxHighlighter>
+                                    </Paragraph>}
+                                    overlayStyle={{ maxWidth: 500 }}>
+                                    <Text>{langTrans("team topup form2")}<QuestionCircleTwoTone /></Text>
+                                </Tooltip>
+                            }
+                        >
+                            <Input.Group compact style={{ display: 'flex' }}>
+                                <Input 
+                                    value={ this.state.clientHost } 
+                                    placeholder={this.props.defaultRunnerUrl}
+                                    onChange={ event=> {
+                                        this.setState({
+                                            clientHost : event.target.value,
+                                            clientHostValid: false
+                                        })
+                                    } } />
+                                <Button onClick={this.ckHostClick}>{langTrans("team topup form2 btn1")}</Button>
+                            </Input.Group>
+                        </Form.Item>
+                    {this.state.clientHostValid ? 
+                    <>
+                        <Form.Item label={langTrans("team topup form3")}>
+                            <Radio.Group onChange={this.setTeamType} value={this.state.teamType}>
+                                <Radio value="create">{langTrans("team topup form3 radio1")}</Radio>
+                                <Radio value="join">{langTrans("team topup form3 radio2")}</Radio>
+                            </Radio.Group>
+                        </Form.Item>
+                    {this.state.teamType === "create" ? 
+                        <Form.Item label={langTrans("team topup form4")}>
+                            <Input value={ this.state.teamName } onChange={ event=>this.setState({teamName : event.target.value}) } />
+                        </Form.Item>
+                    : null}
+                    {this.state.teamType === "join" ? 
+                    <>
+                        <Form.Item label={langTrans("team topup form5")}>
+                            <Select options={this.state.teams} onChange={_teamId => this.setState({teamId: _teamId})} />
+                        </Form.Item>
+                        <Form.Item label={langTrans("team topup form6")}>
+                            <TextArea allowClear rows={ 3 }
+                                value={this.state.applyReason} 
+                                onChange={ e=>this.setState({applyReason : e.target.value}) } />
+                        </Form.Item>
+                    </>
+                    : null}
+                        
+                    </>
+                    : null}
+                </>
+            : null}
                     </Form>
                 </Spin>
             </Modal>

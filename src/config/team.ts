@@ -8,9 +8,27 @@ export const TEAM_CREATE_URL = "/team/register";
 
 export const TEAM_JOIN_URL = "/team/join";
 
+export const TEAM_APPLY_USERS_URL = "/team/applys";
+
+export const TEAM_APPLY_URL = "/team/apply-approve";
+
+export const TEAM_APPLY_REFUSE_URL = "/team/apply-refuse";
+
+export const TEAM_MEMBER_UNAME_URL = "/team/set-member-name";
+
+export const TEAM_MEMBER_AWAY_URL = "/team/leave-member-away";
+
+export const TEAM_MEMBER_ADMIN_URL = "/team/set-member-admin";
+
+export const TEAM_MEMBERS_URL = "/team/members";
+
 export const TEAM_LIST_URL = "/team/teams";
 
 export const TEAM_QUERY_NAME = "/team/getTeamName";
+
+export const TEAM_DISSOLVE_URL = "/team/close-team";
+
+export const TEAM_RENAME_URL = "/team/rename-team";
 
 export const TEAM_DB_SYNC_URL = "/team/syncDb";
 

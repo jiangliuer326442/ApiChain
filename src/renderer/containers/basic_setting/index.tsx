@@ -2,8 +2,7 @@ import {
     Alert,
     Button, 
     Form, 
-    Input, 
-    Checkbox, 
+    Input,
     Divider, 
     Table,
     Typography, 
@@ -21,30 +20,27 @@ import { connect } from 'react-redux';
 
 import { langTrans } from '@lang/i18n';
 import {
-    ChannelsAutoUpgradeStr, 
-    ChannelsAutoUpgradeCheckStr, 
     ChannelsVipStr,
     ChannelsVipCloseCkCodeStr,
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
-import { IS_AUTO_UPGRADE } from '@conf/storage';
 import {
     CLIENT_TYPE_TEAM 
 } from '@conf/team';
 import { getdayjs } from '@rutil/index';
 import { 
-    getTokens, 
     setBaseUrl, 
     setApiKey,
     setChatModel,
     setProvider,
-    getTeamSetting,
-    enableToken,
-    queryRemainGas
 } from '@act/team';
 import {
+    getTokens, 
+    getTeamSetting,
+    enableToken,
     vectorModels,
-    reVectorModels
+    reVectorModels,
+    queryRemainGas
 } from '@act/ai';
 import PayAiTokenModel from '@comp/topup/aitoken';
 
@@ -55,11 +51,8 @@ class BasicSetting extends Component {
 
     constructor(props) {
         super(props);
-        let checkAutoUpgrade = localStorage.getItem(IS_AUTO_UPGRADE);
-        checkAutoUpgrade = checkAutoUpgrade == null ? 1 : checkAutoUpgrade;
         this.state = {
             loaded: false,
-            checkAutoUpgrade,
             bigModelProviders:[],
             selectedProvider: "",
             providers: [],
@@ -246,10 +239,6 @@ class BasicSetting extends Component {
         return retBaseUrlArr;
     }
 
-    checkForUpgrade = () => {
-        window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
-    }
-
     setProvider = async (newProvider : string) => {
         await setProvider(newProvider).then(()=> {
             let baseUrlArr = this.getBaseUrl(null, newProvider);
@@ -351,8 +340,9 @@ class BasicSetting extends Component {
                         />
                 {this.state.loaded ? 
                     <Form
-                        labelCol={{ span: 10 }}
+                        labelCol={{ span: 5 }}
                         wrapperCol={{ span: 14 }}
+                        style={{width: 800}}
                     >
                         {this.props.clientType === CLIENT_TYPE_TEAM ? 
                     <>
@@ -427,51 +417,39 @@ class BasicSetting extends Component {
                             />
                         </Form.Item>
                         <Form.Item
-                            label={langTrans("konwledge management")}
+                            label={langTrans("knowledge management")}
                             style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.85)', paddingTop: '12px' }}
                         >
                             <Space size="middle">
-                                <Button onClick={async ()=>{
-                                    await vectorModels();
-                                    message.success(langTrans("prj unittest status2"));
-                                }} type="primary">{langTrans("konwledge management update")}</Button>
+                                <Button
+                                     variant="outlined" 
+                                    onClick={async ()=>{
+                                        try {
+                                            await vectorModels();
+                                            message.success(langTrans("prj unittest status2"));
+                                        } catch (error) {
+                                            message.error(error.errorMessage);
+                                        }
+                                }} color="primary">{langTrans("knowledge management update")}</Button>
                                 <Popconfirm
-                                    title={langTrans("konwledge management rebuild confirm")}
+                                    title={langTrans("knowledge management rebuild confirm")}
                                     onConfirm={async ()=>{
-                                        await reVectorModels();
-                                        message.success(langTrans("prj unittest status2"));
+                                        try {
+                                            await reVectorModels();
+                                            message.success(langTrans("prj unittest status2"));
+                                        } catch (error) {
+                                            message.error(error.errorMessage);
+                                        }
                                     }}
                                 >
-                                    <Button type="primary" danger>{langTrans("konwledge management rebuild")}</Button>
+                                    <Button 
+                                        variant="outlined" 
+                                        color="primary" danger>{langTrans("knowledge management rebuild")}</Button>
                                 </Popconfirm>
                             </Space>
                         </Form.Item>
                     </>
                         : null}
-                
-                        <Form.Item
-                            label={langTrans("update checkbox")}
-                        >
-                            <Space size="middle">
-                                <Checkbox 
-                                    checked={this.state.checkAutoUpgrade == 1}
-                                    onChange={e => {
-                                        if (e.target.checked) {
-                                            this.setState({checkAutoUpgrade: 1});
-                                            localStorage.setItem(IS_AUTO_UPGRADE, "1");
-                                            this.checkForUpgrade();
-                                        } else {
-                                            this.setState({checkAutoUpgrade: 0});
-                                            localStorage.setItem(IS_AUTO_UPGRADE, "0");
-                                        }
-                                    }}
-                                >
-                                </Checkbox>
-                            {this.state.checkAutoUpgrade == 0 ? 
-                                <Button type="primary" onClick={this.checkForUpgrade}>{langTrans("update manual")}</Button>
-                            : null}
-                            </Space>
-                        </Form.Item>
                     </Form>
                 : null}
                     <Divider>{langTrans("setting basic table title")}</Divider>

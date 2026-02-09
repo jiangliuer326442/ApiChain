@@ -29,7 +29,11 @@ import {
   REQUEST_HISTORY,
   ENVVAR_GLOBAL_LIST_ROUTE,
   BASIC_SETTING_ROUTE,
+  TEAM_MEMBER_ROUTE,
 } from '@conf/routers';
+import {
+  CLIENT_TYPE_TEAM
+} from '@conf/team';
 import { getOpenVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
 
@@ -37,7 +41,6 @@ let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 const { Sider } = Layout;
 
@@ -46,101 +49,114 @@ class Nav extends Component {
 
     constructor(props) {
         super(props);
+        const basicNavs = [
+          {
+            key: NETWORK,
+            icon: <OneToOneOutlined />,
+            label: langTrans("nav request"),
+            children:[
+              {
+                key: INTERNET_REQUEST,
+                label: (
+                  <a href={ "#" + INTERNET_REQUEST } rel="noopener noreferrer">
+                    {langTrans("nav request send")}
+                  </a >
+                )
+              },
+              {
+                key: REQUEST_HISTORY,
+                label: (
+                  <a href={ "#" + REQUEST_HISTORY } rel="noopener noreferrer">
+                    {langTrans("nav request log")}
+                  </a >
+                )
+              }
+            ]
+          },
+          {
+            key: ITERATOR,
+            icon: <LineChartOutlined />,
+            label: <Button style={{padding: 0}} type='text' onClick={() => {
+              if (this.props.iterations.length === 0) {
+                getOpenVersionIterators(this.props.clientType, this.props.dispatch);
+              }
+            }}>{langTrans("nav iterator")}</Button>,
+            children: [
+            ]
+          },
+          {
+            key: PROJECT,
+            icon: <FlagOutlined />,
+            label: <Button style={{padding: 0}} type='text' onClick={() => {
+              if (this.props.prjs.length === 0) {
+                getPrjs(this.props.clientType, this.props.dispatch);
+              }
+            }}>{langTrans("nav project")}</Button>,
+            children: [
+            ]
+          },
+          {
+            key: SETTINGS,
+            icon: <SettingOutlined />,
+            label: langTrans("nav setting"),
+            children: [
+              {
+                key: VERSION_ITERATOR_LIST_ROUTE,
+                label:(
+                  <a href={ "#" + VERSION_ITERATOR_LIST_ROUTE } rel="noopener noreferrer">
+                    {langTrans("nav setting iterator")}
+                  </a>
+                )
+              },
+              {
+                key: ENVVAR_GLOBAL_LIST_ROUTE,
+                label: (
+                  <a href={ "#" + ENVVAR_GLOBAL_LIST_ROUTE } rel="noopener noreferrer">
+                    {langTrans("nav setting envvar")}
+                  </a >
+                )
+              },
+              {
+                key: PROJECT_LIST_ROUTE,
+                label: (
+                  <a href={ "#" + PROJECT_LIST_ROUTE } rel="noopener noreferrer">
+                    {langTrans("nav setting project")}
+                  </a >
+                )
+              },
+              {
+                key: ENV_LIST_ROUTE,
+                label: (
+                  <a href={ "#" + ENV_LIST_ROUTE } rel="noopener noreferrer">
+                    {langTrans("nav setting env")}
+                  </a >
+                )
+              },
+              {
+                key: BASIC_SETTING_ROUTE,
+                label: (
+                  <a href={ "#" + BASIC_SETTING_ROUTE } rel="noopener noreferrer">
+                    {langTrans("nav setting basic")}
+                  </a >
+                )
+              },
+            ]
+          },
+        ];
+
+        if (this.props.clientType === CLIENT_TYPE_TEAM) {
+          basicNavs[3].children.push({
+            key: TEAM_MEMBER_ROUTE,
+            label: (
+              <a href={ "#" + TEAM_MEMBER_ROUTE } rel="noopener noreferrer">
+                {langTrans("nav setting member")}
+              </a >
+            )
+          }) 
+        }
+
         this.state = {
-          navs: [
-            {
-              key: NETWORK,
-              icon: <OneToOneOutlined />,
-              label: langTrans("nav request"),
-              children:[
-                {
-                  key: INTERNET_REQUEST,
-                  label: (
-                    <a href={ "#" + INTERNET_REQUEST } rel="noopener noreferrer">
-                      {langTrans("nav request send")}
-                    </a >
-                  )
-                },
-                {
-                  key: REQUEST_HISTORY,
-                  label: (
-                    <a href={ "#" + REQUEST_HISTORY } rel="noopener noreferrer">
-                      {langTrans("nav request log")}
-                    </a >
-                  )
-                }
-              ]
-            },
-            {
-              key: ITERATOR,
-              icon: <LineChartOutlined />,
-              label: <Button style={{padding: 0}} type='text' onClick={() => {
-                if (this.props.iterations.length === 0) {
-                  getOpenVersionIterators(this.props.clientType, this.props.dispatch);
-                }
-              }}>{langTrans("nav iterator")}</Button>,
-              children: [
-              ]
-            },
-            {
-              key: PROJECT,
-              icon: <FlagOutlined />,
-              label: <Button style={{padding: 0}} type='text' onClick={() => {
-                if (this.props.prjs.length === 0) {
-                  getPrjs(this.props.clientType, this.props.dispatch);
-                }
-              }}>{langTrans("nav project")}</Button>,
-              children: [
-              ]
-            },
-            {
-              key: SETTINGS,
-              icon: <SettingOutlined />,
-              label: langTrans("nav setting"),
-              children: [
-                {
-                  key: VERSION_ITERATOR_LIST_ROUTE,
-                  label:(
-                    <a href={ "#" + VERSION_ITERATOR_LIST_ROUTE } rel="noopener noreferrer">
-                      {langTrans("nav setting iterator")}
-                    </a>
-                  )
-                },
-                {
-                  key: ENVVAR_GLOBAL_LIST_ROUTE,
-                  label: (
-                    <a href={ "#" + ENVVAR_GLOBAL_LIST_ROUTE } rel="noopener noreferrer">
-                      {langTrans("nav setting envvar")}
-                    </a >
-                  )
-                },
-                {
-                  key: PROJECT_LIST_ROUTE,
-                  label: (
-                    <a href={ "#" + PROJECT_LIST_ROUTE } rel="noopener noreferrer">
-                      {langTrans("nav setting project")}
-                    </a >
-                  )
-                },
-                {
-                  key: ENV_LIST_ROUTE,
-                  label: (
-                    <a href={ "#" + ENV_LIST_ROUTE } rel="noopener noreferrer">
-                      {langTrans("nav setting env")}
-                    </a >
-                  )
-                },
-                {
-                  key: BASIC_SETTING_ROUTE,
-                  label: (
-                    <a href={ "#" + BASIC_SETTING_ROUTE } rel="noopener noreferrer">
-                      {langTrans("nav setting basic")}
-                    </a >
-                  )
-                },
-              ]
-            },
-          ],
+          navs: basicNavs,
           initPrjsFlg: false,
           initIterationFlg: false,
         };

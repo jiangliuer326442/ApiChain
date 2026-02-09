@@ -129,8 +129,7 @@ function mapStateToProps (state) {
         device : state.device,
         prj: state.prj.prj,
         remark: state.prj.remark,
-        programming: state.prj.programming,
-        framework: state.prj.framework,
+        info: state.prj.info,
     }
 }
 

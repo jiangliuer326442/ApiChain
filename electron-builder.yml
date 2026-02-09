@@ -21,6 +21,8 @@ directories:
   buildResources: assets
   output: release/build
 
+afterAllArtifactBuild: .erb/scripts/remove-unpack-dir.js
+
 extraResources:
   - ./assets/**
 
