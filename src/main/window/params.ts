@@ -68,7 +68,7 @@ export function systemInit() {
     return { exportPrivateKey, exportPublicKey, store };
 }
 
-export async function getInitParams(privateKey : string, publicKey : string, store : Store) : Promise<string[]> {
+export async function getInitParams(privateKey : string, startupParams : object, store : Store) : Promise<string[]> {
     let packageJson = await getPackageJson();
     let lang = await osLocale();
     // if (process.env.NODE_ENV === 'development') {
@@ -115,7 +115,7 @@ export async function getInitParams(privateKey : string, publicKey : string, sto
 
     return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, userLang, userCountry, teamName, firstLauch, 
         teamId, clientHost, clientType, isSuperAdmin, isAdmin,
-        store);
+        startupParams, store);
 }
 
 function doGetInitParams(
@@ -124,7 +124,7 @@ function doGetInitParams(
     showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, 
     firstLauch : boolean, 
     teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean,
-    store : Store) : string[] {
+    startupParams : object, store : Store) : string[] {
     let uname = getUname();
     let ip = getIpV4();
     let vipFlg = isVip(store);
@@ -159,15 +159,11 @@ function doGetInitParams(
         "isAdmin=" + (isAdmin ? "1" : "0")
     ]
 
-    const args = process.argv.slice(1);
-    args.forEach(arg => {
-        if (arg.startsWith('--')) {
-            const [key, value] = arg.split('=');
-            const paramName = key.slice(2);
-            const paramValue = value;
-            response.push(paramName + "=" + paramValue);
+    for (let startupKey in startupParams) {
+        if (startupParams.hasOwnProperty(startupKey)) {
+            response.push(startupKey + "=" + startupParams[startupKey]);
         }
-    });
+    }
 
     log.info('restart params:', response);
 

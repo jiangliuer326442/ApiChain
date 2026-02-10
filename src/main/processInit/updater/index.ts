@@ -1,10 +1,12 @@
 import log from 'electron-log';
 import { app, ipcMain } from 'electron';
 import axios from 'axios';
-import path from 'path'
+import path from 'path';
 import fs from 'fs';
+import { spawn } from 'child_process';
 import { getLang } from '../../../lang/i18n';
-import { compareVersions } from '../../util/util'
+import { compareVersions } from '../../util/util';
+import { getProjectUrl } from '../../../config/url';
 
 import { 
     ChannelsAutoUpgradeStr, 
@@ -12,21 +14,33 @@ import {
     ChannelsAutoUpgradeLatestStr,
 } from '../../../config/channel';
 
-async function getUpdateUrl() {
+function getUpdateUrl() {
     let lang = getLang();
     let checkUpdateUrl = "https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/package.json";
-    if (lang === "zh-CN") {
+    if (lang == "zh-CN" || lang == "zh-TW") {
         checkUpdateUrl = "https://gitee.com/onlinetool/apichain/raw/main/package.json";
     }
 
     return checkUpdateUrl;
 }
 
+function get7zaPath() {
+    if (process.platform === "darwin") {
+        return path.join(__dirname, "7zip-bin", "7za")
+    }
+    else if (process.platform === "win32") {
+        return path.join(__dirname, "7zip-bin", "7za.exe")
+    }
+    else {
+        return path.join(__dirname, "7zip-bin", "7za")
+    }
+}
+
 export default function (){
     if (!app.isPackaged) return;
     ipcMain.on(ChannelsAutoUpgradeStr, async (event, action) => {
         if (action !== ChannelsAutoUpgradeCheckStr) return;
-        if (!(process.env.UPGRADE_CHECK == "true")) return;
+        if (!process.env.UPGRADE_CHECK) return;
         const checkUpdateUrl = await getUpdateUrl();
         axios.get(checkUpdateUrl)
         .then(async response => {
@@ -38,15 +52,9 @@ export default function (){
                 return;
             }
             //下载app.asar文件到临时目录
-            let lang = getLang();
-            let source = "github";
-            if (lang === "zh-CN") {
-                source = "gitee";
-            }
-            const downloadUrl = originResponse.downloadUrls[source];
+            const downloadUrl = `${getProjectUrl()}/releases/download/v${newVersion}/app_${process.platform}.7z`;
             const tempFilePath = path.join(app.getPath('temp'), `apichain-${Date.now()}.tmp`);
             const targetFilePath = app.getAppPath();
-
             try {
                 // 创建写入流
                 const writer = fs.createWriteStream(tempFilePath);
@@ -65,17 +73,20 @@ export default function (){
                     writer.on('error', reject);
                 });
 
-                  // 重命名文件
-                fs.rename(tempFilePath, targetFilePath, (err) => {
-                    if (err) {
-                        log.error('Error renaming file:', err);
-                    } else {
-                        log.info('File renamed successfully to:', targetFilePath);
-                    }
-                });
+                const path7za = get7zaPath();
+
+                //解压放入新代码
+                log.info(`path7za:${path7za} tempFilePath:${tempFilePath} targetFilePath:${targetFilePath}`);
+                spawn(path7za, [
+                    'x',
+                    tempFilePath,
+                    '-o' + targetFilePath,
+                    '-y'
+                  ], {
+                    stdio: 'inherit'
+                  })
             } catch (err) {
-                log.error('Error downloading or renaming file:', err);
-                fs.unlink(tempFilePath, () => {});
+                log.error(`Error downloading or renaming downloadUrl:${downloadUrl} tempFilePath:${tempFilePath} targetFilePath:${targetFilePath}`, err);
             }
         })
         .catch(error => {

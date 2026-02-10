@@ -3,7 +3,7 @@ appId: com.mustafa.ApiChain
 icon: assets/icons
 artifactName: '${productName}_${version}_${arch}.${ext}'
 
-asar: true
+asar: false
 
 mac:
   target: dmg

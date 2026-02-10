@@ -2,10 +2,6 @@
   "name": "ApiChain",
   "version": "1.2.4",
   "minServerVersion": "1.2.4",
-  "downloadUrls": {
-    "gitee": "https://gitee.com/onlinetool/apichain/releases/download/v1.2.4/app.asar",
-    "github": "https://github.com/jiangliuer326442/ApiChain/releases/download/v1.2.4/app.asar"
-  },
   "description": "tool for API documents and unit testing",
   "keywords": [
     "postman",
@@ -39,8 +35,8 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && yarn build:dll",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
-    "package": "yarn build:asar && electron-builder build && yarn build:dll",
-    "build:asar": "ts-node ./.erb/scripts/clean.js dist && yarn build && mkdirp release/build && asar pack release/app release/build/app.asar",
+    "package": "yarn build:7zip && electron-builder build && yarn build:dll",
+    "build:7zip": "ts-node ./.erb/scripts/clean.js dist && yarn build && ts-node ./.erb/scripts/build-dist-zip.js",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
@@ -65,6 +61,7 @@
     ]
   },
   "dependencies": {
+    "7zip-bin": "~5.1.1",
     "@ant-design/icons": "^5.3.6",
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.8.0",
@@ -132,6 +129,7 @@
     "browserslist-config-erb": "^0.0.3",
     "chalk": "^4.1.2",
     "concurrently": "^8.2.1",
+    "copy-webpack-plugin": "^13.0.1",
     "core-js": "^3.32.2",
     "cross-env": "^7.0.3",
     "css-loader": "^6.8.1",
