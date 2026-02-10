@@ -1,6 +1,6 @@
 {
   "name": "ApiChain",
-  "version": "1.2.4",
+  "version": "1.2.3",
   "minServerVersion": "1.2.4",
   "description": "tool for API documents and unit testing",
   "license": "MIT",

@@ -109,7 +109,7 @@ class MyRouter extends Component {
             buyTimes : parseInt(argsObject.buyTimes),
             clientType,
             clientHost: argsObject.clientHost,
-            teamName: urlDecode(argsObject.teamName), 
+            teamName: isStringEmpty(argsObject.teamId) ? "" : urlDecode(argsObject.teamName), 
             teamId: argsObject.teamId,
             appName : argsObject.appName,
             appVersion : argsObject.appVersion,

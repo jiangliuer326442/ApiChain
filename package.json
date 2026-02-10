@@ -1,6 +1,6 @@
 {
   "name": "ApiChain",
-  "version": "1.2.4",
+  "version": "1.2.3",
   "minServerVersion": "1.2.4",
   "downloadUrls": {
     "gitee": "https://gitee.com/onlinetool/apichain/releases/download/v1.2.4/app.asar",

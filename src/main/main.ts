@@ -1,13 +1,42 @@
 import { app, BrowserWindow, dialog } from 'electron';
-import serve from 'electron-serve'
+import serve from 'electron-serve';
+import fs from 'fs-extra';
 import log from 'electron-log';
+import path from 'path';
 
-import { ArgsMemberBuySuccess, ArgsTokenBuySuccess } from '../config/startArgs';
+import { ArgsMemberBuySuccess, ArgsTokenBuySuccess, ArgsUpgradeRestart } from '../config/startArgs';
 import { isStringEmpty } from '../renderer/util';
 import bindIpcEvents from './processInit';
 import { topUpCallback } from './logic/topup';
 import { createWindow as createMainWindow, getWindow as getMainWindow } from './window/main';
 import { getInitParams, systemInit } from './window/params';
+
+const startupParams = {};
+
+const args = process.argv.slice(1);
+args.forEach(arg => {
+    if (arg.startsWith('--')) {
+        const [key, value] = arg.split('=');
+        const paramName = key.slice(2);
+        const paramValue = value;
+        startupParams[paramName] = paramValue;
+    }
+});
+
+log.info('startup params:', startupParams);
+
+if ("action" in startupParams && startupParams["action"] === ArgsUpgradeRestart) {
+  const resourcesDir = process.resourcesPath;
+  const targetAsarPath = path.join(resourcesDir, 'app.asar');
+  // 重命名文件
+  let tempFilePath = startupParams["tmpPath"];
+  try {
+    fs.removeSync(targetAsarPath);
+    fs.moveSync(tempFilePath, targetAsarPath, { overwrite: true });
+  } catch (err) {
+    log.error('Error moving file:', err);
+  }
+}
 
 const PROTOCOL = 'com-mustafa-apichain';
 
@@ -23,7 +52,7 @@ const { exportPrivateKey, exportPublicKey, store } = systemInit();
 
 //获取启动参数创建主窗口
 const createWindow = async () => {
-  let initParam = await getInitParams(exportPrivateKey, exportPublicKey, store);
+  let initParam = await getInitParams(exportPrivateKey, startupParams, store);
   createMainWindow(initParam, (mainWindow : BrowserWindow) => {
     bindIpcEvents(mainWindow, exportPrivateKey, exportPublicKey, store);
   });
