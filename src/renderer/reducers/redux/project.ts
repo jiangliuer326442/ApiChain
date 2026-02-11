@@ -60,7 +60,8 @@ export default function (state = {
         case GET_PRJS:
           const list = action.prjs.map(item => ({
             value: item[prj_label],
-            label: item[prj_remark]
+            label: item[prj_remark],
+            teamId: item["team_id"],
           }));
           return Object.assign({}, state, {
               list

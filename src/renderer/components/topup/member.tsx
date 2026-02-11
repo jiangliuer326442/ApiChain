@@ -141,17 +141,11 @@ class PayMemberModel extends Component {
                                 }
                             </Form.Item>
                         </Form>
-                {this.state.showPayQrCode1 ? 
-                    (this.state.payMethod === "wxpay" ?
+                    {this.state.showPayQrCode1 ? 
                         <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
                             "money": this.state.money
                         })}</p>
-                    :
-                        <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent2", {
-                            "money": this.state.money
-                        })}</p>
-                    )
-                : null}
+                    : null}
                     </Flex>
                 </Modal>
             </>

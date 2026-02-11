@@ -15,11 +15,6 @@ import {
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
 
-function convertMoneyToBtc(money : number) : number {
-    const result = Math.ceil((money / 7) / 90000 * 100000000) / 100000000;
-    return parseFloat(result.toFixed(8));
-}
-
 export default function (privateKey : string, publicKey : string, store: Store){
 
     ipcMain.on(ChannelsVipStr, async (event, action, productName, payMethod) => {
@@ -61,9 +56,6 @@ export default function (privateKey : string, publicKey : string, store: Store){
             money = 50;
         } else if (productName === "token3") {
             money = 100;
-        }
-        if (payMethod == "dollerpay") {
-            money = convertMoneyToBtc(money);
         }
         let url = await genCheckCodeUrl(productName, payMethod, privateKey, publicKey, store);
         await shell.openExternal(url)

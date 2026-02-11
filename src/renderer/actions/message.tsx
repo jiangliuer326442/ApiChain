@@ -267,6 +267,7 @@ export default function() : void {
             let envVars : any = {};
             for (let _prj of prjs) {
                 let projectLabel = _prj[prj_label];
+                //@todo fanghailiang 需要传teamId
                 const envVarItems = await getEnvHosts(clientType, projectLabel, null);
                 envVars[projectLabel] = envVarItems;
             }

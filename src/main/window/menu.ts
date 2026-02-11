@@ -1,4 +1,5 @@
 import {
+  app,
   Menu,
 } from 'electron';
 
@@ -7,17 +8,24 @@ import { exportDb } from '../store/db/export';
 import { importDb } from '../store/db/import';
 import { trunkDb } from '../store/db/trunk';
 import { langTrans } from '../../lang/i18n';
+import { App } from 'antd';
 
 export default class MenuBuilder {
 
   buildMenu(): Menu {
     let template = this.buildDefaultTemplate();
-
-    if (
-      process.env.NODE_ENV === 'development' ||
-      process.env.DEBUG_PROD === 'true'
-    ) {
-      template[0].submenu.push();
+    if (!app.isPackaged) {
+      template.push(      {
+        label: langTrans("menu help"),
+        submenu: [
+          {
+            label: langTrans("menu help debug"),
+            click: () => {
+              getWindow().webContents.toggleDevTools();
+            },
+          }
+        ],
+      });
     }
 
     const menu = Menu.buildFromTemplate(template);
@@ -61,17 +69,6 @@ export default class MenuBuilder {
             },
           },
         ]
-      },
-      {
-        label: langTrans("menu help"),
-        submenu: [
-          {
-            label: langTrans("menu help debug"),
-            click: () => {
-              getWindow().webContents.toggleDevTools();
-            },
-          }
-        ],
       },
     ];
 

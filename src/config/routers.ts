@@ -37,7 +37,7 @@ export const REQUEST_ITERATOR_LIST_ROUTE = "/version_iterator_requests/:id"
 //迭代接口详情
 export const REQUEST_ITERATOR_DETAIL_ROUTE = "/version_iterator_request/:iteratorId/:prj/:method/:uri"
 //项目接口详情
-export const REQUEST_PROJECT_DETAIL_ROUTE = "/version_iterator_request/:prj/:method/:uri"
+export const REQUEST_PROJECT_DETAIL_ROUTE = "/project_request/:prj/:method/:uri"
 //迭代单测列表
 export const UNITTEST_ITERATOR_LIST_ROUTE = "/version_iterator_tests/:id"
 //会员功能
@@ -51,13 +51,13 @@ export const UNITTEST_STEP_EDIT_ROUTE = "/version_iterator_tests_step_edit/:iter
 //请求历史
 export const REQUEST_HISTORY = "/request_history";
 //项目环境变量管理
-export const ENVVAR_PRJ_LIST_ROUTE = "/prj_envvars/:prj";
+export const ENVVAR_PRJ_LIST_ROUTE = "/prj_envvars/:team/:prj";
 //项目接口列表
-export const REQUEST_PROJECT_LIST_ROUTE = "/project_requests/:id";
+export const REQUEST_PROJECT_LIST_ROUTE = "/project_requests/:team/:id";
 //项目全局参数
-export const REQUEST_PROJECT_PARAMS = "/project_params/:id";
+export const REQUEST_PROJECT_PARAMS = "/project_params/:team/:id";
 //项目单测列表
-export const UNITTEST_PROJECT_LIST_ROUTE = "/project_tests/:id";
+export const UNITTEST_PROJECT_LIST_ROUTE = "/project_tests/:team/:id";
 //迭代新增接口
 export const ITERATOR_ADD_REQUEST_ROUTE = "/interator_add_request/:versionIteratorId";
 

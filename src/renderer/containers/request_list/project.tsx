@@ -37,6 +37,7 @@ class RequestListProject extends Component {
             requestsJsxDividered: [],
             title: "",
             uri: "",
+            teamId: props.match.params.team,
             optionsUri: [],
             optionsTitle: [],
             folders: [],
@@ -58,6 +59,7 @@ class RequestListProject extends Component {
         if (state.projectLabel !== projectLabel) {
             return {
                 projectLabel,
+                teamId: props.match.params.team
             }
         }
         return null;
@@ -144,6 +146,7 @@ class RequestListProject extends Component {
                                     allFolders={this.state.folders} 
                                     filterTitle={this.state.filterTitle}
                                     filterUri={this.state.filterUri}
+                                    teamId={this.state.teamId}
                                     refreshCallback={() => this.onFinish({
                                         title: this.state.filterTitle,
                                         uri: this.state.filterUri

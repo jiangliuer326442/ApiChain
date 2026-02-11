@@ -392,14 +392,14 @@ class RequestSendContainer extends Component {
     return true;
   }
 
-  getEnvValueData = async (prj: string, env: string) => {
+  getEnvValueData = async (teamId: string, prj: string, env: string) => {
     if (isStringEmpty(env)) return;
     this.setState(this.getClearState());
-    let ret = await getEnvHosts(this.props.clientType, prj, env);
+    let ret = await getEnvHosts(this.props.clientType, teamId, prj, env);
     let requestHost = getMapValueOrDefault(ret, env, "");
     let runMode = ENV_VALUE_RUN_MODE_CLIENT;
     if (this.props.clientType === CLIENT_TYPE_TEAM) {
-      let ret2 = await getEnvRunModes(this.props.clientType, prj, env);
+      let ret2 = await getEnvRunModes(this.props.clientType, teamId, prj, env);
       runMode = getMapValueOrDefault(ret2, env, ENV_VALUE_RUN_MODE_CLIENT);
     }
     if (isStringEmpty(requestHost)) {

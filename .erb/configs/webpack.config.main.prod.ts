@@ -16,6 +16,31 @@ import deleteSourceMaps from '../scripts/delete-source-maps';
 checkNodeEnv('production');
 deleteSourceMaps();
 
+const plugins = [
+  new webpack.EnvironmentPlugin({
+    NODE_ENV: 'production',
+    DEBUG_PROD: false,
+    START_MINIMIZED: false,
+    UPGRADE_CHECK: !((process.env.CHAT_PROVIDER || "") == "ZHAOHANG")
+  }),
+
+  new webpack.DefinePlugin({
+    'process.type': '"browser"',
+  }),
+];
+
+const copy_zip = process.env.TS_NODE_COPY_ZIP || false;
+if (copy_zip) {
+  plugins.push(new CopyWebpackPlugin({
+    patterns: [
+      {
+        from: path7za,
+        to: '7zip-bin/7za[ext]',
+      },
+    ],
+  }));
+}
+
 const configuration: webpack.Configuration = {
   devtool: false,
 
@@ -51,37 +76,19 @@ const configuration: webpack.Configuration = {
         parallel: true,
       }),
     ],
+    splitChunks: {
+      cacheGroups: {
+        vendors: {
+          test: /[\\/]node_modules[\\/]/, // 匹配 node_modules 中的模块
+          name: 'vendors',
+          chunks: 'all', // 所有类型的 chunk（同步/异步）
+          priority: 10, // 优先级高于默认的 common chunk
+        },
+      },
+    },
   },
 
-  plugins: [
-    /**
-     * Create global constants which can be configured at compile time.
-     *
-     * Useful for allowing different behaviour between development builds and
-     * release builds
-     *
-     * NODE_ENV should be production so that modules do not perform certain
-     * development checks
-     */
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: path7za,
-          to: '7zip-bin/7za[ext]',
-        },
-      ],
-    }),
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production',
-      DEBUG_PROD: false,
-      START_MINIMIZED: false,
-      UPGRADE_CHECK: !((process.env.CHAT_PROVIDER || "") == "ZHAOHANG")
-    }),
-
-    new webpack.DefinePlugin({
-      'process.type': '"browser"',
-    }),
-  ],
+  plugins,
 
   /**
    * Disables webpack processing of __dirname and __filename.

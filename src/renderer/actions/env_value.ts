@@ -120,7 +120,7 @@ export async function batchMoveIteratorEnvValue(prj : string, env : string, oldI
     cb();
 }
 
-export async function getEnvRunModes(clientType : string, prj : string, env : string|null) : Promise<Map<string, string>> {
+export async function getEnvRunModes(clientType : string, teamId : string, prj : string, env : string|null) : Promise<Map<string, string>> {
     let datas : any = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
@@ -141,13 +141,13 @@ export async function getEnvRunModes(clientType : string, prj : string, env : st
             datas[globalRow[env_var_env]] = globalRow[env_var_pvalue];
         }
     } else {
-        datas = await sendTeamMessage(PRJ_RUN_MODE_URL, {prj, env});
+        datas = await sendTeamMessage(PRJ_RUN_MODE_URL, {teamId, prj, env});
     }
 
     return new Map(Object.entries(datas));
 }
 
-export async function getEnvHosts(clientType : string, prj : string, env : string|null) : Promise<Map<string, string>> {
+export async function getEnvHosts(clientType : string, teamId : string, prj : string, env : string|null) : Promise<Map<string, string>> {
     let datas : any = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
@@ -168,7 +168,7 @@ export async function getEnvHosts(clientType : string, prj : string, env : strin
             datas[globalRow[env_var_env]] = globalRow[env_var_pvalue];
         }
     } else {
-        datas = await sendTeamMessage(PRJ_HOST_URL, {prj, env});
+        datas = await sendTeamMessage(PRJ_HOST_URL, {teamId, prj, env});
     }
 
     return new Map(Object.entries(datas));

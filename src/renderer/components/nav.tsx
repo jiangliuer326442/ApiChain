@@ -32,7 +32,8 @@ import {
   TEAM_MEMBER_ROUTE,
 } from '@conf/routers';
 import {
-  CLIENT_TYPE_TEAM
+  CLIENT_TYPE_TEAM,
+  CLIENT_TYPE_SINGLE,
 } from '@conf/team';
 import { getOpenVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
@@ -166,31 +167,37 @@ class Nav extends Component {
         if (!prevState.initPrjsFlg && nextProps.prjs.length > 0 && prevState.navs[2].children.length === 0 ) {
           let newSstate = cloneDeep(prevState);
           newSstate.navs[2].children = nextProps.prjs.map((prj) => {
+            const children = [];
+            if (nextProps.clientType === CLIENT_TYPE_SINGLE || prj.teamId === nextProps.teamId) {
+              children.push({
+                key: prj[prj_label] + "_envvar",
+                label: <a href={`#/prj_envvars/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
+              });
+            }
+            children.push({
+              key: prj[prj_label] + "_doc",
+              label: <a href={`#/project_requests/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
+            });
+            if (nextProps.clientType === CLIENT_TYPE_SINGLE || prj.teamId === nextProps.teamId) {
+              children.push({
+                key: prj[prj_label] + "_params",
+                label: <a href={`#/project_params/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project params")}</a >
+              });
+              children.push(                {
+                key: prj[prj_label] + "_unittest",
+                label: <a href={`#/project_tests/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
+              });
+            }
             return {
               key: prj.value,
               label: prj.label,
-              children: [
-                {
-                  key: prj[prj_label] + "_envvar",
-                  label: <a href={"#/prj_envvars/" + prj.value } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
-                },
-                {
-                  key: prj[prj_label] + "_doc",
-                  label: <a href={"#/project_requests/" + prj.value } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
-                },
-                {
-                  key: prj[prj_label] + "_params",
-                  label: <a href={"#/project_params/" + prj.value } rel="noopener noreferrer">{langTrans("nav project params")}</a >
-                },
-                {
-                  key: prj[prj_label] + "_unittest",
-                  label: <a href={"#/project_tests/" + prj.value } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
-                }
-              ]
+              children
             }
           });
           return {initPrjsFlg: true, navs: newSstate.navs};
-        } if (!prevState.initIterationFlg && nextProps.iterations.length > 0 && prevState.navs[1].children.length === 0 ) {
+        } 
+        
+        if (!prevState.initIterationFlg && nextProps.iterations.length > 0 && prevState.navs[1].children.length === 0 ) {
           let newSstate = cloneDeep(prevState);
           newSstate.navs[1].children = nextProps.iterations.map(iteration => {
             return {
@@ -275,6 +282,7 @@ function mapStateToProps (state) {
     prjs: state.prj.list,
     iterations: state.version_iterator.list,
     clientType: state.device.clientType,
+    teamId: state.device.teamId,
   }
 }
 

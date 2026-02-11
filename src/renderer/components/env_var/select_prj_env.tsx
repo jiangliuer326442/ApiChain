@@ -24,6 +24,7 @@ class PrjEnvSelect extends Component {
         this.state = {
           prj: "",
           env: props.env,
+          teamId: "",
           iteratorName: "",
           prjOptions: [],
         }
@@ -65,10 +66,27 @@ class PrjEnvSelect extends Component {
         } else {
             selectedValue = prjOptions.find(item => item.value.startsWith(selectedValue + "$$")).value;
         }
+        const teamId = this.getTeamIdByPrj(selectedValue);
         if (!isStringEmpty(selectedValue)) {
-            this.props.cb(selectedValue.split("$$")[0], this.state.env);
+            this.setState({
+                teamId,
+                iteratorName, 
+                prjOptions, 
+                prj: selectedValue
+            });
+            this.props.cb(teamId, selectedValue.split("$$")[0], this.state.env);
         }
-        this.setState({iteratorName, prjOptions, prj: selectedValue})
+    }
+
+    getTeamIdByPrj = (prjValue: string) => {
+        let teamId = "";
+        for (let _prj of this.props.prjs) {
+            if (_prj.value == prjValue.split("$$")[0]) {
+                teamId = _prj.teamId;
+                break;
+            }
+        }
+        return teamId;
     }
 
     setProjectChange = (rawValue: string) => {
@@ -76,15 +94,16 @@ class PrjEnvSelect extends Component {
             this.setState({prj: ""});
             return;
         }
+        const teamId = this.getTeamIdByPrj(rawValue);
         let prj = rawValue.split("$$")[0];
         this.setState({prj: rawValue});
-        this.props.cb(prj, this.state.env !== "" ? this.state.env : this.state.env);
+        this.props.cb(teamId, prj, this.state.env !== "" ? this.state.env : this.state.env);
     }
   
     setEnvironmentChange = (value: string) => {
         this.setState({env: value});
         if (!isStringEmpty(this.state.prj)) {
-            this.props.cb(this.state.prj.split("$$")[0], value);
+            this.props.cb(this.state.teamId, this.state.prj.split("$$")[0], value);
         }
     }
 
@@ -113,10 +132,10 @@ class PrjEnvSelect extends Component {
                 <Form.Item label={langTrans("request select3")}>
                 {this.props.envs.length > 0 ?
                     <Select
-                    value={ this.state.env }
-                    onChange={this.setEnvironmentChange}
-                    style={{ width: 120 }}
-                    options={this.props.envs}
+                        value={ this.state.env }
+                        onChange={this.setEnvironmentChange}
+                        style={{ width: 120 }}
+                        options={this.props.envs}
                     />
                 :
                     <Button type="link" href={"#" + ENV_LIST_ROUTE}>{langTrans("env add")}</Button>

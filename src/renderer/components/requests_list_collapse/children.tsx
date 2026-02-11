@@ -89,6 +89,9 @@ class RequestListCollapseChildren extends Component {
                 title: langTrans("prj doc table field3"),
                 dataIndex: props.type === "prj" ? project_request_sort : iteration_request_sort,
                 render: (sort, record) => {
+                    if (record["team_id"] != this.props.teamId) {
+                        return sort;
+                    }
                     let method;
                     let uri;
                     if (this.props.type === "prj") {
@@ -114,7 +117,7 @@ class RequestListCollapseChildren extends Component {
                     let docDetailUrl;
                     if (this.props.type === "prj") {
                         sendRequestUrl = "#/internet_request_send_by_api/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
-                        docDetailUrl = "#/version_iterator_request/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
+                        docDetailUrl = "#/project_request/" + record[project_request_prj] + "/" + record[project_request_method] + "/" + encode(record[project_request_uri]);
                     } else if (this.props.type === "iterator") {
                         sendRequestUrl = "#/internet_request_send_by_api/" + this.props.metadata.split("$$")[0] + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
                         docDetailUrl = "#/version_iterator_request/" + this.props.metadata.split("$$")[0] + "/" + record[iteration_request_prj] + "/" + record[iteration_request_method] + "/" + encode(record[iteration_request_uri]);
@@ -127,9 +130,11 @@ class RequestListCollapseChildren extends Component {
                             <Tooltip title={langTrans("prj doc table act2")}>
                                 <Button type="link" icon={<EyeOutlined />} href={ docDetailUrl } />
                             </Tooltip>
+                        {record["team_id"] == this.props.teamId ? 
                             <Dropdown menu={this.getMore(record)}>
                                 <Button type="text" icon={<MoreOutlined />} />
                             </Dropdown>
+                        : null}
                         </Space>
                     );
                 },
