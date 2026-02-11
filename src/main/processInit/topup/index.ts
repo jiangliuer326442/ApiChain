@@ -1,4 +1,5 @@
 import Store from 'electron-store';
+import log from 'electron-log';
 import { ipcMain, shell } from 'electron';
 import { 
     ChannelsVipStr, 
@@ -16,7 +17,7 @@ import { isStringEmpty } from '../../../renderer/util';
 
 export default function (privateKey : string, publicKey : string, store: Store){
 
-    ipcMain.on(ChannelsVipStr, async (event, action, productName, payMethod, contractChain) => {
+    ipcMain.on(ChannelsVipStr, async (event, action, productName, payMethod) => {
 
         if (action !== ChannelsVipGenUrlStr) return;
 
@@ -32,27 +33,29 @@ export default function (privateKey : string, publicKey : string, store: Store){
         ) {
             return ;
         }
-        if (payMethod !== "alipay" && payMethod !== "wxpay" && payMethod !== "dollerpay") {
+        if (payMethod !== "wxpay" && payMethod !== "dollerpay") {
             return ;
         }
 
-        let money = "1000";
+        log.info("payMethod=" + payMethod + ", productName=" + productName);
+
+        let money = 1000;
         if (productName === "product9") {
-            money = "10";
+            money = 10;
         } else if (productName === "product10") {
-            money = "100";
+            money = 100;
         } else if (productName === "product11") {
-            money = "200";
+            money = 200;
         } else if (productName === "product12") {
-            money = "1";
+            money = 1;
         } else if (productName === "product13") {
-            money = "5";
+            money = 5;
         } else if (productName === "token1") {
-            money = "10";
+            money = 10;
         } else if (productName === "token2") {
-            money = "50";
+            money = 50;
         } else if (productName === "token3") {
-            money = "100";
+            money = 100;
         }
         let url = await genCheckCodeUrl(productName, payMethod, privateKey, publicKey, store);
         await shell.openExternal(url)

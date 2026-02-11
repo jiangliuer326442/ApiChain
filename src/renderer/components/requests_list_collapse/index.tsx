@@ -1,11 +1,15 @@
 import { Component, ReactNode } from 'react';
+import { connect } from 'react-redux';
 import { Collapse } from 'antd';
 
 import { FoldSourceIterator, FoldSourcePrj } from '@conf/global_config';
 import RequestListCollapseChildren from '@comp/requests_list_collapse/children';
 import RequestListCollapseExtra from '@comp/requests_list_collapse/extra';
+import { isStringEmpty } from '@rutil/index';
 
 function buildFolders(
+    myTeamId,
+    teamId,
     currentFolders,
     allFolders,
     filterTitle,
@@ -34,12 +38,14 @@ function buildFolders(
             type={ type }
             refreshCallback={() => refreshCallback()}
         />;
-        item.extra = <RequestListCollapseExtra 
-            metadata={metadata} 
-            folder={_fold.value} 
-            type={ type }
-            refreshCallback={() => refreshCallback()}
-        />;
+        item.extra = (isStringEmpty(myTeamId) || myTeamId == teamId ? 
+            <RequestListCollapseExtra 
+                metadata={metadata} 
+                folder={_fold.value} 
+                type={ type }
+                refreshCallback={() => refreshCallback()}
+            />
+        : null);
         items.push(item);
     }
     return items;
@@ -59,6 +65,8 @@ class RequestListCollapse extends Component {
 
     async componentDidMount() {
         let items = buildFolders(
+            this.props.myTeamId,
+            this.props.teamId,
             this.props.folders,
             this.props.allFolders,
             this.props.filterTitle,
@@ -74,6 +82,8 @@ class RequestListCollapse extends Component {
     static getDerivedStateFromProps(nextProps, prevState) {
         if (nextProps.filterTitle !== prevState.filterTitle || nextProps.filterUri !== prevState.filterUri) {
             let items = buildFolders(
+                nextProps.myTeamId,
+                nextProps.teamId,
                 nextProps.folders,
                 nextProps.allFolders,
                 nextProps.filterTitle,
@@ -97,4 +107,10 @@ class RequestListCollapse extends Component {
     }
 }
 
-export default RequestListCollapse;
+function mapStateToProps (state) {
+    return {
+        myTeamId: state.device.teamId,
+    }
+}
+      
+export default connect(mapStateToProps)(RequestListCollapse);

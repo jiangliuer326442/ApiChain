@@ -294,7 +294,8 @@ class Project extends Component {
         title: langTrans("prj table5"),
         key: 'operater',
         render: (_, record) => {
-          return (
+          console.log("record", record)
+          return (this.props.teamId == record["team_id"] ? 
             <Space size="middle">
               <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPrjClick(record)} />
               <Popconfirm
@@ -313,7 +314,7 @@ class Project extends Component {
                 <Button danger type="link" icon={<DeleteOutlined />} />
               </Popconfirm>
             </Space>
-          )
+            : null)
         },
       });
       this.setState({listColumn});

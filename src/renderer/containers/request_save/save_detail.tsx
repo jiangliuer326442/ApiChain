@@ -100,6 +100,7 @@ class RequestSaveContainer extends Component {
         let iterator = props.match.params.iteratorId ? props.match.params.iteratorId : "";
         let type = iterator ? "iterator" : "prj";
         this.state = {
+            teamId : "",
             prj : props.match.params.prj,
             title : "",
             description: "",
@@ -146,6 +147,7 @@ class RequestSaveContainer extends Component {
             this.setState({
                 showFlg: true,
                 folders,
+                teamId: record["team_id"],
                 title: record[project_request_title],
                 description: record[project_request_desc],
                 selectedFolder: record[project_request_fold],
@@ -402,12 +404,14 @@ class RequestSaveContainer extends Component {
                                 value={ this.state.requestUri }
                                 onChange={ event => this.setState({requestUri: event.target.value}) }
                                 size='large' />
+                        {!isStringEmpty(this.state.teamId) && this.state.teamId == this.props.teamId ? 
                             <Button 
                                 size='large' 
                                 type="primary" 
                                 onClick={ this.handleSave }
                                 style={{borderRadius: 0}} 
-                                >{langTrans("request save btn")}</Button>
+                            >{langTrans("request save btn")}</Button>
+                        : null}
                         </Flex>
                         <TextArea placeholder={langTrans("request save desc")} value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />

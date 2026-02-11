@@ -179,7 +179,7 @@ class RequestListVersion extends Component {
         let envVars : any = {};
         for (let _prj of prjs) {
             let projectLabel = _prj[prj_label];
-            const envVarItems = await getEnvHosts(this.props.clientType, projectLabel, null);
+            const envVarItems = await getEnvHosts(this.props.clientType, _prj["team_id"], projectLabel, null);
             envVars[projectLabel] = Object.fromEntries(envVarItems);
         }
 

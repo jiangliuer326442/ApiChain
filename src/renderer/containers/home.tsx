@@ -359,6 +359,7 @@ class Home extends Component {
             <>
               <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
               {langTrans("welcome")}
+              <Button type='link' onClick={() => this.setState({showPay: true})}>{langTrans("member buy")}</Button>
             </>
             } 
           </Header>

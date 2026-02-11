@@ -29,7 +29,7 @@ const configuration: webpack.Configuration = {
   output: {
     path: webpackPaths.distRendererPath,
     publicPath: './',
-    filename: 'renderer.js',
+    filename: '[name].js',
     library: {
       type: 'umd',
     },
@@ -93,16 +93,28 @@ const configuration: webpack.Configuration = {
   optimization: {
     minimize: true,
     minimizer: [new TerserPlugin({
-      terserOptions: {
-        compress: {
-          drop_console: true, // 删除所有的 `console` 语句
-          drop_debugger: true, // 删除所有的 `debugger` 语句
+        terserOptions: {
+          compress: {
+            drop_console: true, // 删除所有的 `console` 语句
+            drop_debugger: true, // 删除所有的 `debugger` 语句
+          },
+          output: {
+            comments: false, // 删除所有的注释
+          },
         },
-        output: {
-          comments: false, // 删除所有的注释
+      }), 
+      new CssMinimizerPlugin()
+    ],
+    splitChunks: {
+      cacheGroups: {
+        vendors: {
+          test: /[\\/]node_modules[\\/]/, // 匹配 node_modules 中的模块
+          name: 'vendors',
+          chunks: 'all', // 所有类型的 chunk（同步/异步）
+          priority: 10, // 优先级高于默认的 common chunk
         },
       },
-    }), new CssMinimizerPlugin()],
+    },
   },
 
   plugins: [

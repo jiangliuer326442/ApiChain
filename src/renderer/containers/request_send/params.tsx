@@ -20,6 +20,7 @@ import {
   setRequestCommon 
 } from "@act/request_common";
 import { langTrans } from '@lang/i18n';
+import { isStringEmpty } from '@rutil/index';
 
 const { Header, Content, Footer } = Layout;
 
@@ -30,6 +31,7 @@ class ParamsProject extends Component {
     let projectLabel = this.props.match.params.id;
     this.state = {
       readyFlg: false,
+      teamId: "",
       projectLabel,
       defaultTabKey: "body",
       requestPathVariableData: {},
@@ -72,14 +74,17 @@ class ParamsProject extends Component {
     let requestHeadData = {};
     let requestBodyData = {};
     let contentType = "";
+    let teamId = this.props.teamId;
     if (requestCommon !== null) {
       requestBodyData = requestCommon.body;
       requestHeadData = requestCommon.header;
       requestParamData = requestCommon.param;
       requestPathVariableData = requestCommon.path_variable;
       contentType = requestHeadData[CONTENT_TYPE];
+      teamId = requestCommon["team_id"]
     }
     this.setState({
+      teamId,
       envKeys, 
       requestPathVariableData, requestParamData, requestHeadData, requestBodyData, 
       readyFlg: true,
@@ -156,7 +161,9 @@ class ParamsProject extends Component {
                     {this.state.readyFlg ? 
                     <Flex vertical align="center" gap="middle">
                       <Tabs activeKey={ this.state.defaultTabKey } items={ this.getNavs() } onChange={key => this.setState({defaultTabKey: key})} style={{width: "100%"}} />
+                    {isStringEmpty(this.props.teamId) || this.props.teamId == this.state.teamId ?  
                       <Button type="primary" onClick={this.handleClick}>{langTrans("request save bread2")}</Button>
+                    : null}
                     </Flex>
                     : null}
                 </Content>

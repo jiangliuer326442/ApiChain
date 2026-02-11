@@ -155,6 +155,7 @@ let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
+//@todo fanghailiang 这里的 getEnvHosts 和 getEnvRunModes 都需要传teamId
 export async function batchMoveIteratorUnittest(oldIterator : string, unittestArr : Array<string>, newIterator : string, cb : () => void) {
     for (let _unittestRow of unittestArr) {
         let version_iteration_unittest = await window.db[TABLE_UNITTEST_NAME]

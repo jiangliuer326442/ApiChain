@@ -123,6 +123,7 @@ class SingleUnitTestReport extends Component {
             
             let promises = []
             for(let prj of prjs) {
+                //@todo fanghailang 这里需要teamId
                 promises.push(getEnvHosts(this.props.clientType, prj, this.props.env));
             }
             let values = await Promise.all(promises);
