@@ -7,13 +7,14 @@ import {
 
 import "./less/add.less";
 import MarkdownEditor from '@comp/markdown/edit';
-import { isStringEmpty, getdayjs } from "@rutil/index";
+import { getdayjs } from "@rutil/index";
 import { 
     PROJECT_LIST_ROUTE, 
     VERSION_ITERATOR_LIST_ROUTE 
 } from "@conf/routers";
 import { TABLE_VERSION_ITERATION_FIELDS, UNAME } from '@conf/db';
 import { ChannelsLoadAppStr } from '@conf/channel';
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import { getPrjs } from '@act/project';
 import { 
     getRemoteVersionIterator,
@@ -106,7 +107,7 @@ class VersionIteratorAdd extends Component {
                     {this.state.formReadyFlg ? 
                     <Form
                         layout='vertical'
-                        style={{ maxWidth: 600 }}
+                        style={{ maxWidth: this.props.collapsed ? 1140 : 950 }}
                         initialValues={{
                             title: this.state.version_iteration[version_iterator_title],
                             projects: this.state.version_iteration[version_iterator_prjs]
@@ -133,7 +134,10 @@ class VersionIteratorAdd extends Component {
                                 allowClear
                                 style={{ width: '100%' }}
                                 placeholder={langTrans("iterator add check3")}
-                                options={this.props.projects} />
+                                options={
+                                    this.props.projects.filter(item => this.props.clientType == CLIENT_TYPE_SINGLE || item.teamId == this.props.teamId)
+                                } 
+                            />
                             :
                             <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>创建微服务</Button>
                             }    
@@ -190,6 +194,7 @@ function mapStateToProps (state) {
       device : state.device,
       teamId: state.device.teamId,
       clientType: state.device.clientType,
+      collapsed: state.nav.collapsed,
   }
 }
 

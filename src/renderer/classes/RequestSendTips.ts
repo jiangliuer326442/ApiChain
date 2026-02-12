@@ -34,6 +34,8 @@ export default class {
 
     private prj: string = "";
 
+    private teamId: string = "";
+
     private iteration: string = "";
 
     private unittest: string = "";
@@ -49,7 +51,8 @@ export default class {
         prj : string, 
         iteration : string, 
         unittest : string,
-        clientType : string
+        clientType : string,
+        teamId : string
     ) {  
         this.env_var_type = type;
 
@@ -58,6 +61,7 @@ export default class {
             this.envvars = new Map<string, string>();
         }
         this.prj = prj;
+        this.teamId = teamId;
         this.iteration = iteration;
         this.unittest = unittest;
         this.clientType = clientType;
@@ -67,13 +71,14 @@ export default class {
         if (this.env_keys.length === 0) {
             let envKeys;
             if (this.env_var_type === "project") {
-              envKeys = await getProjectKeys(this.clientType, this.prj);
+              envKeys = await getProjectKeys(this.clientType, this.teamId, this.prj);
             } else if (this.env_var_type === "iterator") {
-              envKeys = await getIteratorKeys(this.clientType, this.iteration, this.prj);
+              envKeys = await getIteratorKeys(this.clientType, this.teamId, this.iteration, this.prj);
             } else if (this.env_var_type === "unittest") {
-              envKeys = await getUnittestKeys(this.clientType, this.unittest, this.prj);
+              envKeys = await getUnittestKeys(this.clientType, this.teamId, this.unittest, this.prj);
             }
             this.env_keys = envKeys;
+            console.log("envKeys", envKeys);
 
             return this.getTipsByEnvVars();
         } else {
@@ -84,7 +89,7 @@ export default class {
     async getVarByKey(key : string, env : string) : string | number | undefined {
         if (this.envvars.size === 0) {
             if (this.env_var_type === "project") {
-                this.envvars = await getPrjEnvValues(this.prj, env, this.clientType);
+                this.envvars = await getPrjEnvValues(this.prj, env, this.teamId, this.clientType);
             } else if (this.env_var_type === "iterator") {
                 this.envvars = await getIteratorEnvValues(this.iteration, this.prj, env, this.clientType);
             } else if (this.env_var_type === "unittest") {

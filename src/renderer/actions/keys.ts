@@ -56,7 +56,7 @@ export async function getGlobalKeys(clientType : string) {
     return datas;
 }
 
-export async function getProjectKeys(clientType : string, project : string) : Promise<Array<String>> {
+export async function getProjectKeys(clientType : string, teamId : string, project : string) : Promise<Array<String>> {
     let datas;
     if (clientType === CLIENT_TYPE_SINGLE) {
         let projectArrays1 = await db[TABLE_ENV_KEY_NAME]
@@ -100,12 +100,12 @@ export async function getProjectKeys(clientType : string, project : string) : Pr
         let sets4 = new Set<String>(globalArrays1.map(item => ( item[env_key_pname])));
         datas = [...new Set([...sets3, ...sets4])]
     } else {
-        datas = await sendTeamMessage(ENV_VARS_PROJECT_KEYS_URL, {project});
+        datas = await sendTeamMessage(ENV_VARS_PROJECT_KEYS_URL, {teamId, project});
     }
     return datas;
 }
 
-export async function getIteratorKeys(clientType : string, iterator : string, project : string) {
+export async function getIteratorKeys(clientType : string, teamId : string, iterator : string, project : string) {
     let datas;
     if (clientType === CLIENT_TYPE_SINGLE) {
 
@@ -136,7 +136,7 @@ export async function getIteratorKeys(clientType : string, iterator : string, pr
         mixedSort(iteratorArrays2, env_var_pname);
         let sets2 = new Set<string>(iteratorArrays2.map(item => ( item[env_key_pname])));
 
-        let sets3 = await getProjectKeys(clientType, project)
+        let sets3 = await getProjectKeys(clientType, teamId, project)
         datas = [...union(sets1, sets2, new Set<string>([...sets3]))]
     } else {
         datas = await sendTeamMessage(ENV_VARS_ITERATOR_KEYS_URL, {iterator, project});
@@ -144,7 +144,7 @@ export async function getIteratorKeys(clientType : string, iterator : string, pr
     return datas;
 }
 
-export async function getUnittestKeys(clientType : string, unittest : string, project : string) {
+export async function getUnittestKeys(clientType : string, teamId : string, unittest : string, project : string) {
     let datas;
     if (clientType === CLIENT_TYPE_SINGLE) {
 
@@ -175,7 +175,7 @@ export async function getUnittestKeys(clientType : string, unittest : string, pr
         mixedSort(unittestArrays2, env_var_pname);
         let sets2 = new Set<string>(unittestArrays2.map(item => ( item[env_key_pname])));
 
-        let sets3 = await getProjectKeys(clientType, project)
+        let sets3 = await getProjectKeys(clientType, teamId, project)
         datas = [...union(sets1, sets2, new Set<string>([...sets3]))]
     } else {
         datas = await sendTeamMessage(ENV_VARS_UNITTEST_KEYS_URL, {unittest, project});

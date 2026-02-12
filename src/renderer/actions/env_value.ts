@@ -440,7 +440,7 @@ export async function getPrjEnvValuesByPage(prj : string, env : string, pname : 
     return datas;
 }
 
-export async function getPrjEnvValues(prj : string, env : string, clientType : string) {
+export async function getPrjEnvValues(prj : string, env : string, teamId : string, clientType : string) {
     let datas : any = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
@@ -476,7 +476,7 @@ export async function getPrjEnvValues(prj : string, env : string, clientType : s
             datas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
         }
     } else {
-        datas = await sendTeamMessage(ENV_VARS_PROJECT_DATAS_URL, {env, prj});
+        datas = await sendTeamMessage(ENV_VARS_PROJECT_DATAS_URL, {teamId, env, prj});
     }
 
     return new Map(Object.entries(datas));

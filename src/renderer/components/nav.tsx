@@ -168,21 +168,19 @@ class Nav extends Component {
           let newSstate = cloneDeep(prevState);
           newSstate.navs[2].children = nextProps.prjs.map((prj) => {
             const children = [];
-            if (nextProps.clientType === CLIENT_TYPE_SINGLE || prj.teamId === nextProps.teamId) {
-              children.push({
-                key: prj[prj_label] + "_envvar",
-                label: <a href={`#/prj_envvars/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
-              });
-            }
+            children.push({
+              key: prj[prj_label] + "_envvar",
+              label: <a href={`#/prj_envvars/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
+            });
             children.push({
               key: prj[prj_label] + "_doc",
               label: <a href={`#/project_requests/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
             });
+            children.push({
+              key: prj[prj_label] + "_params",
+              label: <a href={`#/project_params/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project params")}</a >
+            });
             if (nextProps.clientType === CLIENT_TYPE_SINGLE || prj.teamId === nextProps.teamId) {
-              children.push({
-                key: prj[prj_label] + "_params",
-                label: <a href={`#/project_params/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project params")}</a >
-              });
               children.push(                {
                 key: prj[prj_label] + "_unittest",
                 label: <a href={`#/project_tests/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >

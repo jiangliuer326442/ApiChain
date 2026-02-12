@@ -14,13 +14,13 @@ import RequestSendHead from "@comp/request_send/head_form";
 import RequestSendParam from "@comp/request_send/request_param";
 import RequestSendPathVariable from "@comp/request_send/request_path_variable";
 import { CONTENT_TYPE } from "@conf/global_config";
+import { CLIENT_TYPE_SINGLE } from "@conf/team";
 import { getProjectKeys } from "@act/keys";
 import { 
   getRequestCommon, 
   setRequestCommon 
 } from "@act/request_common";
 import { langTrans } from '@lang/i18n';
-import { isStringEmpty } from '@rutil/index';
 
 const { Header, Content, Footer } = Layout;
 
@@ -28,10 +28,10 @@ class ParamsProject extends Component {
 
   constructor(props) {
     super(props);
-    let projectLabel = this.props.match.params.id;
+    let projectLabel = props.match.params.id;
     this.state = {
       readyFlg: false,
-      teamId: "",
+      teamId: props.match.params.team,
       projectLabel,
       defaultTabKey: "body",
       requestPathVariableData: {},
@@ -57,7 +57,7 @@ class ParamsProject extends Component {
 
   handleClick = async () => {
     await setRequestCommon(
-      this.props.clientType, this.props.teamId, this.state.projectLabel,
+      this.props.clientType, this.state.teamId, this.state.projectLabel,
       this.state.requestHeadData, this.state.requestBodyData, this.state.requestParamData, this.state.requestPathVariableData,
       this.props.device
     )
@@ -67,24 +67,21 @@ class ParamsProject extends Component {
   }
 
   getDatas = async () => {
-    let envKeys = await getProjectKeys(this.props.clientType, this.state.projectLabel);
+    let envKeys = await getProjectKeys(this.props.clientType, this.state.teamId, this.state.projectLabel);
     let requestCommon = await getRequestCommon(this.props.clientType, this.state.projectLabel);
     let requestPathVariableData = {};
     let requestParamData = {};
     let requestHeadData = {};
     let requestBodyData = {};
     let contentType = "";
-    let teamId = this.props.teamId;
     if (requestCommon !== null) {
       requestBodyData = requestCommon.body;
       requestHeadData = requestCommon.header;
       requestParamData = requestCommon.param;
       requestPathVariableData = requestCommon.path_variable;
       contentType = requestHeadData[CONTENT_TYPE];
-      teamId = requestCommon["team_id"]
     }
     this.setState({
-      teamId,
       envKeys, 
       requestPathVariableData, requestParamData, requestHeadData, requestBodyData, 
       readyFlg: true,
@@ -161,7 +158,7 @@ class ParamsProject extends Component {
                     {this.state.readyFlg ? 
                     <Flex vertical align="center" gap="middle">
                       <Tabs activeKey={ this.state.defaultTabKey } items={ this.getNavs() } onChange={key => this.setState({defaultTabKey: key})} style={{width: "100%"}} />
-                    {isStringEmpty(this.props.teamId) || this.props.teamId == this.state.teamId ?  
+                    {this.props.clientType == CLIENT_TYPE_SINGLE || this.props.teamId == this.state.teamId ?  
                       <Button type="primary" onClick={this.handleClick}>{langTrans("request save bread2")}</Button>
                     : null}
                     </Flex>

@@ -406,7 +406,7 @@ class RequestSendContainer extends Component {
       this.setState({ alertMessage: langFormat("network table7", {"key": ENV_VALUE_API_HOST,}) });
       return;
     }
-    this.requestSendTips.init(this.state.type, prj, this.state.iteratorId, "", this.props.clientType);
+    this.requestSendTips.init(this.state.type, prj, this.state.iteratorId, "", this.props.clientType, teamId);
     let envKeys = await this.requestSendTips.getTips();
     this.state.prj = prj;
     this.getCommonRequestDatas();
