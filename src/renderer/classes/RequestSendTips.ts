@@ -78,7 +78,6 @@ export default class {
               envKeys = await getUnittestKeys(this.clientType, this.teamId, this.unittest, this.prj);
             }
             this.env_keys = envKeys;
-            console.log("envKeys", envKeys);
 
             return this.getTipsByEnvVars();
         } else {

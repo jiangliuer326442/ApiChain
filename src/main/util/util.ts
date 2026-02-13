@@ -82,6 +82,7 @@ export function rsaDecrypt2(encryptText: string, privateKey : string) : string {
             key: privateKey,
             padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
             oaepHash: 'sha256',
+            passphrase: 'BE1BDEC0AA74B4DCB079943E70528096CCA985F8'
         },
         encryptedBuffer
     );

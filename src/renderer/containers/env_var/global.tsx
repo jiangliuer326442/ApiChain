@@ -32,6 +32,7 @@ const { Text, Link } = Typography;
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
+let encryptFlg = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 class EnvVar extends Component {
@@ -53,10 +54,14 @@ class EnvVar extends Component {
           {
             title: langTrans("envvar global table2"),
             dataIndex: pvar,
-            render: (value) => {
-              return (
-                <Text copyable={{text: value}}>{ value }</Text>
-              );
+            render: (value, record) => {
+              if (record[encryptFlg] !== undefined && record[encryptFlg] == 1) {
+                return "******";
+              } else {
+                return (
+                  <Text copyable={{text: value}}>{ value }</Text>
+                );
+              }
             }
           },
           {
@@ -149,6 +154,7 @@ class EnvVar extends Component {
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
+          encryptFlg: record[encryptFlg],
       });
     }
 

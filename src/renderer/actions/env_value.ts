@@ -6,6 +6,13 @@ import {
 } from '@rutil/index'
 import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE } from '@conf/envKeys';
 import { 
+    ChannelsEncryptStr, 
+    ChannelsEncryptEncrypt, 
+    ChannelsEncryptEncryptResult,
+    ChannelsEncryptDecrypt,
+    ChannelsEncryptDecryptResult,
+} from '@conf/channel';
+import { 
     TABLE_ENV_KEY_NAME, TABLE_ENV_KEY_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
     UNAME
@@ -55,6 +62,34 @@ let env_var_pencrypt = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
 let env_var_cuid = TABLE_ENV_VAR_FIELDS.FIELD_CUID;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
+
+export function encryptPromise (content : string) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsEncryptStr, (action, encryptContent) => {
+            if (action === ChannelsEncryptEncryptResult) {
+                listener();
+                resolve(encryptContent);
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsEncryptStr, ChannelsEncryptEncrypt, content);
+    });
+}
+
+export function batchDecryptPromise (keyvarEncryptContent) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsEncryptStr, (action, dataContent) => {
+            if (action === ChannelsEncryptDecryptResult) {
+                listener();
+                resolve(dataContent);
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsEncryptStr, ChannelsEncryptDecrypt, keyvarEncryptContent);
+    });
+}
 
 export async function batchMoveIteratorEnvValue(prj : string, env : string, oldIterator : string, envVarKeyArr : Array<string>, newIterator : string, cb : () => void) {
     for (let _envVarKey of envVarKeyArr) {
@@ -445,6 +480,7 @@ export async function getPrjEnvValues(prj : string, env : string, teamId : strin
     let datas : any = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
+        let waitDecryptDatas : any = {};
         let projectKeys = new Set<String>();
         let projectArrays = await db[TABLE_ENV_VAR_NAME]
         .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
@@ -458,7 +494,11 @@ export async function getPrjEnvValues(prj : string, env : string, teamId : strin
         .toArray();
         projectKeys = new Set(projectArrays.map(item => ( item[env_var_pname])));
         for (let projectRow of projectArrays) {
-            datas[projectRow[env_var_pname]] = projectRow[env_var_pvalue];
+            if (projectRow[env_var_pencrypt] != undefined && projectRow[env_var_pencrypt] == 1) {
+                waitDecryptDatas[projectRow[env_var_pname]] = projectRow[env_var_pvalue];
+            } else {
+                datas[projectRow[env_var_pname]] = projectRow[env_var_pvalue];
+            }
         }
         let globalArrays = await db[TABLE_ENV_VAR_NAME]
         .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
@@ -474,7 +514,17 @@ export async function getPrjEnvValues(prj : string, env : string, teamId : strin
         })
         .toArray(); 
         for (let globalRow of globalArrays) {
-            datas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
+            if (globalRow[env_var_pencrypt] != undefined && globalRow[env_var_pencrypt] == 1) {
+                waitDecryptDatas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
+            } else {
+                datas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
+            }
+        }
+        if (Object.keys(waitDecryptDatas).length > 0) {
+            let decryptResult = await batchDecryptPromise(waitDecryptDatas);
+            Object.keys(decryptResult).forEach(key => {
+                datas[key] = decryptResult[key]
+            })
         }
     } else {
         datas = await sendTeamMessage(ENV_VARS_PROJECT_DATAS_URL, {teamId, env, prj});
@@ -1024,19 +1074,19 @@ export async function delUnittestEnvValues(
 export async function addEnvValues(
     clientType : string, teamId : string, 
     prj : string, env : string, iterator : string, unittest : string, 
-    pname : string, pvar, remark, encryptFlg,
+    pname : string, pvar, oldVar, remark, encryptFlg,
     device) {
 
     if (clientType === CLIENT_TYPE_TEAM) {
         //全局环境变量
         if (isStringEmpty(prj) && isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, env, remark, encryptFlg});
+            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, oldVar, env, remark, encryptFlg});
         } else if (isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, env, remark, encryptFlg})
+            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, oldVar, env, remark, encryptFlg})
         } else if (isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, env, remark, encryptFlg})
+            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, oldVar, env, remark, encryptFlg})
         } else {
-            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, env, remark, encryptFlg})
+            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, oldVar, env, remark, encryptFlg})
         }
     }
 

@@ -39,6 +39,7 @@ let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
+let encryptFlg = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 
 class EnvVar extends Component {
 
@@ -60,10 +61,14 @@ class EnvVar extends Component {
           title: langTrans("envvar prj table2"),
           dataIndex: pvar,
           width: 205,
-          render: (value) => {
-            return (
-              <Text copyable={{text: value}}>{ value }</Text>
-            );
+          render: (value, record) => {
+              if (record[encryptFlg] !== undefined && record[encryptFlg] == 1) {
+                return "******";
+              } else {
+                return (
+                  <Text copyable={{text: value}}>{ value }</Text>
+                );
+              }
           }
         },
         {
@@ -186,6 +191,7 @@ class EnvVar extends Component {
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
+          encryptFlg: record[encryptFlg],
       });
     }
 
@@ -214,11 +220,11 @@ class EnvVar extends Component {
         if ((!hasApiHost || !hasRunMode) && ((this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId))) {
           if (!hasApiHost) {
             await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
-            ENV_VALUE_API_HOST, "", langTrans("envvar prj api"), this.props.device);
+            ENV_VALUE_API_HOST, "", "", langTrans("envvar prj api"), 0, this.props.device);
           }
           if (!hasRunMode) {
             await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
-              ENV_VALUE_RUN_MODE, "client", langTrans("envvar prj run mode"), this.props.device);
+              ENV_VALUE_RUN_MODE, "client", "client", langTrans("envvar prj run mode"), 0, this.props.device);
           }
           listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
           this.setState({listDatas, pagination});

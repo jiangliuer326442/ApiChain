@@ -46,7 +46,7 @@ export function paramToLines(params : Array<any>, length : number) {
   return ret;
 }
 
-export function isStringEmpty(str) {  
+export function isStringEmpty(str) {
   return str === null || str === undefined || str.trim() === '';  
 }
 

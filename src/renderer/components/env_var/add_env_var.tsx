@@ -5,8 +5,8 @@ import { Form, Input, Modal, Select, Radio, message } from "antd";
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_PROPERTY_MODEL } from '@conf/redux';
 import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER } from '@conf/envKeys';
-import { ChannelsEncryptStr, ChannelsEncryptEncrypt, ChannelsEncryptEncryptResult } from '@conf/channel'
-import { addEnvValues } from '@act/env_value';
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
+import { addEnvValues, encryptPromise } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
@@ -20,8 +20,10 @@ class AddEnvVarComponent extends Component {
             loadingFlg: false,
             pname: "",
             pvalue: "",
+            oldPValue: "",
             premark: "",
             encryptFlg: 0,
+            oldEncryptFlg: 0,
         };
     }
 
@@ -33,8 +35,10 @@ class AddEnvVarComponent extends Component {
                 actionType: "edit",
                 pname: nextProps.pname,
                 pvalue: nextProps.pvalue,
+                oldPValue: nextProps.pvalue,
                 premark: nextProps.premark,
                 encryptFlg: nextProps.encryptFlg,
+                oldEncryptFlg: nextProps.encryptFlg,
             });
         }
     }
@@ -47,8 +51,6 @@ class AddEnvVarComponent extends Component {
             premark = this.state.premark.trim();
         }
         let encryptFlg = this.state.encryptFlg;
-
-        console.log("34345345", await this.encryptPromise(pvalue))
 
         if (isStringEmpty(pname)) {
             message.error(langTrans("envvar global add check1"));
@@ -69,9 +71,24 @@ class AddEnvVarComponent extends Component {
         this.setState({
             loadingFlg: true
         });
-        await addEnvValues(this.props.clientType, this.props.teamId, this.props.prj, this.props.env, this.props.iteration ? this.props.iteration : "", this.props.unittest ? this.props.unittest : "" , 
-            pname, pvalue, premark, encryptFlg,
-            this.props.device);
+
+        let handledData;
+        //团队版，走服务端加密
+        if (encryptFlg == 1 && pvalue != this.state.oldPValue && this.props.clientType == CLIENT_TYPE_SINGLE) {
+            handledData = await encryptPromise(pvalue);
+        } else {
+            handledData = pvalue;
+        }
+
+        await addEnvValues(
+            this.props.clientType, 
+            this.props.teamId, 
+            this.props.prj, 
+            this.props.env, 
+            this.props.iteration ? this.props.iteration : "", this.props.unittest ? this.props.unittest : "" , 
+            pname, handledData, this.state.oldPValue, premark, encryptFlg,
+            this.props.device
+        );
 
         this.clearInput();
         this.setState({
@@ -83,20 +100,6 @@ class AddEnvVarComponent extends Component {
         });
 
         this.props.cb();
-    }
-
-    encryptPromise = (content : string) => {
-        return new Promise((resolve, reject) => {
-
-            let listener = window.electron.ipcRenderer.on(ChannelsEncryptStr, (action, encryptContent) => {
-                if (action === ChannelsEncryptEncryptResult) {
-                    listener();
-                    resolve(encryptContent);
-                }
-            });
-
-            window.electron.ipcRenderer.sendMessage(ChannelsEncryptStr, ChannelsEncryptEncrypt, content);
-        });
     }
 
     handleCancel = () => {
@@ -144,7 +147,7 @@ class AddEnvVarComponent extends Component {
                                 ]} />
                             :
                             <TextArea allowClear rows={ 3 }
-                                value={this.state.pvalue} 
+                                value={(this.state.oldEncryptFlg == 1 && this.state.pvalue == this.state.oldPValue) ? "******" : this.state.pvalue} 
                                 onChange={ e=>this.setState({pvalue : e.target.value}) } />
                         }
                     </Form.Item>
@@ -157,6 +160,7 @@ class AddEnvVarComponent extends Component {
                         <Radio.Group 
                             value={this.state.encryptFlg}
                             onChange={ event=>this.setState({encryptFlg : event.target.value}) }
+                            disabled={ this.state.oldEncryptFlg == 1 }
                             >
                             <Radio value={0}>{langTrans("envvar global add form4 no")}</Radio>
                             <Radio value={1}>{langTrans("envvar global add form4 yes")}</Radio>

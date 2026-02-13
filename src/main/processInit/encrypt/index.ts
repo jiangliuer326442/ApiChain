@@ -13,7 +13,6 @@ import {
 } from '../../../config/team';
 import {
     md5,
-    fernetEncrypt,
     fernetDecrypt,
     rsaEncrypt2,
     rsaDecrypt2
@@ -34,29 +33,35 @@ export default function (privateKey : string, publicKey : string, store : Store)
         if (clientType === CLIENT_TYPE_SINGLE) {
             encryptContent = rsaEncrypt2(content, publicKey);
         } else {
-            const key = md5(getTeamId(store));
-            console.log("key", key);
-            encryptContent = fernetEncrypt(content, key)
+            //团队版服务端加密去
+            // const key = md5(getTeamId(store));
+            // encryptContent = fernetEncrypt(content, key)
+            encryptContent = content;
         }
 
         event.reply(ChannelsEncryptStr, ChannelsEncryptEncryptResult, encryptContent);
 
     });
 
-    ipcMain.on(ChannelsEncryptStr, async (event, action, encryptContent) => {
-
+    ipcMain.on(ChannelsEncryptStr, async (event, action, keyvarEncryptContent) => {
         if (action !== ChannelsEncryptDecrypt) return;
 
         const clientType = getClientType(store);
-        let content;
-        if (clientType === CLIENT_TYPE_SINGLE) {
-            content = rsaDecrypt2(encryptContent, privateKey);
-        } else {
-            const key = md5(getTeamId(store));
-            content = fernetDecrypt(encryptContent, key);
-        }
+        let dataContent : any = {};
 
-        event.reply(ChannelsEncryptStr, ChannelsEncryptDecryptResult, content);
+        Object.keys(keyvarEncryptContent).forEach(key => {
+            const encryptContent = keyvarEncryptContent[key];
+            if (clientType === CLIENT_TYPE_SINGLE) {
+                dataContent[key] = rsaDecrypt2(encryptContent, privateKey);
+            } else {
+                //团队版服务端解密去
+                // const key = md5(getTeamId(store));
+                // content = fernetDecrypt(encryptContent, key);
+                dataContent[key] = encryptContent;
+            }
+        });
+
+        event.reply(ChannelsEncryptStr, ChannelsEncryptDecryptResult, dataContent);
         
     });
 

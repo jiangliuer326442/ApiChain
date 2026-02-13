@@ -30,6 +30,7 @@ import {
     genHash,
 } from '@rutil/json';
 import { ENV_VALUE_API_HOST } from "@conf/envKeys";
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_FIELDS,
@@ -404,7 +405,7 @@ class RequestSaveContainer extends Component {
                                 value={ this.state.requestUri }
                                 onChange={ event => this.setState({requestUri: event.target.value}) }
                                 size='large' />
-                        {!isStringEmpty(this.state.teamId) && this.state.teamId == this.props.teamId ? 
+                        {this.props.clientType === CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId ? 
                             <Button 
                                 size='large' 
                                 type="primary" 
