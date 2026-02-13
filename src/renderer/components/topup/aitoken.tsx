@@ -102,16 +102,12 @@ class PayAiTokenModel extends Component {
                 <Modal
                     title={langTrans("aitoken topup title")}
                     open={this.props.showPay}
-                    onOk={this.payDone}
                     onCancel={this.cancelPay}
                     width={500}
                     footer={[
                         <Button key="back" onClick={this.cancelPay}>
                             {langTrans("member topup btn cancel")}
                         </Button>,
-                        <Button key="submit" type="primary" onClick={this.payDone}>
-                            {langTrans("member topup btn finish")}
-                        </Button>
                     ]}
                 >
                     <Flex gap="small" vertical>
@@ -125,7 +121,7 @@ class PayAiTokenModel extends Component {
                             </Form.Item>
                             <Form.Item label={langTrans("member topup paymethod")}>
                                 {
-                                this.props.userCountry === 'CN' ? 
+                                IS_CHINA_BUILD || this.props.userCountry === 'CN' ? 
                                 <Radio.Group onChange={this.setPayMethod} value={this.state.payMethod}>
                                     <Radio value="wxpay">{langTrans("member topup paymethod p1")}</Radio>
                                 </Radio.Group>
@@ -136,11 +132,17 @@ class PayAiTokenModel extends Component {
                                 }
                             </Form.Item>
                         </Form>
-                        {this.state.showPayQrCode1 ? 
-                            <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
-                                "money": this.state.money
-                            })}</p>
-                        : null}
+                {this.state.showPayQrCode1 ? 
+                    ((IS_CHINA_BUILD || this.state.payMethod == "wxpay") ? 
+                        <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
+                            "money": this.state.money
+                        })}</p>
+                    :
+                        <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent2", {
+                            "money": this.state.money
+                        })}</p>
+                    )
+                : null}
                     </Flex>
                 </Modal>
             </>

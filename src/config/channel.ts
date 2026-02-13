@@ -162,3 +162,15 @@ export const ChannelsTeamListResultStr = 'pipeline_team_list_result';
 export const ChannelsTeamSetInfoStr = 'pipeline_set_team_info';
 
 export const ChannelsTeamSetInfoResultStr = 'pipeline_set_team_info_result';
+
+export type ChannelsEncrypt = 'pipeline_encrypt';
+
+export const ChannelsEncryptStr = 'pipeline_encrypt';
+
+export const ChannelsEncryptEncrypt = 'encrypt_request';
+
+export const ChannelsEncryptEncryptResult = 'encrypt_response';
+
+export const ChannelsEncryptDecrypt = 'decrypt_request';
+
+export const ChannelsEncryptDecryptResult = 'decrypt_response';

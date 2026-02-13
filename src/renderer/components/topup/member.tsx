@@ -114,7 +114,7 @@ class PayMemberModel extends Component {
                         <Form>
                             <Form.Item label={langTrans("member topup time")}>
                                 {
-                                this.props.userCountry === 'CN' ? 
+                                (IS_CHINA_BUILD || this.props.userCountry === 'CN') ? 
                                 <Radio.Group onChange={this.setProductName} value={this.state.productName}>
                                     <Radio value={this.props.buyTimes === 0 ? "product12" : (this.props.buyTimes === 1 ? "product13" : "product9") } >{langTrans("member topup time t1")}</Radio>
                                     <Radio value="product10">{langTrans("member topup time t2")}</Radio>
@@ -130,7 +130,7 @@ class PayMemberModel extends Component {
                             </Form.Item>
                             <Form.Item label={langTrans("member topup paymethod")}>
                                 {
-                                this.props.userCountry === 'CN' ? 
+                                (IS_CHINA_BUILD || this.props.userCountry === 'CN') ? 
                                 <Radio.Group onChange={this.setPayMethod} value={this.state.payMethod}>
                                     <Radio value="wxpay">{langTrans("member topup paymethod p1")}</Radio>
                                 </Radio.Group>
@@ -141,11 +141,17 @@ class PayMemberModel extends Component {
                                 }
                             </Form.Item>
                         </Form>
-                    {this.state.showPayQrCode1 ? 
+                {this.state.showPayQrCode1 ? 
+                    ((IS_CHINA_BUILD || this.state.payMethod == "wxpay") ? 
                         <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent1", {
                             "money": this.state.money
                         })}</p>
-                    : null}
+                    :
+                        <p style={{marginTop: 0, marginBottom: 0}}>{langFormat("member topup paycontent2", {
+                            "money": this.state.money
+                        })}</p>
+                    )
+                : null}
                     </Flex>
                 </Modal>
             </>

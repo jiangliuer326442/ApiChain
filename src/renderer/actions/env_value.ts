@@ -51,6 +51,7 @@ let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let env_var_premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
+let env_var_pencrypt = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
 let env_var_cuid = TABLE_ENV_VAR_FIELDS.FIELD_CUID;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
@@ -1023,19 +1024,19 @@ export async function delUnittestEnvValues(
 export async function addEnvValues(
     clientType : string, teamId : string, 
     prj : string, env : string, iterator : string, unittest : string, 
-    pname : string, pvar, remark,
+    pname : string, pvar, remark, encryptFlg,
     device) {
 
     if (clientType === CLIENT_TYPE_TEAM) {
         //全局环境变量
         if (isStringEmpty(prj) && isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, env, remark});
+            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, env, remark, encryptFlg});
         } else if (isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, env, remark})
+            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, env, remark, encryptFlg})
         } else if (isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, env, remark})
+            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, env, remark, encryptFlg})
         } else {
-            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, env, remark})
+            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, env, remark, encryptFlg})
         }
     }
 
@@ -1062,6 +1063,7 @@ export async function addEnvValues(
     property_key[env_var_pname] = pname;
     property_key[env_var_pvalue] = pvar;
     property_key[env_var_premark] = remark;
+    property_key[env_var_pencrypt] = encryptFlg;
     property_key[env_var_cuid] = device.uuid;
     property_key[env_var_ctime] = Date.now();
     property_key[env_var_delFlg] = 0;

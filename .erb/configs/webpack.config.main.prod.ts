@@ -17,19 +17,22 @@ checkNodeEnv('production');
 deleteSourceMaps();
 
 const plugins = [
-  new webpack.EnvironmentPlugin({
-    NODE_ENV: 'production',
-    DEBUG_PROD: false,
-    START_MINIMIZED: false,
-    UPGRADE_CHECK: !((process.env.CHAT_PROVIDER || "") == "ZHAOHANG")
-  }),
+    new webpack.DefinePlugin({
+      'IS_CHINA_BUILD': process.env.PACKAGE_TARGET == "china"
+    }),
+    new webpack.EnvironmentPlugin({
+      NODE_ENV: 'production',
+      DEBUG_PROD: false,
+      START_MINIMIZED: false,
+      UPGRADE_CHECK: !((process.env.CHAT_PROVIDER || "") == "ZHAOHANG")
+    }),
 
-  new webpack.DefinePlugin({
-    'process.type': '"browser"',
-  }),
+    new webpack.DefinePlugin({
+      'process.type': '"browser"',
+    }),
 ];
 
-const copy_zip = process.env.TS_NODE_COPY_ZIP || false;
+const copy_zip = (process.env.TS_NODE_COPY_ZIP == "true") || false;
 if (copy_zip) {
   plugins.push(new CopyWebpackPlugin({
     patterns: [

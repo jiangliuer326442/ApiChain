@@ -19,6 +19,8 @@ export default function (state = {
     unittest: "",
     pname: "",
     pvalue: "",
+    premark: "",
+    encryptFlg: 0,
     list: []
   }, action : any) {
     switch(action.type) {
@@ -46,6 +48,7 @@ export default function (state = {
               pname: "",
               pvalue: "",
               premark: "",
+              encryptFlg: 0,
         });
         case SHOW_EDIT_PROPERTY_MODEL:
           return Object.assign({}, state, {
@@ -56,6 +59,7 @@ export default function (state = {
             pname : action.pname,
             pvalue : action.pvalue,
             premark : action.premark,
+            encryptFlg: action.encryptFlg,
           });
         default:
             state.prj = localStorage.getItem(AI_LINK_PROJECT);

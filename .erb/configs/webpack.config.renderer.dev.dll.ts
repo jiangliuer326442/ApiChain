@@ -44,6 +44,9 @@ const configuration: webpack.Configuration = {
   },
 
   plugins: [
+    new webpack.DefinePlugin({
+      'IS_CHINA_BUILD': process.env.PACKAGE_TARGET == "china"
+    }),
     new webpack.DllPlugin({
       path: path.join(dist, '[name].json'),
       name: '[name]',

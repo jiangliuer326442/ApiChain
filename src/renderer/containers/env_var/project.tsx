@@ -101,7 +101,7 @@ class EnvVar extends Component {
                   description={langTrans("envvar prj del desc")}
                   onConfirm={async e => {
                       await delPrjEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), record[pname], this.props.clientType, this.props.teamId);
-                      this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                      this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
                   }}
                   okText={langTrans("envvar prj del sure")}
                   cancelText={langTrans("envvar prj del cancel")}
@@ -119,8 +119,8 @@ class EnvVar extends Component {
         current: 1,
         pageSize: 10,
       },
-      prj: this.props.match.params.prj,
-      teamId: this.props.match.params.prj,
+      prj: props.match.params.prj,
+      teamId: props.match.params.team,
       tips: [],
       pkeys: [],
       env: "",

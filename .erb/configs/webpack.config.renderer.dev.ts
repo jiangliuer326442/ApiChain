@@ -123,6 +123,9 @@ const configuration: webpack.Configuration = {
             manifest: require(manifest),
             sourceType: 'var',
           }),
+          new webpack.DefinePlugin({
+            'IS_CHINA_BUILD': process.env.PACKAGE_TARGET == "china"
+          }),
         ]),
 
     new webpack.NoEmitOnErrorsPlugin(),
@@ -183,7 +186,7 @@ const configuration: webpack.Configuration = {
     },
     setupMiddlewares(middlewares) {
       console.log('Starting preload.js builder...');
-      const preloadProcess = spawn('npm', ['run', 'start:preload'], {
+      const preloadProcess = spawn('npm', ['run', `start:preload`], {
         shell: true,
         stdio: 'inherit',
       })

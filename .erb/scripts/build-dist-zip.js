@@ -14,7 +14,7 @@ if (!fs.existsSync(buildPath)) {
 
 spawn(path7za, [
   'a',           // add
-  path.join(buildPath, `app_${process.platform}.7z`),     // 输出文件
+  path.join(buildPath, `app_${process.platform}_${process.env.PACKAGE_TARGET}.7z`),     // 输出文件
   '.', // 要压缩的目录或文件
   '-mx=9'        // 压缩等级
 ], {

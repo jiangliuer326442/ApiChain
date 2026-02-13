@@ -17,6 +17,7 @@ import {
   ChannelsRestartApp,
   ChannelsLoadApp,
   ChannelsMessage,
+  ChannelsEncrypt,
 } from '../config/channel';
 
 const electronHandler = {
@@ -28,7 +29,7 @@ const electronHandler = {
       ChannelssMockServer | ChannelssMockServerLong |
       ChannelsAxioBreidge | ChannelsTeam |
       ChannelsRestartApp | ChannelsMessage |
-      ChannelsLoadApp, ...args: unknown[]) {
+      ChannelsLoadApp | ChannelsEncrypt, ...args: unknown[]) {
       ipcRenderer.send(channel, ...args);
     },
     on(channel: ChannelsUserInfo | ChannelsOpenWindow | 
@@ -38,7 +39,7 @@ const electronHandler = {
       ChannelssMockServer |  ChannelssMockServerLong |
       ChannelsAxioBreidge | ChannelsTeam |
       ChannelsRestartApp | ChannelsMessage |
-      ChannelsLoadApp, func: (...args: unknown[]) => void) {
+      ChannelsLoadApp | ChannelsEncrypt, func: (...args: unknown[]) => void) {
       const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
         func(...args);
       ipcRenderer.on(channel, subscription);
@@ -54,7 +55,7 @@ const electronHandler = {
       ChannelssMockServer |  ChannelssMockServerLong |
       ChannelsAxioBreidge | ChannelsTeam |
       ChannelsRestartApp | ChannelsMessage |
-      ChannelsLoadApp, func: (...args: unknown[]) => void) {
+      ChannelsLoadApp | ChannelsEncrypt, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
   },

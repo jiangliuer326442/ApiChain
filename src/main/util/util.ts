@@ -60,6 +60,36 @@ export function getAssetPath(...paths: string[]): string {
   return path.join(RESOURCES_PATH, ...paths);
 }
 
+export function rsaEncrypt2(plaintext: string, publicKey : string) : string {
+  const signature = crypto.publicEncrypt({
+      key: publicKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: 'sha256',
+  }, Buffer.from(plaintext, 'utf8'))
+
+  const data = signature.toString('base64')
+  return data;
+}
+
+export function rsaDecrypt2(encryptText: string, privateKey : string) : string {
+
+    // 1. 将 Base64 加密数据转为 Buffer
+    const encryptedBuffer = Buffer.from(encryptText, 'base64');
+
+    // 2. 使用私钥解密（必须与加密时的参数一致）
+    const decryptedBuffer = crypto.privateDecrypt(
+        {
+            key: privateKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: 'sha256',
+        },
+        encryptedBuffer
+    );
+
+    // 3. 将 Buffer 转为字符串
+    return decryptedBuffer.toString('utf8');
+}
+
 export function rsaEncrypt(plaintext: string, publicKey : string, privateKey : string) : string {
     const signature = crypto.publicEncrypt({
         key: publicKey,
@@ -77,6 +107,14 @@ export function fernetDecrypt(encryptText: string, key : string) : string {
     const token = new fernet.Token({secret: secret, token: encryptText, ttl: 0});
     const line = token.decode();
     return line;
+}
+
+export function fernetEncrypt(text: string, key : string) : string {
+  let realKey = base64Encode(key)
+  const secret = new fernet.Secret(realKey);
+  const token = new fernet.Token({secret: secret, token: text, ttl: 0});
+  const encryptText = token.encode();
+  return encryptText;
 }
 
 export function getUid(privateKey : string) : string {

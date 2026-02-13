@@ -133,14 +133,6 @@ class Nav extends Component {
                   </a >
                 )
               },
-              {
-                key: BASIC_SETTING_ROUTE,
-                label: (
-                  <a href={ "#" + BASIC_SETTING_ROUTE } rel="noopener noreferrer">
-                    {langTrans("nav setting basic")}
-                  </a >
-                )
-              },
             ]
           },
         ];
@@ -154,6 +146,14 @@ class Nav extends Component {
               </a >
             )
           }) 
+          basicNavs[3].children.push(              {
+            key: BASIC_SETTING_ROUTE,
+            label: (
+              <a href={ "#" + BASIC_SETTING_ROUTE } rel="noopener noreferrer">
+                {langTrans("nav setting basic")}
+              </a >
+            )
+          });
         }
 
         this.state = {

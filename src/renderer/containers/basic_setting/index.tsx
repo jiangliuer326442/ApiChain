@@ -22,12 +22,13 @@ import { langTrans } from '@lang/i18n';
 import {
     ChannelsVipStr,
     ChannelsVipCloseCkCodeStr,
+    ChannelsVipCkCodeStr,
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import {
     CLIENT_TYPE_TEAM 
 } from '@conf/team';
-import { getdayjs } from '@rutil/index';
+import { getStartParams, getdayjs } from '@rutil/index';
 import { 
     setBaseUrl, 
     setApiKey,
@@ -46,6 +47,10 @@ import PayAiTokenModel from '@comp/topup/aitoken';
 
 const { Header, Content, Footer } = Layout;
 const { Link, Text } = Typography;
+
+const argsObject = getStartParams();
+const isAdmin = argsObject.isAdmin;
+const isSuperAdmin = argsObject.isSuperAdmin;
 
 class BasicSetting extends Component {
 
@@ -291,9 +296,10 @@ class BasicSetting extends Component {
         });
     }
 
-    showCkCode = (e) => {
+    handleCkCode = (e) => {
         if (!this.state.closeShowPay) {
-            this.setState({showPayWriteOff: true})
+            //发消息生成核销码
+            window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCkCodeStr);
         }
     }
 
@@ -322,7 +328,7 @@ class BasicSetting extends Component {
                         type="warning" 
                         closable 
                         onClose={this.closeShowPay} 
-                        onClick={this.showCkCode}
+                        onClick={this.handleCkCode}
                     /> 
                 : null}
                     <PayAiTokenModel 
@@ -431,6 +437,7 @@ class BasicSetting extends Component {
                                             message.error(error.errorMessage);
                                         }
                                 }} color="primary">{langTrans("knowledge management update")}</Button>
+                            {((isAdmin == 1) || (isSuperAdmin == 1)) ? 
                                 <Popconfirm
                                     title={langTrans("knowledge management rebuild confirm")}
                                     onConfirm={async ()=>{
@@ -446,6 +453,7 @@ class BasicSetting extends Component {
                                         variant="outlined" 
                                         color="primary" danger>{langTrans("knowledge management rebuild")}</Button>
                                 </Popconfirm>
+                            : null}
                             </Space>
                         </Form.Item>
                     </>

@@ -44,6 +44,7 @@ export const TABLE_ENV_VAR_FIELDS = {
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
+    FIELD_ENCRYPTFLG : "encrypt_flg",
 }
 
 export const TABLE_ENV_KEY_NAME = "microservices_keys";

@@ -5,6 +5,7 @@ import MarkdownInitFunc from './markdown';
 import PostManInitFunc from './postman';
 import UpdaterInitFunc from './updater';
 import TopupInitFunc from './topup';
+import EncryptDecryptFunc from './encrypt';
 import TeamInitFunc from './team';
 import MockServerInitFunc from './mockserver';
 import NetworkSendInitFunc from './network';
@@ -18,6 +19,7 @@ export default function (mainWindow : BrowserWindow, privateKey : string, public
     PostManInitFunc();
     UpdaterInitFunc();
     TopupInitFunc(privateKey, publicKey, store);
+    EncryptDecryptFunc(privateKey, publicKey, store)
     TeamInitFunc(privateKey, store);
     MockServerInitFunc(mainWindow, store);
     NetworkSendInitFunc(privateKey, store);

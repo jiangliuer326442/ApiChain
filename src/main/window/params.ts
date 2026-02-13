@@ -72,7 +72,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let packageJson = await getPackageJson();
     let lang = await osLocale();
     // if (process.env.NODE_ENV === 'development') {
-    //     lang = 'en-AU';
+        // lang = 'en-US';
     // }
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
