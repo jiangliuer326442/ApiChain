@@ -52,6 +52,7 @@ import {
 } from '@conf/contentType';
 import {
   CLIENT_TYPE_TEAM,
+  CLIENT_TYPE_SINGLE,
 } from '@conf/team';
 import {
   REQUEST_METHOD_GET,
@@ -189,6 +190,7 @@ class RequestSendContainer extends Component {
       initDatasFlg: false,
       costTime: 0,
       sendingFlg: false,
+      teamId: "",
     }
   }
 
@@ -394,7 +396,7 @@ class RequestSendContainer extends Component {
 
   getEnvValueData = async (teamId: string, prj: string, env: string) => {
     if (isStringEmpty(env)) return;
-    this.setState(this.getClearState());
+    this.setState(Object.assign(this.getClearState(), {teamId}));
     let ret = await getEnvHosts(this.props.clientType, teamId, prj, env);
     let requestHost = getMapValueOrDefault(ret, env, "");
     let runMode = ENV_VALUE_RUN_MODE_CLIENT;
@@ -731,12 +733,14 @@ class RequestSendContainer extends Component {
                     env={ this.state.env ? this.state.env : this.props.env } 
                     cb={this.getEnvValueData} />
                 : null}
+                {(this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId) ? 
                   <Button 
                       type="primary" 
                       disabled={this.state.id === 0}
                       href={ isStringEmpty(this.state.iteratorId) ? "#/history_request_to_interator/" + this.state.id : "#/request_to_interator/" + this.state.iteratorId + "/" + this.state.id}
                       style={ { background: "#3b3b3b", color: "rgba(255, 255, 255, 0.5)"} }
                   >{langTrans("request btn1")}</Button>
+                : null}
                 </Flex>
                 <Flex>
                     <Select 

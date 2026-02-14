@@ -199,7 +199,7 @@ class EnvVar extends Component {
       let pkeys = await getProjectKeys(this.props.clientType, teamId, prj);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
-        let listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
+        let listDatas = await getPrjEnvValuesByPage(teamId, prj, env, paramName, this.props.clientType, pagination);
         this.setState({
           prj, 
           listDatas, 
@@ -220,13 +220,13 @@ class EnvVar extends Component {
         if ((!hasApiHost || !hasRunMode) && ((this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId))) {
           if (!hasApiHost) {
             await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
-            ENV_VALUE_API_HOST, "", "", langTrans("envvar prj api"), 0, this.props.device);
+            ENV_VALUE_API_HOST, "", "", langTrans("envvar prj api"), 0, 0, this.props.device);
           }
           if (!hasRunMode) {
             await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
-              ENV_VALUE_RUN_MODE, "client", "client", langTrans("envvar prj run mode"), 0, this.props.device);
+              ENV_VALUE_RUN_MODE, "client", "client", langTrans("envvar prj run mode"), 0, 0, this.props.device);
           }
-          listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
+          listDatas = await getPrjEnvValuesByPage(teamId, prj, env, paramName, this.props.clientType, pagination);
           this.setState({listDatas, pagination});
         }
       }

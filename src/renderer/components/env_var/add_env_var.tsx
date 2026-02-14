@@ -74,7 +74,7 @@ class AddEnvVarComponent extends Component {
 
         let handledData;
         //团队版，走服务端加密
-        if (encryptFlg == 1 && pvalue != this.state.oldPValue && this.props.clientType == CLIENT_TYPE_SINGLE) {
+        if (encryptFlg == 1 && (pvalue != this.state.oldPValue || encryptFlg != this.state.oldEncryptFlg) && this.props.clientType == CLIENT_TYPE_SINGLE) {
             handledData = await encryptPromise(pvalue);
         } else {
             handledData = pvalue;
@@ -86,7 +86,7 @@ class AddEnvVarComponent extends Component {
             this.props.prj, 
             this.props.env, 
             this.props.iteration ? this.props.iteration : "", this.props.unittest ? this.props.unittest : "" , 
-            pname, handledData, this.state.oldPValue, premark, encryptFlg,
+            pname, handledData, this.state.oldPValue, premark, encryptFlg, this.state.oldEncryptFlg,
             this.props.device
         );
 
