@@ -36,6 +36,8 @@ export const GLobalPort = 4343;
 
 export const DevHtmlPort = 1212;
 
+export const EMPTY_STRING = "__EMPTY_STRING__";
+
 export const VipTagDoc = "vip.tag.doc";
 
 export const VipTagMockServer = "vip.tag.mock";

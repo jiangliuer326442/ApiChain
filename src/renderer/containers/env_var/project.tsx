@@ -45,6 +45,7 @@ class EnvVar extends Component {
 
   constructor(props) {
     super(props);
+    const teamId = isStringEmpty(props.match.params.team) ? "" : props.match.params.team;
     this.state = {
       listColumn: [
         {
@@ -125,7 +126,7 @@ class EnvVar extends Component {
         pageSize: 10,
       },
       prj: props.match.params.prj,
-      teamId: props.match.params.team,
+      teamId,
       tips: [],
       pkeys: [],
       env: "",

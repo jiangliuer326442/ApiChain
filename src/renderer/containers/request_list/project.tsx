@@ -31,13 +31,14 @@ class RequestListProject extends Component {
 
     constructor(props) {
         super(props);
-        let projectLabel = this.props.match.params.id;
+        const projectLabel = this.props.match.params.id;
+        const teamId = isStringEmpty(props.match.params.team) ? "" : props.match.params.team;
         this.state = {
             projectLabel,
             requestsJsxDividered: [],
             title: "",
             uri: "",
-            teamId: props.match.params.team,
+            teamId,
             optionsUri: [],
             optionsTitle: [],
             folders: [],

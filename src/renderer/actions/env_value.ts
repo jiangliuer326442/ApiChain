@@ -541,24 +541,26 @@ export async function getIteratorEnvValuesByPage(iterator : string, prj : string
     if (clientType === CLIENT_TYPE_SINGLE) {
         const offset = (page - 1) * pageSize;
         let excludeKeys = new Set<String>();
-        let iteratorPrjArrays = await db[TABLE_ENV_VAR_NAME]
-        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
-        .equals([ env, prj, iterator, "" ])
-        .filter(row => {
-            if (pname) {
-                return row[env_var_pname] === pname;
+        if (!isStringEmpty(prj)) {
+            let iteratorPrjArrays = await db[TABLE_ENV_VAR_NAME]
+            .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+            .equals([ env, prj, iterator, "" ])
+            .filter(row => {
+                if (pname) {
+                    return row[env_var_pname] === pname;
+                }
+                if (row[env_var_delFlg]) {
+                    return false;
+                }
+                return true;
+            })
+            .toArray();
+            mixedSort(iteratorPrjArrays, env_var_pname);
+            excludeKeys = new Set(iteratorPrjArrays.map(item => ( item[env_var_pname])));
+            for (let iteratorPrjRow of iteratorPrjArrays) {
+                iteratorPrjRow.source = 'iterator_prj';
+                datas.push(iteratorPrjRow);
             }
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return true;
-        })
-        .toArray();
-        mixedSort(iteratorPrjArrays, env_var_pname);
-        excludeKeys = new Set(iteratorPrjArrays.map(item => ( item[env_var_pname])));
-        for (let iteratorPrjRow of iteratorPrjArrays) {
-            iteratorPrjRow.source = 'iterator_prj';
-            datas.push(iteratorPrjRow);
         }
 
         let iteratorArrays = await db[TABLE_ENV_VAR_NAME]

@@ -191,7 +191,7 @@ class Vip extends Component {
                     <TeamModel 
                     showTeam={this.state.showTeam} 
                     teamType={CLIENT_TYPE_TEAM}
-                    uname={this.state.user[db_field_uname]}
+                    uname={this.state.uname}
                     cb={showTeam => this.setState({showTeam})} /> 
                     : null}
                     <List itemLayout="horizontal" dataSource={this.state.list} renderItem={(item) => (

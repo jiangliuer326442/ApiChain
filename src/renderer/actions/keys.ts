@@ -108,7 +108,6 @@ export async function getProjectKeys(clientType : string, teamId : string, proje
 export async function getIteratorKeys(clientType : string, teamId : string, iterator : string, project : string) {
     let datas;
     if (clientType === CLIENT_TYPE_SINGLE) {
-
         let iteratorArrays1 = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
         .equals(["", iterator, ""])
@@ -119,10 +118,8 @@ export async function getIteratorKeys(clientType : string, teamId : string, iter
             return true;
         })
         .toArray(); 
-
         mixedSort(iteratorArrays1, env_var_pname);
         let sets1 = new Set<string>(iteratorArrays1.map(item => ( item[env_key_pname])));
-
         let iteratorArrays2 = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
         .equals([project, iterator, ""])
@@ -132,7 +129,7 @@ export async function getIteratorKeys(clientType : string, teamId : string, iter
             }
             return true;
         })
-        .toArray(); 
+        .toArray();
         mixedSort(iteratorArrays2, env_var_pname);
         let sets2 = new Set<string>(iteratorArrays2.map(item => ( item[env_key_pname])));
 

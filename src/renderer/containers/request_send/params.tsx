@@ -15,6 +15,7 @@ import RequestSendParam from "@comp/request_send/request_param";
 import RequestSendPathVariable from "@comp/request_send/request_path_variable";
 import { CONTENT_TYPE } from "@conf/global_config";
 import { CLIENT_TYPE_SINGLE } from "@conf/team";
+import { isStringEmpty } from "@rutil/index";
 import { getProjectKeys } from "@act/keys";
 import { 
   getRequestCommon, 
@@ -28,10 +29,11 @@ class ParamsProject extends Component {
 
   constructor(props) {
     super(props);
-    let projectLabel = props.match.params.id;
+    const projectLabel = props.match.params.id;
+    const teamId = isStringEmpty(props.match.params.team) ? "" : props.match.params.team;
     this.state = {
       readyFlg: false,
-      teamId: props.match.params.team,
+      teamId,
       projectLabel,
       defaultTabKey: "body",
       requestPathVariableData: {},

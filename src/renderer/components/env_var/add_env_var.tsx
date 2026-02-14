@@ -160,7 +160,13 @@ class AddEnvVarComponent extends Component {
                         <Radio.Group 
                             value={this.state.encryptFlg}
                             onChange={ event=>this.setState({encryptFlg : event.target.value}) }
-                            disabled={ this.state.oldEncryptFlg == 1 }
+                            disabled={ 
+                                this.state.oldEncryptFlg == 1 
+                                || 
+                                this.state.pname === ENV_VALUE_API_HOST 
+                                || 
+                                this.state.pname === ENV_VALUE_RUN_MODE 
+                            }
                             >
                             <Radio value={0}>{langTrans("envvar global add form4 no")}</Radio>
                             <Radio value={1}>{langTrans("envvar global add form4 yes")}</Radio>

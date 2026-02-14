@@ -294,7 +294,7 @@ class Project extends Component {
         title: langTrans("prj table5"),
         key: 'operater',
         render: (_, record) => {
-          return (this.props.teamId == record["team_id"] ? 
+          return ((this.props.clientType == CLIENT_TYPE_SINGLE || this.props.teamId == record["team_id"]) ? 
             <Space size="middle">
               <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPrjClick(record)} />
               <Popconfirm

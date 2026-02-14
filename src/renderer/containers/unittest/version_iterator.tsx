@@ -609,6 +609,7 @@ function mapStateToProps (state) {
         unittest: state.unittest.list,
         folders: state.unittest.folders,
         envs: state.env.list,
+        clientType: state.device.clientType,
     }
 }
       

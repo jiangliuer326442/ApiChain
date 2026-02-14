@@ -16,6 +16,7 @@ import {
 } from '@conf/db';
 import { SET_NAV_COLLAPSED } from '@conf/redux';
 import {
+  EMPTY_STRING,
   NETWORK,
   SETTINGS,
   ITERATOR,
@@ -37,6 +38,7 @@ import {
 } from '@conf/team';
 import { getOpenVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
+import { isStringEmpty } from '@rutil/index';
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
@@ -167,23 +169,24 @@ class Nav extends Component {
         if (!prevState.initPrjsFlg && nextProps.prjs.length > 0 && prevState.navs[2].children.length === 0 ) {
           let newSstate = cloneDeep(prevState);
           newSstate.navs[2].children = nextProps.prjs.map((prj) => {
+            const teamId = isStringEmpty(prj.teamId) ? EMPTY_STRING : prj.teamId;
             const children = [];
             children.push({
               key: prj[prj_label] + "_envvar",
-              label: <a href={`#/prj_envvars/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
+              label: <a href={`#/prj_envvars/${teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
             });
             children.push({
               key: prj[prj_label] + "_doc",
-              label: <a href={`#/project_requests/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
+              label: <a href={`#/project_requests/${teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
             });
             children.push({
               key: prj[prj_label] + "_params",
-              label: <a href={`#/project_params/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project params")}</a >
+              label: <a href={`#/project_params/${teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project params")}</a >
             });
             if (nextProps.clientType === CLIENT_TYPE_SINGLE || prj.teamId === nextProps.teamId) {
               children.push(                {
                 key: prj[prj_label] + "_unittest",
-                label: <a href={`#/project_tests/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
+                label: <a href={`#/project_tests/${teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
               });
             }
             return {

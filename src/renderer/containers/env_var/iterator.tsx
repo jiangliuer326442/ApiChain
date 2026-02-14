@@ -40,6 +40,7 @@ const { Text, Link } = Typography;
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
+let encryptFlg = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -67,10 +68,14 @@ class EnvVar extends Component {
         {
           title: langTrans("envvar global table2"),
           dataIndex: pvar,
-          render: (value) => {
-            return (
-              <Text copyable={{text: value}}>{ value }</Text>
-            );
+          render: (value, record) => {
+            if (record[encryptFlg] !== undefined && record[encryptFlg] == 1) {
+              return "******";
+            } else {
+              return (
+                <Text copyable={{text: value}}>{ value }</Text>
+              );
+            }
           }
         },
         {
@@ -206,11 +211,12 @@ class EnvVar extends Component {
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
+          encryptFlg: record[encryptFlg],
       });
     }
 
     getEnvValueData = async (prj: string, iterator: string, env: string, paramName: string) => {
-      let pkeys = await getIteratorKeys(this.props.clientType, iterator, prj);
+      let pkeys = await getIteratorKeys(this.props.clientType, this.props.teamId, iterator, prj);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
         let listDatas = await getIteratorEnvValuesByPage(iterator, prj, env, paramName, this.props.clientType, pagination);

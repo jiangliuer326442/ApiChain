@@ -68,6 +68,7 @@ class UnittestListVersion extends Component {
   constructor(props) {
     super(props);
     const project = props.match.params.id;
+    const teamId = isStringEmpty(props.match.params.team) ? "" : props.match.params.team;
     this.state = {
       executeFlg: true,
       column: [
@@ -223,6 +224,7 @@ class UnittestListVersion extends Component {
         : null,
       showPay: false,
       selectedUnittests: [],
+      teamId,
     };
   }
 
