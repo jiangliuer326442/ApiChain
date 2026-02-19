@@ -416,12 +416,12 @@ export async function editProjectRequest(
     }
 
     //未改动基础，只修改
-    if (initMethod === method && initUri === uri) {
-        let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
-        .where([ project_request_project, project_request_method, project_request_uri ])
-        .equals([ project, method, uri ])
-        .reverse()
-        .first();
+    let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
+    .where([ project_request_project, project_request_method, project_request_uri ])
+    .equals([ project, method, uri ])
+    .reverse()
+    .first();
+    if (initMethod === method && initUri === uri && project_request !== undefined) {
         project_request[project_request_title] = title;
         project_request[project_request_desc] = desc;
         project_request[project_request_fold] = fold;
@@ -441,12 +441,13 @@ export async function editProjectRequest(
         }
     
         await window.db[TABLE_PROJECT_REQUEST_NAME].put(project_request);
-    } else {
-        let project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
+    } 
+    project_request = await window.db[TABLE_PROJECT_REQUEST_NAME]
         .where([ project_request_project, project_request_method, project_request_uri ])
         .equals([ project, initMethod, initUri ])
         .reverse()
         .first();
+    if (!(initMethod === method && initUri === uri) && project_request !== undefined) {
         if (clientType === CLIENT_TYPE_SINGLE) {
             project_request.upload_flg = 0;
             project_request.team_id = "";

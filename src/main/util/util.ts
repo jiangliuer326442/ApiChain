@@ -3,6 +3,7 @@ import { URL } from 'url';
 import fernet from 'fernet';
 import path from 'path';
 import { app } from 'electron';
+import log from 'electron-log';
 import os from 'os';
 import crypto from 'crypto';
 import axios from 'axios';
@@ -143,6 +144,16 @@ export function getDefaultRunner(lang : string) : string {
   } else {
     return "http://runner.fanghailiang.cn";
   }
+}
+
+export function logInfo (...params: any[]): void {
+  if (process.env.NODE_ENV === 'development') {
+    log.info(params)
+  }
+}
+
+export function logError (...params: any[]): void {
+  log.error(params)
 }
 
 export function getPayJump(lang : string) : string {

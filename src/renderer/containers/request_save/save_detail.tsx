@@ -41,6 +41,7 @@ import {
     REQUEST_METHOD_POST,
     FoldSourcePrj,
     FoldSourceIterator,
+    EMPTY_STRING,
 } from '@conf/global_config';
 import JsonSaveTableComponent from "@comp/request_save/json_save_table";
 import FolderSelector from "@comp/folders/index";
@@ -234,6 +235,7 @@ class RequestSaveContainer extends Component {
         let simpleFolderName = folderName.replaceAll(FoldSourcePrj, "").replaceAll(FoldSourceIterator, "");
 
         if (this.state.type === "prj"){
+            const teamId = isStringEmpty(this.props.teamId) ? EMPTY_STRING : this.props.teamId;
             await editProjectRequest(
                 this.props.clientType, this.props.teamId,
                 this.state.initRequestMethod, this.state.initRequestUri, 
@@ -243,7 +245,7 @@ class RequestSaveContainer extends Component {
                 this.state.formResponseData, this.state.formResponseHeadData, this.state.formResponseCookieData
             );
             message.success(langTrans("request save check9"));
-            this.props.history.push("/project_requests/" + this.state.prj);
+            this.props.history.push(`/project_requests/${teamId}/${this.state.prj}`);
         } else {
             await editVersionIteratorRequest(
                 this.props.clientType, this.props.teamId,
@@ -405,7 +407,7 @@ class RequestSaveContainer extends Component {
                                 value={ this.state.requestUri }
                                 onChange={ event => this.setState({requestUri: event.target.value}) }
                                 size='large' />
-                        {this.props.clientType === CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId ? 
+                        {(this.state.type !== 'prj' || this.props.clientType === CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId) ? 
                             <Button 
                                 size='large' 
                                 type="primary" 

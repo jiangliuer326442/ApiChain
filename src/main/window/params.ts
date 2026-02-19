@@ -25,6 +25,7 @@ import {
     getIpV4,
     getPackageJson,
     base64Encode,
+    logInfo,
 } from '../util/util';
 import { urlEncode } from '../../renderer/util';
 import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '../../config/team';
@@ -85,8 +86,8 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let isAdmin = false;
     let isSuperAdmin = false;
     if (isStringEmpty(teamServerErrorMessage)) {
-        let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store)
-        log.info('get team name ret:', ret);
+        let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store);
+        logInfo('get team name ret:', ret);
         if (isStringEmpty(ret[1].teamId)) {
             setClientInfo(CLIENT_TYPE_SINGLE, null, store)
         } else {
@@ -165,7 +166,7 @@ function doGetInitParams(
         }
     }
 
-    log.info('restart params:', response);
+    logInfo('restart params:', response);
 
     const base64Response = response.map(row => `$$${base64Encode(row)}`);
 
