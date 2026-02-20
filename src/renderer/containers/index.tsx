@@ -1,17 +1,22 @@
 import { Component, ReactNode, Fragment } from 'react';
 import { connect } from 'react-redux';
-import { Route, Switch } from 'react-router-dom';
-import { Layout } from "antd";
+import { Route, Switch, withRouter } from 'react-router-dom';
+import { MessageOutlined } from '@ant-design/icons';
+import { 
+    FloatButton,
+    Layout,
+    Drawer, 
+} from "antd";
 import Dexie from 'dexie';
 
-import { setLang } from '@lang/i18n';
+import { setLang, langTrans } from '@lang/i18n';
 import { DB_NAME } from '@conf/db';
 import {
     USERCOUNTRY,
     USERLANG,
 } from '@conf/storage';
 import { SYNC_TABLES } from '@conf/global_config';
-import { SET_DEVICE_INFO } from '@conf/redux';
+import { SET_DEVICE_INFO, SET_NAV_COLLAPSED } from '@conf/redux';
 import { 
     BASIC_SETTING_ROUTE,
     TEAM_MEMBER_ROUTE,
@@ -69,6 +74,7 @@ if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
 setLang(userCountry, userLang);
 
 import Nav from '@comp/nav';
+import ChatBox from '@comp/chat_box/index'
 import HomePage from "@contain/home";
 import BasicSettingPage from "@contain/basic_setting";
 import TeamMemberPage from "@contain/team_member";
@@ -145,6 +151,7 @@ class MyRouter extends Component {
 
         this.state = {
             initNavFlg: false,
+            aiBoxOpenFlg: false,
         };
     }
 
@@ -154,6 +161,26 @@ class MyRouter extends Component {
             this.cb();
         }
         registerMessageHook();
+    }
+
+    closeAiBoxOpenFlg = () => {
+        this.props.dispatch({
+            type: SET_NAV_COLLAPSED,
+            collapsed: false,
+        });
+        this.setState({
+            aiBoxOpenFlg: false
+        });
+    }
+
+    openAiBoxOpenFlg = () => {
+        this.props.dispatch({
+            type: SET_NAV_COLLAPSED,
+            collapsed: true,
+        });
+        this.setState({
+            aiBoxOpenFlg: true
+        });
     }
 
     cb = async () => {
@@ -182,10 +209,30 @@ class MyRouter extends Component {
     }
 
     render(): ReactNode {
+
+        // 从 props 中获取当前路由路径（通过 withRouter 注入）
+        const { pathname } = this.props.location;
+        // 判断是否是需要排除的路由
+        const isExcludePath = pathname === WELCOME_ROUTE;
+
         return (
             <Fragment>
                 <Layout style={{ minHeight: '100vh' }}>
-                    {'electron' in window ? <Nav /> : null}
+                {'electron' in window ? <>
+                    <Nav />
+                    <Drawer
+                        title={ `${langTrans("chatbox title")}${isStringEmpty(this.props.prj) ? "" : `[${this.props.prj}]`}` }
+                        closable={{ 'aria-label': 'Close Button' }}
+                        open={this.state.aiBoxOpenFlg}
+                        onClose={this.closeAiBoxOpenFlg}
+                    >
+                        <ChatBox 
+                            from="drawer"
+                            meWidth={280}
+                            robotWidth={300}
+                        />
+                    </Drawer>
+                </> : null}
                     <Layout>
                         <Switch>
                             <Route path={ BASIC_SETTING_ROUTE } component={BasicSettingPage} />
@@ -221,6 +268,13 @@ class MyRouter extends Component {
                             <Route path={ ENVVAR_UNITTEST_LIST_ROUTE } component={EnvVarUnittestPage} />
                             <Route path={ WELCOME_ROUTE } component={HomePage} />
                         </Switch>
+                        {!isExcludePath && (<FloatButton 
+                            shape="circle"
+                            type="primary"
+                            style={{ insetInlineEnd: 120 }}
+                            icon={<MessageOutlined />}
+                            onClick={this.openAiBoxOpenFlg}
+                        />)}
                     </Layout>
                 </Layout>
             </Fragment>
@@ -230,7 +284,8 @@ class MyRouter extends Component {
 
 function mapStateToProps (state) {
     return {
+        prj: state.env_var.prj,
     }
 }
   
-export default connect(mapStateToProps)(MyRouter);
+export default connect(mapStateToProps)(withRouter(MyRouter));

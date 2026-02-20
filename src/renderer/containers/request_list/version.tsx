@@ -324,7 +324,7 @@ class RequestListVersion extends Component {
                         trigger="click"
                         description={langTrans("doc btn2")}
                         shape="square"
-                        type="primary"
+                        type="default"
                         style={{ right: 96 }}
                         icon={<ExportOutlined />}
                         >

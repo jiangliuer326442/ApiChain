@@ -15,6 +15,7 @@ import {
 
 import { langTrans } from '@lang/i18n';
 import { getWikiProject } from '@conf/url';
+import { GET_PRJ } from '@conf/redux';
 import RequestListCollapse from '@comp/requests_list_collapse';
 import { getProjectFolders } from '@act/project_folders';
 import { isStringEmpty } from '@rutil/index';
@@ -46,12 +47,20 @@ class RequestListProject extends Component {
             filterUri: "",
 			initFlg: false,
         }
+        this.props.dispatch({
+            type: GET_PRJ,
+            prj: projectLabel,
+        });
     }
 
     async componentDidUpdate(prevProps) {
         if (prevProps.match.params.id !== this.props.match.params.id) {
             this.state.projectLabel = this.props.match.params.id;
             this.onFinish({});
+            this.props.dispatch({
+                type: GET_PRJ,
+                prj: this.state.projectLabel,
+            });
         }
     }
 

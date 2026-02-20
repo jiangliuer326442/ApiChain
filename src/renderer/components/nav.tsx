@@ -6,7 +6,12 @@ import {
   FlagOutlined,
 } from '@ant-design/icons';
 import { connect } from 'react-redux';
-import { Button, Layout, Menu, Flex } from "antd";
+import { 
+  Button,
+  Layout, 
+  Menu, 
+  Flex 
+} from "antd";
 import { cloneDeep } from 'lodash';
 
 import { langTrans } from '@lang/i18n';

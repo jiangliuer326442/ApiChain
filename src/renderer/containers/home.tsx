@@ -22,9 +22,8 @@ import {
   SendOutlined, 
 } from '@ant-design/icons';
 
-import { 
-  LAST_SHOWTEAM_TIME,
-} from '@conf/storage';
+import { LAST_SHOWTEAM_TIME } from '@conf/storage';
+import { getWikiAiAssistant } from '@conf/url';
 import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
@@ -416,9 +415,17 @@ class Home extends Component {
               ]}
             />
             <Flex vertical>
-              {this.props.clientType === CLIENT_TYPE_TEAM ?
-              <ChatBox />
-              : 
+            {this.props.clientType === CLIENT_TYPE_TEAM ?
+              <Card title={<>
+            { langTrans("chatbox title") } <Text type="secondary"><Link href={ getWikiAiAssistant() }>{langTrans("link robot chat")}</Link></Text>
+            </>} style={{ width: 1050 }}>
+                <ChatBox 
+                  from="home"
+                  meWidth={500}
+                  robotWidth={970}
+                />
+              </Card>
+            : 
               (isStringEmpty(this.props.iterator) ? null :
               <>      
                 <Title level={1}>
@@ -492,7 +499,7 @@ class Home extends Component {
               : null}
               </>
               )
-              }
+            }
             </Flex>
           </Content>
           <Footer style={{ textAlign: 'center' }}>

@@ -2,7 +2,8 @@ import {
   SHOW_ADD_PROPERTY_MODEL,
   SHOW_EDIT_PROPERTY_MODEL,
   GET_ENV_VALS,
-  GET_ITERATOR
+  GET_ITERATOR,
+  GET_PRJ,
 } from '@conf/redux';
 
 import {
@@ -29,6 +30,11 @@ export default function (state = {
             return Object.assign({}, state, {
               iterator: action.iterator,
               unittest: action.unittest,
+            });
+        case GET_PRJ:
+            localStorage.setItem(AI_LINK_PROJECT, action.prj);
+            return Object.assign({}, state, {
+              prj: action.prj,
             });
         case GET_ENV_VALS:
             localStorage.setItem(AI_LINK_PROJECT, action.prj);

@@ -1,5 +1,4 @@
 import Store from 'electron-store';
-import log from 'electron-log';
 import { ipcMain, shell } from 'electron';
 import { 
     ChannelsVipStr, 
@@ -14,6 +13,7 @@ import {
     getCheckCodeUrl,
 } from '../../store/config/vip';
 import { isStringEmpty } from '../../../renderer/util';
+import { logInfo } from '../../util/util';
 
 export default function (privateKey : string, publicKey : string, store: Store){
 
@@ -37,7 +37,7 @@ export default function (privateKey : string, publicKey : string, store: Store){
             return ;
         }
 
-        log.info("payMethod=" + payMethod + ", productName=" + productName);
+        logInfo("payMethod=" + payMethod + ", productName=" + productName);
 
         let money = 1000;
         if (productName === "product9") {

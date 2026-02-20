@@ -28,7 +28,7 @@ import {
   UNITTEST_RESULT_SUCCESS,
   UNITTEST_RESULT_FAILURE,
 } from '@conf/unittest';
-import { SHOW_EDIT_UNITTEST_MODEL } from '@conf/redux';
+import { SHOW_EDIT_UNITTEST_MODEL, GET_PRJ } from '@conf/redux';
 import { UNITTEST_ENV } from '@conf/storage';
 import { getWikiProject } from '@conf/url';
 import { getdayjs, isStringEmpty } from '@rutil/index';
@@ -226,12 +226,20 @@ class UnittestListVersion extends Component {
       selectedUnittests: [],
       teamId,
     };
+    props.dispatch({
+      type: GET_PRJ,
+      prj: project,
+    });
   }
 
   static getDerivedStateFromProps(nextProps, prevState) {
     const nextProject = nextProps.match.params.id;
     const prevProject = prevState.project;
     if (nextProject !== prevProject) {
+      nextProps.dispatch({
+        type: GET_PRJ,
+        prj: nextProject,
+      });
       return {
         project: nextProject,
         unittestUuid: '',

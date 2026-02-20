@@ -7,6 +7,9 @@ import {
     ENV_LIST_ROUTE,
 } from "@conf/routers";
 import {
+    GET_PRJ
+} from "@conf/redux";
+import {
     TABLE_VERSION_ITERATION_FIELDS,
 } from '@conf/db';
 import { getEnvs } from '@act/env';
@@ -91,12 +94,20 @@ class PrjEnvSelect extends Component {
 
     setProjectChange = (rawValue: string) => {
         if (isStringEmpty(rawValue)) {
+            this.props.dispatch({
+                type: GET_PRJ,
+                prj: "",
+            });
             this.setState({prj: ""});
             return;
         }
         const teamId = this.getTeamIdByPrj(rawValue);
         let prj = rawValue.split("$$")[0];
         this.setState({prj: rawValue});
+        this.props.dispatch({
+            type: GET_PRJ,
+            prj,
+        });
         this.props.cb(teamId, prj, this.state.env !== "" ? this.state.env : this.state.env);
     }
   

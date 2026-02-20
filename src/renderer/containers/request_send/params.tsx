@@ -15,6 +15,7 @@ import RequestSendParam from "@comp/request_send/request_param";
 import RequestSendPathVariable from "@comp/request_send/request_path_variable";
 import { CONTENT_TYPE } from "@conf/global_config";
 import { CLIENT_TYPE_SINGLE } from "@conf/team";
+import { GET_PRJ } from "@conf/redux";
 import { isStringEmpty } from "@rutil/index";
 import { getProjectKeys } from "@act/keys";
 import { 
@@ -43,6 +44,10 @@ class ParamsProject extends Component {
       contentType: "",
       envKeys: [],
     }
+    props.dispatch({
+        type: GET_PRJ,
+        prj: projectLabel,
+    });
   }
 
   async componentDidMount() {
@@ -52,6 +57,10 @@ class ParamsProject extends Component {
   async componentDidUpdate(prevProps) { 
     if (this.props.match.params.id !== prevProps.match.params.id) {
       this.state.projectLabel = this.props.match.params.id;
+      this.props.dispatch({
+        type: GET_PRJ,
+        prj: this.state.projectLabel,
+      });
       this.setState({readyFlg: false})
       this.getDatas();
     }

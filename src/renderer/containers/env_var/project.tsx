@@ -16,7 +16,7 @@ import {
 } from '@conf/team';
 import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE } from '@conf/envKeys';
 import { ENV_LIST_ROUTE } from '@conf/routers';
-import { GET_ENV_VALS } from '@conf/redux';
+import { GET_ENV_VALS, GET_PRJ } from '@conf/redux';
 import { getWikiEnv } from '@conf/url';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
@@ -46,6 +46,7 @@ class EnvVar extends Component {
   constructor(props) {
     super(props);
     const teamId = isStringEmpty(props.match.params.team) ? "" : props.match.params.team;
+    const prj = props.match.params.prj;
     this.state = {
       listColumn: [
         {
@@ -125,7 +126,7 @@ class EnvVar extends Component {
         current: 1,
         pageSize: 10,
       },
-      prj: props.match.params.prj,
+      prj,
       teamId,
       tips: [],
       pkeys: [],
@@ -133,6 +134,10 @@ class EnvVar extends Component {
       copiedKeys: [],
       disabledKeys: [],
     }
+    this.props.dispatch({
+        type: GET_PRJ,
+        prj,
+    });
   }
   
   componentDidMount(): void {
@@ -157,6 +162,10 @@ class EnvVar extends Component {
         disabledKeys: [],
       });
       this.getEnvValueData(this.state.teamId, nextPrj, this.state.env ? this.state.env : this.props.env, "");
+      nextProps.dispatch({
+          type: GET_PRJ,
+          prj: nextPrj,
+      });
     }
   }
 
