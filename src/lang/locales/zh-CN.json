@@ -545,6 +545,8 @@
     "chatbox sending": "发送中",
     "chatbox title": "咨询 AI",
     "chatbox question tips": "在此输入您的问题，Enter 发送，Shift+Enter 换行。聊天记录仅保存在本地，不会上传到runner",
+    "chatbox convert model": "生成实体类",
+    "chatbox convert model tips": "把下面的json内容转成项目需要使用的前端或者后端实体类",
     "setting basic provider label": "提供商",
     "setting basic aimodels label": "可用的语言模型",
     "setting basic url label": "api地址",

@@ -6,9 +6,11 @@ import { SendOutlined, } from '@ant-design/icons';
 
 import './index.less';
 
-import { AI_MODEL, AI_RECORD } from '@conf/storage';
+import { AI_RECORD } from '@conf/storage';
 import { GET_PRJ, } from '@conf/redux';
+import { ChannelsLoadAppStr } from '@conf/channel';
 import { getBigModels } from '@act/ai';
+import { setChatModel2 } from '@act/team';
 import { langTrans } from '@lang/i18n';
 import { replaceHttpWithWs, isStringEmpty, } from '@rutil/index';
 import { addNewlineBeforeTripleBackticks, addCodeMarkdown } from '@rutil/markdown';
@@ -21,10 +23,6 @@ class AiChatBox extends Component {
 
     constructor(props) {
         super(props);
-        let aiModel = localStorage.getItem(AI_MODEL);
-        if (isStringEmpty(aiModel)) {
-          aiModel = "";
-        }
         let messages
         let chatRecord = localStorage.getItem(AI_RECORD);
         if (isStringEmpty(chatRecord)) {
@@ -52,7 +50,7 @@ class AiChatBox extends Component {
             }
           ],
           linkOperator: "",
-          aiModel,
+          aiModel: "",
         }
 
         this.scrollContainerRef = React.createRef();
@@ -60,7 +58,10 @@ class AiChatBox extends Component {
 
     componentDidMount(): void {
       getBigModels().then( (response) => {
-        this.setState({ aiModels: response })
+        this.setState({ 
+          aiModel: response.chatModel,
+          aiModels: response.chatModels 
+        })
       });
       this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/ai/ws/" + this.props.teamId + "/" + this.props.uid);
 
@@ -111,6 +112,16 @@ class AiChatBox extends Component {
 
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.messageText !== this.props.messageText) {
+          this.state.input = this.props.messageText;
+          this.state.codeBlock = this.props.messageCode;
+          if (!isStringEmpty(this.state.input)) {
+            this.handleSend();
+          }
+        }
+    }
+
     handleLinkProject = originPrj => {
       if (isStringEmpty(originPrj)) {
         this.props.dispatch({
@@ -136,9 +147,19 @@ class AiChatBox extends Component {
       }
     }
 
-    handleSetAiModel = aiModel => {
-      localStorage.setItem(AI_MODEL, aiModel);
+    handleSetAiModel = async (aiModel) => {
+      await setChatModel2(aiModel);
       this.setState( {aiModel} );
+    }
+
+    clearRecord = () => {
+      localStorage.removeItem(AI_RECORD);
+      this.setState({
+        messages: [], 
+        codeBlock: "", 
+        messageLength: 0
+      });
+      window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
     }
 
     handleSend = async () => {
@@ -192,14 +213,11 @@ class AiChatBox extends Component {
 
         setTimeout(() => {
           this.setState({ loadingTimeout: false });
-          this.scrollToBottom()
-        }, 3000);
+          this.scrollToBottom();
+        }, 500);
     };
 
     scrollToBottom = () => {
-      if (this.state.loadingTimeout || this.state.loadingWaitMessage) {
-        return;
-      }
       const container = this.scrollContainerRef.current;
       if (container) {
         container.scrollTop = container.scrollHeight;
@@ -211,6 +229,7 @@ class AiChatBox extends Component {
 <>
   <div 
     className='chat-box'
+    style={{height: this.props.from === "drawer" ? 539 : 400}}
     ref={this.scrollContainerRef}
   >
     <List
@@ -289,10 +308,7 @@ class AiChatBox extends Component {
           <Button>{this.state.linkOperator ? this.state.linkOperators.find(_operator => _operator.value === this.state.linkOperator).label : langTrans("chatbox link action")}</Button>
         </Popover>
       }
-        <Button onClick={()=>{
-          localStorage.removeItem(AI_RECORD);
-          this.setState({messages: [], codeBlock: "", messageLength: 0});
-        }}>{langTrans("chatbox empty record")}</Button>
+        <Button onClick={this.clearRecord}>{langTrans("chatbox empty record")}</Button>
         {this.state.aiModels.length > 1 && this.props.from !== "drawer" ?
         <Popover placement="top" title={langTrans("chatbox aimodel select")} content={
           <Select 
@@ -346,6 +362,8 @@ function mapStateToProps (state) {
       userCountry: state.device.userCountry,
       uid: state.device.uuid,
       appVersion: state.device.appVersion,
+      messageText: state.nav.messageText,
+      messageCode: state.nav.messageCode
     }
 }
 

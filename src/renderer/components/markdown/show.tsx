@@ -36,7 +36,6 @@ export default class extends Component {
     }
 
     render() : ReactNode {
-        let that = this;
         return (
             <Flex className='ReackMarkerContainer' gap={"middle"}>
                 <Flex>

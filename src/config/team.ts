@@ -188,6 +188,8 @@ export const REQUEST_COMMON_GET_URL = "/request_common/get";
 
 export const OS_ENV_VALUE_SET_URL = "/os_env_value/set";
 
+export const AI_CHAT_MODEL_SET_URL = "/os_env_value/setChatModel";
+
 export const AI_TOKEN_SET_URL = "/os_env_value/setOpenApi";
 
 export const AI_TOKENS_GET_URL = "/os_env_value/getOpenAiKeys";

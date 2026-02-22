@@ -57,7 +57,7 @@ export default function (privateKey : string, publicKey : string, store: Store){
         } else if (productName === "token3") {
             money = 100;
         }
-        let url = await genCheckCodeUrl(productName, payMethod, privateKey, publicKey, store);
+        let url = genCheckCodeUrl(productName, payMethod, privateKey, publicKey, store);
         await shell.openExternal(url)
         event.reply(ChannelsVipStr, ChannelsVipGenUrlStr, money);
     });

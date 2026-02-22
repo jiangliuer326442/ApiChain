@@ -7,7 +7,6 @@ import { getStartParams, isStringEmpty } from '@rutil/index';
 import {
     IS_AUTO_UPGRADE,
     UNITTEST_ENV,
-    AI_LINK_PROJECT,
     ENV,
 } from '@conf/storage';
 import { 
@@ -245,7 +244,6 @@ export default function() : void {
 
                     localStorage.removeItem(IS_AUTO_UPGRADE);
                     localStorage.removeItem(UNITTEST_ENV);
-                    localStorage.removeItem(AI_LINK_PROJECT);
                     localStorage.removeItem(ENV);
                     alert(langTrans("db clean success"));
                 },

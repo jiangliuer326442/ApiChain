@@ -16,7 +16,7 @@ import {
     USERLANG,
 } from '@conf/storage';
 import { SYNC_TABLES } from '@conf/global_config';
-import { SET_DEVICE_INFO, SET_NAV_COLLAPSED } from '@conf/redux';
+import { SET_DEVICE_INFO, SET_AI_COLLAPSED } from '@conf/redux';
 import { 
     BASIC_SETTING_ROUTE,
     TEAM_MEMBER_ROUTE,
@@ -151,7 +151,6 @@ class MyRouter extends Component {
 
         this.state = {
             initNavFlg: false,
-            aiBoxOpenFlg: false,
         };
     }
 
@@ -165,20 +164,16 @@ class MyRouter extends Component {
 
     closeAiBoxOpenFlg = () => {
         this.props.dispatch({
-            type: SET_NAV_COLLAPSED,
+            type: SET_AI_COLLAPSED,
             collapsed: false,
-        });
-        this.setState({
             aiBoxOpenFlg: false
         });
     }
 
     openAiBoxOpenFlg = () => {
         this.props.dispatch({
-            type: SET_NAV_COLLAPSED,
+            type: SET_AI_COLLAPSED,
             collapsed: true,
-        });
-        this.setState({
             aiBoxOpenFlg: true
         });
     }
@@ -206,6 +201,8 @@ class MyRouter extends Component {
         getPrjs(clientType, this.props.dispatch);
         getOpenVersionIterators(clientType, this.props.dispatch);
         this.state.initNavFlg = true;
+
+        this.closeAiBoxOpenFlg();
     }
 
     render(): ReactNode {
@@ -221,9 +218,11 @@ class MyRouter extends Component {
                 {'electron' in window ? <>
                     <Nav />
                     <Drawer
-                        title={ `${langTrans("chatbox title")}${isStringEmpty(this.props.prj) ? "" : `[${this.props.prj}]`}` }
+                        title={ `${langTrans("chatbox title")}${
+                            (isStringEmpty(this.props.prj) || this.props.projects.length == 0) ? "" : 
+                            `【${this.props.projects.find(_prj => _prj.value === this.props.prj).label}】`}` }
                         closable={{ 'aria-label': 'Close Button' }}
-                        open={this.state.aiBoxOpenFlg}
+                        open={this.props.aiBoxOpenFlg}
                         onClose={this.closeAiBoxOpenFlg}
                     >
                         <ChatBox 
@@ -285,6 +284,8 @@ class MyRouter extends Component {
 function mapStateToProps (state) {
     return {
         prj: state.env_var.prj,
+        projects: state.prj.list,
+        aiBoxOpenFlg: state.nav.aiBoxOpenFlg,
     }
 }
   

@@ -545,6 +545,8 @@
     "chatbox sending": "發送中",
     "chatbox title": "諮詢 AI",
     "chatbox question tips": "在此輸入您的問題，Enter 發送，Shift+Enter 換行。聊天記錄僅保存在本地，不會上傳到 runner。",
+    "chatbox convert model": "產生實體類別",
+    "chatbox convert model tips": "將下方的json內容轉換成專案所需使用的前端或後端實體類別",
     "setting basic provider label": "供應商",
     "setting basic aimodels label": "可用的語言模型",
     "setting basic url label": "API地址",

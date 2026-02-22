@@ -545,6 +545,8 @@
     "chatbox sending": "Sending",
     "chatbox title": "Consult AI",
     "chatbox question tips": "Enter your question here, press Enter to send, press Shift+Enter to create a new line. Chat history is saved locally and will not be uploaded to the runner.",
+    "chatbox convert model": "Generate Entity Class",
+    "chatbox convert model tips": "Convert the following JSON content into the front-end or back-end entity classes required by the project",
     "setting basic provider label": "Provider",
     "setting basic aimodels label": "Available Language Models",
     "setting basic url label": "API Address",

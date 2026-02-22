@@ -69,6 +69,17 @@ class PrjEnvSelect extends Component {
         } else {
             selectedValue = prjOptions.find(item => item.value.startsWith(selectedValue + "$$")).value;
         }
+        if (isStringEmpty(selectedValue)) {
+            this.props.dispatch({
+                type: GET_PRJ,
+                prj: "",
+            });
+        } else {
+            this.props.dispatch({
+                type: GET_PRJ,
+                prj: selectedValue.split("$$")[0],
+            });
+        }
         const teamId = this.getTeamIdByPrj(selectedValue);
         if (!isStringEmpty(selectedValue)) {
             this.setState({

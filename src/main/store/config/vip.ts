@@ -8,6 +8,7 @@ import {
     getPayQuery 
 } from '../../util/util'
 import { isStringEmpty } from '../../../renderer/util';
+import { osLocaleSync } from '../../third_party/os-locale';
 import { getLang } from '../../../lang/i18n';
 
 export const TABLE_NAME = "vip.status";
@@ -163,7 +164,10 @@ export function genCheckCodeUrl(productName : string, payMethod : string, privat
 }
 
 function genEncryptString(outTradeNo : string, productName : string, payMethod : string, privateKey : string, publicKey : string) : string {
-    const plaintext = productName + ":" + payMethod + ":" + outTradeNo;
+    const lang = osLocaleSync();
+    let userLang = lang.split("-")[0];
+    let userCountry = lang.split("-")[1];
+    const plaintext = `${userCountry}:${userLang}:${productName}:${payMethod}:${outTradeNo}`;
     let data = rsaEncrypt(plaintext, publicKey, privateKey);
     return getPayJump(getLang()) + data;
 }

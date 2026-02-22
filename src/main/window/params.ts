@@ -29,7 +29,7 @@ import {
 } from '../util/util';
 import { urlEncode } from '../../renderer/util';
 import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '../../config/team';
-import { osLocale } from '../third_party/os-locale';
+import { osLocaleSync } from '../third_party/os-locale';
 import { isStringEmpty } from '../../renderer/util';
 
 export function systemInit() {
@@ -71,7 +71,8 @@ export function systemInit() {
 
 export async function getInitParams(privateKey : string, startupParams : object, store : Store) : Promise<string[]> {
     let packageJson = await getPackageJson();
-    let lang = await osLocale();
+    const lang = osLocaleSync();
+    logInfo(`lang:${lang}`)
     // if (process.env.NODE_ENV === 'development') {
         // lang = 'en-US';
     // }

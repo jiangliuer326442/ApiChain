@@ -53,7 +53,7 @@ class RequestListProject extends Component {
         });
     }
 
-    async componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps) {
         if (prevProps.match.params.id !== this.props.match.params.id) {
             this.state.projectLabel = this.props.match.params.id;
             this.onFinish({});

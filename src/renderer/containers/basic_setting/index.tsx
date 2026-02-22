@@ -148,10 +148,39 @@ class BasicSetting extends Component {
                 let providerArr = providerRow.split(":");
                 providers.push({label:providerArr[0], value:providerArr[1]})
             }
+            this.setProvider(selectedProvider);
             let baseUrlArr = this.getBaseUrl(bigModelProviders, selectedProvider);
+            if (baseUrlArr.length > 1) {
+                this.setBaseUrl2(baseUrlArr[0].value);
+            } else {
+                this.setBaseUrl2(baseUrlArr[0]);
+            }
             let langguageModelArr = this.getLanguageModels(bigModelProviders, selectedProvider);
+            if (langguageModelArr.length > 1) {
+                this.setLanguageModel2(langguageModelArr[0].value);
+            } else {
+                this.setLanguageModel2(langguageModelArr[0]);
+            }
             let apiKey = this.getApiKey(bigModelProviders, selectedProvider);
             const tokenList = await getTokens();
+            let hasUsed = false;
+            for (let _token of tokenList) {
+                if (_token['use_flg']) {
+                    hasUsed = true;
+                    break;
+                }
+            }
+            if (!hasUsed && tokenList.length > 0) {
+                const record = tokenList[0];
+                let tokenName = record["token_name"];
+                await enableToken(tokenName).then(async () => {
+                    let selectedProvider = "YUNWU";
+                    this.setState({
+                        selectedProvider,
+                        tokens: await getTokens(),
+                    });
+                })
+            }
             this.setState({
                 selectedProvider,
                 bigModelProviders,
@@ -245,12 +274,12 @@ class BasicSetting extends Component {
     }
 
     setProvider = async (newProvider : string) => {
+        this.state.selectedProvider = newProvider;
         await setProvider(newProvider).then(()=> {
             let baseUrlArr = this.getBaseUrl(null, newProvider);
             let langguageModelArr = this.getLanguageModels(null, newProvider);
             let apiKey = this.getApiKey(null, newProvider);
             this.setState({
-                selectedProvider : newProvider,
                 baseUrls : baseUrlArr,
                 languageModels: langguageModelArr,
                 apiKey,

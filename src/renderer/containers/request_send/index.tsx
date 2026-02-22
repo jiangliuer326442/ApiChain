@@ -7,7 +7,6 @@ import {
 } from "antd";
 import type { DescriptionsProps } from 'antd';
 import { decode } from 'base-64';
-import JsonView from 'react-json-view';
 import { cloneDeep } from 'lodash';
 
 import { 
@@ -61,6 +60,7 @@ import {
 } from '@conf/global_config';
 import { GET_ENV_VALS } from '@conf/redux';
 import RequestSendTips from '@clazz/RequestSendTips';
+import JsonViewWrapper from '@comp/markdown/jsonView';
 import {
   getEnvHosts,
   getEnvRunModes,
@@ -794,18 +794,9 @@ class RequestSendContainer extends Component {
                   overflowY: this.state.isResponsePic ? "auto":"scroll",
                 } }>
                   { this.state.isResponseJson ? 
-                    <JsonView 
-                    src={JSON.parse(this.state.responseData)}   
-                    name={ false }
-                    theme={ "bright" }
-                    collapsed={false}  
-                    indentWidth={4}  
-                    iconStyle="triangle"
-                    enableClipboard={true}
-                    displayObjectSize={false}
-                    displayDataTypes={false}
-                    sortKeys={true}
-                    collapseStringsAfterLength={40}  />
+                    <JsonViewWrapper
+                      content={ this.state.responseData }
+                    />
                   : null}
                   {this.state.isResponsePic ? 
                     <img style={{height: 200}} src={this.state.responseData} />
