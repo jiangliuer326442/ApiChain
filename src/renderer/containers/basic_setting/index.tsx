@@ -92,8 +92,8 @@ class BasicSetting extends Component {
                         type="link" 
                         icon={<ReloadOutlined style={{ fontSize: '16px', color: '#1890ff' }} />}
                         onClick={async () => {
-                            let tokenName = record["token_name"];
-                            await queryRemainGas(tokenName).then(async () => this.setState({tokens: await getTokens()}))
+                            let tokenContent = record["token_content"];
+                            await queryRemainGas(tokenContent).then(async () => this.setState({tokens: await getTokens()}))
                         }}
                         >
                     {remainGas}

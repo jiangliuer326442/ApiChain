@@ -86,6 +86,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let clientType = CLIENT_TYPE_SINGLE;
     let isAdmin = false;
     let isSuperAdmin = false;
+    let isAiSupport = false;
     if (isStringEmpty(teamServerErrorMessage)) {
         let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store);
         logInfo('get team name ret:', ret);
@@ -98,6 +99,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
             clientType = CLIENT_TYPE_TEAM;
             isAdmin = ret[1].isAdmin;
             isSuperAdmin = ret[1].isSuperAdmin;
+            isAiSupport = ret[1].isAiSupport;
         }
     }
 
@@ -116,7 +118,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let defaultRunner = getDefaultRunner(syslang);
 
     return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, userLang, userCountry, teamName, firstLauch, 
-        teamId, clientHost, clientType, isSuperAdmin, isAdmin,
+        teamId, clientHost, clientType, isSuperAdmin, isAdmin, isAiSupport,
         startupParams, store);
 }
 
@@ -125,7 +127,7 @@ function doGetInitParams(
     defaultRunner : string,
     showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, 
     firstLauch : boolean, 
-    teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean,
+    teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean, isAiSupport : boolean,
     startupParams : object, store : Store) : string[] {
     let uname = getUname();
     let ip = getIpV4();
@@ -158,7 +160,8 @@ function doGetInitParams(
         "clientHost=" + clientHost,
         "teamId=" + teamId,
         "isSuperAdmin=" + (isSuperAdmin ? "1" : "0"),
-        "isAdmin=" + (isAdmin ? "1" : "0")
+        "isAdmin=" + (isAdmin ? "1" : "0"),
+        "isAiSupport=" + (isAiSupport ? "1" : "0")
     ]
 
     for (let startupKey in startupParams) {

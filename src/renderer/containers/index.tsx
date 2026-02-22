@@ -201,8 +201,6 @@ class MyRouter extends Component {
         getPrjs(clientType, this.props.dispatch);
         getOpenVersionIterators(clientType, this.props.dispatch);
         this.state.initNavFlg = true;
-
-        this.closeAiBoxOpenFlg();
     }
 
     render(): ReactNode {
@@ -217,7 +215,7 @@ class MyRouter extends Component {
                 <Layout style={{ minHeight: '100vh' }}>
                 {'electron' in window ? <>
                     <Nav />
-                    <Drawer
+                    {!isExcludePath && (<Drawer
                         title={ `${langTrans("chatbox title")}${
                             (isStringEmpty(this.props.prj) || this.props.projects.length == 0) ? "" : 
                             `【${this.props.projects.find(_prj => _prj.value === this.props.prj).label}】`}` }
@@ -230,7 +228,7 @@ class MyRouter extends Component {
                             meWidth={280}
                             robotWidth={300}
                         />
-                    </Drawer>
+                    </Drawer>)}
                 </> : null}
                     <Layout>
                         <Switch>

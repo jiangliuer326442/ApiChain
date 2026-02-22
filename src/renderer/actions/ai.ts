@@ -32,8 +32,8 @@ export async function enableToken(tokenName : string) {
     await sendTeamMessage(AI_TOKENS_CHANGE_URL, {tokenName});
 }
 
-export async function queryRemainGas(tokenName : string) {
-    await sendTeamMessage(AI_TOKENS_GAS_QUERY_URL, {tokenName});
+export async function queryRemainGas(tokenContent : string) {
+    await sendTeamMessage(AI_TOKENS_GAS_QUERY_URL, {tokenContent});
 }
 
 export async function getTokens() {

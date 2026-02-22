@@ -206,7 +206,6 @@ class AiChatBox extends Component {
           payload: {
             project: this.props.prj,
             operator: this.state.linkOperator,
-            aiModel: this.state.aiModel,
             history: historyMessage,
           }
         }));
