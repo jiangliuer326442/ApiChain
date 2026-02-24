@@ -6,6 +6,8 @@ export const SET_AI_MESSAGE = "ai_set_message";
 
 export const SET_DEVICE_INFO = "set_device_info";
 
+export const SET_AI_SUPPORT_INFO = "set_ai_support_info";
+
 export const SHOW_ADD_ENV_MODEL = "show_add_env_model";
 
 export const SHOW_EDIT_ENV_MODEL = "show_edit_env_model";

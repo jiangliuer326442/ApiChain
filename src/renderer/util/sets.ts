@@ -22,3 +22,8 @@ export function objectToMap(obj) {
     }
     return map;
 }
+
+export function setToJson(set) {
+  // Convert Set to Array and then to JSON string
+  return JSON.stringify(Array.from(set));
+}

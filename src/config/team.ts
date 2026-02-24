@@ -205,3 +205,5 @@ export const AI_LANGUAGE_MODELS_URL = "/ai/languageModels";
 export const AI_VECTOR_MODELS_URL = "/ai/vector";
 
 export const AI_RE_VECTOR_MODELS_URL = "/ai/reVector";
+
+export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";

@@ -27,6 +27,33 @@ export async function getEnvVarsIterator(data : any, format : any, env : string,
     return data;
 }
 
+export function getJsonKeys(header, body, file, param, pathVariable, response) {
+  const keys = new Set<string>();
+  
+  getObjectKeys(header, keys);
+  getObjectKeys(body, keys);
+  getObjectKeys(file, keys);
+  getObjectKeys(param, keys);
+  getObjectKeys(pathVariable, keys);
+  getObjectKeys(response, keys);
+  return keys;
+}
+
+function getObjectKeys(item, keys : Set<string>) {
+    if (typeof item === 'object' && item !== null) {
+        if (Array.isArray(item)) {
+            item.forEach(value => {
+                getObjectKeys(value, keys);
+            });
+        } else {
+            Object.entries(item).forEach(([key, value]) => {
+                keys.add(key);
+                getObjectKeys(value, keys);
+            });
+        }
+    }
+}
+
 export function retShortJsonContent(jsonObject : object) : object {
     let shortJsonObject = {};
     shortJsonContent(shortJsonObject, jsonObject);

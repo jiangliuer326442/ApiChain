@@ -10,6 +10,7 @@ import {
     AI_TOKENS_CHANGE_URL,
     AI_TOKENS_GAS_QUERY_URL,
     AI_BIG_MODELS_URL,
+    AI_GET_INTERFACE_TRANSLATE,
 } from '@conf/team';
 
 export async function getBigModels() {
@@ -45,4 +46,8 @@ export async function getTokens() {
         token["create_name"] = getMapValueOrDefault(users, createUid, "");
     }
     return tokens;
+}
+
+export async function getInterfaceTranslate(url : string, keys : string) {
+    return await sendTeamMessage(AI_GET_INTERFACE_TRANSLATE, {url, keys});
 }

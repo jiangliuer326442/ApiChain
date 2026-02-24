@@ -121,6 +121,7 @@ class MyRouter extends Component {
             appVersion : argsObject.appVersion,
             defaultRunnerUrl : argsObject.defaultRunnerUrl,
             minServerVersion : argsObject.minServerVersion,
+            isAiSupport : argsObject.isAiSupport == 1 ? true : false,
             userCountry,
             userLang,
         });

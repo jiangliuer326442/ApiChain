@@ -22,7 +22,9 @@ import {
     retParseBodyJsonToTable,
     parseJsonToFilledTable,
     cleanJson,
+    getJsonKeys,
 } from '@rutil/json';
+import { setToJson } from '@rutil/sets';
 
 import { createWindow } from '@rutil/window';
 import { 
@@ -30,7 +32,6 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_FIELDS,
     TABLE_REQUEST_HISTORY_FIELDS,
-    TABLE_MICRO_SERVICE_FIELDS,
 } from '@conf/db';
 import {
     REQUEST_METHOD_GET,
@@ -51,6 +52,9 @@ import {
 import {
     getProjectFolders 
 } from '@act/project_folders';
+import {
+    getInterfaceTranslate
+} from '@act/ai';
 import { addProjectRequest } from '@act/project_request';
 import { addVersionIteratorRequest } from '@act/version_iterator_requests';
 import FolderSelector from "@comp/folders/index";
@@ -114,10 +118,6 @@ let project_request_response_cookie = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONS
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_name = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
-let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 class RequestSaveContainer extends Component {
 
@@ -411,20 +411,33 @@ class RequestSaveContainer extends Component {
 
     simpleBootByRequestHistoryRecord = (historyRecord: any, prj : string, method : string, uri : string, isExportDoc : boolean) => {
         let requestHeadData = historyRecord[request_history_head];
+        let requestBodyData = historyRecord[request_history_body];
+        let requestFileData = historyRecord[request_history_file];
+        let requestParamData = historyRecord[request_history_param];
+        let requestPathVariableData = historyRecord[request_history_path_variable];
+
+        const allKeys = getJsonKeys(
+            requestHeadData, requestBodyData, requestFileData, requestParamData, requestPathVariableData, 
+            historyRecord[request_history_jsonFlg] ? JSON.parse(historyRecord[request_history_response_content]) : {}
+        );
+
+        if (this.props.isAiSupport) {
+            getInterfaceTranslate(uri, setToJson(allKeys)).then(ret => {
+                console.log("ret", ret);
+            })
+        }
+
         let requestHeaderHash = iteratorGenHash(requestHeadData);
         let formRequestHeadData = {};
         parseJsonToTable(formRequestHeadData, requestHeadData);
-        let requestBodyData = historyRecord[request_history_body];
-        let requestFileData = historyRecord[request_history_file];
+
         let requestBodyHash = iteratorBodyGenHash(requestBodyData, requestFileData);
         let formRequestBodyData = retParseBodyJsonToTable(requestBodyData, requestFileData);
 
-        let requestParamData = historyRecord[request_history_param];
         let requestParamHash = iteratorGenHash(requestParamData);
         let formRequestParamData = {};
         parseJsonToTable(formRequestParamData, requestParamData);
 
-        let requestPathVariableData = historyRecord[request_history_path_variable];
         let requestPathVariableHash = iteratorGenHash(requestPathVariableData);
         let formRequestPathVariableData = {};
         parseJsonToTable(formRequestPathVariableData, requestPathVariableData);
@@ -901,6 +914,7 @@ function mapStateToProps (state) {
         device : state.device,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        isAiSupport: state.device.isAiSupport
     }
 }
   

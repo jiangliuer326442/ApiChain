@@ -16,6 +16,8 @@ export const VIP_FLG = "device.vip.flg";
 
 export const CKCODE_FLG = "device.ckcode.flg";
 
+export const AISUPPORT_FLG = "device.aisupport.flg";
+
 export const CKCODE_TYPE = "device.ckcode.type";
 
 export const PAY_METHOD = "device.ckcode.payMethod";

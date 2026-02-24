@@ -7,7 +7,7 @@ import { SendOutlined, } from '@ant-design/icons';
 import './index.less';
 
 import { AI_RECORD } from '@conf/storage';
-import { GET_PRJ, } from '@conf/redux';
+import { GET_PRJ, SET_AI_SUPPORT_INFO, } from '@conf/redux';
 import { ChannelsLoadAppStr } from '@conf/channel';
 import { getBigModels } from '@act/ai';
 import { setChatModel2 } from '@act/team';
@@ -99,6 +99,20 @@ class AiChatBox extends Component {
         if (tmpMessage.hasFinish) {
           this.scrollToBottom();
           localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
+          if (tmpMessage.success) {
+            this.props.dispatch({
+              type: SET_AI_SUPPORT_INFO,
+              AISUPPORT_FLG: true
+            });
+          } else {
+            this.setState({
+              loadingWaitMessage: false,
+            });
+            this.props.dispatch({
+              type: SET_AI_SUPPORT_INFO,
+              AISUPPORT_FLG: false
+            });
+          }
         }
       };
 
