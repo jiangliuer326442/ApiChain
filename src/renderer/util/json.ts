@@ -116,6 +116,43 @@ export function retParseBodyJsonToTable(bodyObject : any, fileObject : any) {
     return formRequestBodyData;
 }
 
+export function retParseBodyJsonToTableWithDict(bodyObject : any, fileObject : any, dict : any) {
+    let formRequestBodyData : any = {};
+    parseJsonToTableWithDict(formRequestBodyData, bodyObject, dict);
+    for (let _key in fileObject) {
+        let _item : any = {};
+        _item[TABLE_FIELD_REMARK] = _key in dict ? dict[_key] : "";
+        _item[TABLE_FIELD_TYPE] = "File";
+        _item[TABLE_FIELD_VALUE] = fileObject[_key];
+        formRequestBodyData[_key] = _item;
+    }
+    return formRequestBodyData;
+}
+
+export function parseJsonToTableWithDict(parseResult : any, jsonObject : any, dict : any) {
+    for(let _key in jsonObject) {
+        let type = getType(jsonObject[_key]);
+        if (type === "Object") {
+            parseResult[_key] = {};
+            parseResult[_key][TABLE_FIELD_REMARK] = _key in dict ? dict[_key] : "";
+            parseResult[_key][TABLE_FIELD_TYPE] = type;
+            parseJsonToTableWithDict(parseResult[_key], jsonObject[_key], dict);
+        } else if (type === "Array" && jsonObject[_key].length > 0) {
+            parseResult[_key] = {};
+            parseResult[_key][TABLE_FIELD_REMARK] = _key in dict ? dict[_key] : "";
+            parseResult[_key][TABLE_FIELD_TYPE] = type;
+            if (getType(jsonObject[_key][0]) === "Object") {
+                parseJsonToTableWithDict(parseResult[_key], jsonObject[_key][0], dict);
+            }
+        } else {
+            parseResult[_key] = {};
+            parseResult[_key][TABLE_FIELD_REMARK] = _key in dict ? dict[_key] : "";
+            parseResult[_key][TABLE_FIELD_TYPE] = type;
+            parseResult[_key][TABLE_FIELD_VALUE] = jsonObject[_key];
+        }
+    }
+}
+
 export function parseJsonToTable(parseResult : any, jsonObject : any) {
     for(let _key in jsonObject) {
         let type = getType(jsonObject[_key]);

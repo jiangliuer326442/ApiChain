@@ -26,7 +26,6 @@ import {
     parseJsonToChildren,
     parseJsonToTable,
     retShortJsonContent,
-    prettyJson,
 } from '@rutil/json';
 import { isJsonString, isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
@@ -267,6 +266,17 @@ export default class extends Component {
                     }
                 }
             });
+        }
+    }
+
+    async componentWillReceiveProps(nextProps) {
+        let incomeObject = nextProps.object;
+        if (this.state.object !== incomeObject) {
+            this.state.object = incomeObject;
+            if (!nextProps.readOnly) {
+                parseJsonToTable(this.state.object, this.state.rawJson);
+            }
+            this.parseJsonToChildren();
         }
     }
 

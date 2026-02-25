@@ -19,6 +19,8 @@ import {
     iteratorBodyGenHash,
     shortJsonContent,
     parseJsonToTable,
+    parseJsonToTableWithDict,
+    retParseBodyJsonToTableWithDict,
     retParseBodyJsonToTable,
     parseJsonToFilledTable,
     cleanJson,
@@ -420,8 +422,46 @@ class RequestSaveContainer extends Component {
             requestHeadData, requestBodyData, requestFileData, requestParamData, requestPathVariableData, 
             historyRecord[request_history_jsonFlg] ? JSON.parse(historyRecord[request_history_response_content]) : {}
         );
-        getInterfaceTranslate(uri, setToJson(allKeys), this.props.isAiSupport).then(ret => {
-            console.log("ret", ret);
+        getInterfaceTranslate(prj, uri, setToJson(allKeys), this.props.isAiSupport).then(dictory => {
+            let formRequestHeadData = {};
+            parseJsonToTableWithDict(formRequestHeadData, requestHeadData, dictory);
+    
+            let formRequestBodyData = retParseBodyJsonToTableWithDict(requestBodyData, requestFileData, dictory);
+
+            let formRequestParamData = {};
+            parseJsonToTableWithDict(formRequestParamData, requestParamData, dictory);
+    
+            let formRequestPathVariableData = {};
+            parseJsonToTableWithDict(formRequestPathVariableData, requestPathVariableData, dictory);
+            let shortResponseJsonObject = {};
+            let formResponseData = {};
+            let responseDemo = "";
+            if (historyRecord[request_history_jsonFlg]) {
+                let responseData = JSON.parse(historyRecord[request_history_response_content]);
+                shortJsonContent(shortResponseJsonObject, responseData);
+                parseJsonToTableWithDict(formResponseData, shortResponseJsonObject, dictory);
+            } else {
+                responseDemo = historyRecord[request_history_response_content];
+            }
+    
+            let formResponseHeadData = {};
+            let responseHead = historyRecord[request_history_response_head];
+            parseJsonToTableWithDict(formResponseHeadData, responseHead, dictory);
+    
+            let formResponseCookieData = {};
+            let responseCookie = historyRecord[request_history_response_cookie];
+            parseJsonToTableWithDict(formResponseCookieData, responseCookie, dictory);
+    
+            this.setState({
+                title: dictory[uri],
+                formRequestHeadData,
+                formRequestBodyData,
+                formRequestParamData,
+                formRequestPathVariableData,
+                formResponseData,
+                formResponseHeadData,
+                formResponseCookieData,
+            });
         })
 
         let requestHeaderHash = iteratorGenHash(requestHeadData);
@@ -603,10 +643,10 @@ class RequestSaveContainer extends Component {
                     this.props.device
                 );
                 message.success(langTrans("request save result2"));
-                this.props.history.push("/project_requests/" + this.state.prj);
+                this.props.history.push(`/project_requests/${this.props.teamId}/${this.state.prj}`);
             } else {
                 if (this.state.responseDemo === undefined) {
-                    message.error("错误");
+                    message.error("error");
                     return;
                 }
                 //编辑迭代接口

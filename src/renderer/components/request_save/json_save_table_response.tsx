@@ -22,6 +22,15 @@ class JsonSaveResponseTableContainer extends Component {
         }
     }
 
+    async componentWillReceiveProps(nextProps) {
+        let incomeObject = nextProps.object;
+        if (this.state.object !== incomeObject) {
+            this.setState({
+                object: nextProps.object,
+            });
+        }
+    }
+
     handleSetJsonStr = () => {
         if (!isJsonString(this.state.jsonStr)) {
             message.error("请输入正确格式的 json ");
