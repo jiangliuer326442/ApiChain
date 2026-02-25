@@ -420,12 +420,9 @@ class RequestSaveContainer extends Component {
             requestHeadData, requestBodyData, requestFileData, requestParamData, requestPathVariableData, 
             historyRecord[request_history_jsonFlg] ? JSON.parse(historyRecord[request_history_response_content]) : {}
         );
-
-        if (this.props.isAiSupport) {
-            getInterfaceTranslate(uri, setToJson(allKeys)).then(ret => {
-                console.log("ret", ret);
-            })
-        }
+        getInterfaceTranslate(uri, setToJson(allKeys), this.props.isAiSupport).then(ret => {
+            console.log("ret", ret);
+        })
 
         let requestHeaderHash = iteratorGenHash(requestHeadData);
         let formRequestHeadData = {};

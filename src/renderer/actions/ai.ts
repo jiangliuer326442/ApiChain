@@ -48,6 +48,6 @@ export async function getTokens() {
     return tokens;
 }
 
-export async function getInterfaceTranslate(url : string, keys : string) {
-    return await sendTeamMessage(AI_GET_INTERFACE_TRANSLATE, {url, keys});
+export async function getInterfaceTranslate(url : string, keys : string, isAiSupport : boolean) {
+    return await sendTeamMessage(AI_GET_INTERFACE_TRANSLATE, {url, keys, isAiSupport});
 }
