@@ -77,10 +77,15 @@ class VersionIteratorAdd extends Component {
 
     onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         let title = values.title.trim();
+        let projects = [];
+        for (let item of values.projects) {
+            let arr = item.split("$$");
+            projects.push(arr[0]);
+        }
         if (this.state.mode === "add") {
-            await addVersionIterator(this.props.clientType, this.props.teamId, title, this.state.content, values.projects, this.props.device);
+            await addVersionIterator(this.props.clientType, this.props.teamId, title, this.state.content, projects, this.props.device);
         } else {
-            await editVersionIterator(this.props.clientType, this.props.teamId, this.state.uuid, title, this.state.content, values.projects);
+            await editVersionIterator(this.props.clientType, this.props.teamId, this.state.uuid, title, this.state.content, projects);
         }
         this.props.history.push(VERSION_ITERATOR_LIST_ROUTE)
         window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
@@ -135,7 +140,9 @@ class VersionIteratorAdd extends Component {
                                 style={{ width: '100%' }}
                                 placeholder={langTrans("iterator add check3")}
                                 options={
-                                    this.props.projects.filter(item => this.props.clientType == CLIENT_TYPE_SINGLE || item.teamId == this.props.teamId)
+                                    this.props.projects
+                                    .filter(item => this.props.clientType == CLIENT_TYPE_SINGLE || item.teamId == this.props.teamId)
+                                    .map(item => { return {label: item.label, value: item.value + "$$" + item.label} })
                                 } 
                             />
                             :

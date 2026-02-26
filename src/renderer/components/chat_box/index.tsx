@@ -76,7 +76,8 @@ class AiChatBox extends Component {
           tmpMessage = { 
             role: 'assistant', 
             content: message.content,
-            hasFinish: message.hasFinish
+            hasFinish: message.hasFinish,
+            success: message.success,
           }
           this.state.messages.push(tmpMessage);
           this.setState({ 
@@ -91,6 +92,7 @@ class AiChatBox extends Component {
           tmpMessage = this.state.messages[message.id];
           tmpMessage.content += message.content;
           tmpMessage.hasFinish = message.hasFinish;
+          tmpMessage.success = message.success;
           this.state.messages[message.id] = tmpMessage;
           this.setState({ 
             messages: cloneDeep(this.state.messages),
@@ -99,10 +101,11 @@ class AiChatBox extends Component {
         if (tmpMessage.hasFinish) {
           this.scrollToBottom();
           localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
+          console.log("tmpMessage", tmpMessage);
           if (tmpMessage.success) {
             this.props.dispatch({
               type: SET_AI_SUPPORT_INFO,
-              AISUPPORT_FLG: true
+              isAiSupport: true
             });
           } else {
             this.setState({
@@ -110,7 +113,7 @@ class AiChatBox extends Component {
             });
             this.props.dispatch({
               type: SET_AI_SUPPORT_INFO,
-              AISUPPORT_FLG: false
+              isAiSupport: false
             });
           }
         }
