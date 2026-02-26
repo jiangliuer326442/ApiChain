@@ -152,6 +152,7 @@ class MyRouter extends Component {
 
         this.state = {
             initNavFlg: false,
+            drawSize: 736
         };
     }
 
@@ -216,20 +217,23 @@ class MyRouter extends Component {
                 <Layout style={{ minHeight: '100vh' }}>
                 {'electron' in window ? <>
                     <Nav />
-                    {this.props.isAiSupport && !isExcludePath && (<Drawer
+                {this.props.isAiSupport && !isExcludePath && (
+                    <Drawer
                         title={ `${langTrans("chatbox title")}${
                             (isStringEmpty(this.props.prj) || this.props.projects.length == 0) ? "" : 
                             `【${this.props.projects.find(_prj => _prj.value === this.props.prj).label}】`}` }
                         closable={{ 'aria-label': 'Close Button' }}
                         open={this.props.aiBoxOpenFlg}
                         onClose={this.closeAiBoxOpenFlg}
+                        size={"large"}
                     >
                         <ChatBox 
                             from="drawer"
-                            meWidth={280}
-                            robotWidth={300}
+                            meWidth={parseInt(this.state.drawSize/376*280)}
+                            robotWidth={parseInt(this.state.drawSize/376*300) + 70}
                         />
-                    </Drawer>)}
+                    </Drawer>)
+                }
                 </> : null}
                     <Layout>
                         <Switch>
@@ -266,7 +270,7 @@ class MyRouter extends Component {
                             <Route path={ ENVVAR_UNITTEST_LIST_ROUTE } component={EnvVarUnittestPage} />
                             <Route path={ WELCOME_ROUTE } component={HomePage} />
                         </Switch>
-                        {!isExcludePath && (<FloatButton 
+                        {this.props.isAiSupport && !isExcludePath && (<FloatButton 
                             shape="circle"
                             type="primary"
                             style={{ insetInlineEnd: 120 }}

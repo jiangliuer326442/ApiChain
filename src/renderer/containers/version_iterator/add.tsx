@@ -146,7 +146,7 @@ class VersionIteratorAdd extends Component {
                                 } 
                             />
                             :
-                            <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>创建微服务</Button>
+                            <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>{langTrans("iterator add form2 empty")}</Button>
                             }    
                         </Form.Item>
 

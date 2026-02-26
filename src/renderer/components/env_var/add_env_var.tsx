@@ -90,6 +90,8 @@ class AddEnvVarComponent extends Component {
             this.props.device
         );
 
+        message.success(langTrans("prj unittest status2"))
+
         this.clearInput();
         this.setState({
             loadingFlg: false

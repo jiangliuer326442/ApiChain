@@ -372,7 +372,7 @@ export default class extends Component {
                 </AutoComplete>
             :
             (this.props.schema[this.state.data[i].key][TABLE_FIELD_TYPE].indexOf(DataTypeSelectValues) >= 0) ?
-                <Select
+                <AutoComplete
                     allowClear
                     style={{width: "100%"}}
                     value={

@@ -94,7 +94,7 @@ class EnvVar extends Component {
                     description={langTrans("envvar global del desc")}
                     onConfirm={async e => {
                       await delGlobalEnvValues((this.state.env ? this.state.env : this.props.env), record[pname], this.props.clientType, this.props.teamId);
-                      this.getEnvValueData((this.state.env ? this.state.env : this.props.env), "")
+                      this.getEnvValueData((this.state.env ? this.state.env : this.props.env), "", "")
                     }}
                     okText={langTrans("envvar global del sure")}
                     cancelText={langTrans("envvar global del cancel")}
@@ -118,7 +118,7 @@ class EnvVar extends Component {
     }
   
     componentDidMount(): void {
-      this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
+      this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", "");
       if (this.props.envs.length === 0) {
         getEnvs(this.props.clientType, this.props.dispatch);
       }
@@ -133,13 +133,22 @@ class EnvVar extends Component {
         unittest: ""
       });
       this.setState({env: value});
-      this.getEnvValueData(value, "");
+      this.getEnvValueData(value, "", "");
     }
 
     setPName = (value: string) => {
-      this.getEnvValueData(this.state.env ? this.state.env : this.props.env, value);
+      this.getEnvValueData(this.state.env ? this.state.env : this.props.env, value, "");
     }
   
+    searchRemark = (event) => {
+      let remark = event.target.value.trim();
+      if (isStringEmpty(remark)) {
+        this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", "");
+      } else {
+        this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", remark);
+      }
+    }
+
     addPropertiesClick = () => {
       this.props.dispatch({
           type: SHOW_ADD_PROPERTY_MODEL,
@@ -158,11 +167,11 @@ class EnvVar extends Component {
       });
     }
 
-    getEnvValueData = async (env: string, paramName: string) => {
+    getEnvValueData = async (env: string, paramName: string, paramRemark: string) => {
       let pkeys = await getGlobalKeys(this.props.clientType);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
-        let datas = await getGlobalEnvValuesByPage(env, paramName, this.props.clientType, pagination);
+        let datas = await getGlobalEnvValuesByPage(env, paramName, paramRemark, this.props.clientType, pagination);
         this.setState({
           listDatas: datas, 
           pagination,
@@ -220,6 +229,11 @@ class EnvVar extends Component {
                           <Input />
                       </AutoComplete>
                   </Form.Item>
+                  <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar global table3")}>
+                      <Input 
+                        onPressEnter={this.searchRemark}
+                      />
+                  </Form.Item>
                   <Form.Item label={langTrans("envvar select tip3")}>
                     <Select
                         onChange={ async value => {
@@ -250,7 +264,7 @@ class EnvVar extends Component {
               <AddEnvVarComponent 
                 env={this.state.env ? this.state.env : this.props.env}
                 cb={()=>{
-                  this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
+                  this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", "");
                 }} 
                 />
             </Flex>
@@ -262,7 +276,7 @@ class EnvVar extends Component {
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "");
+                this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", "");
               }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>

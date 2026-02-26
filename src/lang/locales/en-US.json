@@ -241,6 +241,7 @@
     "iterator add title": "Add New Iteration",
     "iterator add form1": "Iteration Name",
     "iterator add form2": "Microservices Used",
+    "iterator add form2 empty": "Create Microservices",
     "iterator add form3": "Iteration Description",
     "iterator add form4": "Closure Time",
     "iterator add form5": "Created By",

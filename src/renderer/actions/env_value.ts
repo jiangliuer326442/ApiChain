@@ -344,7 +344,7 @@ export async function batchCopyEnvVales(prj : string, env : string, iterator : s
     }
 }
 
-export async function getGlobalEnvValuesByPage(env : string, pname : string, clientType : string, pagination : any) {
+export async function getGlobalEnvValuesByPage(env : string, pname : string, premark, clientType : string, pagination : any) {
     let page = pagination.current;
     let pageSize = pagination.pageSize;
     let datas = [];
@@ -361,6 +361,9 @@ export async function getGlobalEnvValuesByPage(env : string, pname : string, cli
             if (pname) {
                 return row[env_var_pname] === pname;
             }
+            if (premark) {
+                return row[env_var_premark].toLowerCase().includes(premark.toLowerCase());
+            }
             return true;
         })
         .toArray();
@@ -375,7 +378,7 @@ export async function getGlobalEnvValuesByPage(env : string, pname : string, cli
             item[UNAME] = users.get(item[env_var_cuid]);
         });
     } else {
-        let params = Object.assign({}, pagination, {env, pname});
+        let params = Object.assign({}, pagination, {env, pname, premark});
         let result = await sendTeamMessage(ENV_VARS_GLOBAL_PAGE_URL, params);
         let count = result.count;
         pagination.total = count;
@@ -409,7 +412,7 @@ export async function getGlobalEnvValues(env : string, clientType : string) {
     return new Map(Object.entries(datas));
 }
 
-export async function getPrjEnvValuesByPage(teamId, prj : string, env : string, pname : string, clientType : string, pagination : any) {
+export async function getPrjEnvValuesByPage(teamId, prj : string, env : string, pname : string, premark : string, clientType : string, pagination : any) {
     let page = pagination.current;
     let pageSize = pagination.pageSize;
     let datas = [];
@@ -423,6 +426,9 @@ export async function getPrjEnvValuesByPage(teamId, prj : string, env : string, 
         .filter(row => {
             if (pname) {
                 return row[env_var_pname] === pname;
+            }
+            if (premark) {
+                return row[env_var_premark].toLowerCase().includes(premark.toLowerCase());
             }
             if (row[env_var_delFlg]) {
                 return false;
@@ -442,6 +448,9 @@ export async function getPrjEnvValuesByPage(teamId, prj : string, env : string, 
         .filter(row => {
             if (pname) {
                 return row[env_var_pname] === pname;
+            }
+            if (premark) {
+                return row[env_var_premark].toLowerCase().includes(premark.toLowerCase());
             }
             if (projectKeys.has(row[env_var_pname])) {
                 return false;
@@ -466,7 +475,7 @@ export async function getPrjEnvValuesByPage(teamId, prj : string, env : string, 
             item[UNAME] = users.get(item[env_var_cuid]);
         });
     } else {
-        let params = Object.assign({}, pagination, {teamId, env, pname, prj});
+        let params = Object.assign({}, pagination, {teamId, env, pname, premark, prj});
         let result = await sendTeamMessage(ENV_VARS_PROJECT_PAGE_URL, params);
         let count = result.count;
         pagination.total = count;

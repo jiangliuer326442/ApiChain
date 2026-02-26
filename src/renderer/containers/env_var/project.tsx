@@ -11,7 +11,6 @@ import { cloneDeep } from 'lodash';
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
 import {
-  CLIENT_TYPE_TEAM,
   CLIENT_TYPE_SINGLE,
 } from '@conf/team';
 import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE } from '@conf/envKeys';
@@ -108,7 +107,7 @@ class EnvVar extends Component {
                   description={langTrans("envvar prj del desc")}
                   onConfirm={async e => {
                       await delPrjEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), record[pname], this.props.clientType, this.props.teamId);
-                      this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                      this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "", "");
                   }}
                   okText={langTrans("envvar prj del sure")}
                   cancelText={langTrans("envvar prj del cancel")}
@@ -141,7 +140,7 @@ class EnvVar extends Component {
   }
   
   componentDidMount(): void {
-    this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+    this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "", "");
     if(this.props.envs.length === 0) {
       getEnvs(this.props.clientType, this.props.dispatch);
     }
@@ -161,7 +160,7 @@ class EnvVar extends Component {
         copiedKeys: [],
         disabledKeys: [],
       });
-      this.getEnvValueData(this.state.teamId, nextPrj, this.state.env ? this.state.env : this.props.env, "");
+      this.getEnvValueData(this.state.teamId, nextPrj, this.state.env ? this.state.env : this.props.env, "", "");
       nextProps.dispatch({
           type: GET_PRJ,
           prj: nextPrj,
@@ -178,11 +177,20 @@ class EnvVar extends Component {
         unittest: ""
       });
       this.setState({env: value});
-      this.getEnvValueData(this.state.teamId, this.state.prj, value, "");
+      this.getEnvValueData(this.state.teamId, this.state.prj, value, "", "");
     }
 
     setPName = (value: string) => {
-      this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, value);
+      this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, value, "");
+    }
+
+    searchRemark = (event) => {
+      let remark = event.target.value.trim();
+      if (isStringEmpty(remark)) {
+        this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "", "");
+      } else {
+        this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "", remark);
+      }
     }
   
     addPropertiesClick = () => {
@@ -205,40 +213,39 @@ class EnvVar extends Component {
       });
     }
 
-    getEnvValueData = async (teamId: string, prj: string, env: string, paramName: string) => {
+    getEnvValueData = async (teamId: string, prj: string, env: string, paramName: string, paramRemark : string) => {
       let pkeys = await getProjectKeys(this.props.clientType, teamId, prj);
-      if(!isStringEmpty(env)) {
-        let pagination = cloneDeep(this.state.pagination);
-        let listDatas = await getPrjEnvValuesByPage(teamId, prj, env, paramName, this.props.clientType, pagination);
-        this.setState({
-          prj, 
-          listDatas, 
-          pagination,
-          pkeys: !paramName ? pkeys : [],
-        });
+      if(isStringEmpty(env)) return;
+      let pagination = cloneDeep(this.state.pagination);
+      let listDatas = await getPrjEnvValuesByPage(teamId, prj, env, paramName, paramRemark, this.props.clientType, pagination);
+      this.setState({
+        prj, 
+        listDatas, 
+        pagination,
+        pkeys: !paramName ? pkeys : [],
+      });
 
-        let hasApiHost = false;
-        let hasRunMode = false;
-        for (let item of listDatas) {
-          if (item[pname] === ENV_VALUE_API_HOST) {
-            hasApiHost = true;
-          }
-          if (item[pname] === ENV_VALUE_RUN_MODE) {
-            hasRunMode = true;
-          }
+      let hasApiHost = false;
+      let hasRunMode = false;
+      for (let item of listDatas) {
+        if (item[pname] === ENV_VALUE_API_HOST) {
+          hasApiHost = true;
         }
-        if ((!hasApiHost || !hasRunMode) && ((this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId))) {
-          if (!hasApiHost) {
-            await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
-            ENV_VALUE_API_HOST, "", "", langTrans("envvar prj api"), 0, 0, this.props.device);
-          }
-          if (!hasRunMode) {
-            await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
-              ENV_VALUE_RUN_MODE, "client", "client", langTrans("envvar prj run mode"), 0, 0, this.props.device);
-          }
-          listDatas = await getPrjEnvValuesByPage(teamId, prj, env, paramName, this.props.clientType, pagination);
-          this.setState({listDatas, pagination});
+        if (item[pname] === ENV_VALUE_RUN_MODE) {
+          hasRunMode = true;
         }
+      }
+      if ((!hasApiHost || !hasRunMode) && ((this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId))) {
+        if (!hasApiHost) {
+          await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
+          ENV_VALUE_API_HOST, "", "", langTrans("envvar prj api"), 0, 0, this.props.device);
+        }
+        if (!hasRunMode) {
+          await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
+            ENV_VALUE_RUN_MODE, "client", "client", langTrans("envvar prj run mode"), 0, 0, this.props.device);
+        }
+        listDatas = await getPrjEnvValuesByPage(teamId, prj, env, paramName, paramRemark, this.props.clientType, pagination);
+        this.setState({listDatas, pagination});
       }
     }
     
@@ -289,6 +296,11 @@ class EnvVar extends Component {
                           <Input />
                       </AutoComplete>
                   </Form.Item>
+                  <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar prj table3")}>
+                      <Input 
+                        onPressEnter={this.searchRemark}
+                      />
+                  </Form.Item>
                 {(this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId) ? 
                   <Form.Item label={langTrans("envvar select tip3")}>
                     <Select
@@ -330,7 +342,7 @@ class EnvVar extends Component {
               <AddEnvVarComponent 
                 env={this.state.env ? this.state.env : this.props.env}
                 cb={()=>{
-                  this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                  this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "", "");
                 }}  
                 />
             </Flex>
@@ -342,7 +354,7 @@ class EnvVar extends Component {
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                this.getEnvValueData(this.state.teamId, this.state.prj, this.state.env ? this.state.env : this.props.env, "", "");
               }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>

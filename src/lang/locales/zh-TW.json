@@ -241,6 +241,7 @@
     "iterator add title": "新增迭代",
     "iterator add form1": "迭代名稱",
     "iterator add form2": "使用微服務",
+    "iterator add form2 empty": "建立微服務",
     "iterator add form3": "迭代說明",
     "iterator add form4": "關閉時間",
     "iterator add form5": "創建人",

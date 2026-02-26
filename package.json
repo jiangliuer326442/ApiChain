@@ -36,6 +36,7 @@
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && yarn build:dll",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
     "package": "ts-node ./.erb/scripts/clean.js dist && cross-env PACKAGE_TARGET=china yarn package:d1 && cross-env PACKAGE_TARGET=global yarn package:d1 && yarn build:dll",
+    "build:7zip": "ts-node ./.erb/scripts/clean.js dist && cross-env PACKAGE_TARGET=china yarn build:d7zip",
     "package:d1": "cross-env TS_NODE_COPY_ZIP=false yarn build:d7zip && cross-env TS_NODE_COPY_ZIP=true yarn build && electron-builder build",
     "build:d7zip": "yarn build && ts-node ./.erb/scripts/build-dist-zip.js",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
