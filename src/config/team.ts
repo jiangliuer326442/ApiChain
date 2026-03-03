@@ -210,6 +210,8 @@ export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";
 
 export const UNITTES_ITERATION_ADD_URL = "/unittest/iteration/add"
 
+export const UNITTES_ITERATION_DEL_URL = "/unittest/iteration/del"
+
 export const UNITTES_ITERATION_FOLD_ADD_URL = "/unittest/iteration/addFold"
 
 export const UNITTES_ITERATION_FOLD_LIST_URL = "/unittest/iteration/getFolds"
@@ -217,3 +219,5 @@ export const UNITTES_ITERATION_FOLD_LIST_URL = "/unittest/iteration/getFolds"
 export const UNITTES_ITERATION_ALL_URL = "/unittest/iteration/all"
 
 export const UNITTES_ITERATION_FETCH_SINGLE_URL = "/unittest/iteration/getSingle"
+
+export const UNITTES_ITERATION_STEP_ADD_URL = "/unittest/iteration/addStep"

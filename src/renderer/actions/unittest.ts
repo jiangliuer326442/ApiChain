@@ -48,6 +48,8 @@ import {
     CLIENT_TYPE_SINGLE,
     ENV_VARS_UNITTEST_COPY_URL,
     UNITTES_ITERATION_ADD_URL,
+    UNITTES_ITERATION_DEL_URL,
+    UNITTES_ITERATION_STEP_ADD_URL,
     UNITTES_ITERATION_ALL_URL,
     UNITTES_ITERATION_FETCH_SINGLE_URL
 } from '@conf/team';
@@ -238,12 +240,24 @@ export async function addIteratorUnitTest(clientType, versionIteratorId : string
 }
 
 export async function addUnitTestStep(
+    clientType : string, 
     versionIteratorId : string, unitTestUuid : string, 
     title : string, project : string, method: string, uri : string,
     header: object, param: object, pathVariable: object, body: object,
     assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>,
     sort: number, continueEnable: string, waitSeconds: number,
     device : object, cb) {
+
+        if (clientType === CLIENT_TYPE_TEAM) {
+            await sendTeamMessage(UNITTES_ITERATION_STEP_ADD_URL, {
+                iterator: versionIteratorId, unitTest: unitTestUuid,
+                title, prj: project, method, uri,
+                header: JSON.stringify(header), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable), body: JSON.stringify(body),
+                assertTitles: assertTitleArr.join(','), assertPrevs: assertPrevArr.join(','), assertOperators: assertOperatorArr.join(','), assertAfters: assertAfterArr.join(','),
+                sort, continueEnable, waitSeconds
+            });
+        }
+
         window.db.transaction('rw',
             window.db[TABLE_UNITTEST_STEPS_NAME],
             window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME], 
@@ -383,8 +397,13 @@ export async function editUnitTestStep(
     cb();
 }
 
-export async function delUnitTest(row, cb) {
+export async function delUnitTest(clientType, row, cb) {
     let uuid = row[field_unittest_uuid];
+    let iteratorId = row[unittest_iterator_uuid];
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_ITERATION_DEL_URL, {iterator: iteratorId, uuid});
+    }
 
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(uuid)

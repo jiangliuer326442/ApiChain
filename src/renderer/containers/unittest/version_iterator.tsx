@@ -342,7 +342,7 @@ class UnittestListVersion extends Component {
                             title={langTrans("prj unittest del title")}
                             description={langTrans("prj unittest del desc")}
                             onConfirm={e => {
-                                delUnitTest(record, ()=>{
+                                delUnitTest(this.props.clientType, record, ()=>{
                                     getIterationUnitTests(
                                         this.props.clientType, 
                                         this.state.iteratorId, 

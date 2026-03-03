@@ -497,10 +497,13 @@ class UnittestStepContainer extends Component {
                 return;
             }
         }
+        let prj = this.state.prj.split("$$")[0];
+        let uri = this.state.uri.split("$$")[1];
         if (isStringEmpty(this.state.unitTestStepUuid)) {
             addUnitTestStep(
+                this.props.clientType,
                 this.state.iteratorId, this.state.unitTestUuid,
-                this.state.title, this.state.prj, this.state.method, this.state.uri,
+                this.state.title, prj, this.state.method, uri,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
                 this.state.assertTitle, this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
                 this.state.sort, this.state.continueEnable, this.state.waitSeconds,
@@ -539,7 +542,9 @@ class UnittestStepContainer extends Component {
                         }}
                     >
                         <Form
-                            style={{ maxWidth: 600 }}
+                            style={{ maxWidth: 700 }}
+                            labelCol={{ span: 4 }} 
+                            wrapperCol={{ span: 20 }}
                             onFinish={this.onFinish}
                             autoComplete="off"
                         >
