@@ -46,7 +46,9 @@ import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 import {
     CLIENT_TYPE_TEAM, 
     CLIENT_TYPE_SINGLE,
-    ENV_VARS_UNITTEST_COPY_URL
+    ENV_VARS_UNITTEST_COPY_URL,
+    UNITTES_ITERATION_ADD_URL,
+    UNITTES_ITERATION_ALL_URL,
 } from '@conf/team';
 
 import { 
@@ -216,10 +218,16 @@ export async function batchMoveIteratorUnittest(oldIterator : string, unittestAr
     cb();
 }
 
-export async function addIteratorUnitTest(versionIteratorId : string, title : string, folder : string, device : object) {
+export async function addIteratorUnitTest(clientType, versionIteratorId : string, title : string, folder : string, device : object) {
+
+    const unittest_uuid = uuidv4() as string;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_ITERATION_ADD_URL, {iterator: versionIteratorId, uuid: unittest_uuid, title, fold: folder});
+    }
+
     let unit_test : any = {};
     unit_test[unittest_iterator_uuid] = versionIteratorId;
-    unit_test[field_unittest_uuid] = uuidv4() as string;
+    unit_test[field_unittest_uuid] = unittest_uuid;
     unit_test[unittest_title] = title;
     unit_test[unittest_fold] = folder;
     unit_test[unittest_cuid] = device.uuid;
@@ -536,35 +544,55 @@ export async function getProjectUnitTests(project : string, folder : string | nu
 }
 
 export async function getIterationUnitTests(clientType : string, iteratorId : string, folder : string | null, env : string|null, dispatch : any) {
-    let users = await getUsers(clientType);
+
     let unitTests;
     let folders;
 
-    //单测列表
-    if (folder === null) {
-        folders = new Set();
-        unitTests = await window.db[TABLE_UNITTEST_NAME]
-        .where([unittest_delFlg, unittest_iterator_uuid])
-        .equals([0, iteratorId])
-        .reverse()
-        .toArray();
-    } else {
-        folders = null;
-        unitTests = await window.db[TABLE_UNITTEST_NAME]
-        .where([unittest_delFlg, unittest_iterator_uuid, unittest_fold])
-        .equals([0, iteratorId, folder])
-        .reverse()
-        .toArray();
-    }
+    if (clientType === CLIENT_TYPE_SINGLE) {
 
-    for (let i = 0; i < unitTests.length; i++) {
-        let unitTest = unitTests[i];
-        let unittest_uuid = unitTest[field_unittest_uuid];
-        let newUnitTest = await getSingleUnittest(unittest_uuid, env, iteratorId);
-        newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
-        unitTests[i] = newUnitTest;
+        let users = await getUsers(clientType);
+
+        //单测列表
         if (folder === null) {
-            folders.add(newUnitTest[unittest_fold]);
+            folders = new Set();
+            unitTests = await window.db[TABLE_UNITTEST_NAME]
+            .where([unittest_delFlg, unittest_iterator_uuid])
+            .equals([0, iteratorId])
+            .reverse()
+            .toArray();
+        } else {
+            folders = null;
+            unitTests = await window.db[TABLE_UNITTEST_NAME]
+            .where([unittest_delFlg, unittest_iterator_uuid, unittest_fold])
+            .equals([0, iteratorId, folder])
+            .reverse()
+            .toArray();
+        }
+
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i];
+            let unittest_uuid = unitTest[field_unittest_uuid];
+            let newUnitTest = await getSingleUnittest(unittest_uuid, env, iteratorId);
+            newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
+            if (folder === null) {
+                folders.add(newUnitTest[unittest_fold]);
+            }
+        }
+    } else {
+        let ret = await sendTeamMessage(UNITTES_ITERATION_ALL_URL, {iterator: iteratorId, fold: folder});
+        unitTests = ret.list;
+        let retFolders = ret.folders;
+        for (let unitTest of unitTests) {
+            unitTest['children'] = [];
+        }
+        if (retFolders.length > 0) {
+            folders = new Set();
+            for (let _ret_fold of retFolders) {
+                folders.add(_ret_fold['name'])
+            }
+        } else {
+            folders = null
         }
     }
 

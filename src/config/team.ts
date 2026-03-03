@@ -207,3 +207,11 @@ export const AI_VECTOR_MODELS_URL = "/ai/vector";
 export const AI_RE_VECTOR_MODELS_URL = "/ai/reVector";
 
 export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";
+
+export const UNITTES_ITERATION_ADD_URL = "/unittest/iteration/add"
+
+export const UNITTES_ITERATION_FOLD_ADD_URL = "/unittest/iteration/addFold"
+
+export const UNITTES_ITERATION_FOLD_LIST_URL = "/unittest/iteration/getFolds"
+
+export const UNITTES_ITERATION_ALL_URL = "/unittest/iteration/all"

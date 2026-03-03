@@ -4,6 +4,7 @@ import {
   GET_ENV_VALS,
   GET_ITERATOR,
   GET_PRJ,
+  GET_ENV,
 } from '@conf/redux';
 
 import {
@@ -30,6 +31,11 @@ export default function (state = {
             return Object.assign({}, state, {
               iterator: action.iterator,
               unittest: action.unittest,
+            });
+        case GET_ENV:
+            localStorage.setItem(ENV, action.env);
+            return Object.assign({}, state, {
+              env: action.env,
             });
         case GET_PRJ:
             return Object.assign({}, state, {

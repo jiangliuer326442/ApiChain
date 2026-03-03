@@ -28,7 +28,8 @@ import {
 import {
     SHOW_ADD_UNITTEST_MODEL,
     GET_ITERATOR_TESTS,
-    SHOW_EDIT_UNITTEST_MODEL
+    SHOW_EDIT_UNITTEST_MODEL,
+    GET_ENV
 } from '@conf/redux';
 import { UNITTEST_ENV } from '@conf/storage';
 import { getdayjs, isStringEmpty } from '@rutil/index';
@@ -219,7 +220,7 @@ class UnittestListVersion extends Component {
                                             this.props.clientType, 
                                             this.state.iteratorId, 
                                             this.state.folder, 
-                                            this.state.env, 
+                                            this.props.env, 
                                             this.props.dispatch
                                         );
                                     }}>{langTrans("version unittest act4")}</Button>
@@ -236,7 +237,6 @@ class UnittestListVersion extends Component {
             unittestUuid: "", 
             batchUuid: "",
             stepUuid: "",
-            env: localStorage.getItem(UNITTEST_ENV) ? localStorage.getItem(UNITTEST_ENV) : null,
             folder: null,
             showPay: false,
             versionIterators: [],
@@ -265,8 +265,8 @@ class UnittestListVersion extends Component {
         getIterationUnitTests(
             this.props.clientType,
             this.state.iteratorId, 
-            this.state.folder, 
-            this.state.env, 
+            this.state.folder,
+            this.props.env,
             this.props.dispatch
         );
         this.setMovedIteratos();
@@ -278,7 +278,7 @@ class UnittestListVersion extends Component {
                 this.props.clientType, 
                 this.state.iteratorId, 
                 this.state.folder, 
-                this.state.env, 
+                this.props.env, 
                 this.props.dispatch
             );
             this.setMovedIteratos();
@@ -314,7 +314,7 @@ class UnittestListVersion extends Component {
                                     this.props.clientType,
                                     this.state.iteratorId, 
                                     this.state.folder, 
-                                    this.state.env, 
+                                    this.props.env, 
                                     this.props.dispatch
                                 );
                             });
@@ -347,7 +347,7 @@ class UnittestListVersion extends Component {
                                         this.props.clientType, 
                                         this.state.iteratorId, 
                                         this.state.folder, 
-                                        this.state.env, 
+                                        this.props.env, 
                                         this.props.dispatch
                                     );
                                 });
@@ -381,7 +381,6 @@ class UnittestListVersion extends Component {
     }
 
     setEnvironmentChange = (value: string) => {
-        this.setState({env: value});
         if (isStringEmpty(value)) {
             this.props.dispatch({
                 type: GET_ITERATOR_TESTS,
@@ -398,6 +397,10 @@ class UnittestListVersion extends Component {
                 this.props.dispatch
             );
         }
+        this.props.dispatch({
+            type: GET_ENV,
+            env: value
+        });
     }
 
     setFolderChange = (value: string) => {
@@ -412,7 +415,7 @@ class UnittestListVersion extends Component {
             this.props.clientType, 
             this.state.iteratorId, 
             selectedFolder, 
-            this.state.env, 
+            this.props.env, 
             this.props.dispatch
         );
     }
@@ -425,7 +428,7 @@ class UnittestListVersion extends Component {
                 this.props.clientType, 
                 this.state.iteratorId, 
                 this.state.folder, 
-                this.state.env, 
+                this.props.env, 
                 this.props.dispatch
             );
         });
@@ -440,7 +443,7 @@ class UnittestListVersion extends Component {
             this.props.clientType, 
             iteratorId, 
             this.state.folder, 
-            this.state.env, 
+            this.props.env, 
             this.props.dispatch
         );
     }
@@ -481,7 +484,7 @@ class UnittestListVersion extends Component {
                         this.props.clientType,
                         this.state.iteratorId, 
                         this.state.folder, 
-                        this.state.env, 
+                        this.props.env, 
                         this.props.dispatch
                     )} />
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
@@ -494,7 +497,7 @@ class UnittestListVersion extends Component {
                             <Form.Item label={langTrans("prj unittest operator1")}>
                                 <Select
                                     allowClear
-                                    value={ this.state.env }
+                                    value={ this.props.env }
                                     onChange={this.setEnvironmentChange}
                                     style={{ width: 120 }}
                                     options={this.props.envs}
@@ -524,7 +527,7 @@ class UnittestListVersion extends Component {
                                                 this.props.clientType, 
                                                 this.state.iteratorId, 
                                                 this.state.folder, 
-                                                this.state.env, 
+                                                this.props.env, 
                                                 this.props.dispatch
                                             );
                                         });
@@ -543,12 +546,12 @@ class UnittestListVersion extends Component {
                                             });
                                             return;
                                         }
-                                        if (isStringEmpty(this.state.env)) {
+                                        if (isStringEmpty(this.props.env)) {
                                             message.error(langTrans("unittest env check"));
                                             return;
                                         }
 
-                                        localStorage.setItem(UNITTEST_ENV, this.state.env);
+                                        localStorage.setItem(UNITTEST_ENV, this.props.env);
 
                                         for (let unittestUuid of this.state.selectedUnittests) {
                                             this.setState({
@@ -559,7 +562,7 @@ class UnittestListVersion extends Component {
                                             let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
                                             executeIteratorUnitTest(
                                                 this.props.clientType,
-                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.state.env, this.props.dispatch, 
+                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.props.env, this.props.dispatch, 
                                                 (batchUuid : string, stepUuid : string) => {
                                                     this.setState({ unittestUuid, batchUuid, stepUuid})
                                                 }
@@ -576,14 +579,14 @@ class UnittestListVersion extends Component {
                         unittestUuid={ this.state.unittestUuid }
                         batchUuid={ this.state.batchUuid }
                         stepUuid={ this.state.stepUuid }
-                        env={ this.state.env }
+                        env={ this.props.env }
                         cb={ () => {
                             this.setState({executeFlg: true});
                             getIterationUnitTests(
                                 this.props.clientType, 
                                 this.state.iteratorId, 
                                 this.state.folder, 
-                                this.state.env, 
+                                this.props.env, 
                                 this.props.dispatch
                             );
                         } }
@@ -608,7 +611,9 @@ function mapStateToProps (state) {
         device : state.device,
         unittest: state.unittest.list,
         folders: state.unittest.folders,
+        env: state.env_var.env,
         envs: state.env.list,
+        teamId: state.device.teamId,
         clientType: state.device.clientType,
     }
 }
