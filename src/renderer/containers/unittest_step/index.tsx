@@ -202,14 +202,16 @@ class UnittestStepContainer extends Component {
         let method = arr[0];
         let uri = arr[1];
         this.initMethodUri(method, uri);
+        this.setState({uri: value})
     }
 
     initMethodUri = async (method, uri) => {
+        let prj = this.state.prj.split("$$")[0];
         let request = this.state.requests.find(row => row[iteration_request_method] === method && row[iteration_request_uri] === uri);
         if (isStringEmpty(request[iteration_request_iteration_uuid])) {
-            request = await getProjectRequest(this.props.clientType, this.state.prj, method, uri);
+            request = await getProjectRequest(this.props.clientType, prj, method, uri);
         } else {
-            request = await getVersionIteratorRequest(this.props.clientType, request[iteration_request_iteration_uuid], this.state.prj, method, uri);
+            request = await getVersionIteratorRequest(this.props.clientType, request[iteration_request_iteration_uuid], prj, method, uri);
         }
         let formRequestHeadData = request[iteration_request_header];
         let formRequestBodyData = request[iteration_request_body];
@@ -230,7 +232,7 @@ class UnittestStepContainer extends Component {
         } else {
             requestHead = this.state.requestHead;
             for (let _key in requestHead) {
-                formRequestHeadData[_key][TABLE_FIELD_VALUE] = requestHead[_key];
+                formRequestHeadData[_key] = requestHead[_key];
             }
         }
 
@@ -242,7 +244,7 @@ class UnittestStepContainer extends Component {
             requestBody = this.state.requestBody;
             for (let _key in requestBody) {
                 if (!(_key in formRequestBodyData)) continue;
-                formRequestBodyData[_key][TABLE_FIELD_VALUE] = requestBody[_key];
+                formRequestBodyData[_key] = requestBody[_key];
             }
         }
 
@@ -255,7 +257,7 @@ class UnittestStepContainer extends Component {
         } else {
             requestParam = this.state.requestParam;
             for (let _key in requestParam) {
-                formRequestParamData[_key][TABLE_FIELD_VALUE] = requestParam[_key];
+                formRequestParamData[_key] = requestParam[_key];
             }
         }
         let requestPathVariable : any;
@@ -267,7 +269,7 @@ class UnittestStepContainer extends Component {
         } else {
             requestPathVariable = this.state.requestPathVariable;
             for (let _key in requestPathVariable) {
-                formRequestPathVariableData[_key][TABLE_FIELD_VALUE] = requestPathVariable[_key];
+                formRequestPathVariableData[_key] = requestPathVariable[_key];
             }
         }
         let responseContent = request[iteration_response_content];
@@ -277,7 +279,7 @@ class UnittestStepContainer extends Component {
 
         let envKeys = await this.requestSendTip.getTips();
         this.setState({ 
-            request, method, uri, 
+            request, method, 
             formRequestHeadData, 
             formRequestBodyData, 
             formRequestParamData, 
@@ -305,9 +307,10 @@ class UnittestStepContainer extends Component {
         ).then(requests => {
             let urisSelector = [];
             for (let request of requests) {
+                let label = request[iteration_request_title] + " | " + request[iteration_request_uri];
                 let item = {};
-                item.value = this.buildApiSelectValue(request[iteration_request_method], request[iteration_request_uri]);
-                item.label = request[iteration_request_title] + " | " + request[iteration_request_uri];
+                item.value = this.buildApiSelectValue(request[iteration_request_method], request[iteration_request_uri], label);
+                item.label = label;
                 urisSelector.push(item);
             }
             this.setState( {urisSelector, requests}, ()=>{
@@ -319,13 +322,13 @@ class UnittestStepContainer extends Component {
         this.requestSendTip.init("iterator", prj, iteratorId, "", this.props.clientType);
     }
 
-    buildApiSelectValue = (method : string, uri : string) : string => {
-        return method + "$$" + uri;
+    buildApiSelectValue = (method : string, uri : string, label : string) : string => {
+        return method + "$$" + uri + "$$" + label;
     }
 
     handleRequestProject = originPrj => {
         let prj = originPrj.split("$$")[0];
-        this.setState( {urisSelector : [], prj, uri: ""} );
+        this.setState( {urisSelector : [], prj: originPrj, uri: ""} );
         this.initPrj(this.state.iteratorId, prj, this.props.dispatch);
     }
     
@@ -554,7 +557,7 @@ class UnittestStepContainer extends Component {
                                     />
                                     <Select showSearch
                                         disabled={!isStringEmpty(this.state.unitTestStepUuid)}
-                                        value={this.state.method && this.state.uri ? this.buildApiSelectValue(this.state.method, this.state.uri) : null}
+                                        value={this.state.uri}
                                         style={{ width: 328 }}
                                         options={ this.state.urisSelector }
                                         onChange={ this.handleRequestUri }

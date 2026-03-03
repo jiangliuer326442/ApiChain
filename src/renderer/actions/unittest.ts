@@ -49,6 +49,7 @@ import {
     ENV_VARS_UNITTEST_COPY_URL,
     UNITTES_ITERATION_ADD_URL,
     UNITTES_ITERATION_ALL_URL,
+    UNITTES_ITERATION_FETCH_SINGLE_URL
 } from '@conf/team';
 
 import { 
@@ -409,7 +410,103 @@ export async function delUnitTestStep(unittestStepUuid : string, cb) {
     }
 }
 
-export async function getSingleUnittest(unittest_uuid : string, env : string | null, iteratorId : string) {
+export async function getIteratorSingleUnittest(clientType : string, unittest_uuid : string, iteratorId : string, env : string | null) {
+
+    let unitTest;
+    let unitTestSteps;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        let ret = await sendTeamMessage(UNITTES_ITERATION_FETCH_SINGLE_URL, {iterator: iteratorId, unittest: unittest_uuid});
+        unitTest = ret.ret;
+        unitTestSteps = ret.list
+    } else {
+        unitTest = await window.db[TABLE_UNITTEST_NAME]
+        .where(field_unittest_uuid)
+        .equals(unittest_uuid)
+        .first();
+    
+        unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+        .equals([0, iteratorId, unittest_uuid])
+        .toArray();
+    }
+
+    let batch_uuid = "";
+    //拿整体执行报告
+    let unittestReport;
+    if (env !== null) {
+        unittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
+        .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest, unittest_report_env])
+        .equals([0, iteratorId, unittest_uuid, env])
+        .reverse()
+        .first();
+    } else {
+        unittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
+        .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest])
+        .equals([0, iteratorId, unittest_uuid])
+        .reverse()
+        .first();
+    }
+    if (unittestReport !== undefined) {
+        env = unittestReport[unittest_report_env];
+        batch_uuid = unittestReport[unittest_report_batch];
+        unitTest[unittest_report_batch] = batch_uuid; //批次 id
+        unitTest[unittest_report_step] = unittestReport[unittest_report_step]; //执行 浮标
+        unitTest[unittest_report_result] = unittestReport[unittest_report_result];
+        unitTest[unittest_report_env] = env;
+        unitTest[unittest_report_cost_time] = unittestReport[unittest_report_cost_time];
+    }
+
+    if (!isStringEmpty(unitTest[unittest_report_step])) {
+        if (unitTest[unittest_report_result] === UNITTEST_RESULT_UNKNOWN) {
+            let markFlg = -1;
+            for (let unitTestStep of unitTestSteps) {
+                let stepUuid = unitTestStep[field_unittest_step_uuid];
+                //还没打标，遇到数值一样的步骤，开始打标
+                if (markFlg === -1 && stepUuid === unitTest[unittest_report_step]) {
+                    markFlg = 0;
+                    continue;
+                }
+                //打标
+                if (markFlg === 0) {
+                    unitTest[unittest_report_step] = stepUuid;
+                    markFlg = 1;
+                    continue;
+                }
+                //已经打过标
+                if (markFlg === 1) {
+                    break;
+                }
+            }
+        } else {
+            unitTest[unittest_report_step] = "";
+        }
+    }
+
+    if (!isStringEmpty(batch_uuid)) {
+        for (let unitTestStep of unitTestSteps) {
+            //当前执行步骤
+            unitTestStep[unittest_report_step] = unitTest[unittest_report_step];
+            //当前执行批次
+            unitTestStep[unittest_report_batch] = batch_uuid;
+            //当前环境
+            unitTestStep[unittest_report_env] = env;
+            let stepUuid = unitTestStep[field_unittest_step_uuid];
+            let unittest_executor_report = await window.db[TABLE_UNITTEST_EXECUTOR_NAME]
+            .where([unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, unittest_executor_step])
+            .equals([iteratorId, unittest_uuid, batch_uuid, stepUuid])
+            .first();
+            if (unittest_executor_report !== undefined) {
+                unitTestStep[unittest_executor_result] = unittest_executor_report[unittest_executor_result];
+                unitTestStep[unittest_executor_cost_time] = unittest_executor_report[unittest_executor_cost_time];
+            }
+        }
+    }
+
+    unitTest['children'] = unitTestSteps;
+    return unitTest;
+}
+
+export async function getSingleUnittest(clientType : string, unittest_uuid : string, env : string | null, iteratorId : string) {
     //单测列表
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid)
@@ -548,10 +645,9 @@ export async function getIterationUnitTests(clientType : string, iteratorId : st
     let unitTests;
     let folders;
 
+    let users = await getUsers(clientType);
+
     if (clientType === CLIENT_TYPE_SINGLE) {
-
-        let users = await getUsers(clientType);
-
         //单测列表
         if (folder === null) {
             folders = new Set();
@@ -572,7 +668,7 @@ export async function getIterationUnitTests(clientType : string, iteratorId : st
         for (let i = 0; i < unitTests.length; i++) {
             let unitTest = unitTests[i];
             let unittest_uuid = unitTest[field_unittest_uuid];
-            let newUnitTest = await getSingleUnittest(unittest_uuid, env, iteratorId);
+            let newUnitTest = await getIteratorSingleUnittest(clientType, unittest_uuid, iteratorId, env);
             newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
             unitTests[i] = newUnitTest;
             if (folder === null) {
@@ -582,10 +678,13 @@ export async function getIterationUnitTests(clientType : string, iteratorId : st
     } else {
         let ret = await sendTeamMessage(UNITTES_ITERATION_ALL_URL, {iterator: iteratorId, fold: folder});
         unitTests = ret.list;
-        let retFolders = ret.folders;
-        for (let unitTest of unitTests) {
-            unitTest['children'] = [];
+        for (let i = 0; i < unitTests.length; i++) {
+            let _unitTest = unitTests[i];
+            let newUnitTest = await getIteratorSingleUnittest(clientType, _unitTest[0], iteratorId, env);
+            newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
         }
+        let retFolders = ret.folders;
         if (retFolders.length > 0) {
             folders = new Set();
             for (let _ret_fold of retFolders) {

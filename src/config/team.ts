@@ -215,3 +215,5 @@ export const UNITTES_ITERATION_FOLD_ADD_URL = "/unittest/iteration/addFold"
 export const UNITTES_ITERATION_FOLD_LIST_URL = "/unittest/iteration/getFolds"
 
 export const UNITTES_ITERATION_ALL_URL = "/unittest/iteration/all"
+
+export const UNITTES_ITERATION_FETCH_SINGLE_URL = "/unittest/iteration/getSingle"
