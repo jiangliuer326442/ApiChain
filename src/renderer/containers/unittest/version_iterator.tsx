@@ -37,13 +37,15 @@ import { getEnvs } from '@act/env';
 import {
     getIterationUnitTests, 
     delUnitTest, 
-    delUnitTestStep,
     executeIteratorUnitTest,
     continueIteratorExecuteUnitTest,
     copyFromIteratorToProject,
     copyFromProjectToIterator,
     batchMoveIteratorUnittest,
 } from '@act/unittest';
+import {
+    delUnitTestStep,
+} from '@act/unittest_step';
 import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { getOpenVersionIterators } from '@act/version_iterator';
 import { buildUnitTestStepFromRequest } from '@act/unittest_step';
@@ -309,7 +311,7 @@ class UnittestListVersion extends Component {
                         title={langTrans("version unittest del title")}
                         description={langTrans("version unittest del desc")}
                         onConfirm={e => {
-                            delUnitTestStep(valueUnittestStepUuid, ()=>{
+                            delUnitTestStep(this.props.clientType, this.state.iteratorId, valueUnittestStepUnittestUuid, valueUnittestStepUuid, ()=>{
                                 getIterationUnitTests(
                                     this.props.clientType,
                                     this.state.iteratorId, 
@@ -540,7 +542,7 @@ class UnittestListVersion extends Component {
                                     type="primary"  
                                     disabled={!this.state.executeFlg || this.state.selectedUnittests.length === 0} 
                                     onClick={() => {
-                                        if (!this.props.device.vipFlg) {
+                                        if (!this.props.device.vipFlg && !this.props.device.isUnitTest) {
                                             this.setState({
                                                 showPay: true,
                                             });
@@ -551,8 +553,6 @@ class UnittestListVersion extends Component {
                                             return;
                                         }
 
-                                        localStorage.setItem(UNITTEST_ENV, this.props.env);
-
                                         for (let unittestUuid of this.state.selectedUnittests) {
                                             this.setState({
                                                 executeFlg: false,
@@ -561,7 +561,7 @@ class UnittestListVersion extends Component {
                                             });
                                             let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
                                             executeIteratorUnitTest(
-                                                this.props.clientType,
+                                                this.props.clientType, this.props.teamId,
                                                 this.state.iteratorId, unittestUuid, currentUnitTest.children, this.props.env, this.props.dispatch, 
                                                 (batchUuid : string, stepUuid : string) => {
                                                     this.setState({ unittestUuid, batchUuid, stepUuid})

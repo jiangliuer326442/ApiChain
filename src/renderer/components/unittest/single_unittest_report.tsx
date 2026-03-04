@@ -26,6 +26,7 @@ import {
 
 import {
     getSingleUnittest,
+    getIteratorSingleUnittest,
     getSingleExecutorReport,
     getSingleExecutorStep,
     getUnitTestStepAsserts,
@@ -123,8 +124,7 @@ class SingleUnitTestReport extends Component {
             
             let promises = []
             for(let prj of prjs) {
-                //@todo fanghailang 这里需要teamId
-                promises.push(getEnvHosts(this.props.clientType, prj, this.props.env));
+                promises.push(getEnvHosts(this.props.clientType, this.props.teamId, prj, this.props.env));
             }
             let values = await Promise.all(promises);
             let hosts : any = {};
@@ -175,7 +175,12 @@ class SingleUnitTestReport extends Component {
     }
 
     buildRecentExecutorResult = async (iteratorId: string, unittestUuid : string, batchUuid : string, hosts : any) => {
-        let selectedUnitTest = await getSingleUnittest(unittestUuid, this.props.env, iteratorId);
+        let selectedUnitTest;
+        if (!isStringEmpty(iteratorId)) {
+            selectedUnitTest = await getIteratorSingleUnittest(this.props.clientType, unittestUuid, iteratorId, this.props.env);
+        } else {
+            selectedUnitTest = await getSingleUnittest(this.props.clientType, unittestUuid, this.props.env, iteratorId);
+        }
         //单测报告
         let unitTestReport = await getSingleExecutorReport(iteratorId, unittestUuid, batchUuid);
         let steps = cloneDeep(selectedUnitTest.children);
@@ -338,6 +343,7 @@ function mapStateToProps (state) {
         unittest: state.unittest.list,
         prjs: state.prj.list,
         envs: state.env.list,
+        teamId: state.device.teamId,
         versionIterators: state['version_iterator'].list,
     }
 }

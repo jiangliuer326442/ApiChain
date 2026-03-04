@@ -161,7 +161,8 @@ function doGetInitParams(
         "teamId=" + teamId,
         "isSuperAdmin=" + (isSuperAdmin ? "1" : "0"),
         "isAdmin=" + (isAdmin ? "1" : "0"),
-        "isAiSupport=" + (isAiSupport ? "1" : "0")
+        "isAiSupport=" + (isAiSupport ? "1" : "0"),
+        "isUnitTest=" + ((process.env.NODE_ENV !== 'production' || process.env.CHAT_PROVIDER === "ZHAOHANG") ? "1" : "0")
     ]
 
     for (let startupKey in startupParams) {

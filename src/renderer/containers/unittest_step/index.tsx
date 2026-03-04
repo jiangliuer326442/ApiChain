@@ -27,10 +27,12 @@ import { getUnitTestRequests, getVersionIteratorRequest } from '@act/version_ite
 import { getProjectRequest } from '@act/project_request';
 import { 
     getIterationUnitTests,
-    addUnitTestStep,
-    editUnitTestStep,
     getUnitTestStepAsserts,
 } from '@act/unittest';
+import {
+    addUnitTestStep,
+    editUnitTestStep,
+} from '@act/unittest_step';
 import RequestPathVariableFormTable from "@comp/unittest_step/request_path_variable_form_table";
 import RequestParamFormTable from "@comp/unittest_step/request_param_form_table";
 import RequestHeadFormTable from "@comp/unittest_step/request_head_form_table";

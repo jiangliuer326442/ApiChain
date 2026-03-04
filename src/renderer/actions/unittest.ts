@@ -49,7 +49,6 @@ import {
     ENV_VARS_UNITTEST_COPY_URL,
     UNITTES_ITERATION_ADD_URL,
     UNITTES_ITERATION_DEL_URL,
-    UNITTES_ITERATION_STEP_ADD_URL,
     UNITTES_ITERATION_ALL_URL,
     UNITTES_ITERATION_FETCH_SINGLE_URL
 } from '@conf/team';
@@ -239,80 +238,6 @@ export async function addIteratorUnitTest(clientType, versionIteratorId : string
     await window.db[TABLE_UNITTEST_NAME].put(unit_test);
 }
 
-export async function addUnitTestStep(
-    clientType : string, 
-    versionIteratorId : string, unitTestUuid : string, 
-    title : string, project : string, method: string, uri : string,
-    header: object, param: object, pathVariable: object, body: object,
-    assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>,
-    sort: number, continueEnable: string, waitSeconds: number,
-    device : object, cb) {
-
-        if (clientType === CLIENT_TYPE_TEAM) {
-            await sendTeamMessage(UNITTES_ITERATION_STEP_ADD_URL, {
-                iterator: versionIteratorId, unitTest: unitTestUuid,
-                title, prj: project, method, uri,
-                header: JSON.stringify(header), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable), body: JSON.stringify(body),
-                assertTitles: assertTitleArr.join(','), assertPrevs: assertPrevArr.join(','), assertOperators: assertOperatorArr.join(','), assertAfters: assertAfterArr.join(','),
-                sort, continueEnable, waitSeconds
-            });
-        }
-
-        window.db.transaction('rw',
-            window.db[TABLE_UNITTEST_STEPS_NAME],
-            window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME], 
-            async () => {
-
-                let stepId = uuidv4() as string;
-
-                let unit_test_step : any = {};
-                unit_test_step[field_unittest_step_uuid] = stepId;
-                unit_test_step[unittest_step_iterator_uuid] = versionIteratorId;
-                unit_test_step[unittest_step_unittest_uuid] = unitTestUuid;
-                unit_test_step[unittest_step_title] = title;
-                unit_test_step[unittest_step_project] = project;
-                unit_test_step[unittest_step_method] = method;
-                unit_test_step[unittest_step_uri] = uri;
-                unit_test_step[unittest_step_header] = header;
-                unit_test_step[unittest_step_param] = param;
-                unit_test_step[unittest_step_path_variable] = pathVariable;
-                unit_test_step[unittest_step_body] = body;
-                unit_test_step[unittest_step_continue] = continueEnable;
-                unit_test_step[unittest_step_wait_seconds] = waitSeconds;
-                unit_test_step[unittest_step_sort] = sort;
-                unit_test_step[unittest_step_cuid] = device.uuid;
-                unit_test_step[unittest_step_ctime] = Date.now();
-                unit_test_step[unittest_step_delFlg] = 0;
-                await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
-
-                let unit_test_step_assert : Array<any> = [];
-
-                for(let i in assertTitleArr) {
-                    let assertTitle = assertTitleArr[i];
-                    let assertPrev = assertPrevArr[i];
-                    let assertOperator = assertOperatorArr[i];
-                    let assertAfter = assertAfterArr[i];
-                    let unit_test_step_assert_item : any = {};
-                    unit_test_step_assert_item[unittest_step_assert_iterator] = versionIteratorId;
-                    unit_test_step_assert_item[unittest_step_assert_unittest] = unitTestUuid;
-                    unit_test_step_assert_item[unittest_step_assert_step] = stepId;
-                    unit_test_step_assert_item[unittest_step_assert_uuid] = uuidv4() as string;
-                    unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
-                    unit_test_step_assert_item[unittest_step_assert_left] = assertPrev;
-                    unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
-                    unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
-                    unit_test_step_assert_item[unittest_step_assert_cuid] = device.uuid;
-                    unit_test_step_assert_item[unittest_step_assert_delFlg] = 0;
-                    unit_test_step_assert_item[unittest_step_assert_ctime] = Date.now();
-
-                    unit_test_step_assert.push(unit_test_step_assert_item);
-                }
-                await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].bulkPut(unit_test_step_assert);
-                cb();
-            }
-        );
-}
-
 export async function editUnitTest(uuid : string, title : string, folder : string, ) {
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(uuid)
@@ -323,78 +248,6 @@ export async function editUnitTest(uuid : string, title : string, folder : strin
     unitTest[unittest_title] = title;
     unitTest[unittest_fold] = folder;
     await window.db[TABLE_UNITTEST_NAME].put(unitTest);
-}
-
-export async function editUnitTestStep(
-    unittest_step_uuid : string, title : string,
-    header: object, param: object, pathVariable: object, body: object,
-    assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>, 
-    assertUuidArr: Array<string>, sort: number, continueEnable: string, waitSeconds: number,
-    device: any, cb) {
-    let unit_test_step = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where(field_unittest_step_uuid).equals(unittest_step_uuid)
-    .first();
-
-    if (unit_test_step !== undefined) {
-        unit_test_step[unittest_step_title] = title;
-        unit_test_step[unittest_step_header] = header;
-        unit_test_step[unittest_step_param] = param;
-        unit_test_step[unittest_step_path_variable] = pathVariable;
-        unit_test_step[unittest_step_body] = body;
-        unit_test_step[unittest_step_sort] = sort;
-        unit_test_step[unittest_step_continue] = continueEnable;
-        unit_test_step[unittest_step_wait_seconds] = waitSeconds;
-        await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
-    }
-
-    let unit_test_step_assert : Array<any> = [];
-
-    for (let _index in assertTitleArr) {
-        let operate;
-        let assertUuid;
-        if (isStringEmpty(assertUuidArr[_index])) {
-            operate = "add";
-            assertUuid = uuidv4() as string;
-        } else {
-            operate = "edit";
-            assertUuid = assertUuidArr[_index];
-        }
-        let assertTitle = assertTitleArr[_index];
-        let assertPrev = assertPrevArr[_index];
-        let assertOperator = assertOperatorArr[_index];
-        let assertAfter = assertAfterArr[_index];
-        let unit_test_step_assert_item : any;
-        
-        if (operate === "edit") {
-            unit_test_step_assert_item = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-            .where(unittest_step_assert_uuid).equals(assertUuid)
-            .first();
-    
-            if (unit_test_step_assert_item !== undefined) {
-                unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
-                unit_test_step_assert_item[unittest_step_assert_left] = assertPrev;
-                unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
-                unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
-                unit_test_step_assert.push(unit_test_step_assert_item);
-            }
-        } else if (operate === "add") {
-            unit_test_step_assert_item = {};
-            unit_test_step_assert_item[unittest_step_assert_iterator] = unit_test_step[unittest_step_iterator_uuid];
-            unit_test_step_assert_item[unittest_step_assert_unittest] = unit_test_step[unittest_step_unittest_uuid];
-            unit_test_step_assert_item[unittest_step_assert_step] = unittest_step_uuid;
-            unit_test_step_assert_item[unittest_step_assert_uuid] = assertUuid;
-            unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
-            unit_test_step_assert_item[unittest_step_assert_left] = assertPrev;
-            unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
-            unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
-            unit_test_step_assert_item[unittest_step_assert_cuid] = device.uuid;
-            unit_test_step_assert_item[unittest_step_assert_delFlg] = 0;
-            unit_test_step_assert_item[unittest_step_assert_ctime] = Date.now();
-            unit_test_step_assert.push(unit_test_step_assert_item);
-        }
-    }
-    await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].bulkPut(unit_test_step_assert);
-    cb();
 }
 
 export async function delUnitTest(clientType, row, cb) {
@@ -417,18 +270,6 @@ export async function delUnitTest(clientType, row, cb) {
     }
 }
 
-export async function delUnitTestStep(unittestStepUuid : string, cb) {
-    let unitTestStep = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where(field_unittest_step_uuid).equals(unittestStepUuid)
-    .first();
-
-    if (unitTestStep !== undefined) {
-        unitTestStep[unittest_step_delFlg] = 1;
-        await window.db[TABLE_UNITTEST_STEPS_NAME].put(unitTestStep);
-        cb();
-    }
-}
-
 export async function getIteratorSingleUnittest(clientType : string, unittest_uuid : string, iteratorId : string, env : string | null) {
 
     let unitTest;
@@ -437,6 +278,12 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
         let ret = await sendTeamMessage(UNITTES_ITERATION_FETCH_SINGLE_URL, {iterator: iteratorId, unittest: unittest_uuid});
         unitTest = ret.ret;
         unitTestSteps = ret.list
+        for (let _unitTestStep of unitTestSteps) {
+            _unitTestStep.body = JSON.parse(_unitTestStep.body);
+            _unitTestStep.header = JSON.parse(_unitTestStep.header);
+            _unitTestStep.param = JSON.parse(_unitTestStep.param);
+            _unitTestStep.pathVariable = JSON.parse(_unitTestStep.pathVariable);
+        }
     } else {
         unitTest = await window.db[TABLE_UNITTEST_NAME]
         .where(field_unittest_uuid)
@@ -977,7 +824,7 @@ export async function executeProjectUnitTest(
 }
 
 export async function executeIteratorUnitTest(
-    clientType : string,
+    clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, 
     steps : Array<any>, env : string, dispatch : any,
     cb : Function
@@ -999,11 +846,11 @@ export async function executeIteratorUnitTest(
 
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
         async (project : string) => {
-            let datas = await getEnvHosts(clientType, project, env);
+            let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
         },
         async (project : string) => {
-            let datas = await getEnvRunModes(clientType, project, env);
+            let datas = await getEnvRunModes(clientType, teamId, project, env);
             let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
             return runMode;
         },
@@ -1119,6 +966,8 @@ async function stepsExecutor(
         let url = requestHost + requestUri;
 
         let contentType = "";
+
+        console.log("header", header);
 
         if (Object.keys(header).length > 0) {
             for (let _key in header) {

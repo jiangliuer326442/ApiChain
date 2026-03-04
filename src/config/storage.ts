@@ -14,6 +14,8 @@ export const BUY_TIMES = "device.buytimes";
 
 export const VIP_FLG = "device.vip.flg";
 
+export const UNIT_TEST_FLG = "device.unittest.flg";
+
 export const CKCODE_FLG = "device.ckcode.flg";
 
 export const AISUPPORT_FLG = "device.aisupport.flg";

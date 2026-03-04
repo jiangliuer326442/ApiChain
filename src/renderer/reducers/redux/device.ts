@@ -8,6 +8,7 @@ import {
   USERLANG,
   APPVERSION, 
   VIP_FLG, 
+  UNIT_TEST_FLG,
   CKCODE_FLG,
   AISUPPORT_FLG,
   CKCODE_TYPE,
@@ -29,6 +30,7 @@ export default function (state = {
   defaultRunnerUrl: "",
   defaultRunnerVersion: "",
   isAiSupport: false,
+  isUnitTest: false,
   appVersion: "",
   userCountry: "",
   userLang: "",
@@ -84,6 +86,11 @@ export default function (state = {
       if (action.vipFlg !== undefined) {
         sessionStorage.setItem(VIP_FLG, action.vipFlg ? "1" : "0");
         newState.vipFlg = action.vipFlg;
+      }
+
+      if (action.isUnitTest !== undefined) {
+        sessionStorage.setItem(UNIT_TEST_FLG, action.isUnitTest ? "1" : "0");
+        newState.isUnitTest = action.isUnitTest;
       }
 
       if (action.expireTime !== undefined) {
@@ -145,6 +152,7 @@ export default function (state = {
   } else if(state.uuid === "") {
     state.uuid = isStringEmpty(sessionStorage.getItem(UUID)) ? "" : sessionStorage.getItem(UUID) as string;
     state.vipFlg = isStringEmpty(sessionStorage.getItem(VIP_FLG)) ? false : (sessionStorage.getItem(VIP_FLG) === "1" ? true : false);
+    state.isUnitTest = isStringEmpty(sessionStorage.getItem(UNIT_TEST_FLG)) ? false : (sessionStorage.getItem(UNIT_TEST_FLG) === "1" ? true : false);
     state.showCkCode = isStringEmpty(sessionStorage.getItem(CKCODE_FLG)) ? false : (sessionStorage.getItem(CKCODE_FLG) === "1" ? true : false);
     state.isAiSupport = isStringEmpty(sessionStorage.getItem(AISUPPORT_FLG)) ? false : (sessionStorage.getItem(AISUPPORT_FLG) === "1" ? true : false);
     state.ckCodeType = isStringEmpty(sessionStorage.getItem(CKCODE_TYPE)) ? "" : sessionStorage.getItem(CKCODE_TYPE) as string;

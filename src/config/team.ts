@@ -221,3 +221,5 @@ export const UNITTES_ITERATION_ALL_URL = "/unittest/iteration/all"
 export const UNITTES_ITERATION_FETCH_SINGLE_URL = "/unittest/iteration/getSingle"
 
 export const UNITTES_ITERATION_STEP_ADD_URL = "/unittest/iteration/addStep"
+
+export const UNITTES_ITERATION_STEP_DEL_URL = "/unittest/iteration/delStep"
