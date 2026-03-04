@@ -47,7 +47,7 @@ import {
     CLIENT_TYPE_TEAM, 
     CLIENT_TYPE_SINGLE,
     ENV_VARS_UNITTEST_COPY_URL,
-    UNITTES_ITERATION_ADD_URL,
+    UNITTES_ITERATION_SAVE_URL,
     UNITTES_ITERATION_DEL_URL,
     UNITTES_ITERATION_ALL_URL,
     UNITTES_ITERATION_FETCH_SINGLE_URL
@@ -224,7 +224,7 @@ export async function addIteratorUnitTest(clientType, versionIteratorId : string
 
     const unittest_uuid = uuidv4() as string;
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTES_ITERATION_ADD_URL, {iterator: versionIteratorId, uuid: unittest_uuid, title, fold: folder});
+        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {iterator: versionIteratorId, uuid: unittest_uuid, title, fold: folder});
     }
 
     let unit_test : any = {};
@@ -238,9 +238,12 @@ export async function addIteratorUnitTest(clientType, versionIteratorId : string
     await window.db[TABLE_UNITTEST_NAME].put(unit_test);
 }
 
-export async function editUnitTest(uuid : string, title : string, folder : string, ) {
+export async function editIteratorUnitTest(clientType : string, versionIteratorId : string, unitTestUuid : string, title : string, folder : string, ) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {iterator: versionIteratorId, uuid: unitTestUuid, title, fold: folder});
+    }
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
-    .where(field_unittest_uuid).equals(uuid)
+    .where(field_unittest_uuid).equals(unitTestUuid)
     .first();
 
     if (unitTest === undefined) return;
@@ -279,10 +282,10 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
         unitTest = ret.ret;
         unitTestSteps = ret.list
         for (let _unitTestStep of unitTestSteps) {
-            _unitTestStep.body = JSON.parse(_unitTestStep.body);
-            _unitTestStep.header = JSON.parse(_unitTestStep.header);
-            _unitTestStep.param = JSON.parse(_unitTestStep.param);
-            _unitTestStep.pathVariable = JSON.parse(_unitTestStep.pathVariable);
+            _unitTestStep.body = _unitTestStep.body;
+            _unitTestStep.header = _unitTestStep.header;
+            _unitTestStep.param = _unitTestStep.param;
+            _unitTestStep.pathVariable = _unitTestStep.pathVariable;
         }
     } else {
         unitTest = await window.db[TABLE_UNITTEST_NAME]

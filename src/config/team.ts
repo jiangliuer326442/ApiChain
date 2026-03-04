@@ -208,7 +208,7 @@ export const AI_RE_VECTOR_MODELS_URL = "/ai/reVector";
 
 export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";
 
-export const UNITTES_ITERATION_ADD_URL = "/unittest/iteration/add"
+export const UNITTES_ITERATION_SAVE_URL = "/unittest/iteration/save"
 
 export const UNITTES_ITERATION_DEL_URL = "/unittest/iteration/del"
 

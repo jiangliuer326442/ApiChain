@@ -11,7 +11,10 @@ import {
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_UNITTEST_MODEL } from '@conf/redux';
-import { addIteratorUnitTest, editUnitTest } from '@act/unittest';
+import { 
+    addIteratorUnitTest, 
+    editIteratorUnitTest 
+} from '@act/unittest';
 import { 
     addIteratorUnitTestFolder, 
     getIteratorUnitTestFolders,
@@ -82,7 +85,7 @@ class AddUnittestComponent extends Component {
                 });
             }
         } else {
-            await editUnitTest(this.state.unitTestUuid, unitTestTitle, selectedFolder);
+            await editIteratorUnitTest(this.props.clientType, this.props.iteratorId, this.state.unitTestUuid, unitTestTitle, selectedFolder);
             this.clearInput();
             this.setState({
                 loadingFlg: false

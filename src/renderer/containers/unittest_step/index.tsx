@@ -115,12 +115,13 @@ class UnittestStepContainer extends Component {
 
             if (!isStringEmpty(unitTestStepUuid)) {
                 let cUnitTestStep = cUnitTest.children.find(row => row[unittest_step_uuid] === unitTestStepUuid);
+                console.log("cUnitTestStep", cUnitTestStep);
                 prj = cUnitTestStep[unittest_step_prj];
                 method = cUnitTestStep[unittest_step_method];
                 uri = cUnitTestStep[unittest_step_uri];
                 title = cUnitTestStep[unittest_step_title];
                 sort = cUnitTestStep[unittest_step_sort];
-                continueEnable = cUnitTestStep[unittest_step_continue] == 0 ? "0" : cUnitTestStep[unittest_step_continue];
+                continueEnable = cUnitTestStep[unittest_step_continue] == 0 ? "0" : "" +cUnitTestStep[unittest_step_continue];
                 waitSeconds = cUnitTestStep[unittest_step_wait_seconds];
                 requestParam = cUnitTestStep[unittest_step_request_param];
                 requestPathVariable = cUnitTestStep[unittest_step_request_path_variable] ? cUnitTestStep[unittest_step_request_path_variable] : {};
@@ -203,8 +204,28 @@ class UnittestStepContainer extends Component {
         let arr = value.split("$$");
         let method = arr[0];
         let uri = arr[1];
-        this.initMethodUri(method, uri);
-        this.setState({uri: value})
+        this.setState({
+            uri: value,
+            request: {}, 
+            method: "", 
+            formRequestHeadData:{}, 
+            formRequestBodyData:{}, 
+            formRequestParamData:{}, 
+            formRequestPathVariableData:{},
+            requestHead:{}, 
+            requestBody:{}, 
+            requestParam:{}, 
+            requestPathVariable:{},
+            assertLength:1,
+            title: "", 
+            responseContent:{}, 
+            responseHeader:{}, 
+            responseCookie:{},
+            jsonFlg: false,
+            paramTips: []
+        }, ()=>{
+            this.initMethodUri(method, uri);
+        })
     }
 
     initMethodUri = async (method, uri) => {
