@@ -281,6 +281,7 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
         let ret = await sendTeamMessage(UNITTES_ITERATION_FETCH_SINGLE_URL, {iterator: iteratorId, unittest: unittest_uuid});
         unitTest = ret.ret;
         unitTestSteps = ret.list
+
     } else {
         unitTest = await window.db[TABLE_UNITTEST_NAME]
         .where(field_unittest_uuid)
@@ -291,6 +292,16 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
         .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
         .equals([0, iteratorId, unittest_uuid])
         .toArray();
+
+        for (let _unittest_step of unitTestSteps) {
+            let _step_uuid = _unittest_step[field_unittest_step_uuid]
+            let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
+            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
+            .equals([0, iteratorId, unittest_uuid, _step_uuid])
+            .reverse()
+            .toArray();
+            _unittest_step.asserts = unitTestAsserts;
+        }
     }
 
     let batch_uuid = "";
@@ -564,16 +575,6 @@ export async function getIterationUnitTests(clientType : string, iteratorId : st
         unitTests,
         folders: folders === null ? null : Array.from(folders)
     });
-}
-
-export async function getUnitTestStepAsserts(iteratorId : string, unitTestId : string, stepId : string) {
-    let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-    .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-    .equals([0, iteratorId, unitTestId, stepId])
-    .reverse()
-    .toArray();
-
-    return unitTestAsserts;
 }
 
 export async function continueIteratorExecuteUnitTest(
@@ -956,15 +957,13 @@ async function stepsExecutor(
         }
         recentStepUuid = stepUuid;
 
-        let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unitTestId, stepUuid);
+        let unitTestAsserts = _unit_test_step.asserts;
         let envVarTips = getEnvVarTipsFunc(project);
         let requestHost = await getEnvHostFunc(project);
         let runMode = await getRunModeFunc(project);
         let url = requestHost + requestUri;
 
         let contentType = "";
-
-        console.log("header", header);
 
         if (Object.keys(header).length > 0) {
             for (let _key in header) {
@@ -1073,6 +1072,7 @@ async function stepsExecutor(
         let content = "";
         
         let singleCostTime = 0;
+
         if(response !== null && isStringEmpty(errorMessage)) {
             singleCostTime = response.costTime;
             if (getType(response.data) === "String" && isJsonString(response.data)) {
@@ -1132,6 +1132,7 @@ async function stepsExecutor(
                     try {
                         assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
                     } catch (error) {
+                        console.error(error);
                         errorMessage = error.message;
                         breakFlg = true;
                         break;
@@ -1144,8 +1145,7 @@ async function stepsExecutor(
                     if (typeof assertRightValue[keyNumber] === "number") {
                         assertRightValue[keyNumber] = assertRightValue[keyNumber].toString();
                     }
-
-                    if (assertOperator === " == ") {
+                    if (assertOperator.trim() === "==") {
                         if (assertLeftValue[keyNumber] === assertRightValue[keyNumber]) {
                             breakFlg = false;
                         } else {

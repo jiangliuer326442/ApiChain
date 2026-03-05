@@ -27,7 +27,6 @@ import { getUnitTestRequests, getVersionIteratorRequest } from '@act/version_ite
 import { getProjectRequest } from '@act/project_request';
 import { 
     getIterationUnitTests,
-    getUnitTestStepAsserts,
 } from '@act/unittest';
 import {
     addUnitTestStep,
@@ -120,7 +119,6 @@ class UnittestStepContainer extends Component {
 
             if (!isStringEmpty(unitTestStepUuid)) {
                 let cUnitTestStep = cUnitTest.children.find(row => row[unittest_step_uuid] === unitTestStepUuid);
-                console.log("cUnitTestStep", cUnitTestStep);
                 prj = cUnitTestStep[unittest_step_prj];
                 method = cUnitTestStep[unittest_step_method];
                 uri = cUnitTestStep[unittest_step_uri];
@@ -134,17 +132,19 @@ class UnittestStepContainer extends Component {
                 requestHead = cUnitTestStep[unittest_step_request_head];
                 requestBody = cUnitTestStep[unittest_step_request_body];
 
-                responseContent = cUnitTestStep[iteration_response_content];
-                responseHeader = cUnitTestStep[iteration_response_header];
-                responseCookie = cUnitTestStep[iteration_response_cookie];
-
                 let assertList = cUnitTestStep.asserts;
                 assertLength = assertList.length;
-                for (let _assert of assertList) {
-                    assertTitle.push(_assert[unittest_step_assert_title]);
-                    assertPrev.push(_assert[unittest_step_assert_left]);
-                    assertOperator.push(_assert[unittest_step_assert_operator]);
-                    assertAfter.push(_assert[unittest_step_assert_right]);
+                if (assertLength > 0) {
+                    assertTitle = [];
+                    assertPrev = [];
+                    assertOperator = [];
+                    assertAfter = [];
+                    for (let _assert of assertList) {
+                        assertTitle.push(_assert[unittest_step_assert_title]);
+                        assertPrev.push(_assert[unittest_step_assert_left]);
+                        assertOperator.push(_assert[unittest_step_assert_operator]);
+                        assertAfter.push(_assert[unittest_step_assert_right]);
+                    }
                 }
             } else {
                 sort = cUnitTest.children.length + 1
@@ -160,13 +160,13 @@ class UnittestStepContainer extends Component {
             urisSelector: [],
             requests: [],
             request: {},
-            formRequestHeadData: requestHead,
+            formRequestHeadData: {},
             requestHead,
-            formRequestBodyData: requestBody,
+            formRequestBodyData: {},
             requestBody,
-            formRequestParamData: requestParam,
+            formRequestParamData: {},
             requestParam,
-            formRequestPathVariableData: requestPathVariable,
+            formRequestPathVariableData: {},
             requestPathVariable,
             prj,
             method,
@@ -199,23 +199,7 @@ class UnittestStepContainer extends Component {
             getIterationUnitTests(this.props.clientType, this.state.iteratorId, null, null, this.props.dispatch);
         }
         if (!isStringEmpty(this.state.unitTestStepUuid)) {
-            getUnitTestStepAsserts(this.state.iteratorId, this.state.unitTestUuid, this.state.unitTestStepUuid).then(unitTestAsserts => {
-                let assertLength = unitTestAsserts.length;
-                let assertTitle = [];
-                let assertPrev = [];
-                let assertOperator = [];
-                let assertAfter = [];
-                let assertUuidArr = [];
-                for (let _index in unitTestAsserts) {
-                    let unitTestAssertItem = unitTestAsserts[_index];
-                    assertUuidArr.push(unitTestAssertItem[unittest_step_assert_uuid]);
-                    assertTitle.push(unitTestAssertItem[unittest_step_assert_title]);
-                    assertPrev.push(unitTestAssertItem[unittest_step_assert_left]);
-                    assertOperator.push(unitTestAssertItem[unittest_step_assert_operator]);
-                    assertAfter.push(unitTestAssertItem[unittest_step_assert_right]);
-                }
-                this.setState({assertUuidArr, assertLength, assertTitle, assertPrev, assertOperator, assertAfter});
-            });
+            this.initMethodUri2(this.state.method, this.state.uri);
         }
     }
 
@@ -247,13 +231,66 @@ class UnittestStepContainer extends Component {
         })
     }
 
-    initMethodUri = async (method, uri) => {
-        let prj = this.state.prj.split("$$")[0];
-        let request = this.state.requests.find(row => row[iteration_request_method] === method && row[iteration_request_uri] === uri);
-        if (isStringEmpty(request[iteration_request_iteration_uuid])) {
+    initMethodUri2 = async (method, uri) => {
+        let prj = this.state.prj.includes("$$") ? this.state.prj.split("$$")[0] : this.state.prj;
+        let request;
+        if (isStringEmpty(this.state.iteratorId)) {
             request = await getProjectRequest(this.props.clientType, prj, method, uri);
         } else {
-            request = await getVersionIteratorRequest(this.props.clientType, request[iteration_request_iteration_uuid], prj, method, uri);
+            request = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, prj, method, uri);
+        }
+        if (request == null) {
+            request = await getProjectRequest(this.props.clientType, prj, method, uri);
+        }
+        
+        let formRequestHeadData = request[iteration_request_header];
+        for (let _key in this.state.requestHead) {
+            formRequestHeadData[_key][TABLE_FIELD_VALUE] = this.state.requestHead[_key];
+        }
+
+        let formRequestBodyData = request[iteration_request_body];
+        for (let _key in this.state.requestBody) {
+            formRequestBodyData[_key][TABLE_FIELD_VALUE] = this.state.requestBody[_key];
+        }
+
+        let formRequestParamData = request[iteration_request_param];
+        for (let _key in this.state.requestParam) {
+            formRequestParamData[_key][TABLE_FIELD_VALUE] = this.state.requestParam[_key];
+        }
+
+        let formRequestPathVariableData = request[iteration_request_path_variable];
+        for (let _key in this.state.requestPathVariable) {
+            formRequestPathVariableData[_key][TABLE_FIELD_VALUE] = this.state.requestPathVariable[_key];
+        }
+
+        let responseContent = request[iteration_response_content];
+        let responseHeader = request[iteration_response_header];
+        let responseCookie = request[iteration_response_cookie];
+
+        let envKeys = await this.requestSendTip.getTips();
+        this.setState({ 
+            request, method, 
+            formRequestHeadData, 
+            formRequestBodyData, 
+            formRequestParamData, 
+            formRequestPathVariableData,
+            responseContent, 
+            responseHeader, 
+            responseCookie,
+            paramTips: envKeys
+        });
+    }
+
+    initMethodUri = async (method, uri) => {
+        let prj = this.state.prj.includes("$$") ? this.state.prj.split("$$")[0] : this.state.prj;
+        let request;
+        if (isStringEmpty(this.state.iteratorId)) {
+            request = await getProjectRequest(this.props.clientType, prj, method, uri);
+        } else {
+            request = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, prj, method, uri);
+        }
+        if (request == null) {
+            request = await getProjectRequest(this.props.clientType, prj, method, uri);
         }
         let formRequestHeadData = request[iteration_request_header];
         let formRequestBodyData = request[iteration_request_body];
@@ -265,55 +302,24 @@ class UnittestStepContainer extends Component {
             assertLength = 0;
         }
 
-        let requestHead : any;
-        if (Object.keys(this.state.requestHead).length === 0){
-            requestHead = {};
-            for (let _key in formRequestHeadData) {
-                requestHead[_key] = formRequestHeadData[_key][TABLE_FIELD_VALUE];
-            }
-        } else {
-            requestHead = this.state.requestHead;
-            for (let _key in requestHead) {
-                formRequestHeadData[_key] = requestHead[_key];
-            }
+        let requestHead : any = {};
+        for (let _key in formRequestHeadData) {
+            requestHead[_key] = formRequestHeadData[_key][TABLE_FIELD_VALUE];
         }
 
-        let requestBody : any;
-        if (Object.keys(this.state.requestBody).length === 0){
-            let buildJsonStringRet = await buildJsonString(formRequestBodyData);
-            requestBody = buildJsonStringRet.returnObject;
-        } else {
-            requestBody = this.state.requestBody;
-            for (let _key in requestBody) {
-                if (!(_key in formRequestBodyData)) continue;
-                formRequestBodyData[_key] = requestBody[_key];
-            }
+        let buildJsonStringRet = await buildJsonString(formRequestBodyData);
+        let requestBody = buildJsonStringRet.returnObject;
+
+        let requestParam : any = {};
+        for (let _key in formRequestParamData) {
+            requestParam[_key] = formRequestParamData[_key][TABLE_FIELD_VALUE];
         }
 
-        let requestParam : any;
-        if (Object.keys(this.state.requestParam).length === 0){
-            requestParam = {};
-            for (let _key in formRequestParamData) {
-                requestParam[_key] = formRequestParamData[_key][TABLE_FIELD_VALUE];
-            }
-        } else {
-            requestParam = this.state.requestParam;
-            for (let _key in requestParam) {
-                formRequestParamData[_key] = requestParam[_key];
-            }
+        let requestPathVariable : any = {};
+        for (let _key in formRequestPathVariableData) {
+            requestPathVariable[_key] = formRequestPathVariableData[_key][TABLE_FIELD_VALUE];
         }
-        let requestPathVariable : any;
-        if (Object.keys(this.state.requestPathVariable).length === 0){
-            requestPathVariable = {};
-            for (let _key in formRequestPathVariableData) {
-                requestPathVariable[_key] = formRequestPathVariableData[_key][TABLE_FIELD_VALUE];
-            }
-        } else {
-            requestPathVariable = this.state.requestPathVariable;
-            for (let _key in requestPathVariable) {
-                formRequestPathVariableData[_key] = requestPathVariable[_key];
-            }
-        }
+
         let responseContent = request[iteration_response_content];
         let responseHeader = request[iteration_response_header];
         let responseCookie = request[iteration_response_cookie];
@@ -554,7 +560,9 @@ class UnittestStepContainer extends Component {
                 }
             );
         } else {
-            editUnitTestStep(this.state.unitTestStepUuid, this.state.title,
+            editUnitTestStep(
+                this.props.clientType, this.state.iteratorId, this.state.unitTestUuid,this.state.unitTestStepUuid, 
+                this.state.title,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
                 this.state.assertTitle, this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
                 this.state.assertUuidArr, 

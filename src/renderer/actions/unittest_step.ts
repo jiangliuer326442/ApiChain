@@ -14,7 +14,7 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
 } from '@conf/db';
 import {
-    UNITTES_ITERATION_STEP_ADD_URL,
+    UNITTES_ITERATION_STEP_SAVE_URL,
     UNITTES_ITERATION_STEP_DEL_URL,
     CLIENT_TYPE_TEAM,
 } from '@conf/team';
@@ -63,11 +63,24 @@ let iteration_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RES
 let iteration_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
 
 export async function editUnitTestStep(
-    unittest_step_uuid : string, title : string,
+    clientType : string, versionIteratorId : string, unitTestUuid : string, unittest_step_uuid : string, 
+    title : string,
     header: object, param: object, pathVariable: object, body: object,
     assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>, 
     assertUuidArr: Array<string>, sort: number, continueEnable: string, waitSeconds: number,
     device: any, cb) {
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_ITERATION_STEP_SAVE_URL, {
+            iterator: versionIteratorId, unitTest: unitTestUuid, step: unittest_step_uuid,
+            title,
+            header: JSON.stringify(header), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable), body: JSON.stringify(body),
+            assertTitles: assertTitleArr.join(','), assertPrevs: assertPrevArr.join(','), assertOperators: assertOperatorArr.join(','), assertAfters: assertAfterArr.join(','),
+            sort, continueEnable, waitSeconds
+        });
+    }
+
+
     let unit_test_step = await window.db[TABLE_UNITTEST_STEPS_NAME]
     .where(field_unittest_step_uuid).equals(unittest_step_uuid)
     .first();
@@ -116,8 +129,8 @@ export async function editUnitTestStep(
             }
         } else if (operate === "add") {
             unit_test_step_assert_item = {};
-            unit_test_step_assert_item[unittest_step_assert_iterator] = unit_test_step[unittest_step_iterator_uuid];
-            unit_test_step_assert_item[unittest_step_assert_unittest] = unit_test_step[unittest_step_unittest_uuid];
+            unit_test_step_assert_item[unittest_step_assert_iterator] = versionIteratorId;
+            unit_test_step_assert_item[unittest_step_assert_unittest] = unitTestUuid;
             unit_test_step_assert_item[unittest_step_assert_step] = unittest_step_uuid;
             unit_test_step_assert_item[unittest_step_assert_uuid] = assertUuid;
             unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
@@ -143,9 +156,11 @@ export async function addUnitTestStep(
     sort: number, continueEnable: string, waitSeconds: number,
     device : object, cb) {
 
+        let stepId = uuidv4() as string;
+
         if (clientType === CLIENT_TYPE_TEAM) {
-            await sendTeamMessage(UNITTES_ITERATION_STEP_ADD_URL, {
-                iterator: versionIteratorId, unitTest: unitTestUuid,
+            await sendTeamMessage(UNITTES_ITERATION_STEP_SAVE_URL, {
+                iterator: versionIteratorId, unitTest: unitTestUuid, step: stepId,
                 title, prj: project, method, uri,
                 header: JSON.stringify(header), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable), body: JSON.stringify(body),
                 assertTitles: assertTitleArr.join(','), assertPrevs: assertPrevArr.join(','), assertOperators: assertOperatorArr.join(','), assertAfters: assertAfterArr.join(','),
@@ -157,8 +172,6 @@ export async function addUnitTestStep(
             window.db[TABLE_UNITTEST_STEPS_NAME],
             window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME], 
             async () => {
-
-                let stepId = uuidv4() as string;
 
                 let unit_test_step : any = {};
                 unit_test_step[field_unittest_step_uuid] = stepId;

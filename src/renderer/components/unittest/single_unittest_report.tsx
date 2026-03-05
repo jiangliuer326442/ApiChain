@@ -29,7 +29,6 @@ import {
     getIteratorSingleUnittest,
     getSingleExecutorReport,
     getSingleExecutorStep,
-    getUnitTestStepAsserts,
 } from '@act/unittest';
 import {
     getEnvHosts
@@ -195,7 +194,7 @@ class SingleUnitTestReport extends Component {
             let stepSort = _step[unittest_step_sort];
             let prj = _step[unittest_step_prj];
             let method = _step[unittest_step_request_method];
-            let unitTestAsserts = await getUnitTestStepAsserts(fakeIteratorId, unittestUuid, stepUuid);
+            let unitTestAsserts = _step.asserts;
             let singleExecutorStep = await getSingleExecutorStep(iteratorId, unittestUuid, batchUuid, stepUuid);
             if (singleExecutorStep !== null) {
                 let historyId = singleExecutorStep[unittest_executor_history_id];
