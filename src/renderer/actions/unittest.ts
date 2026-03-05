@@ -281,12 +281,6 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
         let ret = await sendTeamMessage(UNITTES_ITERATION_FETCH_SINGLE_URL, {iterator: iteratorId, unittest: unittest_uuid});
         unitTest = ret.ret;
         unitTestSteps = ret.list
-        for (let _unitTestStep of unitTestSteps) {
-            _unitTestStep.body = _unitTestStep.body;
-            _unitTestStep.header = _unitTestStep.header;
-            _unitTestStep.param = _unitTestStep.param;
-            _unitTestStep.pathVariable = _unitTestStep.pathVariable;
-        }
     } else {
         unitTest = await window.db[TABLE_UNITTEST_NAME]
         .where(field_unittest_uuid)

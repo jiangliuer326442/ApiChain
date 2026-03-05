@@ -104,6 +104,11 @@ class UnittestStepContainer extends Component {
         let requestHead = {};
         let requestBody = {};
 
+        let responseContent = {};
+        let responseHeader = {};
+        let responseCookie = {};
+
+
         let prjsSelectector = this.props.projects.map(_prj => ({label: _prj.label, value: _prj.value + "$$" + _prj.label}));
 
         if (this.props.unittest[iteratorId]) {
@@ -123,10 +128,24 @@ class UnittestStepContainer extends Component {
                 sort = cUnitTestStep[unittest_step_sort];
                 continueEnable = cUnitTestStep[unittest_step_continue] == 0 ? "0" : "" +cUnitTestStep[unittest_step_continue];
                 waitSeconds = cUnitTestStep[unittest_step_wait_seconds];
+                jsonFlg = cUnitTestStep[iteration_request_json_flg];
                 requestParam = cUnitTestStep[unittest_step_request_param];
                 requestPathVariable = cUnitTestStep[unittest_step_request_path_variable] ? cUnitTestStep[unittest_step_request_path_variable] : {};
                 requestHead = cUnitTestStep[unittest_step_request_head];
                 requestBody = cUnitTestStep[unittest_step_request_body];
+
+                responseContent = cUnitTestStep[iteration_response_content];
+                responseHeader = cUnitTestStep[iteration_response_header];
+                responseCookie = cUnitTestStep[iteration_response_cookie];
+
+                let assertList = cUnitTestStep.asserts;
+                assertLength = assertList.length;
+                for (let _assert of assertList) {
+                    assertTitle.push(_assert[unittest_step_assert_title]);
+                    assertPrev.push(_assert[unittest_step_assert_left]);
+                    assertOperator.push(_assert[unittest_step_assert_operator]);
+                    assertAfter.push(_assert[unittest_step_assert_right]);
+                }
             } else {
                 sort = cUnitTest.children.length + 1
             }
@@ -141,22 +160,22 @@ class UnittestStepContainer extends Component {
             urisSelector: [],
             requests: [],
             request: {},
-            formRequestHeadData: {},
+            formRequestHeadData: requestHead,
             requestHead,
-            formRequestBodyData: {},
+            formRequestBodyData: requestBody,
             requestBody,
-            formRequestParamData: {},
+            formRequestParamData: requestParam,
             requestParam,
-            formRequestPathVariableData: {},
+            formRequestPathVariableData: requestPathVariable,
             requestPathVariable,
             prj,
             method,
             uri,
             title,
             tips: [],
-            responseContent: {},
-            responseHeader: {},
-            responseCookie: {},
+            responseContent,
+            responseHeader,
+            responseCookie,
             continueEnable,
             waitSeconds,
             sort,
@@ -171,7 +190,7 @@ class UnittestStepContainer extends Component {
         }
         this.requestSendTip = new RequestSendTips();
         if (!isStringEmpty(prj)) {
-            this.initPrj(iteratorId, prj, props.dispatch);
+            this.requestSendTip.init("iterator", prj, iteratorId, "", props.clientType);
         }
     }
 
