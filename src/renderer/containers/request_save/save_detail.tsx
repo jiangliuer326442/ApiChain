@@ -16,7 +16,6 @@ import {
 } from "antd";
 import { cloneDeep } from 'lodash';
 import { decode } from 'base-64';
-import JsonView from 'react-json-view';
 
 import { langTrans } from '@lang/i18n';
 import {
@@ -43,6 +42,8 @@ import {
     FoldSourceIterator,
     EMPTY_STRING,
 } from '@conf/global_config';
+import { GET_PRJ } from '@conf/redux';
+import JsonViewWrapper from '@comp/markdown/jsonView';
 import JsonSaveTableComponent from "@comp/request_save/json_save_table";
 import FolderSelector from "@comp/folders/index";
 import { getPrjs } from '@act/project';
@@ -100,10 +101,11 @@ class RequestSaveContainer extends Component {
     constructor(props) {
         super(props);
         let iterator = props.match.params.iteratorId ? props.match.params.iteratorId : "";
+        let prj = props.match.params.prj;
         let type = iterator ? "iterator" : "prj";
         this.state = {
             teamId : "",
-            prj : props.match.params.prj,
+            prj,
             title : "",
             description: "",
             requestHost: "",
@@ -134,6 +136,10 @@ class RequestSaveContainer extends Component {
             folders: [],
             type,
         }
+        props.dispatch({
+            type: GET_PRJ,
+            prj,
+        });
     }
 
     async componentDidMount() {
@@ -386,11 +392,11 @@ class RequestSaveContainer extends Component {
                                     folders={ this.state.folders }
                                 />
                             </Form.Item>
-                            {!isStringEmpty(this.state.versionIterator) ? 
+                            {!isStringEmpty(this.state.versionIterator) && 
                                 <Form.Item label={langTrans("request save checkbox1")}>
                                     <Checkbox checked={this.state.isExportDoc} onChange={e => this.setState({isExportDoc: e.target.checked})} />
                                 </Form.Item>
-                            : null}
+                            }
                         </Form>
                         <Flex>
                             <Select 
@@ -407,72 +413,60 @@ class RequestSaveContainer extends Component {
                                 value={ this.state.requestUri }
                                 onChange={ event => this.setState({requestUri: event.target.value}) }
                                 size='large' />
-                        {(this.state.type !== 'prj' || this.props.clientType === CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId) ? 
+                        {((this.state.type !== 'prj' || this.props.clientType === CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId)) &&
                             <Button 
                                 size='large' 
                                 type="primary" 
                                 onClick={ this.handleSave }
                                 style={{borderRadius: 0}} 
                             >{langTrans("request save btn")}</Button>
-                        : null}
+                        }
                         </Flex>
                         <TextArea placeholder={langTrans("request save desc")} value={this.state.description} onChange={event=>this.setState({description: event.target.value})} autoSize />
                         <Tabs defaultActiveKey={ this.state.requestMethod === REQUEST_METHOD_POST ? "body" : "params" } items={ this.getNavs() } />
-                        {this.state.formResponseHeadData != null && Object.keys(this.state.formResponseHeadData).length > 0 ? 
+                        {this.state.formResponseHeadData != null && Object.keys(this.state.formResponseHeadData).length > 0 &&
                         <>
                             <Divider orientation="left">{langTrans("request save response header")}</Divider>
                             <Flex>
                                 <JsonSaveTableComponent showNecessary={ false } readOnly={ true } object={this.state.formResponseHeadData} cb={obj=>this.setState({formResponseHeadData: obj})} />
                             </Flex>
                         </>
-                        : null }
-                        {this.state.formResponseCookieData != null && Object.keys(this.state.formResponseCookieData).length > 0 ? 
+                        }
+                        {this.state.formResponseCookieData != null && Object.keys(this.state.formResponseCookieData).length > 0 && 
                         <>
                             <Divider orientation="left">{langTrans("request save response cookie")}</Divider>
                             <Flex>
                                 <JsonSaveTableComponent showNecessary={ false } readOnly={ true } object={this.state.formResponseCookieData} cb={obj=>this.setState({formResponseCookieData: obj})} />
                             </Flex>
                         </>
-                        : null }
-                        {this.state.isResponseJson ? 
+                        }
+                        {this.state.isResponseJson &&
                         <>
                             <Divider orientation="left">{langTrans("request save response content")}</Divider>
                             <Flex>
                                 <JsonSaveTableComponent showNecessary={ false } readOnly={ true } object={this.state.formResponseData} cb={obj=>this.setState({formResponseData: obj})} />
                             </Flex>
                         </>
-                        : null}
+                        }
                         <Divider orientation="left">{langTrans("doc response demo")}</Divider>
                         <Flex style={ {
                             minHeight: 136,
                             overflowY: this.state.isResponsePic ? "auto":"scroll",
                             marginLeft: 55,
                         } }>
-                        { this.state.isResponseJson ? 
-                            <JsonView 
-                            src={JSON.parse(this.state.responseDemo)}   
-                            name="response"
-                            theme={ "bright" }
-                            collapsed={false}  
-                            indentWidth={4}  
-                            iconStyle="triangle"
-                            enableClipboard={true}
-                            displayObjectSize={false}
-                            displayDataTypes={false}
-                            sortKeys={true}
-                            collapseStringsAfterLength={40}  />
-                        : null}
-                        { this.state.isResponsePic ? 
-                            <img style={{maxHeight: 100}} src={this.state.responseDemo} />
-                        : null}
-                        {this.state.isResponseHtml ? 
+                        {this.state.isResponseJson &&
+                            <JsonViewWrapper
+                                content={ this.state.responseDemo }
+                            />}
+                        { this.state.isResponsePic && <img style={{maxHeight: 100}} src={this.state.responseDemo} /> }
+                        {this.state.isResponseHtml &&
                             <TextArea
                                 value={this.state.responseDemo}
                                 readOnly={ true }
                                 autoSize={{ minRows: 5 }}
                             />
-                        : null}
-                        {this.state.isResponseFile ? 
+                        }
+                        {this.state.isResponseFile &&
                             <Flex style={ {
                                 height: 26,
                                 width: "100%",
@@ -481,7 +475,7 @@ class RequestSaveContainer extends Component {
                                 } }>
                                     { this.state.responseDemo }
                             </Flex> 
-                        : null}
+                        }
                         </Flex>
                     </Flex>
                 </Content>

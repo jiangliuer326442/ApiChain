@@ -108,6 +108,7 @@ class AiChatBox extends Component {
               isAiSupport: true
             });
           } else {
+            console.log("tmpMessage", tmpMessage);
             this.setState({
               loadingWaitMessage: false,
             });

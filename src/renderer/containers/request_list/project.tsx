@@ -47,7 +47,7 @@ class RequestListProject extends Component {
             filterUri: "",
 			initFlg: false,
         }
-        this.props.dispatch({
+        props.dispatch({
             type: GET_PRJ,
             prj: projectLabel,
         });
@@ -151,6 +151,7 @@ class RequestListProject extends Component {
 							{this.state.initFlg?
                             <div style={ { width: "100%" } }>
                                 <RequestListCollapse 
+                                    type="prj"
                                     metadata={this.state.projectLabel}
                                     folders={this.state.folders} 
                                     allFolders={this.state.folders} 

@@ -2,7 +2,6 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { Collapse } from 'antd';
 
-import { FoldSourceIterator, FoldSourcePrj } from '@conf/global_config';
 import RequestListCollapseChildren from '@comp/requests_list_collapse/children';
 import RequestListCollapseExtra from '@comp/requests_list_collapse/extra';
 import { isStringEmpty } from '@rutil/index';
@@ -11,6 +10,7 @@ function buildFolders(
     myTeamId,
     teamId,
     currentFolders,
+    type,
     allFolders,
     filterTitle,
     filterUri,
@@ -19,19 +19,14 @@ function buildFolders(
 ) {
     let items = [];
     for (let _fold of currentFolders) {
-        let type = "";
-        if (_fold.value.indexOf(FoldSourcePrj) === 0) {
-            type = "prj";
-        } else if (_fold.value.indexOf(FoldSourceIterator) === 0) {
-            type = "iterator"
-        }
-
         let item : any = {};
         item.key = _fold.value;
         item.label = _fold.label;
         item.children = <RequestListCollapseChildren 
             folders={allFolders}
             metadata={metadata} 
+            teamId={teamId}
+            myTeamId={myTeamId}
             filterTitle={filterTitle}
             filterUri={filterUri}
             folder={_fold.value} 
@@ -68,6 +63,7 @@ class RequestListCollapse extends Component {
             this.props.myTeamId,
             this.props.teamId,
             this.props.folders,
+            this.props.type,
             this.props.allFolders,
             this.props.filterTitle,
             this.props.filterUri,
@@ -85,6 +81,7 @@ class RequestListCollapse extends Component {
                 nextProps.myTeamId,
                 nextProps.teamId,
                 nextProps.folders,
+                nextProps.type,
                 nextProps.allFolders,
                 nextProps.filterTitle,
                 nextProps.filterUri,

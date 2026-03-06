@@ -289,15 +289,17 @@ class RequestListVersion extends Component {
                     {this.state.versionIteration[version_iterator_prjs]
                     .filter(prj => isStringEmpty(this.state.filterPrj) || this.state.filterPrj === prj)
                     .map(prj => (
-                        (this.props.prjs.length > 0 && this.props.prjs.find(row => row.value === prj) ? 
+                        (this.props.prjs.length > 0 && this.props.prjs.find(row => row.value === prj) &&
                             <div key={prj}>
                                 <Divider orientation="left">
                                     <p>{langFormat("version doc project", {
                                         name: (this.props.prjs.length > 0 ? this.props.prjs.find(row => row.value === prj).label : "")
                                     })}</p >
                                 </Divider>
-                            {this.state.folders !== undefined && Object.keys(this.state.folders).length > 0 && prj in this.state.folders ?
+                            {this.state.folders !== undefined && Object.keys(this.state.folders).length > 0 && prj in this.state.folders &&
                                 <RequestListCollapse 
+                                    type="iterator"
+                                    teamId={this.props.teamId}
                                     metadata={this.state.iteratorId+"$$"+prj}
                                     folders={this.state.folders[prj]} 
                                     allFolders={this.state.allFolders} 
@@ -310,9 +312,9 @@ class RequestListVersion extends Component {
                                         uri: this.state.filterUri
                                     })}
                                 />
-                            : null}
+                            }
                             </div>
-                        : null)
+                        )
                     ))}
                     <Flex>
                         <Divider>{langTrans("version doc md title")}</Divider>
