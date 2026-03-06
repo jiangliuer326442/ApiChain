@@ -14,11 +14,8 @@ import { QuestionCircleTwoTone } from '@ant-design/icons';
 import { RadioChangeEvent } from 'antd/lib';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import IDBExportImport from 'indexeddb-export-import';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-
-import { getUsers } from '@act/user';
 import {
     ChannelsTeamStr, 
     ChannelsTeamTestHostStr,
@@ -57,34 +54,19 @@ class TeamModel extends Component {
 
         if (this.state.teamType === "create") {
             this.setState({networkIng: true});
-
-            const idbDatabase = window.db.backendDB();
-            IDBExportImport.exportToJsonString(idbDatabase, async (err, dbJson) => {
-                if (err) {
-                    message.error(langTrans("db export error"))
-                } else {
-                    let users = await getUsers(CLIENT_TYPE_SINGLE);
-                    let usersList = [this.props.uid + "$$" + this.props.uname];
-                    for (const [_uid, _uname] of users) {
-                        usersList.push(_uid + "$$" + _uname);
-                    }
-                    let usersStr = usersList.join(",")
-
-                    window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
-                        this.state.teamType, 
-                        this.props.uname, null, this.state.teamName, 
-                        null, usersStr, dbJson);
-                    setTimeout(() => {
-                        this.setState({networkIng: false});
-                    }, 5000);
-                }
-            });
+                window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
+                    this.state.teamType, 
+                    this.props.uname, null, this.state.teamName, 
+                    null);
+                setTimeout(() => {
+                    this.setState({networkIng: false});
+                }, 5000);
         } else if (this.state.teamType === "join") {
             this.setState({networkIng: true});
             window.electron.ipcRenderer.sendMessage(ChannelsTeamStr, ChannelsTeamSetInfoStr, 
                 this.state.teamType, 
                 this.props.uname, this.state.teamId, null, 
-                this.state.applyReason, null, null);
+                this.state.applyReason);
             setTimeout(() => {
                 this.setState({networkIng: false});
             }, 5000);

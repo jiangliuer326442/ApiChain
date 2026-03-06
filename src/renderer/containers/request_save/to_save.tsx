@@ -43,6 +43,7 @@ import {
     FoldSourceIterator,
 } from '@conf/global_config';
 import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
+import { CLIENT_TYPE_TEAM } from '@conf/team';
 import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from "@act/version_iterator";
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
@@ -422,7 +423,7 @@ class RequestSaveContainer extends Component {
             requestHeadData, requestBodyData, requestFileData, requestParamData, requestPathVariableData, 
             historyRecord[request_history_jsonFlg] ? JSON.parse(historyRecord[request_history_response_content]) : {}
         );
-        getInterfaceTranslate(prj, uri, setToJson(allKeys), this.props.isAiSupport).then(dictory => {
+        this.props.clientType == CLIENT_TYPE_TEAM && getInterfaceTranslate(prj, uri, setToJson(allKeys), this.props.isAiSupport).then(dictory => {
             let formRequestHeadData = {};
             parseJsonToTableWithDict(formRequestHeadData, requestHeadData, dictory);
     

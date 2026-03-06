@@ -82,7 +82,7 @@ export default async function (uuid : string, store : Store){
 
     })
 
-    ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, applyReason, users, dbJson) => {
+    ipcMain.on(ChannelsTeamStr, async (event, action, teamType, uname, teamId, teamName, applyReason) => {
 
         if (action !== ChannelsTeamSetInfoStr) return;
         let errorMessage = "";
@@ -91,9 +91,7 @@ export default async function (uuid : string, store : Store){
 
             let result = await postRequest(uuid, TEAM_CREATE_URL, {
                 "teamName": teamName,
-                "uname": uname,
-                "users": users,
-                "dbJson": dbJson,
+                "uname": uname
             }, store)
 
             errorMessage = result[0];
