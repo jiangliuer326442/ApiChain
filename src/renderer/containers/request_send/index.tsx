@@ -88,7 +88,6 @@ import RequestSendHead from "@comp/request_send/head_form";
 import RequestSendParam from "@comp/request_send/request_param";
 import RequestSendPathVariable from "@comp/request_send/request_path_variable";
 import { langFormat, langTrans } from '@lang/i18n';
-import { url } from 'inspector';
 
 let request_history_env = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ENV_LABEL;
 let request_history_micro_service = TABLE_REQUEST_HISTORY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
