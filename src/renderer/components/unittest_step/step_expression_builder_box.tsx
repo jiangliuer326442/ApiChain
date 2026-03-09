@@ -279,13 +279,16 @@ class StepExpressionBuilderBox extends Component {
         if (this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_REF) {
             cbContent = "{{" + this.state.selectedStep + "." + this.state.selectedDataSource + "." + this.state.assertPrev + "}}";
         } else if (this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV) {
-            if (this.state.assertPrev.indexOf("{{") === 0 && this.state.assertPrev.indexOf("}}") > 0) {
-                let assertPrev = cloneDeep(this.state.assertPrev);
-                let realAssertPrev = assertPrev.substring(2, assertPrev.length - 2);
+            let beginIndex = this.state.assertPrev.indexOf("{{");
+            let endIndex = this.state.assertPrev.indexOf("}}");
+            if (beginIndex >= 0 && endIndex > beginIndex) {
+                let beginStr = this.state.assertPrev.slice(0, beginIndex);
+                let endStr = this.state.assertPrev.slice(endIndex + 2);
+                let realAssertPrev = this.state.assertPrev.substring(beginIndex + 2, endIndex);
                 if (realAssertPrev.indexOf("$") === 0 || this.state.selectedProject === UNITTEST_STEP_PROJECT_CURRENT) {
-                    cbContent = "{{" + realAssertPrev + "}}";
+                    cbContent = beginStr + "{{" + realAssertPrev + "}}" + endStr;
                 } else {
-                    cbContent = "{{" + this.state.selectedProject + "." + realAssertPrev + "}}";
+                    cbContent = beginStr + "{{" + this.state.selectedProject + "." + realAssertPrev + "}}" + endStr;
                 }
             } else {
                 cbContent = this.state.assertPrev;
@@ -342,34 +345,34 @@ class StepExpressionBuilderBox extends Component {
                                 <Select.Option value={ UNITTEST_DATASOURCE_TYPE_ENV }>{langTrans("expression builder datasource select2")}</Select.Option>
                             </Select>
                         </Form.Item>
-                        {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_REF ? 
-                        <>
-                            <Form.Item>
-                                <Select 
-                                    style={{width: 445}}
-                                    value={ this.state.selectedStep }
-                                    onChange={value => this.setState({selectedStep: value, responseTips: [], assertPrev: this.state.initializeAssertPrev, dataSource: {},})}
-                                    options={ this.state.stepsSelect }
-                                />
-                            </Form.Item>
-                            <Form.Item>
-                                <Select 
-                                    style={{width: 445}}
-                                    value={ this.state.selectedDataSource }
-                                    onChange={value => this.setState({selectedDataSource: value, responseTips: [], assertPrev: this.state.initializeAssertPrev, dataSource: {}}) }
-                                >
-                                    <Select.Option value={ UNITTEST_STEP_HEADER }>header</Select.Option>
-                                    <Select.Option value={ UNITTEST_STEP_PATH_VARIABLE }>uri param</Select.Option>
-                                    <Select.Option value={ UNITTEST_STEP_BODY }>body</Select.Option>
-                                    <Select.Option value={ UNITTEST_STEP_PARAM }>param</Select.Option>
-                                    <Select.Option value={ UNITTEST_STEP_RESPONSE }>responseContent</Select.Option>
-                                    <Select.Option value={ UNITTEST_STEP_RESPONSE_HEADER }>responseHeader</Select.Option>
-                                    <Select.Option value={ UNITTEST_STEP_RESPONSE_COOKIE }>responseCookie</Select.Option>
-                                </Select>
-                            </Form.Item>
-                        </>
-                        : null}
-                        {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV ? 
+                    {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_REF && 
+                    <>
+                        <Form.Item>
+                            <Select 
+                                style={{width: 445}}
+                                value={ this.state.selectedStep }
+                                onChange={value => this.setState({selectedStep: value, responseTips: [], assertPrev: this.state.initializeAssertPrev, dataSource: {},})}
+                                options={ this.state.stepsSelect }
+                            />
+                        </Form.Item>
+                        <Form.Item>
+                            <Select 
+                                style={{width: 445}}
+                                value={ this.state.selectedDataSource }
+                                onChange={value => this.setState({selectedDataSource: value, responseTips: [], assertPrev: this.state.initializeAssertPrev, dataSource: {}}) }
+                            >
+                                <Select.Option value={ UNITTEST_STEP_HEADER }>header</Select.Option>
+                                <Select.Option value={ UNITTEST_STEP_PATH_VARIABLE }>uri param</Select.Option>
+                                <Select.Option value={ UNITTEST_STEP_BODY }>body</Select.Option>
+                                <Select.Option value={ UNITTEST_STEP_PARAM }>param</Select.Option>
+                                <Select.Option value={ UNITTEST_STEP_RESPONSE }>responseContent</Select.Option>
+                                <Select.Option value={ UNITTEST_STEP_RESPONSE_HEADER }>responseHeader</Select.Option>
+                                <Select.Option value={ UNITTEST_STEP_RESPONSE_COOKIE }>responseCookie</Select.Option>
+                            </Select>
+                        </Form.Item>
+                    </>
+                    }
+                    {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV &&
                         <Form.Item>
                             <Select 
                                 style={{width: 445}}
@@ -378,7 +381,7 @@ class StepExpressionBuilderBox extends Component {
                                 options={ this.state.prjSelect }
                             />
                         </Form.Item>
-                        : null}
+                    }
                         <Form.Item>
                             <AutoComplete 
                                 placeholder={langTrans("expression builder syntax")}

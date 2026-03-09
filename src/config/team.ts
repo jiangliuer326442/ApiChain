@@ -30,8 +30,6 @@ export const TEAM_DISSOLVE_URL = "/team/close-team";
 
 export const TEAM_RENAME_URL = "/team/rename-team";
 
-export const TEAM_DB_SYNC_URL = "/team/syncDb";
-
 export const ENVS_LIST_URL = "/envs/page";
 
 export const ENVS_ALL_LIST_URL = "/envs/all";

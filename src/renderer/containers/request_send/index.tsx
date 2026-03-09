@@ -88,6 +88,7 @@ import RequestSendHead from "@comp/request_send/head_form";
 import RequestSendParam from "@comp/request_send/request_param";
 import RequestSendPathVariable from "@comp/request_send/request_path_variable";
 import { langFormat, langTrans } from '@lang/i18n';
+import { url } from 'inspector';
 
 let request_history_env = TABLE_REQUEST_HISTORY_FIELDS.FIELD_ENV_LABEL;
 let request_history_micro_service = TABLE_REQUEST_HISTORY_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -229,6 +230,65 @@ class RequestSendContainer extends Component {
         type = "iterator";
         iteratorId = record[request_history_iterator];
         this.state.iteratorId = iteratorId;
+
+        let recordDefine = await getVersionIteratorRequest(
+          this.props.clientType, 
+          this.state.iteratorId, 
+          this.state.prj, 
+          this.state.requestMethod, 
+          this.state.requestUri
+        );
+        if (recordDefine !== null) {
+          //填充格式
+          let body = recordDefine[iteration_request_body];
+          let header = recordDefine[iteration_request_header];
+          let requestParam = recordDefine[iteration_request_param];
+          let requestPathVariable = recordDefine[iteration_request_path_variable];
+          let file : any = {};
+          let realBody : any = {};
+          for (let _key in body) {
+            if (body[_key][TABLE_FIELD_TYPE] === "File") {
+              file[_key] = body[_key][TABLE_FIELD_VALUE];
+            } else {
+              realBody[_key] = body[_key];
+            }
+          }
+          this.setState({
+            header,
+            realBody,
+            requestParam,
+            requestPathVariable,
+          });
+        }
+
+      } else {
+        let recordDefine = await getProjectRequest(
+          this.props.clientType, 
+          this.state.prj, 
+          this.state.requestMethod, 
+          this.state.requestUri
+        );
+        if (recordDefine !== null) {
+          let body = recordDefine[project_request_body];
+          let header = recordDefine[project_request_header];
+          let requestParam = recordDefine[project_request_param];
+          let requestPathVariable = recordDefine[project_request_path_variable];
+          let file : any = {};
+          let realBody : any = {};
+          for (let _key in body) {
+            if (body[_key][TABLE_FIELD_TYPE] === "File") {
+              file[_key] = body[_key][TABLE_FIELD_VALUE];
+            } else {
+              realBody[_key] = body[_key];
+            }
+          }
+          this.setState({
+            header,
+            realBody,
+            requestParam,
+            requestPathVariable,
+          });
+        }
       }
 
       let headerData = record[request_history_head];
@@ -605,10 +665,9 @@ class RequestSendContainer extends Component {
       shortResponseJsonContent = content;
     }
     let historyId = await addRequestHistory(
-      this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
+      this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod, this.state.iteratorId,
       this.state.requestHeadData, this.state.requestBodyData, this.state.requestPathVariableData, this.state.requestParamData, this.state.requestFileData,
       shortResponseJsonContent, headers, cookieObj,
-      this.state.iteratorId, 
       isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
     this.setState({ 
       costTime,

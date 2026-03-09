@@ -309,10 +309,7 @@ class EnvVar extends Component {
                         }}
                         style={{ width: 120 }}
                         options={this.props.envs
-                          .filter(item => item.label != (this.state.env ? this.state.env : this.props.env))
-                          .map(item => {
-                            return {value: item.label, label: item.remark}
-                          })
+                          .filter(item => item.value != (this.state.env ? this.state.env : this.props.env))
                         }
                         allowClear
                     />

@@ -11,6 +11,7 @@ import {
     parseJsonToChildren,
 } from '@rutil/json';
 import { langTrans } from '@lang/i18n';
+import { DataTypeSelectValues, } from '@conf/global_config';
 
 class RequestParamFormTable extends Component {
 
@@ -51,6 +52,12 @@ class RequestParamFormTable extends Component {
                 {
                     title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
+                    render: (dtype : any, row : any) => {
+                        if (dtype === DataTypeSelectValues || dtype.indexOf(DataTypeSelectValues + "|") > -1) {
+                            dtype === DataTypeSelectValues;
+                        }
+                        return <span>{dtype}</span>;
+                    }
                 },
                 {
                     title: langTrans("network table3"),
@@ -64,6 +71,16 @@ class RequestParamFormTable extends Component {
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (data, row) => {
                         let key = row[TABLE_FIELD_NAME];
+                        let type = row[TABLE_FIELD_TYPE];
+                        let options = [];
+                        if (type === DataTypeSelectValues || type.indexOf(DataTypeSelectValues + "|") > -1) {
+                            if (type.indexOf(DataTypeSelectValues + "|") > -1) {
+                                options = type.substring((DataTypeSelectValues + "|").length).split('|').map(pair => {
+                                    const [label, value] = pair.split(':');
+                                    return { label, value };
+                                });
+                            }
+                        }
                         return (
                             <StepExpressionBuilderBox
                                 enableFlag={ props.enableFlag }
@@ -74,6 +91,7 @@ class RequestParamFormTable extends Component {
                                 stepResponseContentData={ props.stepResponseContentData }
                                 stepResponseHeaderData={ props.stepResponseHeaderData }
                                 stepResponseCookieData={ props.stepResponseCookieData }
+                                options={options}
                                 value={data}
                                 cb={value => this.setData(key, value)}
                                 width={288}

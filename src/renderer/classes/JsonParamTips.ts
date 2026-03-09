@@ -174,16 +174,18 @@ export default class {
         }
         //环境变量 & 固定值
         if (this.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV) {
-            //@todo fanghailiang 固定字符串+环境变量，不一定是这样的哦
-            if (text.indexOf("{{") === 0) {
+            let beginIndex = text.indexOf("{{");
+            if (beginIndex >= 0) {
+                let prefixStr = text.slice(0, beginIndex);
+                let searchContent = text.substring(beginIndex + 2);
+
                 let envKeys = await this.envVarTips.getTips();
-                let searchContent = text.substring(2);
                 for (let envKey of envKeys) {
                     if (!isStringEmpty(searchContent) && envKey.toLowerCase().indexOf(searchContent.toLowerCase()) < 0) {
                         continue;
                     }
                     let responseTipItem : any = {};
-                    responseTipItem.value = "{{" + envKey + "}}";
+                    responseTipItem.value = prefixStr + "{{" + envKey + "}}";
                     responseTipItem.label = envKey;
                     result.push(responseTipItem);
                 }
@@ -296,13 +298,16 @@ export default class {
             let endIndex = value.indexOf("}}");
             if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
                 let envValueKey = value.substring(beginIndex + 2, endIndex);
+                let prefixStr = value.slice(0, beginIndex);
+                let suffixStr = value.slice(endIndex + 2);
                 //指定项目环境变量
                 if (envValueKey.indexOf(UNITTEST_STEP_PROJECT_POINTED) === 0) {
                     return "";
                 } else {
-                    let tmp = envVarTips.getVarByKey(envValueKey, this.env);
+                    let tmp = await envVarTips.getVarByKey(envValueKey, this.env);
                     //当前项目环境变量
                     value = tmp === undefined ? "" : tmp as string;
+                    value = prefixStr + value + suffixStr;
                 }
             }
             return value;
