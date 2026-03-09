@@ -79,7 +79,7 @@ class StepExpressionBuilderBox extends Component {
 
         this.state = {
             loadeadFlg: false,
-            responseTips: [],
+            responseTips: this.props.options != undefined ? this.props.options : [],
             assertPrev: this.paramTips.getAssertPrev(),
             initializeAssertPrev: this.paramTips.getAssertPrev(),
             loaded: false,
@@ -255,12 +255,16 @@ class StepExpressionBuilderBox extends Component {
 
     setAssertOptions = (text) => {
         this.paramTips.getTips(text, responseTips => {
-            this.setState({ responseTips })
+            if (responseTips.length === 0 && this.props.options != undefined) {
+                this.setState({ responseTips: this.props.options })
+            } else {
+                this.setState({ responseTips })
+            }
         });
     }
 
     setSelectedAssertPrev = (text) => {
-        this.setState({responseTips: [], assertPrev: text});
+        this.setState({responseTips: this.props.options != undefined ? this.props.options : [], assertPrev: text});
     }
 
     handleDataSourceCallback = (dataSource) => {

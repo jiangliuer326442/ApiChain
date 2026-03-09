@@ -91,6 +91,7 @@ export default class {
                 this.envvars = await getPrjEnvValues(this.prj, env, this.teamId, this.clientType);
             } else if (this.env_var_type === "iterator") {
                 this.envvars = await getIteratorEnvValues(this.iteration, this.prj, env, this.clientType);
+                console.log("env_var_type", this.env_var_type, "envvars", this.envvars);
             } else if (this.env_var_type === "unittest") {
                 this.envvars = await getUnittestEnvValues(this.unittest, this.prj, env, this.clientType);
             }

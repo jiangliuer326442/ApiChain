@@ -71,6 +71,8 @@ export default function (state = {
             let foldersIterator = cloneDeep(state.folders);
             if (action.folders !== null) {
                 foldersIterator[iteratorId] = action.folders;
+            } else {
+                foldersIterator[iteratorId] = [""]
             }
             for(let unittest of listIterator[iteratorId]) {
                 unittest.key = unittest[unittest_uuid];

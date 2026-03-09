@@ -402,7 +402,11 @@ function innerCleanJson(outJsonObject : any, inJsonObject : any) {
                 }
             }
             if (delFlg) {
-                _currentObject = [_currentObject[TABLE_FIELD_VALUE][TABLE_FIELD_VALUE]];
+                if (TABLE_FIELD_VALUE in _currentObject && TABLE_FIELD_VALUE in _currentObject[TABLE_FIELD_VALUE]) {
+                    _currentObject = [_currentObject[TABLE_FIELD_VALUE][TABLE_FIELD_VALUE]];
+                } else {
+                    _currentObject = [];
+                }
             } else {
                 delete _currentObject[TABLE_FIELD_REMARK];
                 delete _currentObject[TABLE_FIELD_TYPE];

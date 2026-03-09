@@ -31,7 +31,6 @@ import {
     SHOW_EDIT_UNITTEST_MODEL,
     GET_ENV
 } from '@conf/redux';
-import { UNITTEST_ENV } from '@conf/storage';
 import { getdayjs, isStringEmpty } from '@rutil/index';
 import { getEnvs } from '@act/env';
 import {
@@ -511,7 +510,7 @@ class UnittestListVersion extends Component {
                                     onChange={this.setFolderChange}
                                     style={{ width: 120 }}
                                     options={this.state.iteratorId in this.props.folders && this.props.folders[this.state.iteratorId].map(item => {
-                                        return { value: item, label: item }
+                                        return { value: item, label: "/" + item }
                                     })}
                                 />
                             </Form.Item>
@@ -562,7 +561,7 @@ class UnittestListVersion extends Component {
                                             let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
                                             executeIteratorUnitTest(
                                                 this.props.clientType, this.props.teamId,
-                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.props.env, this.props.dispatch, 
+                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.props.env, 
                                                 (batchUuid : string, stepUuid : string) => {
                                                     this.setState({ unittestUuid, batchUuid, stepUuid})
                                                 }

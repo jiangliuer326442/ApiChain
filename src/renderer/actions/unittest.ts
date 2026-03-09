@@ -824,7 +824,7 @@ export async function executeProjectUnitTest(
 export async function executeIteratorUnitTest(
     clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, 
-    steps : Array<any>, env : string, dispatch : any,
+    steps : Array<any>, env : string,
     cb : Function
 )
     {
@@ -842,7 +842,7 @@ export async function executeIteratorUnitTest(
 
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+    let ret = await stepsExecutor(steps, unitTestId, batch_uuid, env, 
         async (project : string) => {
             let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
@@ -908,7 +908,6 @@ export async function executeIteratorUnitTest(
 
 async function stepsExecutor(
     steps : Array<any>, 
-    iteratorId : string, 
     unitTestId : string, 
     batch_uuid : string,
     env : string, 

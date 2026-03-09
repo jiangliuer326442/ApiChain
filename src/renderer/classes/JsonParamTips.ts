@@ -174,6 +174,7 @@ export default class {
         }
         //环境变量 & 固定值
         if (this.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV) {
+            //@todo fanghailiang 固定字符串+环境变量，不一定是这样的哦
             if (text.indexOf("{{") === 0) {
                 let envKeys = await this.envVarTips.getTips();
                 let searchContent = text.substring(2);
