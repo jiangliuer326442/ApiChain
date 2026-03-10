@@ -342,16 +342,15 @@ class UnittestListVersion extends Component {
                 label:  <Popconfirm
                             title={langTrans("prj unittest del title")}
                             description={langTrans("prj unittest del desc")}
-                            onConfirm={e => {
-                                delUnitTest(this.props.clientType, record, ()=>{
-                                    getIterationUnitTests(
-                                        this.props.clientType, 
-                                        this.state.iteratorId, 
-                                        this.state.folder, 
-                                        this.props.env, 
-                                        this.props.dispatch
-                                    );
-                                });
+                            onConfirm={async e => {
+                                await delUnitTest(this.props.clientType, record);
+                                getIterationUnitTests(
+                                    this.props.clientType, 
+                                    this.state.iteratorId, 
+                                    this.state.folder, 
+                                    this.props.env, 
+                                    this.props.dispatch
+                                );
                             }}
                             okText={langTrans("prj unittest del sure")}
                             cancelText={langTrans("prj unittest del cancel")}

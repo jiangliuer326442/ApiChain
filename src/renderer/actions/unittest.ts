@@ -253,7 +253,7 @@ export async function editIteratorUnitTest(clientType : string, versionIteratorI
     await window.db[TABLE_UNITTEST_NAME].put(unitTest);
 }
 
-export async function delUnitTest(clientType, row, cb) {
+export async function delUnitTest(clientType, row) {
     let uuid = row[field_unittest_uuid];
     let iteratorId = row[unittest_iterator_uuid];
 
@@ -269,7 +269,6 @@ export async function delUnitTest(clientType, row, cb) {
         unitTest[field_unittest_uuid] = uuid;
         unitTest[unittest_delFlg] = 1;
         await window.db[TABLE_UNITTEST_NAME].put(unitTest);
-        cb();
     }
 }
 
@@ -842,7 +841,7 @@ export async function executeIteratorUnitTest(
 
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
-    let ret = await stepsExecutor(steps, unitTestId, batch_uuid, env, 
+    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
         async (project : string) => {
             let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
@@ -908,6 +907,7 @@ export async function executeIteratorUnitTest(
 
 async function stepsExecutor(
     steps : Array<any>, 
+    iteratorId : string,
     unitTestId : string, 
     batch_uuid : string,
     env : string, 
@@ -1166,10 +1166,11 @@ async function stepsExecutor(
             }
         }
 
-        let requestHistoryId = await addRequestHistory(env, project, requestUri, method, 
+        let requestHistoryId = await addRequestHistory(
+            env, project, requestUri, method, iteratorId,
             header, body, pathVariable, param, file, 
             content, response?.headers, response?.cookieObj, 
-            "", isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
+            isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
 
         await saveStepResultFunc(stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg);
 
