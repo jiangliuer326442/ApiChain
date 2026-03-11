@@ -46,7 +46,7 @@ import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 import {
     CLIENT_TYPE_TEAM, 
     CLIENT_TYPE_SINGLE,
-    ENV_VARS_UNITTEST_COPY_URL,
+    UNITTEST_ITERATOR_EXPORT_URL,
     UNITTES_ITERATION_SAVE_URL,
     UNITTES_ITERATION_DEL_URL,
     UNITTES_ITERATION_ALL_URL,
@@ -1315,7 +1315,7 @@ export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
  */
 export async function copyFromIteratorToProject(clientType : string, teamId : string, iteratorId : string, unittest_uuid : string, device) {
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(ENV_VARS_UNITTEST_COPY_URL, {iteratorId, unittestId: unittest_uuid});
+        await sendTeamMessage(UNITTEST_ITERATOR_EXPORT_URL, {iteratorId, unittestId: unittest_uuid});
     }
 
     let unitTest = await window.db[TABLE_UNITTEST_NAME]

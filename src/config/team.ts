@@ -70,7 +70,7 @@ export const ENV_VARS_PROJECT_KEYS_URL = "/envvars/project/keys";
 
 export const ENV_VARS_PROJECT_COPY_URL = "/envvars/project/copy";
 
-export const ENV_VARS_UNITTEST_COPY_URL = "/envvars/unittest/copy";
+export const UNITTEST_ITERATOR_EXPORT_URL = "/unittest/project/save";
 
 export const PRJ_HOST_URL = "/envvars/project/apiHosts";
 
