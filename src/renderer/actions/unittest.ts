@@ -1306,9 +1306,17 @@ export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
     cb();
 }
 
-export async function copyFromIteratorToProject(iteratorId : string, unittest_uuid : string, device) {
-    let clientType = device.clientType;
-    let teamId = device.teamId; 
+/**
+ * 导出到迭代
+ * @param iteratorId 
+ * @param unittest_uuid 
+ * @param device 
+ * @returns 
+ */
+export async function copyFromIteratorToProject(clientType : string, teamId : string, iteratorId : string, unittest_uuid : string, device) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(ENV_VARS_UNITTEST_COPY_URL, {iteratorId, unittestId: unittest_uuid});
+    }
 
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(unittest_uuid)
@@ -1328,10 +1336,6 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
     let prjs = new Set<string>();
     for (let unitTestStep of unitTestSteps) {
         prjs.add(unitTestStep[unittest_step_project]);
-    }
-
-    if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(ENV_VARS_UNITTEST_COPY_URL, {iteratorId, unittestId: unittest_uuid, prjs: Array.from(prjs).join(",")});
     }
 
     let envVarKeys : any[] = [];

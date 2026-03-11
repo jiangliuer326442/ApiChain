@@ -437,7 +437,9 @@ class UnittestListVersion extends Component {
     exportUnitTestClick = async record => {
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        await copyFromIteratorToProject(iteratorId, unittestId, this.props.device);
+        await copyFromIteratorToProject(
+            this.props.clientType, this.props.teamId,
+            iteratorId, unittestId, this.props.device);
         message.success(langTrans("unittest export success"));
         getIterationUnitTests(
             this.props.clientType, 
