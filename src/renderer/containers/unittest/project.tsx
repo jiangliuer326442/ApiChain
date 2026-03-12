@@ -28,7 +28,12 @@ import {
   UNITTEST_RESULT_SUCCESS,
   UNITTEST_RESULT_FAILURE,
 } from '@conf/unittest';
-import { SHOW_EDIT_UNITTEST_MODEL, GET_PRJ } from '@conf/redux';
+import { 
+  SHOW_EDIT_UNITTEST_MODEL, 
+  GET_PRJ,
+  GET_ENV,
+  GET_PROJECT_TESTS,
+} from '@conf/redux';
 import { UNITTEST_ENV } from '@conf/storage';
 import { getWikiProject } from '@conf/url';
 import { getdayjs, isStringEmpty } from '@rutil/index';
@@ -219,9 +224,6 @@ class UnittestListVersion extends Component {
       unittestUuid: '',
       batchUuid: '',
       stepUuid: '',
-      env: localStorage.getItem(UNITTEST_ENV)
-        ? localStorage.getItem(UNITTEST_ENV)
-        : null,
       showPay: false,
       selectedUnittests: [],
       teamId,
@@ -255,9 +257,11 @@ class UnittestListVersion extends Component {
       getEnvs(this.props.clientType, this.props.dispatch);
     }
     await getProjectUnitTests(
+      this.props.clientType,
+      this.state.teamId,
       this.state.project,
       this.state.folder,
-      this.state.env,
+      this.props.env,
       this.props.dispatch,
     );
   }
@@ -267,7 +271,7 @@ class UnittestListVersion extends Component {
       await getProjectUnitTests(
         this.state.project,
         this.state.folder,
-        this.state.env,
+        this.props.env,
         this.props.dispatch,
       );
     }
@@ -299,9 +303,11 @@ class UnittestListVersion extends Component {
                 onConfirm={(e) => {
                   this.undoExportUnitTestClick(record, () => {
                     getProjectUnitTests(
+                      this.props.clientType,
+                      this.state.teamId,
                       this.state.project,
                       this.state.folder,
-                      this.state.env,
+                      this.props.env,
                       this.props.dispatch,
                     );
                   });
@@ -323,8 +329,20 @@ class UnittestListVersion extends Component {
   };
 
   setEnvironmentChange = (value: string) => {
-    this.setState({ env: value });
-    getProjectUnitTests(this.state.project, this.state.folder, value, this.props.dispatch);
+    if (isStringEmpty(value)) {
+        this.props.dispatch({
+            type: GET_PROJECT_TESTS,
+            project: this.state.project,
+            unitTests: [],
+            folders: null,
+        });
+    } else {
+      getProjectUnitTests(this.props.clientType, this.state.teamId, this.state.project, this.state.folder, value, this.props.dispatch);
+    }
+    this.props.dispatch({
+        type: GET_ENV,
+        env: value
+    });
   };
 
   setFolderChange = (value: string) => {
@@ -335,7 +353,7 @@ class UnittestListVersion extends Component {
           selectedFolder = value;
       }
       this.setState({folder: value});
-      getProjectUnitTests(this.state.project, selectedFolder, this.state.env, this.props.dispatch);
+      getProjectUnitTests(this.props.clientType, this.state.teamId, this.state.project, selectedFolder, this.props.env, this.props.dispatch);
   }
 
   undoExportUnitTestClick = (record, cb) => {
@@ -369,9 +387,11 @@ class UnittestListVersion extends Component {
           <AddUnittestComponent
             refreshCb={() =>
               getProjectUnitTests(
+                this.props.clientType,
+                this.state.teamId,
                 this.state.project,
                 this.state.folder,
-                this.state.env,
+                this.props.env,
                 this.props.dispatch,
               )
             }
@@ -392,7 +412,7 @@ class UnittestListVersion extends Component {
             <Form layout="inline">
               <Form.Item label={langTrans("prj unittest operator1")}>
                 <Select
-                  value={this.state.env}
+                  value={this.props.env}
                   onChange={this.setEnvironmentChange}
                   style={{ width: 120 }}
                   options={this.props.envs.map((item) => {
@@ -413,19 +433,18 @@ class UnittestListVersion extends Component {
               <Form.Item>
                 <Button
                   type="primary"
-                  disabled={!this.state.executeFlg}
+                  disabled={!this.state.executeFlg || this.state.selectedUnittests.length === 0}
                   onClick={() => {
-                    if (!this.props.vipFlg) {
-                      this.setState({
-                        showPay: true,
-                      });
-                      return;
+                    if (!this.props.device.vipFlg && !this.props.device.isUnitTest) {
+                        this.setState({
+                            showPay: true,
+                        });
+                        return;
                     }
-                    if (isStringEmpty(this.state.env)) {
+                    if (isStringEmpty(this.props.env)) {
                       message.error(langTrans("unittest env check"));
                       return;
                     }
-                    localStorage.setItem(UNITTEST_ENV, this.state.env);
 
                     for (const unittestUuid of this.state.selectedUnittests) {
                       this.setState({
@@ -436,14 +455,11 @@ class UnittestListVersion extends Component {
                       const currentUnitTest = this.props.unittest[
                         this.state.project
                       ].find((item) => item[unittest_uuid] === unittestUuid);
-                      const iteratorId = currentUnitTest[unittest_iterator];
                       executeProjectUnitTest(
                         this.props.clientType,
-                        iteratorId,
                         unittestUuid,
                         currentUnitTest.children,
-                        this.state.env,
-                        this.props.dispatch,
+                        this.props.env,
                         (batchUuid: string, stepUuid: string) => {
                           this.setState({ unittestUuid, batchUuid, stepUuid });
                         },
@@ -461,13 +477,15 @@ class UnittestListVersion extends Component {
             unittestUuid={this.state.unittestUuid}
             batchUuid={this.state.batchUuid}
             stepUuid={this.state.stepUuid}
-            env={this.state.env}
+            env={this.props.env}
             cb={() => {
               this.setState({ executeFlg: true });
               getProjectUnitTests(
+                this.props.clientType,
+                this.state.teamId,
                 this.state.project,
                 this.state.folder,
-                this.state.env,
+                this.props.env,
                 this.props.dispatch,
               );
             }}
@@ -495,9 +513,10 @@ class UnittestListVersion extends Component {
 
 function mapStateToProps(state) {
   return {
-    vipFlg: state.device.vipFlg,
+    device : state.device,
     unittest: state.unittest.list,
     folders: state.unittest.folders,
+    env: state.env_var.env,
     envs: state.env.list,
     clientType: state.device.clientType,
   };

@@ -379,7 +379,7 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
     return unitTest;
 }
 
-export async function getSingleUnittest(clientType : string, unittest_uuid : string, env : string | null, iteratorId : string) {
+export async function getProjectSingleUnittest(clientType : string, unittest_uuid : string, env : string | null) {
     //单测列表
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid)
@@ -393,13 +393,13 @@ export async function getSingleUnittest(clientType : string, unittest_uuid : str
     if (env !== null) {
         unittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
         .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest, unittest_report_env])
-        .equals([0, iteratorId, unittest_uuid, env])
+        .equals([0, "", unittest_uuid, env])
         .reverse()
         .first();
     } else {
         unittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
         .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest])
-        .equals([0, iteratorId, unittest_uuid])
+        .equals([0, "", unittest_uuid])
         .reverse()
         .first();
     }
@@ -455,7 +455,7 @@ export async function getSingleUnittest(clientType : string, unittest_uuid : str
             let stepUuid = unitTestStep[field_unittest_step_uuid];
             let unittest_executor_report = await window.db[TABLE_UNITTEST_EXECUTOR_NAME]
             .where([unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, unittest_executor_step])
-            .equals([iteratorId, unittest_uuid, batch_uuid, stepUuid])
+            .equals(["", unittest_uuid, batch_uuid, stepUuid])
             .first();
             if (unittest_executor_report !== undefined) {
                 unitTestStep[unittest_executor_result] = unittest_executor_report[unittest_executor_result];
@@ -468,13 +468,14 @@ export async function getSingleUnittest(clientType : string, unittest_uuid : str
     return unitTest;
 }
 
-export async function getProjectUnitTests(project : string, folder : string | null, env : string|null, dispatch : any) {
+export async function getProjectUnitTests(clientType : string, teamId : string, project : string, folder : string | null, env : string|null, dispatch : any) {
     let folders;
     if (folder === null) {
         folders = new Set();
     } else {
         folders = null;
     }
+    let users = await getUsers(clientType);
 
     //单测列表
     let unitTests = await window.db[TABLE_UNITTEST_NAME]
@@ -498,7 +499,8 @@ export async function getProjectUnitTests(project : string, folder : string | nu
     for (let i = 0; i < unitTests.length; i++) {
         let unitTest = unitTests[i];
         let unittest_uuid = unitTest[field_unittest_uuid];
-        let newUnitTest = await getSingleUnittest(unittest_uuid, env, "");
+        let newUnitTest = await getProjectSingleUnittest(clientType, unittest_uuid, env);
+        newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
         unitTests[i] = newUnitTest;
         if (folder === null) {
             folders.add(newUnitTest[unittest_fold]);
@@ -742,9 +744,8 @@ export async function continueProjectExecuteUnitTest(
 
 export async function executeProjectUnitTest(
     clientType : string,
-    iteratorId : string, unitTestId : string, 
-    steps : Array<any>, env : string, dispatch : any,
-    cb : Function
+    unitTestId : string, steps : Array<any>, 
+    env : string, cb : Function
 )
     {
     let batch_uuid = uuidv4() as string;
@@ -759,7 +760,7 @@ export async function executeProjectUnitTest(
     unittest_result[unittest_report_ctime] = Date.now();
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+    let ret = await stepsExecutor(steps, "", unitTestId, batch_uuid, env, 
         async (project : string) => {
             let datas = await getEnvHosts(clientType, project, env);
             return datas.get(env);

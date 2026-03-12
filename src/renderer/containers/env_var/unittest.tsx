@@ -19,7 +19,7 @@ import { ENV_LIST_ROUTE } from '@conf/routers';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 
 import { getEnvs } from '@act/env';
-import { getSingleUnittest } from '@act/unittest';
+import { getProjectSingleUnittest } from '@act/unittest';
 import { getUnittestKeys } from '@act/keys';
 import {
   delUnittestEnvValues,
@@ -142,7 +142,7 @@ class EnvVar extends Component {
   
   async componentDidMount() {
     let env = this.state.env ? this.state.env : this.props.env;
-    let unittest = await getSingleUnittest(this.state.unittestId, env, "");
+    let unittest = await getProjectSingleUnittest(this.props.clientType, this.state.unittestId, env);
     this.setState({ unittest });
     this.getEnvValueData(this.state.prj, this.state.unittestId, env, "");
     if(this.props.envs.length === 0) {

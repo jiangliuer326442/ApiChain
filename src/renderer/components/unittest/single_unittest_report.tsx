@@ -25,7 +25,7 @@ import {
 } from '@conf/db';
 
 import {
-    getSingleUnittest,
+    getProjectSingleUnittest,
     getIteratorSingleUnittest,
     getSingleExecutorReport,
     getSingleExecutorStep,
@@ -178,7 +178,7 @@ class SingleUnitTestReport extends Component {
         if (!isStringEmpty(iteratorId)) {
             selectedUnitTest = await getIteratorSingleUnittest(this.props.clientType, unittestUuid, iteratorId, this.props.env);
         } else {
-            selectedUnitTest = await getSingleUnittest(this.props.clientType, unittestUuid, this.props.env, iteratorId);
+            selectedUnitTest = await getProjectSingleUnittest(this.props.clientType, unittestUuid, this.props.env);
         }
         //单测报告
         let unitTestReport = await getSingleExecutorReport(iteratorId, unittestUuid, batchUuid);
