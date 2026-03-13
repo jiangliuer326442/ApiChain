@@ -13,7 +13,6 @@ import {
 } from '../../../config/db';
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
-let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let step_unittest_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
 let step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 
