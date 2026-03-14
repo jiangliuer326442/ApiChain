@@ -94,6 +94,7 @@ class SingleUnitTestReport extends Component {
             selectedUnitTest: {},
             recentStepResult: [],
             openFlg: false,
+            type: isStringEmpty(props.iteratorId) ? "prj" : "iterator"
         };
     }
 
@@ -115,12 +116,11 @@ class SingleUnitTestReport extends Component {
             this.props.batchUuid !== prevProps.batchUuid || this.props.stepUuid !== prevProps.stepUuid
         )) {
             let prjs;
-            if (isStringEmpty(this.props.iteratorId)) {
-                prjs = this.props.prjs.map(row => row.value);
-            } else {
+            if (this.state.type == "iterator") {
                 prjs = this.props.versionIterators.find(row => row[version_iterator_uuid] === this.props.iteratorId)[version_iterator_prjs]
-            }
-            
+            } else {
+                prjs = [this.props.projectId];
+            }            
             let promises = []
             for(let prj of prjs) {
                 promises.push(getEnvHosts(this.props.clientType, this.props.teamId, prj, this.props.env));
@@ -133,7 +133,7 @@ class SingleUnitTestReport extends Component {
                 hosts[prjs[index]] = getMapValueOrDefault(_value, this.props.env, "");
                 index++;
             }
-            this.buildRecentExecutorResult( this.props.iteratorId, this.props.unittestUuid, this.props.batchUuid, hosts);
+            this.buildRecentExecutorResult(this.props.unittestUuid, this.props.batchUuid, hosts);
         }
     }
 
@@ -173,17 +173,16 @@ class SingleUnitTestReport extends Component {
         ];
     }
 
-    buildRecentExecutorResult = async (iteratorId: string, unittestUuid : string, batchUuid : string, hosts : any) => {
+    buildRecentExecutorResult = async (unittestUuid : string, batchUuid : string, hosts : any) => {
         let selectedUnitTest;
-        if (!isStringEmpty(iteratorId)) {
-            selectedUnitTest = await getIteratorSingleUnittest(this.props.clientType, unittestUuid, iteratorId, this.props.env);
+        if (this.state.type === "iterator") {
+            selectedUnitTest = await getIteratorSingleUnittest(this.props.clientType, unittestUuid, this.props.iteratorId, this.props.env);
         } else {
-            selectedUnitTest = await getProjectSingleUnittest(this.props.clientType, unittestUuid, this.props.env);
+            selectedUnitTest = await getProjectSingleUnittest(this.props.clientType, unittestUuid, this.props.teamId, this.props.projectId, this.props.env);
         }
         //单测报告
-        let unitTestReport = await getSingleExecutorReport(iteratorId, unittestUuid, batchUuid);
+        let unitTestReport = await getSingleExecutorReport(this.state.type === "iterator" ? this.props.iteratorId : "", unittestUuid, batchUuid);
         let steps = cloneDeep(selectedUnitTest.children);
-        let fakeIteratorId = selectedUnitTest[unittest_iterator];
         if (steps === undefined) steps = [];
 
         let stepExecutorResult = [];
@@ -195,7 +194,7 @@ class SingleUnitTestReport extends Component {
             let prj = _step[unittest_step_prj];
             let method = _step[unittest_step_request_method];
             let unitTestAsserts = _step.asserts;
-            let singleExecutorStep = await getSingleExecutorStep(iteratorId, unittestUuid, batchUuid, stepUuid);
+            let singleExecutorStep = await getSingleExecutorStep(this.state.type === "iterator" ? this.props.iteratorId : "", unittestUuid, batchUuid, stepUuid);
             if (singleExecutorStep !== null) {
                 let historyId = singleExecutorStep[unittest_executor_history_id];
                 let url = isStringEmpty(hosts[prj]) ? singleExecutorStep[request_history_uri] : hosts[prj] + singleExecutorStep[request_history_uri];

@@ -34,7 +34,6 @@ import {
   GET_ENV,
   GET_PROJECT_TESTS,
 } from '@conf/redux';
-import { UNITTEST_ENV } from '@conf/storage';
 import { getWikiProject } from '@conf/url';
 import { getdayjs, isStringEmpty } from '@rutil/index';
 import { getEnvs } from '@act/env';
@@ -415,9 +414,7 @@ class UnittestListVersion extends Component {
                   value={this.props.env}
                   onChange={this.setEnvironmentChange}
                   style={{ width: 120 }}
-                  options={this.props.envs.map((item) => {
-                    return { value: item.label, label: item.remark };
-                  })}
+                  options={this.props.envs}
                 />
               </Form.Item>
               <Form.Item label={langTrans("prj unittest operator2")}>
@@ -457,6 +454,7 @@ class UnittestListVersion extends Component {
                       ].find((item) => item[unittest_uuid] === unittestUuid);
                       executeProjectUnitTest(
                         this.props.clientType,
+                        this.state.teamId,
                         unittestUuid,
                         currentUnitTest.children,
                         this.props.env,
@@ -473,9 +471,10 @@ class UnittestListVersion extends Component {
             </Form>
           </Flex>
           <SingleUnitTestReport
-            iteratorId=""
+            projectId={this.state.project}
             unittestUuid={this.state.unittestUuid}
             batchUuid={this.state.batchUuid}
+            teamId={this.state.teamId}
             stepUuid={this.state.stepUuid}
             env={this.props.env}
             cb={() => {

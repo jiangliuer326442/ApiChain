@@ -46,10 +46,12 @@ import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 import {
     CLIENT_TYPE_TEAM, 
     CLIENT_TYPE_SINGLE,
-    UNITTEST_ITERATOR_EXPORT_URL,
+    UNITTES_PROJECT_SAVE_URL,
     UNITTES_ITERATION_SAVE_URL,
     UNITTES_ITERATION_DEL_URL,
     UNITTES_ITERATION_ALL_URL,
+    UNITTES_PROJECT_FETCH_SINGLE_URL,
+    UNITTES_PROJECT_ALL_URL,
     UNITTES_ITERATION_FETCH_SINGLE_URL
 } from '@conf/team';
 
@@ -385,131 +387,105 @@ async function genUnitTest(unitTest, unitTestSteps, unittest_uuid : string, iter
     return unitTest;
 }
 
-export async function getProjectSingleUnittest(clientType : string, unittest_uuid : string, env : string | null) {
-    //单测列表
-    let unitTest = await window.db[TABLE_UNITTEST_NAME]
-    .where(field_unittest_uuid)
-    .equals(unittest_uuid)
-    .first();
+export async function getProjectSingleUnittest(clientType : string, unittest_uuid : string, teamId : string, project : string, env : string | null) {
+    let unitTest;
+    let unitTestSteps;
 
-    let fakeIteratorId = unitTest[unittest_iterator_uuid];
-    let batch_uuid = "";
-    //拿整体执行报告
-    let unittestReport;
-    if (env !== null) {
-        unittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
-        .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest, unittest_report_env])
-        .equals([0, "", unittest_uuid, env])
-        .reverse()
-        .first();
+    if (clientType === CLIENT_TYPE_TEAM) {
+        let ret = await sendTeamMessage(UNITTES_PROJECT_FETCH_SINGLE_URL, {teamId, project, unittest: unittest_uuid});
+        unitTest = ret.ret;
+        unitTestSteps = ret.list
     } else {
-        unittestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
-        .where([unittest_report_delFlg, unittest_report_iterator, unittest_report_unittest])
-        .equals([0, "", unittest_uuid])
-        .reverse()
+        //单测列表
+        unitTest = await window.db[TABLE_UNITTEST_NAME]
+        .where(field_unittest_uuid)
+        .equals(unittest_uuid)
         .first();
-    }
-    if (unittestReport !== undefined) {
-        env = unittestReport[unittest_report_env];
-        batch_uuid = unittestReport[unittest_report_batch];
-        unitTest[unittest_report_batch] = batch_uuid; //批次 id
-        unitTest[unittest_report_step] = unittestReport[unittest_report_step]; //执行 浮标
-        unitTest[unittest_report_result] = unittestReport[unittest_report_result];
-        unitTest[unittest_report_env] = env;
-        unitTest[unittest_report_cost_time] = unittestReport[unittest_report_cost_time];
-    }
 
-    let unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-    .equals([0, fakeIteratorId, unittest_uuid])
-    .toArray();
+        let fakeIteratorId = unitTest[unittest_iterator_uuid];
 
-    if (!isStringEmpty(unitTest[unittest_report_step])) {
-        if (unitTest[unittest_report_result] === UNITTEST_RESULT_UNKNOWN) {
-            let markFlg = -1;
-            for (let unitTestStep of unitTestSteps) {
-                let stepUuid = unitTestStep[field_unittest_step_uuid];
-                //还没打标，遇到数值一样的步骤，开始打标
-                if (markFlg === -1 && stepUuid === unitTest[unittest_report_step]) {
-                    markFlg = 0;
-                    continue;
-                }
-                //打标
-                if (markFlg === 0) {
-                    unitTest[unittest_report_step] = stepUuid;
-                    markFlg = 1;
-                    continue;
-                }
-                //已经打过标
-                if (markFlg === 1) {
-                    break;
-                }
-            }
-        } else {
-            unitTest[unittest_report_step] = "";
+        unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+        .equals([0, fakeIteratorId, unittest_uuid])
+        .toArray();
+
+        for (let _unittest_step of unitTestSteps) {
+            let _step_uuid = _unittest_step[field_unittest_step_uuid]
+            let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
+            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
+            .equals([0, fakeIteratorId, unittest_uuid, _step_uuid])
+            .reverse()
+            .toArray();
+            _unittest_step.asserts = unitTestAsserts;
         }
     }
 
-    if (!isStringEmpty(batch_uuid)) {
-        for (let unitTestStep of unitTestSteps) {
-            //当前执行步骤
-            unitTestStep[unittest_report_step] = unitTest[unittest_report_step];
-            //当前执行批次
-            unitTestStep[unittest_report_batch] = batch_uuid;
-            //当前环境
-            unitTestStep[unittest_report_env] = env;
-            let stepUuid = unitTestStep[field_unittest_step_uuid];
-            let unittest_executor_report = await window.db[TABLE_UNITTEST_EXECUTOR_NAME]
-            .where([unittest_executor_iterator, unittest_executor_unittest, unittest_executor_batch, unittest_executor_step])
-            .equals(["", unittest_uuid, batch_uuid, stepUuid])
-            .first();
-            if (unittest_executor_report !== undefined) {
-                unitTestStep[unittest_executor_result] = unittest_executor_report[unittest_executor_result];
-                unitTestStep[unittest_executor_cost_time] = unittest_executor_report[unittest_executor_cost_time];
-            }
-        }
-    }
-
-    unitTest['children'] = unitTestSteps;
-    return unitTest;
+    return genUnitTest(unitTest, unitTestSteps, unittest_uuid, "", env);
 }
 
 export async function getProjectUnitTests(clientType : string, teamId : string, project : string, folder : string | null, env : string|null, dispatch : any) {
+
+    let unitTests;
     let folders;
-    if (folder === null) {
-        folders = new Set();
-    } else {
-        folders = null;
-    }
+
     let users = await getUsers(clientType);
 
-    //单测列表
-    let unitTests = await window.db[TABLE_UNITTEST_NAME]
-    .where(unittest_projects)
-    .equals(project)
-    .filter(row => {
-        if (!row[unittest_collectFlg]) {
-            return false;
-        }
-        if (row[unittest_delFlg]) {
-            return false;
-        }
-        if (folder !== null && row[unittest_fold] !== folder) {
-            return false;
-        }
-        return true;
-    })
-    .reverse()
-    .toArray();
-
-    for (let i = 0; i < unitTests.length; i++) {
-        let unitTest = unitTests[i];
-        let unittest_uuid = unitTest[field_unittest_uuid];
-        let newUnitTest = await getProjectSingleUnittest(clientType, unittest_uuid, env);
-        newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
-        unitTests[i] = newUnitTest;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        //单测列表
         if (folder === null) {
-            folders.add(newUnitTest[unittest_fold]);
+            folders = new Set();
+        } else {
+            folders = null;
+        }
+
+        //单测列表
+        let unitTests = await window.db[TABLE_UNITTEST_NAME]
+        .where(unittest_projects)
+        .equals(project)
+        .filter(row => {
+            if (!row[unittest_collectFlg]) {
+                return false;
+            }
+            if (row[unittest_delFlg]) {
+                return false;
+            }
+            if (folder !== null && row[unittest_fold] !== folder) {
+                return false;
+            }
+            return true;
+        })
+        .reverse()
+        .toArray();
+
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i];
+            let unittest_uuid = unitTest[field_unittest_uuid];
+            let newUnitTest = await getProjectSingleUnittest(clientType, unittest_uuid, teamId, project, env);
+            newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
+            if (folder === null) {
+                folders.add(newUnitTest[unittest_fold]);
+            }
+        }
+    } else {
+        let ret = await sendTeamMessage(UNITTES_PROJECT_ALL_URL, {project, teamId, fold: folder});
+        unitTests = ret.list;
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i].unitTest;
+            let unitTestSteps = unitTests[i].unitTestSteps;
+            let unittest_uuid = unitTest[field_unittest_uuid];
+            let newUnitTest = await genUnitTest(unitTest, unitTestSteps, unittest_uuid, "", env)
+            newUnitTest[UNAME] = users.get(unitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
+        }
+        let retFolders = ret.folders;
+        if (retFolders.length > 0) {
+            folders = new Set();
+            for (let _ret_fold of retFolders) {
+                folders.add(_ret_fold['name'])
+            }
+        } else {
+            folders = null
         }
     }
 
@@ -751,7 +727,7 @@ export async function continueProjectExecuteUnitTest(
 }
 
 export async function executeProjectUnitTest(
-    clientType : string,
+    clientType : string, teamId : string,
     unitTestId : string, steps : Array<any>, 
     env : string, cb : Function
 )
@@ -770,11 +746,11 @@ export async function executeProjectUnitTest(
 
     let ret = await stepsExecutor(steps, "", unitTestId, batch_uuid, env, 
         async (project : string) => {
-            let datas = await getEnvHosts(clientType, project, env);
+            let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
         },
         async (project : string) => {
-            let datas = await getEnvRunModes(clientType, project, env);
+            let datas = await getEnvRunModes(clientType, teamId, project, env);
             let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
             return runMode;
         },
@@ -952,6 +928,7 @@ async function stepsExecutor(
 
         let originRequest = await getRequestFunc(project, method, requestUri);
 
+
         jsonParamTips.setProject(project);
 
         let breakFlg = true;
@@ -1003,19 +980,20 @@ async function stepsExecutor(
                 }
             }
         }
-        
-        let iteratorBodyObjectRet = await iteratorBodyObject(
-            envVarTips, param, pathVariable, header,
-            body, contentType, 
-            jsonParamTips, file,
-            unitTestId, batch_uuid,
-            originRequest.body
-        );
 
-        if (iteratorBodyObjectRet.error !== null) {
-            errorMessage = iteratorBodyObjectRet.error;
-            success = iteratorBodyObjectRet.success;
-            break outerLoop1;
+        if (originRequest != null) {
+            let iteratorBodyObjectRet = await iteratorBodyObject(
+                envVarTips, param, pathVariable, header,
+                body, contentType, 
+                jsonParamTips, file,
+                unitTestId, batch_uuid,
+                originRequest.body
+            );
+            if (iteratorBodyObjectRet.error !== null) {
+                errorMessage = iteratorBodyObjectRet.error;
+                success = iteratorBodyObjectRet.success;
+                break outerLoop1;
+            }
         }
 
         if (Object.keys(param).length > 0) {
@@ -1324,7 +1302,7 @@ export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
  */
 export async function copyFromIteratorToProject(clientType : string, teamId : string, iteratorId : string, unittest_uuid : string, device) {
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTEST_ITERATOR_EXPORT_URL, {iteratorId, unittestId: unittest_uuid});
+        await sendTeamMessage(UNITTES_PROJECT_SAVE_URL, {iteratorId, unittestId: unittest_uuid});
     }
 
     let unitTest = await window.db[TABLE_UNITTEST_NAME]

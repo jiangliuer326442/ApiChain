@@ -70,8 +70,6 @@ export const ENV_VARS_PROJECT_KEYS_URL = "/envvars/project/keys";
 
 export const ENV_VARS_PROJECT_COPY_URL = "/envvars/project/copy";
 
-export const UNITTEST_ITERATOR_EXPORT_URL = "/unittest/project/save";
-
 export const PRJ_HOST_URL = "/envvars/project/apiHosts";
 
 export const PRJ_RUN_MODE_URL = "/envvars/project/runModes";
@@ -208,6 +206,8 @@ export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";
 
 export const UNITTES_ITERATION_SAVE_URL = "/unittest/iteration/save"
 
+export const UNITTES_PROJECT_SAVE_URL = "/unittest/project/save";
+
 export const UNITTES_ITERATION_DEL_URL = "/unittest/iteration/del"
 
 export const UNITTES_ITERATION_FOLD_ADD_URL = "/unittest/iteration/addFold"
@@ -216,7 +216,11 @@ export const UNITTES_ITERATION_FOLD_LIST_URL = "/unittest/iteration/getFolds"
 
 export const UNITTES_ITERATION_ALL_URL = "/unittest/iteration/all"
 
+export const UNITTES_PROJECT_ALL_URL = "/unittest/project/all"
+
 export const UNITTES_ITERATION_FETCH_SINGLE_URL = "/unittest/iteration/getSingle"
+
+export const UNITTES_PROJECT_FETCH_SINGLE_URL = "/unittest/project/getSingle"
 
 export const UNITTES_ITERATION_STEP_SAVE_URL = "/unittest/iteration/saveStep"
 

@@ -23,7 +23,6 @@ import { getProjectSingleUnittest } from '@act/unittest';
 import { getUnittestKeys } from '@act/keys';
 import {
   delUnittestEnvValues,
-  batchCopyEnvVales,
   getUnittestEnvValuesByPage,
 } from '@act/env_value';
 
@@ -142,7 +141,7 @@ class EnvVar extends Component {
   
   async componentDidMount() {
     let env = this.state.env ? this.state.env : this.props.env;
-    let unittest = await getProjectSingleUnittest(this.props.clientType, this.state.unittestId, env);
+    let unittest = await getProjectSingleUnittest(this.props.clientType, this.state.unittestId, this.props.teamId, this.state.prj, env);
     this.setState({ unittest });
     this.getEnvValueData(this.state.prj, this.state.unittestId, env, "");
     if(this.props.envs.length === 0) {
