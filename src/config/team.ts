@@ -96,6 +96,8 @@ export const ENV_VARS_UNITTEST_KEYS_URL = "/envvars/unittest/keys";
 
 export const ENV_VARS_ITERATION_COPY_URL = "/envvars/iteration/copy";
 
+export const PROJECT_CONFIG_GET_URL = "/envvars/project/getPrjConfig";
+
 export const VERSION_ITERATIONS_PAGE_URL = "/version_iterations/page";
 
 export const VERSION_ITERATIONS_OPENS_URL = "/version_iterations/opens";

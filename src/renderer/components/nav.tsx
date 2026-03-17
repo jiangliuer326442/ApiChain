@@ -190,6 +190,10 @@ class Nav extends Component {
             });
             if (nextProps.clientType === CLIENT_TYPE_SINGLE || prj.teamId === nextProps.teamId) {
               children.push(                {
+                key: prj[prj_label] + "_setting",
+                label: <a href={`#/prj_setting/${prj.value}` } rel="noopener noreferrer">{langTrans("nav setting")}</a >
+              });
+              children.push(                {
                 key: prj[prj_label] + "_unittest",
                 label: <a href={`#/project_tests/${teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
               });

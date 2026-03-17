@@ -23,6 +23,7 @@ import {
     ENV_LIST_ROUTE, 
     PROJECT_LIST_ROUTE,
     ENVVAR_PRJ_LIST_ROUTE,
+    ENVVAR_PRJ_SETTING_ROUTE,
     ENVVAR_GLOBAL_LIST_ROUTE,
     ENVVAR_ITERATOR_LIST_ROUTE,
     ENVVAR_UNITTEST_LIST_ROUTE,
@@ -80,6 +81,7 @@ import BasicSettingPage from "@contain/basic_setting";
 import TeamMemberPage from "@contain/team_member";
 import EnvListPage from "@contain/env";
 import ProjectListPage from "@contain/prj";
+import PrjectSettingPage from "@contain/prj/setting";
 import EnvVarPrjectPage from "@contain/env_var/project";
 import EnvVarGlobalPage from "@contain/env_var/global";
 import EnvVarIteratorPage from "@contain/env_var/iterator";
@@ -242,6 +244,7 @@ class MyRouter extends Component {
                             <Route path={ TEAM_MEMBER_ROUTE } component={TeamMemberPage} />
                             <Route path={ ENV_LIST_ROUTE } component={EnvListPage} />
                             <Route path={ PROJECT_LIST_ROUTE } component={ProjectListPage} />
+                            <Route path={ ENVVAR_PRJ_SETTING_ROUTE } component={PrjectSettingPage} />
                             <Route path={ ENVVAR_PRJ_LIST_ROUTE } component={EnvVarPrjectPage} />
                             <Route path={ VERSION_ITERATOR_LIST_ROUTE } component={VersionIteratorPage} />
                             <Route path={ VERSION_ITERATOR_ADD_ROUTE } component={VersionIteratorAddPage}/>

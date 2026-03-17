@@ -4,7 +4,7 @@ import {
     isStringEmpty,
     mixedSort
 } from '@rutil/index'
-import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE } from '@conf/envKeys';
+import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_API_PREFIX } from '@conf/envKeys';
 import { 
     ChannelsEncryptStr, 
     ChannelsEncryptEncrypt, 
@@ -431,6 +431,11 @@ export async function getPrjEnvValuesByPage(teamId, prj : string, env : string, 
                 return row[env_var_premark].toLowerCase().includes(premark.toLowerCase());
             }
             if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
                 return false;
             }
             return true;

@@ -93,8 +93,8 @@ class EnvVar extends Component {
                     title={langTrans("envvar global del title")}
                     description={langTrans("envvar global del desc")}
                     onConfirm={async e => {
-                      await delGlobalEnvValues((this.state.env ? this.state.env : this.props.env), record[pname], this.props.clientType, this.props.teamId);
-                      this.getEnvValueData((this.state.env ? this.state.env : this.props.env), "", "")
+                      await delGlobalEnvValues((this.props.env), record[pname], this.props.clientType, this.props.teamId);
+                      this.getEnvValueData((this.props.env), "", "")
                     }}
                     okText={langTrans("envvar global del sure")}
                     cancelText={langTrans("envvar global del cancel")}
@@ -112,13 +112,12 @@ class EnvVar extends Component {
           pageSize: 10,
         },
         pkeys: [],
-        env: "",
         copiedKeys: [],
       }
     }
   
     componentDidMount(): void {
-      this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", "");
+      this.getEnvValueData(this.props.env, "", "");
       if (this.props.envs.length === 0) {
         getEnvs(this.props.clientType, this.props.dispatch);
       }
@@ -132,20 +131,19 @@ class EnvVar extends Component {
         iterator: "",
         unittest: ""
       });
-      this.setState({env: value});
       this.getEnvValueData(value, "", "");
     }
 
     setPName = (value: string) => {
-      this.getEnvValueData(this.state.env ? this.state.env : this.props.env, value, "");
+      this.getEnvValueData(this.props.env, value, "");
     }
   
     searchRemark = (event) => {
       let remark = event.target.value.trim();
       if (isStringEmpty(remark)) {
-        this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", "");
+        this.getEnvValueData(this.props.env, "", "");
       } else {
-        this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", remark);
+        this.getEnvValueData(this.props.env, "", remark);
       }
     }
 
@@ -185,8 +183,6 @@ class EnvVar extends Component {
     }
   
     render() : ReactNode {
-      let currentEnv = this.state.env ? this.state.env : this.props.env;
-      let isEmptyEnv = isStringEmpty(currentEnv);
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
@@ -203,7 +199,7 @@ class EnvVar extends Component {
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
-                        value={ this.state.env ? this.state.env : this.props.env }
+                        value={ this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
                         options={this.props.envs}
@@ -239,7 +235,7 @@ class EnvVar extends Component {
                         onChange={ async value => {
                           if (this.state.copiedKeys.length === 0) return;
                           if (isStringEmpty(value)) return;
-                          await batchCopyGlobalEnvValues(this.props.clientType, this.props.teamId, (this.state.env ? this.state.env : this.props.env), value, this.state.copiedKeys);
+                          await batchCopyGlobalEnvValues(this.props.clientType, this.props.teamId, this.props.env, value, this.state.copiedKeys);
                           this.state.copiedKeys = [];
                           message.success(langTrans("envvar global copy success"));
                           this.setEnvironmentChange(value);
@@ -255,13 +251,13 @@ class EnvVar extends Component {
               <Button  
                 style={{ margin: '16px 0' }} type="primary" 
                 onClick={this.addPropertiesClick} 
-                disabled={ isEmptyEnv }>
-                  {isEmptyEnv ? langTrans("envvar global add before check") : langTrans("envvar global add")}
+                disabled={ isStringEmpty(this.props.env) }>
+                  {isStringEmpty(this.props.env) ? langTrans("envvar global add before check") : langTrans("envvar global add")}
               </Button>
               <AddEnvVarComponent 
-                env={this.state.env ? this.state.env : this.props.env}
+                env={this.props.env}
                 cb={()=>{
-                  this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", "");
+                  this.getEnvValueData(this.props.env, "", "");
                 }} 
                 />
             </Flex>
@@ -273,7 +269,7 @@ class EnvVar extends Component {
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.env ? this.state.env : this.props.env, "", "");
+                this.getEnvValueData(this.props.env, "", "");
               }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>

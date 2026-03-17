@@ -52,6 +52,8 @@ export const UNITTEST_STEP_EDIT_ROUTE = "/version_iterator_tests_step_edit/:iter
 export const REQUEST_HISTORY = "/request_history";
 //项目环境变量管理
 export const ENVVAR_PRJ_LIST_ROUTE = "/prj_envvars/:team/:prj";
+//项目设置
+export const ENVVAR_PRJ_SETTING_ROUTE = "/prj_setting/:prj";
 //项目接口列表
 export const REQUEST_PROJECT_LIST_ROUTE = "/project_requests/:team/:id";
 //项目全局参数

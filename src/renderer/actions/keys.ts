@@ -3,7 +3,11 @@ import { intersect, union } from '@rutil/sets';
 import {
     sendTeamMessage
 } from '@act/message';
-
+import { 
+    ENV_VALUE_API_HOST, 
+    ENV_VALUE_RUN_MODE, 
+    ENV_VALUE_API_PREFIX 
+} from '@conf/envKeys';
 import { 
     CLIENT_TYPE_SINGLE,
     ENV_VARS_GLOBAL_KEYS_URL,
@@ -66,6 +70,11 @@ export async function getProjectKeys(clientType : string, teamId : string, proje
             if (row[env_var_delFlg]) {
                 return false;
             }
+            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
+                return false;
+            }
             return true;
         })
         .toArray();  
@@ -77,6 +86,11 @@ export async function getProjectKeys(clientType : string, teamId : string, proje
         .equals([project, "", ""])
         .filter(row => {
             if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
                 return false;
             }
             return true;
@@ -91,6 +105,11 @@ export async function getProjectKeys(clientType : string, teamId : string, proje
         .equals([0, ""])
         .filter(row => {
             if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
                 return false;
             }
             return true;

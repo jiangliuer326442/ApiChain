@@ -1,10 +1,9 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Form, Input, Modal, Select, Radio, message } from "antd";
+import { Form, Input, Modal, Radio, message } from "antd";
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_PROPERTY_MODEL } from '@conf/redux';
-import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER } from '@conf/envKeys';
 import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import { addEnvValues, encryptPromise } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
@@ -55,17 +54,6 @@ class AddEnvVarComponent extends Component {
         if (isStringEmpty(pname)) {
             message.error(langTrans("envvar global add check1"));
             return;
-        }
-
-        if(pname === ENV_VALUE_API_HOST) {
-            if(!(pvalue.indexOf("http://") === 0 || pvalue.indexOf("https://") === 0)) {
-                message.error(langTrans("envvar prj host check1"));
-                return;
-            }
-            if(!pvalue.endsWith("/")) {
-                message.error(langTrans("envvar prj host check2"));
-                return;
-            }
         }
 
         this.setState({
@@ -138,20 +126,9 @@ class AddEnvVarComponent extends Component {
                             value={this.state.pname} onChange={ event=>this.setState({pname : event.target.value}) } />
                     </Form.Item>
                     <Form.Item label={langTrans("envvar global add form2")}>
-                        {
-                            this.state.pname === ENV_VALUE_RUN_MODE ? 
-                            <Select 
-                                value={this.state.pvalue} 
-                                onChange={value => this.setState({pvalue : value})}
-                                options={[
-                                    {label:ENV_VALUE_RUN_MODE_CLIENT, value:ENV_VALUE_RUN_MODE_CLIENT},
-                                    {label:ENV_VALUE_RUN_MODE_RUMMER, value:ENV_VALUE_RUN_MODE_RUMMER}
-                                ]} />
-                            :
-                            <TextArea allowClear rows={ 3 }
-                                value={(this.state.oldEncryptFlg == 1 && this.state.pvalue == this.state.oldPValue) ? "******" : this.state.pvalue} 
-                                onChange={ e=>this.setState({pvalue : e.target.value}) } />
-                        }
+                        <TextArea allowClear rows={ 3 }
+                            value={(this.state.oldEncryptFlg == 1 && this.state.pvalue == this.state.oldPValue) ? "******" : this.state.pvalue} 
+                            onChange={ e=>this.setState({pvalue : e.target.value}) } />
                     </Form.Item>
                     <Form.Item label={langTrans("envvar global add form3")}>
                         <TextArea allowClear
@@ -162,13 +139,7 @@ class AddEnvVarComponent extends Component {
                         <Radio.Group 
                             value={this.state.encryptFlg}
                             onChange={ event=>this.setState({encryptFlg : event.target.value}) }
-                            disabled={ 
-                                this.state.oldEncryptFlg == 1 
-                                || 
-                                this.state.pname === ENV_VALUE_API_HOST 
-                                || 
-                                this.state.pname === ENV_VALUE_RUN_MODE 
-                            }
+                            disabled={ this.state.oldEncryptFlg == 1 }
                             >
                             <Radio value={0}>{langTrans("envvar global add form4 no")}</Radio>
                             <Radio value={1}>{langTrans("envvar global add form4 yes")}</Radio>

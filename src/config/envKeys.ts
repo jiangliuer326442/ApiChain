@@ -9,6 +9,9 @@ export const ENV_VALUE_RUN_MODE_RUMMER = "runner";
 
 export const ENV_VALUE_RUN_MODE_CLIENT = "client";
 
+//API_PREFIX
+export const ENV_VALUE_API_PREFIX = "api_prefix";
+
 //APP_VERSION
 export const ENV_VALUE_APP_VERSION = "$randomAppVersion";
 

@@ -21,7 +21,8 @@ import {
 } from '@conf/routers';
 import { 
   SHOW_ADD_PROPERTY_MODEL, 
-  SHOW_EDIT_PROPERTY_MODEL 
+  SHOW_EDIT_PROPERTY_MODEL,
+  GET_ENV_VALS,
 } from '@conf/redux';
 import { 
   getEnvs 
@@ -122,13 +123,13 @@ class EnvVar extends Component {
                       this.props.teamId,
                       this.state.iterator, 
                       this.state.prj, 
-                      (this.state.env ? this.state.env : this.props.env), 
+                      this.props.env, 
                       record[pname], 
                     );
                     this.getEnvValueData(
                       this.state.prj, 
                       this.state.iterator, 
-                      (this.state.env ? this.state.env : this.props.env), 
+                      this.props.env, 
                       ""
                     );
                   }}
@@ -144,7 +145,6 @@ class EnvVar extends Component {
       ],
       iterator: iteratorId,
       pkeys: [],
-      env: "",
       prj: "",
       copiedKeys: [],
       disabledKeys: [],
@@ -158,7 +158,7 @@ class EnvVar extends Component {
   }
   
     async componentDidMount(): void {
-      this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+      this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
       if (this.props.envs.length === 0) {
         getEnvs(this.props.clientType, this.props.dispatch);
       }
@@ -180,17 +180,23 @@ class EnvVar extends Component {
             pageSize: 10,
           },
         });
-        this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+        this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
       }
     }
 
     setEnvironmentChange = (value: string) => {
-      this.setState({env: value});
+      this.props.dispatch({
+        type: GET_ENV_VALS,
+        prj: this.state.prj,
+        env: value,
+        iterator: this.state.iterator,
+        unittest: ""
+      });
       this.getEnvValueData(this.state.prj, this.state.iterator, value, "");
     }
 
     setPName = (value: string) => {
-      this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, value);
+      this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, value);
     }
   
     addPropertiesClick = () => {
@@ -265,7 +271,7 @@ class EnvVar extends Component {
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
-                        value={ this.state.env ? this.state.env : this.props.env }
+                        value={ this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
                         options={this.props.envs}
@@ -300,7 +306,7 @@ class EnvVar extends Component {
                             this.props.teamId,
                             this.state.iterator, 
                             this.state.prj, 
-                            (this.state.env ? this.state.env : this.props.env),
+                            this.props.env,
                             value,
                             this.state.copiedKeys);
                           this.state.copiedKeys = [];
@@ -309,7 +315,7 @@ class EnvVar extends Component {
                         }}
                         style={{ width: 120 }}
                         options={this.props.envs
-                          .filter(item => item.value != (this.state.env ? this.state.env : this.props.env))
+                          .filter(item => item.value != this.props.env)
                         }
                         allowClear
                     />
@@ -320,7 +326,7 @@ class EnvVar extends Component {
                       this.getEnvValueData(
                         this.state.prj, 
                         this.state.iterator, 
-                        (this.state.env ? this.state.env : this.props.env), 
+                        this.props.env, 
                         ""
                       );
                     }}>
@@ -328,11 +334,11 @@ class EnvVar extends Component {
                     </Checkbox>
                   </Form.Item>
               </Form>
-              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
+              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.props.env) }>{langTrans("envvar global add")}</Button>
               <AddEnvVarComponent 
-                env={this.state.env ? this.state.env : this.props.env}
+                env={this.props.env}
                 cb={()=>{
-                  this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+                  this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
                 }} 
               />
             </Flex>
@@ -344,7 +350,7 @@ class EnvVar extends Component {
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+                this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
               }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>
