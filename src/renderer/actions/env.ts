@@ -104,9 +104,9 @@ export async function delEnv(clientType: string, teamId : string, row) {
     await window.db[TABLE_ENV_NAME].put(env);
 }
 
-export async function addEnv(clientType : string, teamId : string, environment : string, remark : string, requestDevice : string, device : object) {
+export async function addEnv(clientType : string, teamId : string, environment : string, remark : string, device : object) {
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(ENVS_SET_URL, {label: environment, remark, requestDevice: requestDevice === ENV_VALUE_RUN_MODE_RUMMER});
+        await sendTeamMessage(ENVS_SET_URL, {label: environment, remark});
     }
 
     let env : any = {};
@@ -123,6 +123,4 @@ export async function addEnv(clientType : string, teamId : string, environment :
         env.team_id = teamId;
     }
     await window.db[TABLE_ENV_NAME].put(env);
-
-    await addEnvValues(clientType, teamId, "", environment, "", "", ENV_VALUE_RUN_MODE, requestDevice, requestDevice, langTrans("envvar prj run mode"), 0, 0, device);
 }

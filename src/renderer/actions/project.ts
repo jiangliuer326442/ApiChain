@@ -14,7 +14,12 @@ import {
     PRJS_ALL_LIST_URL,
     PROJECT_CONFIG_GET_URL,
 } from '@conf/team';
-import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_API_PREFIX } from '@conf/envKeys';
+import { 
+    ENV_VALUE_API_HOST, 
+    ENV_VALUE_RUN_MODE, 
+    ENV_VALUE_API_PREFIX,
+    ENV_VALUE_RUN_MODE_CLIENT
+} from '@conf/envKeys';
 import { getUsers } from '@act/user';
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
@@ -30,11 +35,6 @@ let env_var_iteration = TABLE_ENV_VAR_FIELDS.FIELD_ITERATION;
 let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
-let env_var_premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
-let env_var_pencrypt = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
-let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
-let env_var_cuid = TABLE_ENV_VAR_FIELDS.FIELD_CUID;
-let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 export async function getPrjsByPage(clientType : string, pagination : any) {
     let datas = [];
@@ -77,15 +77,19 @@ export async function getPrjConfig(clientType : string, prj : string, env : stri
         .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
         .equals([ env, prj, "", "" ])
         .filter(row => {
-            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
-                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
-                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
-                return true;
-            }
-            return false;
+            return true;
+            // if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+            //     row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+            //     row[env_var_pname] === ENV_VALUE_API_PREFIX) {
+            //     return true;
+            // }
+            // return false;
         })
         .toArray();
-        ret = {};
+        console.log("projectArrays", env, prj,projectArrays);
+        ret = {
+            "run_mode": ENV_VALUE_RUN_MODE_CLIENT,
+        };
         for (let projectRow of projectArrays) {
             ret[projectRow[env_var_pname]] = projectRow[env_var_pvalue]
         }

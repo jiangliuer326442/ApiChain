@@ -187,7 +187,7 @@ export async function getEnvHosts(clientType : string, teamId : string, prj : st
     let datas : any = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
-        const envVarItems = await db[TABLE_ENV_VAR_NAME]
+        let envVarItems = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
         .equals([prj, "", "", ENV_VALUE_API_HOST])
         .filter(row => {
@@ -203,6 +203,25 @@ export async function getEnvHosts(clientType : string, teamId : string, prj : st
         for (let globalRow of envVarItems) {
             datas[globalRow[env_var_env]] = globalRow[env_var_pvalue];
         }
+        envVarItems = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+        .equals([prj, "", "", ENV_VALUE_API_PREFIX])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (env && row[env_var_env] !== env) {
+                return false
+            }
+            return true;
+        })
+        .toArray();
+        for (let globalRow of envVarItems) {
+            if (!isStringEmpty(globalRow[env_var_pvalue])) {
+                datas[globalRow[env_var_env]] = datas[globalRow[env_var_env]] + (globalRow[env_var_pvalue].substr(1));
+            }
+        }
+
     } else {
         datas = await sendTeamMessage(PRJ_HOST_URL, {teamId, prj, env});
     }

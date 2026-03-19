@@ -105,7 +105,7 @@ class EnvVar extends Component {
                   description={langTrans("envvar prj del desc")}
                   onConfirm={async e => {
                       await delPrjEnvValues(this.state.prj, this.props.env, record[pname], this.props.clientType, this.props.teamId);
-                      this.getEnvValueData(this.state.teamId, this.state.prj, his.props.env, "", "");
+                      this.getEnvValueData(this.state.teamId, this.state.prj, this.props.env, "", "");
                   }}
                   okText={langTrans("envvar prj del sure")}
                   cancelText={langTrans("envvar prj del cancel")}

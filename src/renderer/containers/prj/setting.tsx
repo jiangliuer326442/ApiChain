@@ -18,6 +18,7 @@ import {
     ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_API_PREFIX,
     ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER 
 } from '@conf/envKeys';
+import { GET_ENV_VALS } from '@conf/redux';
 import { getEnvs } from '@act/env';
 import { addEnvValues } from '@act/env_value';
 import { getPrjConfig } from '@act/project';
@@ -29,10 +30,9 @@ class ProjectSetting extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            env: "",
             apiHost: "",
             apiPrefix: "",
-            runMode: "",
+            runMode: ENV_VALUE_RUN_MODE_CLIENT,
         }
     }
 
@@ -40,7 +40,10 @@ class ProjectSetting extends Component {
         if(this.props.envs.length === 0) {
           getEnvs(this.props.clientType, this.props.dispatch);
         }
-        let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, isStringEmpty(this.state.env) ? this.props.env : this.state.env);
+        if (isStringEmpty(this.props.env)) {
+            return;
+        }
+        let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, this.props.env);
         this.setState({
             apiHost: ret["api_host"],
             apiPrefix: ret["api_prefix"],
@@ -63,7 +66,7 @@ class ProjectSetting extends Component {
             this.props.clientType, 
             this.props.teamId, 
             this.props.match.params.prj, 
-            isStringEmpty(this.state.env) ? this.props.env : this.state.env, 
+            this.props.env, 
             "", "" , 
             ENV_VALUE_API_PREFIX, pvalue, "", "", 0, 0,
             this.props.device
@@ -88,7 +91,7 @@ class ProjectSetting extends Component {
             this.props.clientType, 
             this.props.teamId, 
             this.props.match.params.prj, 
-            isStringEmpty(this.state.env) ? this.props.env : this.state.env, 
+            this.props.env, 
             "", "" , 
             ENV_VALUE_API_HOST, pvalue, "", "", 0, 0,
             this.props.device
@@ -97,15 +100,20 @@ class ProjectSetting extends Component {
         message.success(langTrans("prj unittest status2"))
     }
 
-    setEnvironmentChange = (value: string) => {
-        this.setState({env: value}, async () => {
-            let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, value);
-            this.setState({
-                apiHost: ret["api_host"],
-                apiPrefix: ret["api_prefix"],
-                runMode: ret["run_mode"] 
-            });
-        })
+    setEnvironmentChange = async (value: string) => {
+        this.props.dispatch({
+            type: GET_ENV_VALS,
+            prj: this.props.match.params.prj,
+            env: value,
+            iterator: "",
+            unittest: ""
+        });
+        let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, value);
+        this.setState({
+            apiHost: ret["api_host"],
+            apiPrefix: ret["api_prefix"],
+            runMode: ret["run_mode"] 
+        });
     }
 
     setRunMode = async (value: string) => {
@@ -115,7 +123,7 @@ class ProjectSetting extends Component {
             this.props.clientType, 
             this.props.teamId, 
             this.props.match.params.prj, 
-            isStringEmpty(this.state.env) ? this.props.env : this.state.env, 
+            this.props.env, 
             "", "" , 
             ENV_VALUE_RUN_MODE, value, "", "", 0, 0,
             this.props.device
@@ -143,7 +151,7 @@ class ProjectSetting extends Component {
                             label={langTrans("project setting form1")}
                         >
                             <Select
-                                value={ isStringEmpty(this.state.env) ? this.props.env : this.state.env }
+                                value={ this.props.env }
                                 onChange={this.setEnvironmentChange}
                                 style={{ width: 120 }}
                                 options={this.props.envs}

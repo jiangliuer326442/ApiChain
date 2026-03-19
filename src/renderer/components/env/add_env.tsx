@@ -2,7 +2,6 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { 
     Form,
-    Radio,
     Input,
     Modal,
     message
@@ -10,11 +9,6 @@ import {
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_ENV_MODEL } from '@conf/redux';
-import { CLIENT_TYPE_SINGLE } from '@conf/team';
-import {
-    ENV_VALUE_RUN_MODE_RUMMER,
-    ENV_VALUE_RUN_MODE_CLIENT
-} from '@conf/envKeys';
 import { addEnv } from '@act/env';
 import { langTrans } from '@lang/i18n';
 
@@ -27,7 +21,6 @@ class AddEnvComponent extends Component {
             loadingFlg: false,
             envValue: "",
             remarkValue: "",
-            requestDevice: "0",
         };
     }
 
@@ -39,7 +32,6 @@ class AddEnvComponent extends Component {
                 actionType: "edit",
                 envValue: nextProps.env,
                 remarkValue: nextProps.remark,
-                requestDevice: nextProps.requestDevice.toString(),
             };
         } 
         return null;
@@ -63,7 +55,7 @@ class AddEnvComponent extends Component {
             loadingFlg: true
         });
 
-        await addEnv(this.props.clientType, this.props.teamId, envValue, remarkValue, this.state.requestDevice, this.props.device);
+        await addEnv(this.props.clientType, this.props.teamId, envValue, remarkValue, this.props.device);
 
         this.clearInput();
         this.setState({
@@ -89,7 +81,6 @@ class AddEnvComponent extends Component {
             loadingFlg: false,
             envValue: "",
             remarkValue: "",
-            requestDevice: "0",
             actionType: "",
         });
     }
@@ -118,16 +109,6 @@ class AddEnvComponent extends Component {
                             onChange={ event=>this.setState({remarkValue : event.target.value}) } 
                             />
                     </Form.Item>
-                    <Form.Item label={langTrans("env add form3")}>
-                        <Radio.Group 
-                            value={(this.props.clientType === CLIENT_TYPE_SINGLE) ? 0 : this.state.requestDevice}
-                            disabled={ this.props.clientType === CLIENT_TYPE_SINGLE }
-                            onChange={ event=>this.setState({requestDevice : event.target.value}) }
-                            >
-                            <Radio value={ENV_VALUE_RUN_MODE_RUMMER}>{ENV_VALUE_RUN_MODE_RUMMER}</Radio>
-                            <Radio value={ENV_VALUE_RUN_MODE_CLIENT}>{ENV_VALUE_RUN_MODE_CLIENT}</Radio>
-                        </Radio.Group>
-                    </Form.Item>
                 </Form>
             </Modal>
         );
@@ -143,7 +124,6 @@ function mapStateToProps (state) {
         device : state.device,
         env: state.env.env,
         remark: state.env.remark,
-        requestDevice: state.env.requestDevice,
     }
 }
 

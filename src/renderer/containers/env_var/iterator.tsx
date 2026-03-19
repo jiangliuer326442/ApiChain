@@ -348,7 +348,7 @@ class EnvVar extends Component {
               rowKey={(record) => record[pname]}
               columns={this.state.listColumn} 
               pagination={this.state.pagination}
-              onChange={ async (pagination, filters, sorter) => {
+              onChange={ async (pagination) => {
                 this.state.pagination = pagination;
                 this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
               }} />

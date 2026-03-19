@@ -7,15 +7,12 @@ import {
     Layout,
     Drawer, 
 } from "antd";
-import Dexie from 'dexie';
 
 import { setLang, langTrans } from '@lang/i18n';
-import { DB_NAME } from '@conf/db';
 import {
     USERCOUNTRY,
     USERLANG,
 } from '@conf/storage';
-import { SYNC_TABLES } from '@conf/global_config';
 import { SET_DEVICE_INFO, SET_AI_COLLAPSED } from '@conf/redux';
 import { 
     BASIC_SETTING_ROUTE,
@@ -52,14 +49,7 @@ import {
     ITERATOR_ADD_REQUEST_ROUTE,
     WELCOME_ROUTE 
 } from '@conf/routers';
-import {
-    ArgsCreateTeamSuccess,
-    ArgsJoinTeamSuccess,
-} from '@conf/startArgs'
 import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
-import { getOpenVersionIterators } from "@act/version_iterator";
-import { getPrjs } from "@act/project";
-import registerMessageHook from "@act/message";
 
 let argsObject = getStartParams();
 let userCountry = argsObject.userCountry;
@@ -129,42 +119,10 @@ class MyRouter extends Component {
             userLang,
         });
 
-        if(window.db === undefined) {
-            window.db = new Dexie(DB_NAME);
-        }
-
-        window.db.on('ready', () => {
-            if (!this.state.initNavFlg) {
-                this.cb();
-            }
-        });
-
-        require('../reducers/db/20240501001');
-        require('../reducers/db/20240601001');
-        require('../reducers/db/20240604001');
-        require('../reducers/db/20240613001');
-        require('../reducers/db/20241028001');
-        require('../reducers/db/20241111001');
-        require('../reducers/db/20241112001');
-        require('../reducers/db/20241114001');
-        require('../reducers/db/20241216001');
-        require('../reducers/db/20250102001');
-        require('../reducers/db/20250614001');
-        require('../reducers/db/20250614002');
-        require('../reducers/db/20250706001');
 
         this.state = {
-            initNavFlg: false,
             drawSize: 736
         };
-    }
-
-    async componentDidMount() {
-        await window.db.open();
-        if (!this.state.initNavFlg) {
-            this.cb();
-        }
-        registerMessageHook();
     }
 
     closeAiBoxOpenFlg = () => {
@@ -181,31 +139,6 @@ class MyRouter extends Component {
             collapsed: true,
             aiBoxOpenFlg: true
         });
-    }
-
-    cb = async () => {
-        if ("action" in argsObject && (ArgsCreateTeamSuccess === argsObject.action || ArgsJoinTeamSuccess === argsObject.action)) {
-            // 获取所有表的名称
-            const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
-        
-            for (const tableName of tableNames) {
-                const table = window.db.table(tableName);
-            
-                // 获取所有记录
-                const records = await table.toArray();
-            
-                // 更新每个记录
-                for (const record of records) {
-                    record.upload_flg = 1;
-                    record.team_id = argsObject.tmpTeamId;
-                    await table.put(record);
-                }
-            }
-        }
-        console.log("argsObject", argsObject);
-        getPrjs(clientType, this.props.dispatch);
-        getOpenVersionIterators(clientType, this.props.dispatch);
-        this.state.initNavFlg = true;
     }
 
     render(): ReactNode {
