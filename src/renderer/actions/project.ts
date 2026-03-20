@@ -15,6 +15,7 @@ import {
     PRJS_DEL_URL,
     PRJS_ALL_LIST_URL,
     PROJECT_CONFIG_GET_URL,
+    PROJECT_CONFIG_SAVE_URL,
 } from '@conf/team';
 import { 
     ENV_VALUE_RUN_MODE_CLIENT
@@ -82,6 +83,10 @@ export async function getPrjsByPage(clientType : string, pagination : any) {
 export async function savePrjConfig(clientType : string, teamId : string, prj : string, env : string, 
     apiHost : string, apiPrefix : string, runMode : string, projectDesc : string,
 device) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(PROJECT_CONFIG_SAVE_URL, {prj, env, apiHost, apiPrefix, runMode, projectDesc});
+    }
+
     let env_key : any = {};
     env_key[env_key_prj] = prj;
     env_key[env_key_pname] = ENV_VALUE_API_HOST;
@@ -193,16 +198,18 @@ device) {
     let currentPrj = await window.db[TABLE_MICRO_SERVICE_NAME]
     .where(prj_label).equals(prj)
     .first();
-    currentPrj[prj_info] = projectDesc;
+    if (currentPrj !== undefined) {
+        currentPrj[prj_info] = projectDesc;
 
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        currentPrj.upload_flg = 0;
-        currentPrj.team_id = "";
-    } else {
-        currentPrj.upload_flg = 1;
-        currentPrj.team_id = teamId;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            currentPrj.upload_flg = 0;
+            currentPrj.team_id = "";
+        } else {
+            currentPrj.upload_flg = 1;
+            currentPrj.team_id = teamId;
+        }
+        await window.db[TABLE_MICRO_SERVICE_NAME].put(currentPrj);
     }
-    await window.db[TABLE_MICRO_SERVICE_NAME].put(currentPrj);
 }
 
 export async function getPrjConfig(clientType : string, prj : string, env : string) {
@@ -214,7 +221,6 @@ export async function getPrjConfig(clientType : string, prj : string, env : stri
         .equals([ env, prj, "", "" ])
         .filter(row => {
             if (row[env_var_pname] === ENV_VALUE_API_HOST || 
-                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
                 row[env_var_pname] === ENV_VALUE_API_PREFIX) {
                 return true;
             }
@@ -231,6 +237,7 @@ export async function getPrjConfig(clientType : string, prj : string, env : stri
         .where(prj_label).equals(prj)
         .first();
         ret["projectDesc"] = currentPrj[prj_info];
+        ret["run_mode"] = ENV_VALUE_RUN_MODE_CLIENT;
     } else {
         ret = await sendTeamMessage(PROJECT_CONFIG_GET_URL, {prj, env});
     }

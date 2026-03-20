@@ -17,11 +17,11 @@ import { isStringEmpty } from '@rutil/index';
 import { 
     ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER 
 } from '@conf/envKeys';
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import { GET_ENV_VALS } from '@conf/redux';
 import MarkdownEditor from '@comp/markdown/edit';
 import { getEnvs } from '@act/env';
 import { getPrjConfig, savePrjConfig } from '@act/project';
-import { load } from '@grpc/proto-loader';
 
 const { Header, Content, Footer } = Layout;
 
@@ -33,7 +33,7 @@ class ProjectSetting extends Component {
             apiHost: "",
             apiPrefix: "",
             runMode: ENV_VALUE_RUN_MODE_CLIENT,
-            projectDesc: langTrans("prj add form3 placeholder"),
+            projectDesc: "",
             loading: true
         }
     }
@@ -51,7 +51,7 @@ class ProjectSetting extends Component {
             apiHost: ret["api_host"],
             apiPrefix: ret["api_prefix"],
             runMode: ret["run_mode"],
-            projectDesc: ret["projectDesc"]
+            projectDesc: isStringEmpty(ret["projectDesc"]) ? langTrans("prj add form3 placeholder") : ret["projectDesc"]
         });
     }
 
@@ -144,6 +144,7 @@ class ProjectSetting extends Component {
                             label={langTrans("project setting form4")}
                         >
                              <Select 
+                                disabled={this.props.clientType === CLIENT_TYPE_SINGLE}
                                 value={this.state.runMode} 
                                 onChange={value => this.setState({runMode : value})}
                                 options={[
