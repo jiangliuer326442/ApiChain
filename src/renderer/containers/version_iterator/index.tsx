@@ -14,7 +14,7 @@ import { cloneDeep } from 'lodash';
 
 import VersionIteratorSwitch from '@comp/version_iterator/switch';
 import { VERSION_ITERATOR_ADD_ROUTE } from "@conf/routers";
-import { TABLE_VERSION_ITERATION_FIELDS, TABLE_MICRO_SERVICE_FIELDS } from '@conf/db';
+import { TABLE_VERSION_ITERATION_FIELDS } from '@conf/db';
 import { 
   getOpenVersionIterators,
   getVersionIteratorsByPage, 

@@ -233,7 +233,6 @@ class Nav extends Component {
                 }
             }
         }
-        console.log("argsObject", argsObject);
         const prjs = await getPrjs(clientType, this.props.dispatch);
         const navs = cloneDeep(this.state.navs);
         navs[2].children = prjs.map((prj:any) => {
@@ -258,7 +257,7 @@ class Nav extends Component {
             });
             children.push({
               key: prj[prj_label] + "_unittest",
-              label: <a href={`#/project_tests/${teamId}/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
+              label: <a href={`#/project_tests/${prjTeamId}/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
             });
           }
           return {

@@ -24,7 +24,6 @@ class AddPrjComponent extends Component {
             loadingFlg: false,
             prjValue: "",
             remarkValue: "",
-            infoValue: "",
         };
     }
 
@@ -36,7 +35,6 @@ class AddPrjComponent extends Component {
                 actionType: "edit",
                 prjValue: nextProps.prj,
                 remarkValue: nextProps.remark,
-                infoValue: nextProps.info == null ? "" : nextProps.info,
             });
         }
     }
@@ -44,7 +42,6 @@ class AddPrjComponent extends Component {
     handleOk = async () => {
         const prjValue = this.state.prjValue.trim();
         const remarkValue = this.state.remarkValue.trim();
-        const infoValue = this.state.infoValue.trim();
 
         if (isStringEmpty(prjValue)) {
             message.error(langTrans("prj add check1"));
@@ -63,7 +60,6 @@ class AddPrjComponent extends Component {
         await addPrj(
             this.props.clientType, this.props.teamId, 
             prjValue, remarkValue, 
-            infoValue,
             this.props.device);
 
         window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
@@ -82,7 +78,6 @@ class AddPrjComponent extends Component {
             loadingFlg: false,
             prjValue: "",
             remarkValue: "",
-            infoValue: "",
         });
     }
 
@@ -105,15 +100,6 @@ class AddPrjComponent extends Component {
                     <Form.Item>
                         <Input placeholder={langTrans("prj add form2")} value={this.state.remarkValue} onChange={ event=>this.setState({remarkValue : event.target.value}) } />
                     </Form.Item>
-                    <Form.Item>
-                        <TextArea 
-                            allowClear
-                            autoSize
-                            value={this.state.infoValue} 
-                            placeholder={langTrans("prj add form3 placeholder")}
-                            onChange={ e=>this.setState({infoValue : e.target.value}) }
-                        />
-                    </Form.Item>
                 </Form>
             </Modal>
         );
@@ -129,7 +115,6 @@ function mapStateToProps (state) {
         device : state.device,
         prj: state.prj.prj,
         remark: state.prj.remark,
-        info: state.prj.info,
     }
 }
 

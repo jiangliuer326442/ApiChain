@@ -439,7 +439,7 @@ export async function getProjectUnitTests(clientType : string, teamId : string, 
         }
 
         //单测列表
-        let unitTests = await window.db[TABLE_UNITTEST_NAME]
+        unitTests = await window.db[TABLE_UNITTEST_NAME]
         .where(unittest_projects)
         .equals(project)
         .filter(row => {

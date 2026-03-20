@@ -55,7 +55,7 @@ class VersionIteratorAdd extends Component {
             uuid,
             mode,
             version_iteration: {},
-            content: "",
+            content: langTrans("iterator md content"),
         }
     }
 
@@ -154,7 +154,7 @@ class VersionIteratorAdd extends Component {
                             label={langTrans("iterator add form3")}
                             name="content"
                         >
-                            <MarkdownEditor mode={this.state.mode} content={this.state.content} cb={content => this.setState({content}) } />
+                            <MarkdownEditor content={this.state.content} cb={content => this.setState({content}) } />
                         </Form.Item>
 
                         {this.state.mode === "update" ? 

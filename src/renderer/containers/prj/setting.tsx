@@ -15,13 +15,13 @@ import { connect } from 'react-redux';
 import { langTrans } from '@lang/i18n';
 import { isStringEmpty } from '@rutil/index';
 import { 
-    ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_API_PREFIX,
     ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER 
 } from '@conf/envKeys';
 import { GET_ENV_VALS } from '@conf/redux';
+import MarkdownEditor from '@comp/markdown/edit';
 import { getEnvs } from '@act/env';
-import { addEnvValues } from '@act/env_value';
-import { getPrjConfig } from '@act/project';
+import { getPrjConfig, savePrjConfig } from '@act/project';
+import { load } from '@grpc/proto-loader';
 
 const { Header, Content, Footer } = Layout;
 
@@ -33,6 +33,8 @@ class ProjectSetting extends Component {
             apiHost: "",
             apiPrefix: "",
             runMode: ENV_VALUE_RUN_MODE_CLIENT,
+            projectDesc: langTrans("prj add form3 placeholder"),
+            loading: true
         }
     }
 
@@ -45,59 +47,43 @@ class ProjectSetting extends Component {
         }
         let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, this.props.env);
         this.setState({
+            loading: false,
             apiHost: ret["api_host"],
             apiPrefix: ret["api_prefix"],
-            runMode: ret["run_mode"] 
+            runMode: ret["run_mode"],
+            projectDesc: ret["projectDesc"]
         });
     }
 
-    setApiPrefix = async (e) => {
-        let pvalue = this.state.apiPrefix.trim();
-        if(!pvalue.startsWith("/")) {
-            message.error(langTrans("envvar prj host check3"));
-            return;
-        }
-        if(!pvalue.endsWith("/")) {
-            message.error(langTrans("envvar prj host check2"));
-            return;
-        }
+    handleSubmit = async () => {
+        let apiHost = this.state.apiHost.trim();
 
-        await addEnvValues(
-            this.props.clientType, 
-            this.props.teamId, 
-            this.props.match.params.prj, 
-            this.props.env, 
-            "", "" , 
-            ENV_VALUE_API_PREFIX, pvalue, "", "", 0, 0,
-            this.props.device
-        );
-
-        message.success(langTrans("prj unittest status2"))
-    }
-
-    setApiHost = async (e) => {
-        let pvalue = this.state.apiHost.trim();
-
-        if(!(pvalue.indexOf("http://") === 0 || pvalue.indexOf("https://") === 0)) {
+        if(!(apiHost.indexOf("http://") === 0 || apiHost.indexOf("https://") === 0)) {
             message.error(langTrans("envvar prj host check1"));
             return;
         }
-        if(!pvalue.endsWith("/")) {
+        if(!apiHost.endsWith("/")) {
             message.error(langTrans("envvar prj host check2"));
             return;
         }
 
-        await addEnvValues(
-            this.props.clientType, 
-            this.props.teamId, 
-            this.props.match.params.prj, 
-            this.props.env, 
-            "", "" , 
-            ENV_VALUE_API_HOST, pvalue, "", "", 0, 0,
-            this.props.device
-        );
+        let apiPrefix = this.state.apiPrefix.trim();
+        if (!isStringEmpty(apiPrefix)) {
+            if(!apiPrefix.startsWith("/")) {
+                message.error(langTrans("envvar prj host check3"));
+                return;
+            }
+            if(!apiPrefix.endsWith("/")) {
+                message.error(langTrans("envvar prj host check2"));
+                return;
+            }
+        }
 
-        message.success(langTrans("prj unittest status2"))
+        await savePrjConfig(this.props.clientType, this.props.teamId, this.props.match.params.prj, this.props.env,
+            apiHost, apiPrefix, this.state.runMode, this.state.projectDesc,
+            this.props.device);
+        
+        message.success(langTrans("project setting save success"));
     }
 
     setEnvironmentChange = async (value: string) => {
@@ -116,22 +102,6 @@ class ProjectSetting extends Component {
         });
     }
 
-    setRunMode = async (value: string) => {
-        this.setState({runMode : value})
-
-        await addEnvValues(
-            this.props.clientType, 
-            this.props.teamId, 
-            this.props.match.params.prj, 
-            this.props.env, 
-            "", "" , 
-            ENV_VALUE_RUN_MODE, value, "", "", 0, 0,
-            this.props.device
-        );
-
-        message.success(langTrans("prj unittest status2"))
-    }
-
     render(): ReactNode {
         return (
             <Layout>
@@ -143,9 +113,9 @@ class ProjectSetting extends Component {
                         <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("project setting bread1")}, { title: langTrans("project setting bread2") }]} />
                     </Flex>
                     <Form
-                        labelCol={{ span: 5 }}
-                        wrapperCol={{ span: 14 }}
-                        style={{width: 800}}
+                        layout='vertical'
+                        style={{ maxWidth: this.props.collapsed ? 1140 : 950 }}
+                        autoComplete="off"
                     >
                         <Form.Item
                             label={langTrans("project setting form1")}
@@ -153,7 +123,6 @@ class ProjectSetting extends Component {
                             <Select
                                 value={ this.props.env }
                                 onChange={this.setEnvironmentChange}
-                                style={{ width: 120 }}
                                 options={this.props.envs}
                             />
                         </Form.Item>
@@ -162,7 +131,6 @@ class ProjectSetting extends Component {
                         >
                             <Space.Compact style={{ width: '100%' }}>
                                 <Input value={this.state.apiHost} onChange={(e) => this.setState({apiHost: e.target.value})} />
-                                <Button type="link" onClick={this.setApiHost}>{langTrans("iterator edit btn")}</Button>
                             </Space.Compact>
                         </Form.Item>
                         <Form.Item
@@ -170,7 +138,6 @@ class ProjectSetting extends Component {
                         >
                             <Space.Compact style={{ width: '100%' }}>
                                 <Input value={this.state.apiPrefix} onChange={(e) => this.setState({apiPrefix: e.target.value})} />
-                                <Button type="link" onClick={this.setApiPrefix}>{langTrans("iterator edit btn")}</Button>
                             </Space.Compact>
                         </Form.Item>
                         <Form.Item
@@ -178,11 +145,21 @@ class ProjectSetting extends Component {
                         >
                              <Select 
                                 value={this.state.runMode} 
-                                onChange={this.setRunMode}
+                                onChange={value => this.setState({runMode : value})}
                                 options={[
                                     {label:langTrans("runmodel client"), value: ENV_VALUE_RUN_MODE_CLIENT},
                                     {label:langTrans("runmodel runner"), value: ENV_VALUE_RUN_MODE_RUMMER}
                                 ]} />
+                        </Form.Item>
+                        {!this.state.loading && <Form.Item
+                            label={langTrans("project setting form5")}
+                        >
+                            <MarkdownEditor content={this.state.projectDesc} cb={content => this.setState({projectDesc: content}) } />
+                        </Form.Item>}
+                        <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+                            <Button type="primary" onClick={this.handleSubmit}>
+                            {langTrans("iterator edit btn")}
+                            </Button>
                         </Form.Item>
                     </Form>
                 </Content>
