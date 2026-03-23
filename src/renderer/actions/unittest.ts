@@ -36,7 +36,9 @@ import {
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
-    UNITTEST_RESULT_UNKNOWN
+    UNITTEST_RESULT_UNKNOWN,
+    ASSERT_TYPE_API,
+    ASSERT_TYPE_DB,
 } from '@conf/unittest';
 import {
     ENV_VALUE_RUN_MODE_CLIENT, 
@@ -121,6 +123,7 @@ let unittest_step_assert_unittest = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UNIT
 let unittest_step_assert_step = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_STEP_UUID;
 let unittest_step_assert_uuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UUID;
 let unittest_step_assert_title = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TITLE;
+let unittest_step_assert_type = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TYPE;
 let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
 let unittest_step_assert_operator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
 let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
@@ -161,7 +164,6 @@ let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
-//@todo fanghailiang 这里的 getEnvHosts 和 getEnvRunModes 都需要传teamId
 export async function batchMoveIteratorUnittest(oldIterator : string, unittestArr : Array<string>, newIterator : string, cb : () => void) {
     for (let _unittestRow of unittestArr) {
         let version_iteration_unittest = await window.db[TABLE_UNITTEST_NAME]
@@ -302,6 +304,11 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
             .equals([0, iteratorId, unittest_uuid, _step_uuid])
             .reverse()
             .toArray();
+            for (let _unitTestAssert of unitTestAsserts) {
+                if (isStringEmpty(_unitTestAssert[unittest_step_assert_type])) {
+                    _unitTestAssert[unittest_step_assert_type] = ASSERT_TYPE_API;
+                }
+            }
             _unittest_step.asserts = unitTestAsserts;
         }
     }
@@ -563,9 +570,9 @@ export async function getIterationUnitTests(clientType : string, iteratorId : st
 }
 
 export async function continueIteratorExecuteUnitTest(
-    clientType : string,
+    clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
-    env : string, dispatch : any, cb) {
+    env : string, cb) {
 
     let progressCb = cb;
     let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
@@ -587,11 +594,11 @@ export async function continueIteratorExecuteUnitTest(
     }
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
         async (project : string) => {
-            let datas = await getEnvHosts(clientType, project, env);
+            let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
         },
         async (project : string) => {
-            let datas = await getEnvRunModes(clientType, project, env);
+            let datas = await getEnvRunModes(clientType, teamId, project, env);
             let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
             return runMode;
         },
@@ -646,10 +653,9 @@ export async function continueIteratorExecuteUnitTest(
 }
 
 export async function continueProjectExecuteUnitTest(
-    clientType : string,
+    clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
-    env : string, dispatch : any, cb : Function) {
-
+    env : string, cb : Function) {
     let progressCb = cb;
     let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
     .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
@@ -670,11 +676,11 @@ export async function continueProjectExecuteUnitTest(
     }
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
         async (project : string) => {
-            let datas = await getEnvHosts(clientType, project, env);
+            let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
         },
         async (project : string) => {
-            let datas = await getEnvRunModes(clientType, project, env);
+            let datas = await getEnvRunModes(clientType, teamId, project, env);
             let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
             return runMode;
         },

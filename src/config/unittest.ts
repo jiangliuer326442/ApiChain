@@ -45,3 +45,7 @@ export const UNITTEST_RESULT_FAILURE = "failure";
 
 // 执行结果未知
 export const UNITTEST_RESULT_UNKNOWN = "unknown";
+
+export const ASSERT_TYPE_API = "api";
+
+export const ASSERT_TYPE_DB = "db";

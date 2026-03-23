@@ -45,6 +45,9 @@ let unittest_step_assert_unittest = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UNIT
 let unittest_step_assert_step = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_STEP_UUID;
 let unittest_step_assert_uuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UUID;
 let unittest_step_assert_title = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TITLE;
+let unittest_step_assert_type = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TYPE;
+let unittest_step_assert_sql = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL;
+let unittest_step_assert_sql_params = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL_PARAMS;
 let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
 let unittest_step_assert_operator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
 let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
@@ -66,7 +69,9 @@ export async function editUnitTestStep(
     clientType : string, versionIteratorId : string, unitTestUuid : string, unittest_step_uuid : string, 
     title : string,
     header: object, param: object, pathVariable: object, body: object,
-    assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>, 
+    assertTitleArr: Array<string>, 
+    assertTypeArr: Array<String>, assertSqlArr: Array<string>, assertSqlParamArr: Array<any>,
+    assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>, 
     assertUuidArr: Array<string>, sort: number, continueEnable: string, waitSeconds: number,
     device: any, cb) {
 
@@ -110,6 +115,9 @@ export async function editUnitTestStep(
             assertUuid = assertUuidArr[_index];
         }
         let assertTitle = assertTitleArr[_index];
+        let assertType = assertTypeArr[_index];
+        let assertSql = assertSqlArr[_index];
+        let assertSqlParams = assertSqlParamArr[_index];
         let assertPrev = assertPrevArr[_index];
         let assertOperator = assertOperatorArr[_index];
         let assertAfter = assertAfterArr[_index];
@@ -122,6 +130,9 @@ export async function editUnitTestStep(
     
             if (unit_test_step_assert_item !== undefined) {
                 unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
+                unit_test_step_assert_item[unittest_step_assert_type] = assertType;
+                unit_test_step_assert_item[unittest_step_assert_sql] = assertSql;
+                unit_test_step_assert_item[unittest_step_assert_sql_params] = assertSqlParams;
                 unit_test_step_assert_item[unittest_step_assert_left] = assertPrev;
                 unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
                 unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
@@ -134,6 +145,9 @@ export async function editUnitTestStep(
             unit_test_step_assert_item[unittest_step_assert_step] = unittest_step_uuid;
             unit_test_step_assert_item[unittest_step_assert_uuid] = assertUuid;
             unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
+            unit_test_step_assert_item[unittest_step_assert_type] = assertType;
+            unit_test_step_assert_item[unittest_step_assert_sql] = assertSql;
+            unit_test_step_assert_item[unittest_step_assert_sql_params] = assertSqlParams;
             unit_test_step_assert_item[unittest_step_assert_left] = assertPrev;
             unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
             unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
@@ -152,7 +166,9 @@ export async function addUnitTestStep(
     versionIteratorId : string, unitTestUuid : string, 
     title : string, project : string, method: string, uri : string,
     header: object, param: object, pathVariable: object, body: object,
-    assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>,
+    assertTitleArr: Array<string>, 
+    assertTypeArr: Array<String>, assertSqlArr: Array<string>, assertSqlParamArr: Array<any>,
+    assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>,
     sort: number, continueEnable: string, waitSeconds: number,
     device : object, cb) {
 

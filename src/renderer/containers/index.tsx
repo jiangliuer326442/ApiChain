@@ -88,7 +88,7 @@ import ParamsProjectPage from "@contain/request_send/params";
 import UnittestListVersionPage from "@contain/unittest/version_iterator";
 import UnittestListProjectPage from "@contain/unittest/project";
 import UnittestExecutorListPage from "@contain/unittest_executor_list";
-import UnittestStepPage from "@contain/unittest_step";
+import UnittestStepPage from "@contain/unittest/step";
 import VipFunctionPage from "@contain/vip";
 
 class MyRouter extends Component {

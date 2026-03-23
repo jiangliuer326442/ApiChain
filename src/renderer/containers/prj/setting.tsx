@@ -21,6 +21,7 @@ import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import { GET_ENV_VALS } from '@conf/redux';
 import MarkdownEditor from '@comp/markdown/edit';
 import { getEnvs } from '@act/env';
+import { encryptPromise } from '@act/env_value';
 import { getPrjConfig, savePrjConfig } from '@act/project';
 
 const { Header, Content, Footer } = Layout;
@@ -34,6 +35,13 @@ class ProjectSetting extends Component {
             apiPrefix: "",
             runMode: ENV_VALUE_RUN_MODE_CLIENT,
             projectDesc: "",
+            dbHost: "",
+            dbPort: 3306,
+            dbUsername: "",
+            dbPassword: "",
+            oldDbPassword: "",
+            dbName: "",
+            dbRunMode: ENV_VALUE_RUN_MODE_CLIENT,
             loading: true
         }
     }
@@ -45,12 +53,23 @@ class ProjectSetting extends Component {
         if (isStringEmpty(this.props.env)) {
             return;
         }
+        this.getData();
+    }
+
+    getData = async () => {
         let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, this.props.env);
         this.setState({
             loading: false,
             apiHost: ret["api_host"],
             apiPrefix: ret["api_prefix"],
             runMode: ret["run_mode"],
+            dbHost: ret["db_host"],
+            dbPort: ret["db_port"],
+            dbUsername: ret["db_username"],
+            dbPassword: ret["db_password"],
+            oldDbPassword: ret["db_password"],
+            dbName: ret["db_name"],
+            dbRunMode: ret["db_run_mode"],
             projectDesc: isStringEmpty(ret["projectDesc"]) ? langTrans("prj add form3 placeholder") : ret["projectDesc"]
         });
     }
@@ -79,11 +98,19 @@ class ProjectSetting extends Component {
             }
         }
 
+        let dbPassword = this.state.dbPassword.trim();
+        if (this.props.clientType == CLIENT_TYPE_SINGLE && this.state.oldDbPassword != dbPassword) {
+            dbPassword = await encryptPromise(dbPassword);
+        }
+
         await savePrjConfig(this.props.clientType, this.props.teamId, this.props.match.params.prj, this.props.env,
             apiHost, apiPrefix, this.state.runMode, this.state.projectDesc,
+            this.state.dbHost, this.state.dbPort, this.state.dbUsername, dbPassword, this.state.dbName, this.state.dbRunMode,
             this.props.device);
         
         message.success(langTrans("project setting save success"));
+
+        this.getData();
     }
 
     setEnvironmentChange = async (value: string) => {
@@ -129,16 +156,12 @@ class ProjectSetting extends Component {
                         <Form.Item
                             label={langTrans("project setting form2")}
                         >
-                            <Space.Compact style={{ width: '100%' }}>
-                                <Input value={this.state.apiHost} onChange={(e) => this.setState({apiHost: e.target.value})} />
-                            </Space.Compact>
+                            <Input value={this.state.apiHost} onChange={(e) => this.setState({apiHost: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form3")}
                         >
-                            <Space.Compact style={{ width: '100%' }}>
-                                <Input value={this.state.apiPrefix} onChange={(e) => this.setState({apiPrefix: e.target.value})} />
-                            </Space.Compact>
+                            <Input value={this.state.apiPrefix} onChange={(e) => this.setState({apiPrefix: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form4")}
@@ -147,6 +170,43 @@ class ProjectSetting extends Component {
                                 disabled={this.props.clientType === CLIENT_TYPE_SINGLE}
                                 value={this.state.runMode} 
                                 onChange={value => this.setState({runMode : value})}
+                                options={[
+                                    {label:langTrans("runmodel client"), value: ENV_VALUE_RUN_MODE_CLIENT},
+                                    {label:langTrans("runmodel runner"), value: ENV_VALUE_RUN_MODE_RUMMER}
+                                ]} />
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("project setting form6")}
+                        >
+                            <Input value={this.state.dbHost} onChange={(e) => this.setState({dbHost: e.target.value})} />
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("project setting form7")}
+                        >
+                            <Input value={this.state.dbPort} onChange={(e) => this.setState({dbPort: e.target.value})} />
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("project setting form8")}
+                        >
+                            <Input value={this.state.dbUsername} onChange={(e) => this.setState({dbUsername: e.target.value})} />
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("project setting form9")}
+                        >
+                            <Input.Password value={this.state.dbPassword} onChange={(e) => this.setState({dbPassword: e.target.value})} />
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("project setting form10")}
+                        >
+                            <Input value={this.state.dbName} onChange={(e) => this.setState({dbName: e.target.value})} />
+                        </Form.Item>
+                        <Form.Item
+                            label={langTrans("project setting form11")}
+                        >
+                            <Select 
+                                disabled={this.props.clientType === CLIENT_TYPE_SINGLE}
+                                value={this.state.dbRunMode} 
+                                onChange={value => this.setState({dbRunMode : value})}
                                 options={[
                                     {label:langTrans("runmodel client"), value: ENV_VALUE_RUN_MODE_CLIENT},
                                     {label:langTrans("runmodel runner"), value: ENV_VALUE_RUN_MODE_RUMMER}

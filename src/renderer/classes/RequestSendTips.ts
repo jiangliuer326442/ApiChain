@@ -13,6 +13,14 @@ import {
     ENV_VALUE_CURRENT_DATE_IMT,
     ENV_VALUE_CURRENT_TIMESTAMP_SECOND,
     ENV_VALUE_CURRENT_TIMESTAMP_MICRO,
+    ENV_VALUE_API_HOST,
+    ENV_VALUE_API_PREFIX,
+    ENV_VALUE_DB_HOST,
+    ENV_VALUE_DB_PORT,
+    ENV_VALUE_DB_USERNAME,
+    ENV_VALUE_DB_PASSWORD,
+    ENV_VALUE_DB_NAME,
+    ENV_VALUE_DB_RUN_MODE
 } from "@conf/envKeys";
 import {
     getProjectKeys,
@@ -77,6 +85,19 @@ export default class {
             } else if (this.env_var_type === "unittest") {
               envKeys = await getUnittestKeys(this.clientType, this.teamId, this.unittest, this.prj);
             }
+            const excludeKeys = [
+                ENV_VALUE_API_HOST,
+                ENV_VALUE_API_PREFIX,
+                ENV_VALUE_DB_HOST,
+                ENV_VALUE_DB_PORT,
+                ENV_VALUE_DB_USERNAME,
+                ENV_VALUE_DB_PASSWORD,
+                ENV_VALUE_DB_NAME,
+                ENV_VALUE_DB_RUN_MODE
+            ];
+            envKeys = envKeys.filter(item => {
+                return !excludeKeys.includes(item);
+            });
             this.env_keys = envKeys;
 
             return this.getTipsByEnvVars();

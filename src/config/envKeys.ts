@@ -12,6 +12,24 @@ export const ENV_VALUE_RUN_MODE_CLIENT = "client";
 //API_PREFIX
 export const ENV_VALUE_API_PREFIX = "api_prefix";
 
+//DB_HOST
+export const ENV_VALUE_DB_HOST = "db_host";
+
+//DB_PORT
+export const ENV_VALUE_DB_PORT = "db_port";
+
+//DB_USERNAME
+export const ENV_VALUE_DB_USERNAME = "db_username";
+
+//DB_PASSWORD
+export const ENV_VALUE_DB_PASSWORD = "db_password";
+
+//DB_NAME
+export const ENV_VALUE_DB_NAME = "db_name";
+
+//DB_RUN_MODE
+export const ENV_VALUE_DB_RUN_MODE = "db_run_mode";
+
 //APP_VERSION
 export const ENV_VALUE_APP_VERSION = "$randomAppVersion";
 

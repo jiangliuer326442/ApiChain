@@ -179,12 +179,12 @@ class UnittestListVersion extends Component {
 
                                         let batchUuid = await continueIteratorExecuteUnitTest(
                                             this.props.clientType,
+                                            this.props.teamId,
                                             this.state.iteratorId, 
                                             valueUnittestStepUnittestUuid, 
                                             record[unittest_report_batch], 
                                             valueUnittestReportStep, 
-                                            record[unittest_report_env], 
-                                            this.props.dispatch,
+                                            record[unittest_report_env],
                                             (batchUuid : string, stepUuid : string) => {
                                                 this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid})
                                             }

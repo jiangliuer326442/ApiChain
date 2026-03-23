@@ -192,12 +192,12 @@ class UnittestListVersion extends Component {
                         });
 
                         const batchUuid = await continueProjectExecuteUnitTest(
+                          this.props.clientType, this.state.teamId,
                           iteratorId,
                           valueUnittestStepUnittestUuid,
                           record[unittest_report_batch],
                           valueUnittestReportStep,
                           record[unittest_report_env],
-                          this.props.dispatch,
                           (batchUuid: string, stepUuid: string) => {
                             this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid });
                           },

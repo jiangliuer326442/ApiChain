@@ -272,14 +272,17 @@ export default class extends Component {
             this.setValue(text, i);
         }
         let data = cloneDeep(this.state.data);
-        if (text.indexOf("{{") === 0) {
-            text = text.substring(2);
+        let beginIndex = text.indexOf("{{");
+
+        if (beginIndex >= 0) {
+            let prefix = text.substring(0, beginIndex);
+            text = text.substring(beginIndex + 2);
             let options = [];
             for(let tip_value of this.props.tips) {
                 if (isStringEmpty(text) || tip_value.toLowerCase().indexOf(text.toLowerCase()) >= 0) {
                     options.push({
                         label: tip_value,
-                        value: "{{" + tip_value + "}}"
+                        value: prefix + "{{" + tip_value + "}}"
                     });
                 }
             }
