@@ -532,8 +532,8 @@ class UnittestStepContainer extends Component {
                 for (let j = 0; j < assertSqlParams.length; j++) {
                     let item2 = {};
                     item2.key = i + "_" + j;
-                    item2[TABLE_FIELD_NAME] = "参数" + (i + 1);
-                    item2[TABLE_FIELD_VALUE] = assertSqlParams[i];
+                    item2[TABLE_FIELD_NAME] = "参数" + (j + 1);
+                    item2[TABLE_FIELD_VALUE] = assertSqlParams[j];
                     item.push(item2);
                 }
             }
