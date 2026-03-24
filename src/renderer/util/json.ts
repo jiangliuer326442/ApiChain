@@ -466,7 +466,10 @@ async function innterGetEnvVarsIterator(data : any, format : any, env : string, 
                     let endIndex = value[_index].indexOf("}}");
                     if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
                         let envValueKey = value[_index].substring(beginIndex + 2, endIndex);
-                        value[_index] = getMapValueOrDefault(envvars, envValueKey, "");
+                        let prefixStr = value.slice(0, beginIndex);
+                        let suffixStr = value.slice(endIndex + 2);
+                        value[_index] = await requestSendTips.getVarByKey(envValueKey, env);
+                        value[_index] = prefixStr + value[_index] + suffixStr;
                     }
                 }
             }
@@ -477,7 +480,10 @@ async function innterGetEnvVarsIterator(data : any, format : any, env : string, 
             let endIndex = value.indexOf("}}");
             if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
                 let envValueKey = value.substring(beginIndex + 2, endIndex);
+                let prefixStr = value.slice(0, beginIndex);
+                let suffixStr = value.slice(endIndex + 2);
                 data[_key] = await requestSendTips.getVarByKey(envValueKey, env);
+                data[_key] = prefixStr + data[_key] + suffixStr;
             }
         }
 

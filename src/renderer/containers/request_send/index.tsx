@@ -512,7 +512,10 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
+        let prefixStr = value.slice(0, beginIndex);
+        let suffixStr = value.slice(endIndex + 2);
         value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
+        value = prefixStr + value + suffixStr;
       }
       url = url.replaceAll("{{" + _key + "}}", value);
     }
@@ -524,8 +527,10 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
+        let prefixStr = value.slice(0, beginIndex);
+        let suffixStr = value.slice(endIndex + 2);
         value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
-        paramData[_key] = value;
+        paramData[_key] = prefixStr + value + suffixStr;
       }
     }
     if (!isStringEmpty(paramToString(paramData))) {
@@ -539,8 +544,10 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
+        let prefixStr = value.slice(0, beginIndex);
+        let suffixStr = value.slice(endIndex + 2);
         value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
-        headData[_key] = value;
+        headData[_key] = prefixStr + value + suffixStr;
       }
     }
 
