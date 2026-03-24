@@ -32,9 +32,9 @@ if (process.platform === 'win32') {
     'program_data'
   )
   if (isProd) {
-    desiredPath = path.join(desiredPath, app.getName());
+    desiredPath = path.join(desiredPath, `${app.getName()}_${process.env.PACKAGE_TARGET}`);
   } else {
-    desiredPath = path.join(desiredPath, `${app.getName()}_dev`);
+    desiredPath = path.join(desiredPath, `${app.getName()}_dev_${process.env.PACKAGE_TARGET}`);
   }
   app.setPath('userData', desiredPath)
 }
