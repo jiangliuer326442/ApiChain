@@ -124,6 +124,8 @@ let unittest_step_assert_step = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_STEP_UUI
 let unittest_step_assert_uuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UUID;
 let unittest_step_assert_title = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TITLE;
 let unittest_step_assert_type = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TYPE;
+let unittest_step_assert_sql = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL;
+let unittest_step_assert_sql_params = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL_PARAMS;
 let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
 let unittest_step_assert_operator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
 let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
@@ -1106,28 +1108,57 @@ async function stepsExecutor(
                 for (let _key in unitTestAsserts) {
                     let keyNumber = Number(_key) as number;
                     let unitTestAssert = unitTestAsserts[keyNumber];
-
                     let assertLeft = unitTestAssert[unittest_step_assert_left];
                     let assertRight = unitTestAssert[unittest_step_assert_right];
                     let assertOperator = unitTestAssert[unittest_step_assert_operator];
-    
-                    jsonParamTips.setContent(assertLeft);
-                    try {
-                        assertLeftValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
-                    } catch (error) {
-                        errorMessage = error.message;
-                        breakFlg = true;
-                        break;
-                    }
-    
-                    jsonParamTips.setContent(assertRight);
-                    try {
-                        assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
-                    } catch (error) {
-                        console.error(error);
-                        errorMessage = error.message;
-                        breakFlg = true;
-                        break;
+                    if (unitTestAssert[unittest_step_assert_type] == ASSERT_TYPE_DB) {
+                        let sql = unitTestAssert[unittest_step_assert_sql];
+                        let sql_params = unitTestAssert[unittest_step_assert_sql_params];
+                        let parsed_sql_params = [];
+                        for (let _sql_param of sql_params) {
+                            jsonParamTips.setContent(_sql_param);
+                            try {
+                                let _parsed_value = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                                parsed_sql_params.push(_parsed_value);
+                            } catch (error) {
+                                console.error(error);
+                                errorMessage = error.message;
+                                breakFlg = true;
+                                break;
+                            }
+                        }
+
+                        jsonParamTips.setContent(assertRight);
+                        try {
+                            assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                        } catch (error) {
+                            console.error(error);
+                            errorMessage = error.message;
+                            breakFlg = true;
+                            break;
+                        }
+                        
+                        //@todo 基于 prj、sql、params 做查询
+                        console.log("todo fanghailiang", project, sql, parsed_sql_params, assertLeft, assertRightValue[keyNumber]);
+                    } else {
+                        jsonParamTips.setContent(assertLeft);
+                        try {
+                            assertLeftValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                        } catch (error) {
+                            errorMessage = error.message;
+                            breakFlg = true;
+                            break;
+                        }
+        
+                        jsonParamTips.setContent(assertRight);
+                        try {
+                            assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                        } catch (error) {
+                            console.error(error);
+                            errorMessage = error.message;
+                            breakFlg = true;
+                            break;
+                        }
                     }
 
                     if (typeof assertLeftValue[keyNumber] === "number") {
