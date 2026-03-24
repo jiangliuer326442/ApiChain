@@ -174,3 +174,16 @@ export const ChannelsEncryptEncryptResult = 'encrypt_response';
 export const ChannelsEncryptDecrypt = 'decrypt_request';
 
 export const ChannelsEncryptDecryptResult = 'decrypt_response';
+
+//执行数据库操作
+export type ChannelsDatabase = 'pipeline_database';
+
+export const ChannelsDatabaseStr = 'pipeline_database';
+
+export const ChannelsDatabaseQuery = 'database_query';
+
+export const ChannelsDatabaseQueryResult = 'database_query_result';
+
+export const ChannelsDatabaseExecute = 'database_execute';
+
+export const ChannelsDatabaseExecuteFinish = 'database_execute_finish';

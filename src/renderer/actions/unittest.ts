@@ -12,6 +12,7 @@ import {
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
     UNAME,
 } from '@conf/db';
+import { ChannelsDatabaseStr, ChannelsDatabaseQuery, ChannelsDatabaseQueryResult } from '@conf/channel';
 import {
     CONTENT_TYPE,
     REQUEST_METHOD_GET,
@@ -42,7 +43,13 @@ import {
 } from '@conf/unittest';
 import {
     ENV_VALUE_RUN_MODE_CLIENT, 
-    ENV_VALUE_RUN_MODE_RUMMER 
+    ENV_VALUE_RUN_MODE_RUMMER,
+    ENV_VALUE_DB_HOST, 
+    ENV_VALUE_DB_PORT, 
+    ENV_VALUE_DB_USERNAME, 
+    ENV_VALUE_DB_PASSWORD, 
+    ENV_VALUE_DB_NAME, 
+    ENV_VALUE_DB_RUN_MODE
 } from '@conf/envKeys';
 import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 import {
@@ -50,6 +57,7 @@ import {
     CLIENT_TYPE_SINGLE,
     UNITTES_PROJECT_SAVE_URL,
     UNITTES_ITERATION_SAVE_URL,
+    DB_CONFIG_GET_URL,
     UNITTES_ITERATION_DEL_URL,
     UNITTES_ITERATION_ALL_URL,
     UNITTES_PROJECT_FETCH_SINGLE_URL,
@@ -95,10 +103,13 @@ let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
+let env_var_env = TABLE_ENV_VAR_FIELDS.FIELD_ENV_LABEL;
 let env_var_micro_service = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let env_var_iteration = TABLE_ENV_VAR_FIELDS.FIELD_ITERATION;
 let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
+let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
+let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 
 let field_unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 let unittest_step_iterator_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_ITERATOR_UUID;
@@ -835,6 +846,9 @@ export async function executeIteratorUnitTest(
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+        async (project : string, sql : string, sqlParams : Array<string>) => {
+            return await executeQuerySql(clientType, env, project, sql, sqlParams)
+        },
         async (project : string) => {
             let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
@@ -904,6 +918,7 @@ async function stepsExecutor(
     unitTestId : string, 
     batch_uuid : string,
     env : string, 
+    getDbRetFunc : Function,
     getEnvHostFunc : Function,
     getRunModeFunc : Function,
     getEnvVarTipsFunc : Function,
@@ -1128,6 +1143,9 @@ async function stepsExecutor(
                             }
                         }
 
+                        let dbRet = await getDbRetFunc(project, sql, parsed_sql_params)
+                        assertLeftValue[keyNumber] = dbRet[assertLeft];
+
                         jsonParamTips.setContent(assertRight);
                         try {
                             assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
@@ -1137,9 +1155,7 @@ async function stepsExecutor(
                             breakFlg = true;
                             break;
                         }
-                        
-                        //@todo 基于 prj、sql、params 做查询
-                        console.log("todo fanghailiang", project, sql, parsed_sql_params, assertLeft, assertRightValue[keyNumber]);
+
                     } else {
                         jsonParamTips.setContent(assertLeft);
                         try {
@@ -1494,4 +1510,66 @@ async function iteratorBodyObject(
 	result.error = null;
 	result.success = null;
 	return result;
+}
+
+async function executeQuerySql(clientType : string, env : string, project : string, sql : string, params : Array<string>) {
+    let dbConfig : any;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        dbConfig = await sendTeamMessage(DB_CONFIG_GET_URL, {prj: project, env});
+    } else {
+        let envValues = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, project, "", "" ])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return [    
+                ENV_VALUE_DB_HOST, 
+                ENV_VALUE_DB_PORT, 
+                ENV_VALUE_DB_USERNAME, 
+                ENV_VALUE_DB_PASSWORD, 
+                ENV_VALUE_DB_NAME, 
+                ENV_VALUE_DB_RUN_MODE
+            ].includes(row[env_var_pname])
+        })
+        .toArray();
+
+        dbConfig = {};
+        for(let row of envValues) {
+            if (row[env_var_pname] == ENV_VALUE_DB_HOST) {
+                dbConfig['db_host'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_PORT) {
+                dbConfig['db_port'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_USERNAME) {
+                dbConfig['db_username'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_PASSWORD) {
+                dbConfig['db_password'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_NAME) {
+                dbConfig['db_name'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_RUN_MODE) {
+                dbConfig['db_run_mode'] = row[env_var_pvalue];
+            }
+        }
+    }
+
+    return await dbQueryPromise(dbConfig, sql, params);
+}
+
+export function dbQueryPromise (dbConfig, sql, params) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsDatabaseStr, (action, isSuccess, errorMessage, ret) => {
+            if (action === ChannelsDatabaseQueryResult) {
+                listener();
+                if (isSuccess) {
+                    resolve(ret);
+                } else {
+                    reject({errorMessage});
+                }
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsDatabaseStr, ChannelsDatabaseQuery, dbConfig, sql, params);
+    });
 }

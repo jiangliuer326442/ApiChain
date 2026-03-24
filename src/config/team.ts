@@ -98,6 +98,8 @@ export const ENV_VARS_ITERATION_COPY_URL = "/envvars/iteration/copy";
 
 export const PROJECT_CONFIG_GET_URL = "/envvars/project/getPrjConfig";
 
+export const DB_CONFIG_GET_URL = "/envvars/project/getDbConfig";
+
 export const PROJECT_CONFIG_SAVE_URL = "/envvars/project/savePrjConfig";
 
 export const VERSION_ITERATIONS_PAGE_URL = "/version_iterations/page";

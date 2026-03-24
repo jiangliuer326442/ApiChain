@@ -252,7 +252,7 @@ export default function() : void {
         });
 
         //刷迭代文档
-        window.electron.ipcRenderer.on(ChannelsMarkdownLongStr, async (action, iteratorId : string) => {
+        window.electron.ipcRenderer.on(ChannelsMarkdownLongStr, async (action, teamId : string, iteratorId : string) => {
             if (action !== ChannelsMarkdownQueryStr) return;
             let prjs = await getPrjs(clientType, null);
             let envs = await getEnvs(clientType, null);
@@ -265,8 +265,7 @@ export default function() : void {
             let envVars : any = {};
             for (let _prj of prjs) {
                 let projectLabel = _prj[prj_label];
-                //@todo fanghailiang 需要传teamId
-                const envVarItems = await getEnvHosts(clientType, projectLabel, null);
+                const envVarItems = await getEnvHosts(clientType, teamId, projectLabel, null);
                 envVars[projectLabel] = envVarItems;
             }
 

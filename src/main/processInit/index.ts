@@ -10,11 +10,13 @@ import TeamInitFunc from './team';
 import MockServerInitFunc from './mockserver';
 import NetworkSendInitFunc from './network';
 import dbInitFunc from './database';
+import mysqlInitFunc from './database/mysql';
 import reloadFunc from './system/reload';
 import restartFunc from './system/restart';
 
 export default function (mainWindow : BrowserWindow, privateKey : string, publicKey : string, store : Store){
     dbInitFunc(mainWindow);
+    mysqlInitFunc(mainWindow, store);
     MarkdownInitFunc(mainWindow, store);
     PostManInitFunc();
     UpdaterInitFunc();
