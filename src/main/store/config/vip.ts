@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Store from 'electron-store';
 
 import {
-    rsaEncrypt, 
+    rsaEncryptWithPrivateKey, 
     fernetDecrypt, 
     getPayJump, 
     getPayQuery 
@@ -168,6 +168,6 @@ function genEncryptString(outTradeNo : string, productName : string, payMethod :
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
     const plaintext = `${userCountry}:${userLang}:${productName}:${payMethod}:${outTradeNo}`;
-    let data = rsaEncrypt(plaintext, publicKey, privateKey);
+    let data = rsaEncryptWithPrivateKey(plaintext, publicKey, privateKey);
     return getPayJump(getLang()) + data;
 }

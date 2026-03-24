@@ -16,7 +16,7 @@ import restartFunc from './system/restart';
 
 export default function (mainWindow : BrowserWindow, privateKey : string, publicKey : string, store : Store){
     dbInitFunc(mainWindow);
-    mysqlInitFunc(mainWindow, store);
+    mysqlInitFunc(privateKey, mainWindow, store);
     MarkdownInitFunc(mainWindow, store);
     PostManInitFunc();
     UpdaterInitFunc();

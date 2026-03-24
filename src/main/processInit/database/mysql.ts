@@ -1,7 +1,11 @@
 import { ipcMain, BrowserWindow } from "electron";
 import Store from 'electron-store';
-import mysql from 'mysql';
+import mysql from 'mysql2';
 
+import { langTrans } from '../../../lang/i18n';
+import {
+    rsaDecrypt
+} from '../../util/util';
 import {
     CLIENT_TYPE_SINGLE
 } from '../../../config/team';
@@ -15,46 +19,38 @@ import {
 
 import {
     getClientType,
-    getTeamId,
 } from '../../store/config/team'
 
 
-export default function (mainWindow : BrowserWindow, store : Store) {
+export default function (privateKey : string, mainWindow : BrowserWindow, store : Store) {
     ipcMain.on(ChannelsDatabaseStr, async (event, action, dbConfig, sql, sqlParams) => {
         if(action !== ChannelsDatabaseQuery) return;
 
         const clientType = getClientType(store);
         let connection;
         if (clientType === CLIENT_TYPE_SINGLE) {
-            //todo 进行数据库密码解密
-            console.log("222222");
-        } else {
-
-            connection = mysql.createConnection({
-                host: dbConfig['db_host'],
-                port: dbConfig['db_port'],
-                user: dbConfig['db_username'],
-                password: dbConfig['db_password'],
-                database: dbConfig['db_name'],
-            });
+            dbConfig['db_password'] = rsaDecrypt(dbConfig['db_password'], privateKey);
         }
+        connection = mysql.createConnection({
+            host: dbConfig['db_host'],
+            port: dbConfig['db_port'],
+            user: dbConfig['db_username'],
+            password: dbConfig['db_password'],
+            database: dbConfig['db_name'],
+        });
 
         connection.connect((err) => {
             if (err) {
-                console.log("111111")
-                mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, "连接数据库失败", null);
+                mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, langTrans("database connect error"), null);
                 return;
             }
-            connection.query(sql, sqlParams, (err, results, fields) => {
+            connection.query(sql, sqlParams, (err, results) => {
                 if (err) {
-                    console.log("2222");
-                    mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, "执行sql语句报错", null);
+                    mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, langTrans("database sql error"), null);
                     return;
                 }
                 const firstRecord = results.length > 0 ? results[0] : {};
-                console.log("firstRecord", firstRecord);
                 const serializableData = JSON.parse(JSON.stringify(firstRecord));
-                console.log("serializableData", serializableData);
                 mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, true, "", serializableData);
             });
         });

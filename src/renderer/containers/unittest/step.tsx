@@ -39,7 +39,7 @@ import RequestParamFormTable from "@comp/unittest_step/request_param_form_table"
 import RequestHeadFormTable from "@comp/unittest_step/request_head_form_table";
 import RequestBodyFormTable from "@comp/unittest_step/request_body_form_table";
 import StepExpressionBuilderBox from "@comp/unittest_step/step_expression_builder_box";
-import { langTrans } from '@lang/i18n';
+import { langTrans, langFormat } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 
@@ -416,7 +416,7 @@ class UnittestStepContainer extends Component {
         });
     }
 
-    initPrj = (iteratorId, prj, dispatch) => {
+    initPrj = (iteratorId, prj) => {
         getUnitTestRequests(
             this.props.clientType, 
             prj, 
@@ -447,7 +447,7 @@ class UnittestStepContainer extends Component {
     handleRequestProject = originPrj => {
         let prj = originPrj.split("$$")[0];
         this.setState( {urisSelector : [], prj: originPrj, uri: ""} );
-        this.initPrj(this.state.iteratorId, prj, this.props.dispatch);
+        this.initPrj(this.state.iteratorId, prj);
     }
     
     addAssert = () => {
@@ -464,9 +464,9 @@ class UnittestStepContainer extends Component {
         assertType.push(ASSERT_TYPE_API);
         assertSql.push("");
         assertSqlParams.push([]);
-        assertPrev.push("占位断言左侧表达式");
+        assertPrev.push("");
         assertOperator.push(" == ");
-        assertAfter.push("占位断言右侧表达式");
+        assertAfter.push("");
         assertLength += 1;
         this.setState({
             assertTitle,
@@ -530,9 +530,11 @@ class UnittestStepContainer extends Component {
             let item = [];
             if (assertSqlParams.length > 0) {
                 for (let j = 0; j < assertSqlParams.length; j++) {
-                    let item2 = {};
+                    let item2 : any = {};
                     item2.key = i + "_" + j;
-                    item2[TABLE_FIELD_NAME] = "参数" + (j + 1);
+                    item2[TABLE_FIELD_NAME] = langFormat("unittest step db param", {
+                        "index": (j + 1)
+                    });
                     item2[TABLE_FIELD_VALUE] = assertSqlParams[j];
                     item.push(item2);
                 }
@@ -812,12 +814,13 @@ class UnittestStepContainer extends Component {
                                                 this.setState({assertType});
                                             } }
                                         >
-                                            <Select.Option value={ASSERT_TYPE_API}>接口数据断言</Select.Option>
-                                            <Select.Option value={ASSERT_TYPE_DB}>数据库数据断言</Select.Option>
+                                            <Select.Option value={ASSERT_TYPE_API}>{ langTrans("unittest step db type1") }</Select.Option>
+                                            <Select.Option value={ASSERT_TYPE_DB}>{ langTrans("unittest step db type2") }</Select.Option>
                                         </Select>
 
-                                    { this.state.assertType[i] === ASSERT_TYPE_DB && <>                                        <TextArea 
-                                            placeholder={"执行进行校验的sql语句，示例 'SELECT title, address, category FROM apichain_link WHERE team_id = ?'"}
+                                    { this.state.assertType[i] === ASSERT_TYPE_DB && <>
+                                        <TextArea 
+                                            placeholder={ langTrans("unittest step db sql") }
                                             value={this.state.assertSql[i]}
                                             onChange={event => {
                                                 let assertSql = cloneDeep(this.state.assertSql);

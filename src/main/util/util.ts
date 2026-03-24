@@ -61,7 +61,18 @@ export function getAssetPath(...paths: string[]): string {
   return path.join(RESOURCES_PATH, ...paths);
 }
 
-export function rsaEncrypt2(plaintext: string, publicKey : string) : string {
+export function rsaEncryptWithPrivateKey(plaintext: string, publicKey : string, privateKey : string) : string {
+    const signature = crypto.publicEncrypt({
+        key: publicKey,
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+        oaepHash: 'sha256',
+    }, Buffer.from(plaintext, 'utf8'))
+
+    const data = base64Encode(signature.toString('base64') + "&" + privateKey)
+    return data;
+}
+
+export function rsaEncrypt(plaintext: string, publicKey : string) : string {
   const signature = crypto.publicEncrypt({
       key: publicKey,
       padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
@@ -72,7 +83,7 @@ export function rsaEncrypt2(plaintext: string, publicKey : string) : string {
   return data;
 }
 
-export function rsaDecrypt2(encryptText: string, privateKey : string) : string {
+export function rsaDecrypt(encryptText: string, privateKey : string) : string {
 
     // 1. 将 Base64 加密数据转为 Buffer
     const encryptedBuffer = Buffer.from(encryptText, 'base64');
@@ -90,17 +101,6 @@ export function rsaDecrypt2(encryptText: string, privateKey : string) : string {
 
     // 3. 将 Buffer 转为字符串
     return decryptedBuffer.toString('utf8');
-}
-
-export function rsaEncrypt(plaintext: string, publicKey : string, privateKey : string) : string {
-    const signature = crypto.publicEncrypt({
-        key: publicKey,
-        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-        oaepHash: 'sha256',
-    }, Buffer.from(plaintext, 'utf8'))
-
-    const data = base64Encode(signature.toString('base64') + "&" + privateKey)
-    return data;
 }
 
 export function fernetDecrypt(encryptText: string, key : string) : string {

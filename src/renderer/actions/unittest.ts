@@ -764,6 +764,9 @@ export async function executeProjectUnitTest(
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
     let ret = await stepsExecutor(steps, "", unitTestId, batch_uuid, env, 
+        async (project : string, sql : string, sqlParams : Array<string>) => {
+            return await executeQuerySql(clientType, env, project, sql, sqlParams)
+        },
         async (project : string) => {
             let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
@@ -1143,8 +1146,15 @@ async function stepsExecutor(
                             }
                         }
 
-                        let dbRet = await getDbRetFunc(project, sql, parsed_sql_params)
-                        assertLeftValue[keyNumber] = dbRet[assertLeft];
+                        try {
+                            let dbRet = await getDbRetFunc(project, sql, parsed_sql_params)
+                            assertLeftValue[keyNumber] = dbRet[assertLeft];
+                        } catch (error) {
+                            console.error(error);
+                            errorMessage = error.message;
+                            breakFlg = true;
+                            break;
+                        }
 
                         jsonParamTips.setContent(assertRight);
                         try {
@@ -1565,7 +1575,7 @@ export function dbQueryPromise (dbConfig, sql, params) {
                 if (isSuccess) {
                     resolve(ret);
                 } else {
-                    reject({errorMessage});
+                    reject({message: errorMessage});
                 }
             }
         });

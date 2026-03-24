@@ -12,14 +12,11 @@ import {
     CLIENT_TYPE_SINGLE
 } from '../../../config/team';
 import {
-    md5,
-    fernetDecrypt,
-    rsaEncrypt2,
-    rsaDecrypt2
+    rsaEncrypt,
+    rsaDecrypt
 } from '../../util/util';
 import {
     getClientType,
-    getTeamId,
 } from '../../store/config/team'
 
 export default function (privateKey : string, publicKey : string, store : Store){
@@ -31,7 +28,7 @@ export default function (privateKey : string, publicKey : string, store : Store)
         const clientType = getClientType(store);
         let encryptContent;
         if (clientType === CLIENT_TYPE_SINGLE) {
-            encryptContent = rsaEncrypt2(content, publicKey);
+            encryptContent = rsaEncrypt(content, publicKey);
         } else {
             //团队版服务端加密去
             // const key = md5(getTeamId(store));
@@ -52,7 +49,7 @@ export default function (privateKey : string, publicKey : string, store : Store)
         Object.keys(keyvarEncryptContent).forEach(key => {
             const encryptContent = keyvarEncryptContent[key];
             if (clientType === CLIENT_TYPE_SINGLE) {
-                dataContent[key] = rsaDecrypt2(encryptContent, privateKey);
+                dataContent[key] = rsaDecrypt(encryptContent, privateKey);
             } else {
                 //团队版服务端解密去
                 // const key = md5(getTeamId(store));
