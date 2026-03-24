@@ -1,15 +1,16 @@
 import { app, BrowserWindow, dialog } from 'electron';
 import serve from 'electron-serve';
-import log from 'electron-log';
+import path from 'path';
 
 import { ArgsMemberBuySuccess, ArgsTokenBuySuccess } from '../config/startArgs';
 import { isStringEmpty } from '../renderer/util';
+import { logInfo, logError } from './util/util';
 import bindIpcEvents from './processInit';
 import { topUpCallback } from './logic/topup';
 import { createWindow as createMainWindow, getWindow as getMainWindow } from './window/main';
 import { getInitParams, systemInit } from './window/params';
 
-const startupParams = {};
+const startupParams : any = {};
 
 const args = process.argv.slice(1);
 args.forEach(arg => {
@@ -21,17 +22,28 @@ args.forEach(arg => {
     }
 });
 
-log.info('startup params:', startupParams);
-
-const PROTOCOL = 'com-mustafa-apichain';
+logInfo('startup params:', startupParams);
 
 const isProd: boolean = process.env.NODE_ENV === 'production'
 
+if (process.platform === 'win32') {
+  let desiredPath = path.join(
+    app.getPath('documents'),
+    'program_data'
+  )
+  if (isProd) {
+    desiredPath = path.join(desiredPath, `${app.getName()}_${process.env.PACKAGE_TARGET}`);
+  } else {
+    desiredPath = path.join(desiredPath, `${app.getName()}_dev_${process.env.PACKAGE_TARGET}`);
+  }
+  app.setPath('userData', desiredPath)
+}
+
 if (isProd) {
   serve({ directory: './dist/renderer/', scheme: 'apichain' })
-} else {
-  app.setPath('userData', `${app.getPath('userData')}_dev`)
 }
+
+const PROTOCOL = 'com-mustafa-apichain';
 
 const { exportPrivateKey, exportPublicKey, store } = systemInit();
 
@@ -62,8 +74,7 @@ if (!gotTheLock) {
     if (url == undefined) {
       return;
     }
-    log.info('second-instance url:', url);
-    const mainWindow = getMainWindow();
+    logInfo('second-instance url:', url);
 
     let coreStr = url.replace(/^com-mustafa-apichain:\/\//, '');
     coreStr = coreStr.replace(/^member\/yuanreturn\//, '');
@@ -102,5 +113,5 @@ if (!gotTheLock) {
         if (getMainWindow() === null) createWindow();
       });
     })
-    .catch(log.error);
+    .catch(logError);
 }

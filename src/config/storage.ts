@@ -4,10 +4,6 @@ export const LAST_ASYNC_VECTOR_TIME = "storage.team.asynVector.time";
 
 export const IS_AUTO_UPGRADE = "storage.checkAutoUpgrade";
 
-export const AI_LINK_PROJECT = "storage.chatBox.project";
-
-export const AI_MODEL = "storage.chatBox.aimodel";
-
 export const AI_RECORD = "storage.chatBox.record";
 
 export const DOC_ITERATOR = "iterator_doc_iteratorId";
@@ -18,7 +14,11 @@ export const BUY_TIMES = "device.buytimes";
 
 export const VIP_FLG = "device.vip.flg";
 
+export const UNIT_TEST_FLG = "device.unittest.flg";
+
 export const CKCODE_FLG = "device.ckcode.flg";
+
+export const AISUPPORT_FLG = "device.aisupport.flg";
 
 export const CKCODE_TYPE = "device.ckcode.type";
 

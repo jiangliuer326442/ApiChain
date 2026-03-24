@@ -1,6 +1,12 @@
 export const SET_NAV_COLLAPSED = "nav_set_collapsed";
 
+export const SET_AI_COLLAPSED = "ai_set_collapsed";
+
+export const SET_AI_MESSAGE = "ai_set_message";
+
 export const SET_DEVICE_INFO = "set_device_info";
+
+export const SET_AI_SUPPORT_INFO = "set_ai_support_info";
 
 export const SHOW_ADD_ENV_MODEL = "show_add_env_model";
 
@@ -21,6 +27,10 @@ export const SHOW_EDIT_VERSION_ITERATOR_MODEL = "show_edit_version_iterator_mode
 export const GET_ENVS = "get_envs";
 
 export const GET_ENV_VALS = "get_env_vals";
+
+export const GET_PRJ = "get_prj";
+
+export const GET_ENV = "get_env";
 
 export const GET_ITERATOR = "get_iterator";
 

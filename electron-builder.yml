@@ -1,7 +1,7 @@
 productName: ApiChain
 appId: com.mustafa.ApiChain
 icon: assets/icons
-artifactName: '${productName}_${version}_${arch}.${ext}'
+artifactName: '${productName}_${env.PACKAGE_TARGET}_${version}_${os}.${ext}'
 
 asar: false
 

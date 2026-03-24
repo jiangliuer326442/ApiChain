@@ -3,7 +3,11 @@ import { intersect, union } from '@rutil/sets';
 import {
     sendTeamMessage
 } from '@act/message';
-
+import { 
+    ENV_VALUE_API_HOST, 
+    ENV_VALUE_RUN_MODE, 
+    ENV_VALUE_API_PREFIX 
+} from '@conf/envKeys';
 import { 
     CLIENT_TYPE_SINGLE,
     ENV_VARS_GLOBAL_KEYS_URL,
@@ -56,7 +60,7 @@ export async function getGlobalKeys(clientType : string) {
     return datas;
 }
 
-export async function getProjectKeys(clientType : string, project : string) : Promise<Array<String>> {
+export async function getProjectKeys(clientType : string, teamId : string, project : string) : Promise<Array<String>> {
     let datas;
     if (clientType === CLIENT_TYPE_SINGLE) {
         let projectArrays1 = await db[TABLE_ENV_KEY_NAME]
@@ -64,6 +68,11 @@ export async function getProjectKeys(clientType : string, project : string) : Pr
         .equals([0, project])
         .filter(row => {
             if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
                 return false;
             }
             return true;
@@ -77,6 +86,11 @@ export async function getProjectKeys(clientType : string, project : string) : Pr
         .equals([project, "", ""])
         .filter(row => {
             if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
                 return false;
             }
             return true;
@@ -93,6 +107,11 @@ export async function getProjectKeys(clientType : string, project : string) : Pr
             if (row[env_var_delFlg]) {
                 return false;
             }
+            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
+                return false;
+            }
             return true;
         })
         .toArray();  
@@ -100,15 +119,14 @@ export async function getProjectKeys(clientType : string, project : string) : Pr
         let sets4 = new Set<String>(globalArrays1.map(item => ( item[env_key_pname])));
         datas = [...new Set([...sets3, ...sets4])]
     } else {
-        datas = await sendTeamMessage(ENV_VARS_PROJECT_KEYS_URL, {project});
+        datas = await sendTeamMessage(ENV_VARS_PROJECT_KEYS_URL, {teamId, project});
     }
     return datas;
 }
 
-export async function getIteratorKeys(clientType : string, iterator : string, project : string) {
+export async function getIteratorKeys(clientType : string, teamId : string, iterator : string, project : string) {
     let datas;
     if (clientType === CLIENT_TYPE_SINGLE) {
-
         let iteratorArrays1 = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
         .equals(["", iterator, ""])
@@ -119,10 +137,8 @@ export async function getIteratorKeys(clientType : string, iterator : string, pr
             return true;
         })
         .toArray(); 
-
         mixedSort(iteratorArrays1, env_var_pname);
         let sets1 = new Set<string>(iteratorArrays1.map(item => ( item[env_key_pname])));
-
         let iteratorArrays2 = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
         .equals([project, iterator, ""])
@@ -132,11 +148,11 @@ export async function getIteratorKeys(clientType : string, iterator : string, pr
             }
             return true;
         })
-        .toArray(); 
+        .toArray();
         mixedSort(iteratorArrays2, env_var_pname);
         let sets2 = new Set<string>(iteratorArrays2.map(item => ( item[env_key_pname])));
 
-        let sets3 = await getProjectKeys(clientType, project)
+        let sets3 = await getProjectKeys(clientType, teamId, project)
         datas = [...union(sets1, sets2, new Set<string>([...sets3]))]
     } else {
         datas = await sendTeamMessage(ENV_VARS_ITERATOR_KEYS_URL, {iterator, project});
@@ -144,7 +160,7 @@ export async function getIteratorKeys(clientType : string, iterator : string, pr
     return datas;
 }
 
-export async function getUnittestKeys(clientType : string, unittest : string, project : string) {
+export async function getUnittestKeys(clientType : string, teamId : string, unittest : string, project : string) {
     let datas;
     if (clientType === CLIENT_TYPE_SINGLE) {
 
@@ -175,7 +191,7 @@ export async function getUnittestKeys(clientType : string, unittest : string, pr
         mixedSort(unittestArrays2, env_var_pname);
         let sets2 = new Set<string>(unittestArrays2.map(item => ( item[env_key_pname])));
 
-        let sets3 = await getProjectKeys(clientType, project)
+        let sets3 = await getProjectKeys(clientType, teamId, project)
         datas = [...union(sets1, sets2, new Set<string>([...sets3]))]
     } else {
         datas = await sendTeamMessage(ENV_VARS_UNITTEST_KEYS_URL, {unittest, project});

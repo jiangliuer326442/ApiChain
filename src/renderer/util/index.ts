@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import weekday from "dayjs/plugin/weekday"
 import localeData from "dayjs/plugin/localeData"
 import 'dayjs/locale/zh-cn';
+import { EMPTY_STRING } from "../../config/global_config"
 
 export function getStartParams() : any {
   let argsObject : any = {};
@@ -46,8 +47,12 @@ export function paramToLines(params : Array<any>, length : number) {
   return ret;
 }
 
-export function isStringEmpty(str) {  
-  return str === null || str === undefined || str.trim() === '';  
+export function isStringEmpty(str) {
+  return str === null || str === undefined || str === '' || EMPTY_STRING === str;  
+}
+
+export function getEmptyStr() {
+  return EMPTY_STRING;
 }
 
 export function isNumeric(str) {

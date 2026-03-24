@@ -7,7 +7,6 @@ import {
 } from "antd";
 import type { DescriptionsProps } from 'antd';
 import { decode } from 'base-64';
-import JsonView from 'react-json-view';
 import { cloneDeep } from 'lodash';
 
 import { 
@@ -52,6 +51,7 @@ import {
 } from '@conf/contentType';
 import {
   CLIENT_TYPE_TEAM,
+  CLIENT_TYPE_SINGLE,
 } from '@conf/team';
 import {
   REQUEST_METHOD_GET,
@@ -60,6 +60,7 @@ import {
 } from '@conf/global_config';
 import { GET_ENV_VALS } from '@conf/redux';
 import RequestSendTips from '@clazz/RequestSendTips';
+import JsonViewWrapper from '@comp/markdown/jsonView';
 import {
   getEnvHosts,
   getEnvRunModes,
@@ -189,6 +190,7 @@ class RequestSendContainer extends Component {
       initDatasFlg: false,
       costTime: 0,
       sendingFlg: false,
+      teamId: "",
     }
   }
 
@@ -227,6 +229,65 @@ class RequestSendContainer extends Component {
         type = "iterator";
         iteratorId = record[request_history_iterator];
         this.state.iteratorId = iteratorId;
+
+        let recordDefine = await getVersionIteratorRequest(
+          this.props.clientType, 
+          this.state.iteratorId, 
+          this.state.prj, 
+          this.state.requestMethod, 
+          this.state.requestUri
+        );
+        if (recordDefine !== null) {
+          //填充格式
+          let body = recordDefine[iteration_request_body];
+          let header = recordDefine[iteration_request_header];
+          let requestParam = recordDefine[iteration_request_param];
+          let requestPathVariable = recordDefine[iteration_request_path_variable];
+          let file : any = {};
+          let realBody : any = {};
+          for (let _key in body) {
+            if (body[_key][TABLE_FIELD_TYPE] === "File") {
+              file[_key] = body[_key][TABLE_FIELD_VALUE];
+            } else {
+              realBody[_key] = body[_key];
+            }
+          }
+          this.setState({
+            header,
+            realBody,
+            requestParam,
+            requestPathVariable,
+          });
+        }
+
+      } else {
+        let recordDefine = await getProjectRequest(
+          this.props.clientType, 
+          this.state.prj, 
+          this.state.requestMethod, 
+          this.state.requestUri
+        );
+        if (recordDefine !== null) {
+          let body = recordDefine[project_request_body];
+          let header = recordDefine[project_request_header];
+          let requestParam = recordDefine[project_request_param];
+          let requestPathVariable = recordDefine[project_request_path_variable];
+          let file : any = {};
+          let realBody : any = {};
+          for (let _key in body) {
+            if (body[_key][TABLE_FIELD_TYPE] === "File") {
+              file[_key] = body[_key][TABLE_FIELD_VALUE];
+            } else {
+              realBody[_key] = body[_key];
+            }
+          }
+          this.setState({
+            header,
+            realBody,
+            requestParam,
+            requestPathVariable,
+          });
+        }
       }
 
       let headerData = record[request_history_head];
@@ -394,7 +455,7 @@ class RequestSendContainer extends Component {
 
   getEnvValueData = async (teamId: string, prj: string, env: string) => {
     if (isStringEmpty(env)) return;
-    this.setState(this.getClearState());
+    this.setState(Object.assign(this.getClearState(), {teamId}));
     let ret = await getEnvHosts(this.props.clientType, teamId, prj, env);
     let requestHost = getMapValueOrDefault(ret, env, "");
     let runMode = ENV_VALUE_RUN_MODE_CLIENT;
@@ -406,7 +467,7 @@ class RequestSendContainer extends Component {
       this.setState({ alertMessage: langFormat("network table7", {"key": ENV_VALUE_API_HOST,}) });
       return;
     }
-    this.requestSendTips.init(this.state.type, prj, this.state.iteratorId, "", this.props.clientType);
+    this.requestSendTips.init(this.state.type, prj, this.state.iteratorId, "", this.props.clientType, teamId);
     let envKeys = await this.requestSendTips.getTips();
     this.state.prj = prj;
     this.getCommonRequestDatas();
@@ -451,7 +512,10 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
+        let prefixStr = value.slice(0, beginIndex);
+        let suffixStr = value.slice(endIndex + 2);
         value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
+        value = prefixStr + value + suffixStr;
       }
       url = url.replaceAll("{{" + _key + "}}", value);
     }
@@ -463,8 +527,10 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
+        let prefixStr = value.slice(0, beginIndex);
+        let suffixStr = value.slice(endIndex + 2);
         value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
-        paramData[_key] = value;
+        paramData[_key] = prefixStr + value + suffixStr;
       }
     }
     if (!isStringEmpty(paramToString(paramData))) {
@@ -478,8 +544,10 @@ class RequestSendContainer extends Component {
       let endIndex = value.indexOf("}}");
       if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
         let envValueKey = value.substring(beginIndex + 2, endIndex);
+        let prefixStr = value.slice(0, beginIndex);
+        let suffixStr = value.slice(endIndex + 2);
         value = await this.requestSendTips.getVarByKey(envValueKey, this.state.env);
-        headData[_key] = value;
+        headData[_key] = prefixStr + value + suffixStr;
       }
     }
 
@@ -603,10 +671,9 @@ class RequestSendContainer extends Component {
       shortResponseJsonContent = content;
     }
     let historyId = await addRequestHistory(
-      this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod,
+      this.state.env, this.state.prj, this.state.requestUri, this.state.requestMethod, this.state.iteratorId,
       this.state.requestHeadData, this.state.requestBodyData, this.state.requestPathVariableData, this.state.requestParamData, this.state.requestFileData,
       shortResponseJsonContent, headers, cookieObj,
-      this.state.iteratorId, 
       isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
     this.setState({ 
       costTime,
@@ -731,12 +798,14 @@ class RequestSendContainer extends Component {
                     env={ this.state.env ? this.state.env : this.props.env } 
                     cb={this.getEnvValueData} />
                 : null}
+                {(this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId) ? 
                   <Button 
                       type="primary" 
                       disabled={this.state.id === 0}
                       href={ isStringEmpty(this.state.iteratorId) ? "#/history_request_to_interator/" + this.state.id : "#/request_to_interator/" + this.state.iteratorId + "/" + this.state.id}
                       style={ { background: "#3b3b3b", color: "rgba(255, 255, 255, 0.5)"} }
                   >{langTrans("request btn1")}</Button>
+                : null}
                 </Flex>
                 <Flex>
                     <Select 
@@ -790,18 +859,9 @@ class RequestSendContainer extends Component {
                   overflowY: this.state.isResponsePic ? "auto":"scroll",
                 } }>
                   { this.state.isResponseJson ? 
-                    <JsonView 
-                    src={JSON.parse(this.state.responseData)}   
-                    name={ false }
-                    theme={ "bright" }
-                    collapsed={false}  
-                    indentWidth={4}  
-                    iconStyle="triangle"
-                    enableClipboard={true}
-                    displayObjectSize={false}
-                    displayDataTypes={false}
-                    sortKeys={true}
-                    collapseStringsAfterLength={40}  />
+                    <JsonViewWrapper
+                      content={ this.state.responseData }
+                    />
                   : null}
                   {this.state.isResponsePic ? 
                     <img style={{height: 200}} src={this.state.responseData} />

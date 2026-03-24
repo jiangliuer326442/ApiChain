@@ -61,7 +61,7 @@ class RequestHistoryContainer extends Component {
       }
     }
 
-    getEnvValueData = (prj: string, env: string) => {
+    getEnvValueData = (teamId: string, prj: string, env: string) => {
         if(!(isStringEmpty(prj) || isStringEmpty(env))) {
             if (!this.state.loadDataFlg) {
                 getRequestHistorys(env, prj, this.state.btime, this.state.etime, "", list => {

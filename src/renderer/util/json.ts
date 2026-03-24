@@ -27,6 +27,33 @@ export async function getEnvVarsIterator(data : any, format : any, env : string,
     return data;
 }
 
+export function getJsonKeys(header, body, file, param, pathVariable, response) {
+  const keys = new Set<string>();
+  
+  getObjectKeys(header, keys);
+  getObjectKeys(body, keys);
+  getObjectKeys(file, keys);
+  getObjectKeys(param, keys);
+  getObjectKeys(pathVariable, keys);
+  getObjectKeys(response, keys);
+  return keys;
+}
+
+function getObjectKeys(item, keys : Set<string>) {
+    if (typeof item === 'object' && item !== null) {
+        if (Array.isArray(item)) {
+            item.forEach(value => {
+                getObjectKeys(value, keys);
+            });
+        } else {
+            Object.entries(item).forEach(([key, value]) => {
+                keys.add(key);
+                getObjectKeys(value, keys);
+            });
+        }
+    }
+}
+
 export function retShortJsonContent(jsonObject : object) : object {
     let shortJsonObject = {};
     shortJsonContent(shortJsonObject, jsonObject);
@@ -87,6 +114,43 @@ export function retParseBodyJsonToTable(bodyObject : any, fileObject : any) {
         formRequestBodyData[_key] = _item;
     }
     return formRequestBodyData;
+}
+
+export function retParseBodyJsonToTableWithDict(bodyObject : any, fileObject : any, dict : any) {
+    let formRequestBodyData : any = {};
+    parseJsonToTableWithDict(formRequestBodyData, bodyObject, dict);
+    for (let _key in fileObject) {
+        let _item : any = {};
+        _item[TABLE_FIELD_REMARK] = _key in dict ? dict[_key] : "";
+        _item[TABLE_FIELD_TYPE] = "File";
+        _item[TABLE_FIELD_VALUE] = fileObject[_key];
+        formRequestBodyData[_key] = _item;
+    }
+    return formRequestBodyData;
+}
+
+export function parseJsonToTableWithDict(parseResult : any, jsonObject : any, dict : any) {
+    for(let _key in jsonObject) {
+        let type = getType(jsonObject[_key]);
+        if (type === "Object") {
+            parseResult[_key] = {};
+            parseResult[_key][TABLE_FIELD_REMARK] = _key in dict ? dict[_key] : "";
+            parseResult[_key][TABLE_FIELD_TYPE] = type;
+            parseJsonToTableWithDict(parseResult[_key], jsonObject[_key], dict);
+        } else if (type === "Array" && jsonObject[_key].length > 0) {
+            parseResult[_key] = {};
+            parseResult[_key][TABLE_FIELD_REMARK] = _key in dict ? dict[_key] : "";
+            parseResult[_key][TABLE_FIELD_TYPE] = type;
+            if (getType(jsonObject[_key][0]) === "Object") {
+                parseJsonToTableWithDict(parseResult[_key], jsonObject[_key][0], dict);
+            }
+        } else {
+            parseResult[_key] = {};
+            parseResult[_key][TABLE_FIELD_REMARK] = _key in dict ? dict[_key] : "";
+            parseResult[_key][TABLE_FIELD_TYPE] = type;
+            parseResult[_key][TABLE_FIELD_VALUE] = jsonObject[_key];
+        }
+    }
 }
 
 export function parseJsonToTable(parseResult : any, jsonObject : any) {
@@ -338,7 +402,11 @@ function innerCleanJson(outJsonObject : any, inJsonObject : any) {
                 }
             }
             if (delFlg) {
-                _currentObject = [_currentObject[TABLE_FIELD_VALUE][TABLE_FIELD_VALUE]];
+                if (TABLE_FIELD_VALUE in _currentObject && TABLE_FIELD_VALUE in _currentObject[TABLE_FIELD_VALUE]) {
+                    _currentObject = [_currentObject[TABLE_FIELD_VALUE][TABLE_FIELD_VALUE]];
+                } else {
+                    _currentObject = [];
+                }
             } else {
                 delete _currentObject[TABLE_FIELD_REMARK];
                 delete _currentObject[TABLE_FIELD_TYPE];
@@ -398,7 +466,10 @@ async function innterGetEnvVarsIterator(data : any, format : any, env : string, 
                     let endIndex = value[_index].indexOf("}}");
                     if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
                         let envValueKey = value[_index].substring(beginIndex + 2, endIndex);
-                        value[_index] = getMapValueOrDefault(envvars, envValueKey, "");
+                        let prefixStr = value.slice(0, beginIndex);
+                        let suffixStr = value.slice(endIndex + 2);
+                        value[_index] = await requestSendTips.getVarByKey(envValueKey, env);
+                        value[_index] = prefixStr + value[_index] + suffixStr;
                     }
                 }
             }
@@ -409,7 +480,10 @@ async function innterGetEnvVarsIterator(data : any, format : any, env : string, 
             let endIndex = value.indexOf("}}");
             if (beginIndex >= 0 && endIndex >= 0 && beginIndex < endIndex) {
                 let envValueKey = value.substring(beginIndex + 2, endIndex);
+                let prefixStr = value.slice(0, beginIndex);
+                let suffixStr = value.slice(endIndex + 2);
                 data[_key] = await requestSendTips.getVarByKey(envValueKey, env);
+                data[_key] = prefixStr + data[_key] + suffixStr;
             }
         }
 

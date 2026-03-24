@@ -12,6 +12,7 @@ import {
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
     UNAME,
 } from '@conf/db';
+import { ChannelsDatabaseStr, ChannelsDatabaseQuery, ChannelsDatabaseQueryResult } from '@conf/channel';
 import {
     CONTENT_TYPE,
     REQUEST_METHOD_GET,
@@ -36,17 +37,32 @@ import {
 import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
-    UNITTEST_RESULT_UNKNOWN
+    UNITTEST_RESULT_UNKNOWN,
+    ASSERT_TYPE_API,
+    ASSERT_TYPE_DB,
 } from '@conf/unittest';
 import {
     ENV_VALUE_RUN_MODE_CLIENT, 
-    ENV_VALUE_RUN_MODE_RUMMER 
+    ENV_VALUE_RUN_MODE_RUMMER,
+    ENV_VALUE_DB_HOST, 
+    ENV_VALUE_DB_PORT, 
+    ENV_VALUE_DB_USERNAME, 
+    ENV_VALUE_DB_PASSWORD, 
+    ENV_VALUE_DB_NAME, 
+    ENV_VALUE_DB_RUN_MODE
 } from '@conf/envKeys';
 import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 import {
     CLIENT_TYPE_TEAM, 
     CLIENT_TYPE_SINGLE,
-    ENV_VARS_UNITTEST_COPY_URL
+    UNITTES_PROJECT_SAVE_URL,
+    UNITTES_ITERATION_SAVE_URL,
+    DB_CONFIG_GET_URL,
+    UNITTES_ITERATION_DEL_URL,
+    UNITTES_ITERATION_ALL_URL,
+    UNITTES_PROJECT_FETCH_SINGLE_URL,
+    UNITTES_PROJECT_ALL_URL,
+    UNITTES_ITERATION_FETCH_SINGLE_URL
 } from '@conf/team';
 
 import { 
@@ -87,10 +103,13 @@ let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
+let env_var_env = TABLE_ENV_VAR_FIELDS.FIELD_ENV_LABEL;
 let env_var_micro_service = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let env_var_iteration = TABLE_ENV_VAR_FIELDS.FIELD_ITERATION;
 let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
+let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
+let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 
 let field_unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 let unittest_step_iterator_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_ITERATOR_UUID;
@@ -115,6 +134,9 @@ let unittest_step_assert_unittest = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UNIT
 let unittest_step_assert_step = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_STEP_UUID;
 let unittest_step_assert_uuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UUID;
 let unittest_step_assert_title = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TITLE;
+let unittest_step_assert_type = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TYPE;
+let unittest_step_assert_sql = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL;
+let unittest_step_assert_sql_params = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL_PARAMS;
 let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
 let unittest_step_assert_operator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
 let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
@@ -155,7 +177,6 @@ let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
-//@todo fanghailiang 这里的 getEnvHosts 和 getEnvRunModes 都需要传teamId
 export async function batchMoveIteratorUnittest(oldIterator : string, unittestArr : Array<string>, newIterator : string, cb : () => void) {
     for (let _unittestRow of unittestArr) {
         let version_iteration_unittest = await window.db[TABLE_UNITTEST_NAME]
@@ -216,10 +237,16 @@ export async function batchMoveIteratorUnittest(oldIterator : string, unittestAr
     cb();
 }
 
-export async function addIteratorUnitTest(versionIteratorId : string, title : string, folder : string, device : object) {
+export async function addIteratorUnitTest(clientType, versionIteratorId : string, title : string, folder : string, device : object) {
+
+    const unittest_uuid = uuidv4() as string;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {iterator: versionIteratorId, uuid: unittest_uuid, title, fold: folder});
+    }
+
     let unit_test : any = {};
     unit_test[unittest_iterator_uuid] = versionIteratorId;
-    unit_test[field_unittest_uuid] = uuidv4() as string;
+    unit_test[field_unittest_uuid] = unittest_uuid;
     unit_test[unittest_title] = title;
     unit_test[unittest_fold] = folder;
     unit_test[unittest_cuid] = device.uuid;
@@ -228,71 +255,12 @@ export async function addIteratorUnitTest(versionIteratorId : string, title : st
     await window.db[TABLE_UNITTEST_NAME].put(unit_test);
 }
 
-export async function addUnitTestStep(
-    versionIteratorId : string, unitTestUuid : string, 
-    title : string, project : string, method: string, uri : string,
-    header: object, param: object, pathVariable: object, body: object,
-    assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>,
-    sort: number, continueEnable: string, waitSeconds: number,
-    device : object, cb) {
-        window.db.transaction('rw',
-            window.db[TABLE_UNITTEST_STEPS_NAME],
-            window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME], 
-            async () => {
-
-                let stepId = uuidv4() as string;
-
-                let unit_test_step : any = {};
-                unit_test_step[field_unittest_step_uuid] = stepId;
-                unit_test_step[unittest_step_iterator_uuid] = versionIteratorId;
-                unit_test_step[unittest_step_unittest_uuid] = unitTestUuid;
-                unit_test_step[unittest_step_title] = title;
-                unit_test_step[unittest_step_project] = project;
-                unit_test_step[unittest_step_method] = method;
-                unit_test_step[unittest_step_uri] = uri;
-                unit_test_step[unittest_step_header] = header;
-                unit_test_step[unittest_step_param] = param;
-                unit_test_step[unittest_step_path_variable] = pathVariable;
-                unit_test_step[unittest_step_body] = body;
-                unit_test_step[unittest_step_continue] = continueEnable;
-                unit_test_step[unittest_step_wait_seconds] = waitSeconds;
-                unit_test_step[unittest_step_sort] = sort;
-                unit_test_step[unittest_step_cuid] = device.uuid;
-                unit_test_step[unittest_step_ctime] = Date.now();
-                unit_test_step[unittest_step_delFlg] = 0;
-                await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
-
-                let unit_test_step_assert : Array<any> = [];
-
-                for(let i in assertTitleArr) {
-                    let assertTitle = assertTitleArr[i];
-                    let assertPrev = assertPrevArr[i];
-                    let assertOperator = assertOperatorArr[i];
-                    let assertAfter = assertAfterArr[i];
-                    let unit_test_step_assert_item : any = {};
-                    unit_test_step_assert_item[unittest_step_assert_iterator] = versionIteratorId;
-                    unit_test_step_assert_item[unittest_step_assert_unittest] = unitTestUuid;
-                    unit_test_step_assert_item[unittest_step_assert_step] = stepId;
-                    unit_test_step_assert_item[unittest_step_assert_uuid] = uuidv4() as string;
-                    unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
-                    unit_test_step_assert_item[unittest_step_assert_left] = assertPrev;
-                    unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
-                    unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
-                    unit_test_step_assert_item[unittest_step_assert_cuid] = device.uuid;
-                    unit_test_step_assert_item[unittest_step_assert_delFlg] = 0;
-                    unit_test_step_assert_item[unittest_step_assert_ctime] = Date.now();
-
-                    unit_test_step_assert.push(unit_test_step_assert_item);
-                }
-                await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].bulkPut(unit_test_step_assert);
-                cb();
-            }
-        );
-}
-
-export async function editUnitTest(uuid : string, title : string, folder : string, ) {
+export async function editIteratorUnitTest(clientType : string, versionIteratorId : string, unitTestUuid : string, title : string, folder : string, ) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {iterator: versionIteratorId, uuid: unitTestUuid, title, fold: folder});
+    }
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
-    .where(field_unittest_uuid).equals(uuid)
+    .where(field_unittest_uuid).equals(unitTestUuid)
     .first();
 
     if (unitTest === undefined) return;
@@ -302,80 +270,13 @@ export async function editUnitTest(uuid : string, title : string, folder : strin
     await window.db[TABLE_UNITTEST_NAME].put(unitTest);
 }
 
-export async function editUnitTestStep(
-    unittest_step_uuid : string, title : string,
-    header: object, param: object, pathVariable: object, body: object,
-    assertTitleArr: Array<string>, assertPrevArr: Array<string>, assertOperatorArr: Array<string>, assertAfterArr: Array<string>, 
-    assertUuidArr: Array<string>, sort: number, continueEnable: string, waitSeconds: number,
-    device: any, cb) {
-    let unit_test_step = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where(field_unittest_step_uuid).equals(unittest_step_uuid)
-    .first();
-
-    if (unit_test_step !== undefined) {
-        unit_test_step[unittest_step_title] = title;
-        unit_test_step[unittest_step_header] = header;
-        unit_test_step[unittest_step_param] = param;
-        unit_test_step[unittest_step_path_variable] = pathVariable;
-        unit_test_step[unittest_step_body] = body;
-        unit_test_step[unittest_step_sort] = sort;
-        unit_test_step[unittest_step_continue] = continueEnable;
-        unit_test_step[unittest_step_wait_seconds] = waitSeconds;
-        await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
-    }
-
-    let unit_test_step_assert : Array<any> = [];
-
-    for (let _index in assertTitleArr) {
-        let operate;
-        let assertUuid;
-        if (isStringEmpty(assertUuidArr[_index])) {
-            operate = "add";
-            assertUuid = uuidv4() as string;
-        } else {
-            operate = "edit";
-            assertUuid = assertUuidArr[_index];
-        }
-        let assertTitle = assertTitleArr[_index];
-        let assertPrev = assertPrevArr[_index];
-        let assertOperator = assertOperatorArr[_index];
-        let assertAfter = assertAfterArr[_index];
-        let unit_test_step_assert_item : any;
-        
-        if (operate === "edit") {
-            unit_test_step_assert_item = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-            .where(unittest_step_assert_uuid).equals(assertUuid)
-            .first();
-    
-            if (unit_test_step_assert_item !== undefined) {
-                unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
-                unit_test_step_assert_item[unittest_step_assert_left] = assertPrev;
-                unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
-                unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
-                unit_test_step_assert.push(unit_test_step_assert_item);
-            }
-        } else if (operate === "add") {
-            unit_test_step_assert_item = {};
-            unit_test_step_assert_item[unittest_step_assert_iterator] = unit_test_step[unittest_step_iterator_uuid];
-            unit_test_step_assert_item[unittest_step_assert_unittest] = unit_test_step[unittest_step_unittest_uuid];
-            unit_test_step_assert_item[unittest_step_assert_step] = unittest_step_uuid;
-            unit_test_step_assert_item[unittest_step_assert_uuid] = assertUuid;
-            unit_test_step_assert_item[unittest_step_assert_title] = assertTitle;
-            unit_test_step_assert_item[unittest_step_assert_left] = assertPrev;
-            unit_test_step_assert_item[unittest_step_assert_operator] = assertOperator;
-            unit_test_step_assert_item[unittest_step_assert_right] = assertAfter;
-            unit_test_step_assert_item[unittest_step_assert_cuid] = device.uuid;
-            unit_test_step_assert_item[unittest_step_assert_delFlg] = 0;
-            unit_test_step_assert_item[unittest_step_assert_ctime] = Date.now();
-            unit_test_step_assert.push(unit_test_step_assert_item);
-        }
-    }
-    await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].bulkPut(unit_test_step_assert);
-    cb();
-}
-
-export async function delUnitTest(row, cb) {
+export async function delUnitTest(clientType, row) {
     let uuid = row[field_unittest_uuid];
+    let iteratorId = row[unittest_iterator_uuid];
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_ITERATION_DEL_URL, {iterator: iteratorId, uuid});
+    }
 
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(uuid)
@@ -385,30 +286,51 @@ export async function delUnitTest(row, cb) {
         unitTest[field_unittest_uuid] = uuid;
         unitTest[unittest_delFlg] = 1;
         await window.db[TABLE_UNITTEST_NAME].put(unitTest);
-        cb();
     }
 }
 
-export async function delUnitTestStep(unittestStepUuid : string, cb) {
-    let unitTestStep = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where(field_unittest_step_uuid).equals(unittestStepUuid)
-    .first();
+export async function getIteratorSingleUnittest(clientType : string, unittest_uuid : string, iteratorId : string, env : string | null) {
 
-    if (unitTestStep !== undefined) {
-        unitTestStep[unittest_step_delFlg] = 1;
-        await window.db[TABLE_UNITTEST_STEPS_NAME].put(unitTestStep);
-        cb();
+    let unitTest;
+    let unitTestSteps;
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        let ret = await sendTeamMessage(UNITTES_ITERATION_FETCH_SINGLE_URL, {iterator: iteratorId, unittest: unittest_uuid});
+        unitTest = ret.ret;
+        unitTestSteps = ret.list
+    } else {
+
+        unitTest = await window.db[TABLE_UNITTEST_NAME]
+        .where(field_unittest_uuid)
+        .equals(unittest_uuid)
+        .first();
+
+        unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+        .equals([0, iteratorId, unittest_uuid])
+        .toArray();
+
+        for (let _unittest_step of unitTestSteps) {
+            let _step_uuid = _unittest_step[field_unittest_step_uuid]
+            let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
+            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
+            .equals([0, iteratorId, unittest_uuid, _step_uuid])
+            .reverse()
+            .toArray();
+            for (let _unitTestAssert of unitTestAsserts) {
+                if (isStringEmpty(_unitTestAssert[unittest_step_assert_type])) {
+                    _unitTestAssert[unittest_step_assert_type] = ASSERT_TYPE_API;
+                }
+            }
+            _unittest_step.asserts = unitTestAsserts;
+        }
     }
+
+    return genUnitTest(unitTest, unitTestSteps, unittest_uuid, iteratorId, env);
 }
 
-export async function getSingleUnittest(unittest_uuid : string, env : string | null, iteratorId : string) {
-    //单测列表
-    let unitTest = await window.db[TABLE_UNITTEST_NAME]
-    .where(field_unittest_uuid)
-    .equals(unittest_uuid)
-    .first();
-
-    let fakeIteratorId = unitTest[unittest_iterator_uuid];
+async function genUnitTest(unitTest, unitTestSteps, unittest_uuid : string, iteratorId : string, env : string | null) {
+    
     let batch_uuid = "";
     //拿整体执行报告
     let unittestReport;
@@ -434,11 +356,6 @@ export async function getSingleUnittest(unittest_uuid : string, env : string | n
         unitTest[unittest_report_env] = env;
         unitTest[unittest_report_cost_time] = unittestReport[unittest_report_cost_time];
     }
-
-    let unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-    .equals([0, fakeIteratorId, unittest_uuid])
-    .toArray();
 
     if (!isStringEmpty(unitTest[unittest_report_step])) {
         if (unitTest[unittest_report_result] === UNITTEST_RESULT_UNKNOWN) {
@@ -490,40 +407,105 @@ export async function getSingleUnittest(unittest_uuid : string, env : string | n
     return unitTest;
 }
 
-export async function getProjectUnitTests(project : string, folder : string | null, env : string|null, dispatch : any) {
-    let folders;
-    if (folder === null) {
-        folders = new Set();
+export async function getProjectSingleUnittest(clientType : string, unittest_uuid : string, teamId : string, project : string, env : string | null) {
+    let unitTest;
+    let unitTestSteps;
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        let ret = await sendTeamMessage(UNITTES_PROJECT_FETCH_SINGLE_URL, {teamId, project, unittest: unittest_uuid});
+        unitTest = ret.ret;
+        unitTestSteps = ret.list
     } else {
-        folders = null;
+        //单测列表
+        unitTest = await window.db[TABLE_UNITTEST_NAME]
+        .where(field_unittest_uuid)
+        .equals(unittest_uuid)
+        .first();
+
+        let fakeIteratorId = unitTest[unittest_iterator_uuid];
+
+        unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
+        .equals([0, fakeIteratorId, unittest_uuid])
+        .toArray();
+
+        for (let _unittest_step of unitTestSteps) {
+            let _step_uuid = _unittest_step[field_unittest_step_uuid]
+            let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
+            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
+            .equals([0, fakeIteratorId, unittest_uuid, _step_uuid])
+            .reverse()
+            .toArray();
+            _unittest_step.asserts = unitTestAsserts;
+        }
     }
 
-    //单测列表
-    let unitTests = await window.db[TABLE_UNITTEST_NAME]
-    .where(unittest_projects)
-    .equals(project)
-    .filter(row => {
-        if (!row[unittest_collectFlg]) {
-            return false;
-        }
-        if (row[unittest_delFlg]) {
-            return false;
-        }
-        if (folder !== null && row[unittest_fold] !== folder) {
-            return false;
-        }
-        return true;
-    })
-    .reverse()
-    .toArray();
+    return genUnitTest(unitTest, unitTestSteps, unittest_uuid, "", env);
+}
 
-    for (let i = 0; i < unitTests.length; i++) {
-        let unitTest = unitTests[i];
-        let unittest_uuid = unitTest[field_unittest_uuid];
-        let newUnitTest = await getSingleUnittest(unittest_uuid, env, "");
-        unitTests[i] = newUnitTest;
+export async function getProjectUnitTests(clientType : string, teamId : string, project : string, folder : string | null, env : string|null, dispatch : any) {
+
+    let unitTests;
+    let folders;
+
+    let users = await getUsers(clientType);
+
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        //单测列表
         if (folder === null) {
-            folders.add(newUnitTest[unittest_fold]);
+            folders = new Set();
+        } else {
+            folders = null;
+        }
+
+        //单测列表
+        unitTests = await window.db[TABLE_UNITTEST_NAME]
+        .where(unittest_projects)
+        .equals(project)
+        .filter(row => {
+            if (!row[unittest_collectFlg]) {
+                return false;
+            }
+            if (row[unittest_delFlg]) {
+                return false;
+            }
+            if (folder !== null && row[unittest_fold] !== folder) {
+                return false;
+            }
+            return true;
+        })
+        .reverse()
+        .toArray();
+
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i];
+            let unittest_uuid = unitTest[field_unittest_uuid];
+            let newUnitTest = await getProjectSingleUnittest(clientType, unittest_uuid, teamId, project, env);
+            newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
+            if (folder === null) {
+                folders.add(newUnitTest[unittest_fold]);
+            }
+        }
+    } else {
+        let ret = await sendTeamMessage(UNITTES_PROJECT_ALL_URL, {project, teamId, fold: folder});
+        unitTests = ret.list;
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i].unitTest;
+            let unitTestSteps = unitTests[i].unitTestSteps;
+            let unittest_uuid = unitTest[field_unittest_uuid];
+            let newUnitTest = await genUnitTest(unitTest, unitTestSteps, unittest_uuid, "", env)
+            newUnitTest[UNAME] = users.get(unitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
+        }
+        let retFolders = ret.folders;
+        if (retFolders.length > 0) {
+            folders = new Set();
+            for (let _ret_fold of retFolders) {
+                folders.add(_ret_fold['name'])
+            }
+        } else {
+            folders = null
         }
     }
 
@@ -536,35 +518,59 @@ export async function getProjectUnitTests(project : string, folder : string | nu
 }
 
 export async function getIterationUnitTests(clientType : string, iteratorId : string, folder : string | null, env : string|null, dispatch : any) {
-    let users = await getUsers(clientType);
+
     let unitTests;
     let folders;
 
-    //单测列表
-    if (folder === null) {
-        folders = new Set();
-        unitTests = await window.db[TABLE_UNITTEST_NAME]
-        .where([unittest_delFlg, unittest_iterator_uuid])
-        .equals([0, iteratorId])
-        .reverse()
-        .toArray();
-    } else {
-        folders = null;
-        unitTests = await window.db[TABLE_UNITTEST_NAME]
-        .where([unittest_delFlg, unittest_iterator_uuid, unittest_fold])
-        .equals([0, iteratorId, folder])
-        .reverse()
-        .toArray();
-    }
+    let users = await getUsers(clientType);
 
-    for (let i = 0; i < unitTests.length; i++) {
-        let unitTest = unitTests[i];
-        let unittest_uuid = unitTest[field_unittest_uuid];
-        let newUnitTest = await getSingleUnittest(unittest_uuid, env, iteratorId);
-        newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
-        unitTests[i] = newUnitTest;
+    if (clientType === CLIENT_TYPE_SINGLE) {
+        //单测列表
         if (folder === null) {
-            folders.add(newUnitTest[unittest_fold]);
+            folders = new Set();
+            unitTests = await window.db[TABLE_UNITTEST_NAME]
+            .where([unittest_delFlg, unittest_iterator_uuid])
+            .equals([0, iteratorId])
+            .reverse()
+            .toArray();
+        } else {
+            folders = null;
+            unitTests = await window.db[TABLE_UNITTEST_NAME]
+            .where([unittest_delFlg, unittest_iterator_uuid, unittest_fold])
+            .equals([0, iteratorId, folder])
+            .reverse()
+            .toArray();
+        }
+
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i];
+            let unittest_uuid = unitTest[field_unittest_uuid];
+            let newUnitTest = await getIteratorSingleUnittest(clientType, unittest_uuid, iteratorId, env);
+            newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
+            if (folder === null) {
+                folders.add(newUnitTest[unittest_fold]);
+            }
+        }
+    } else {
+        let ret = await sendTeamMessage(UNITTES_ITERATION_ALL_URL, {iterator: iteratorId, fold: folder});
+        unitTests = ret.list;
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i].unitTest;
+            let unitTestSteps = unitTests[i].unitTestSteps;
+            let unittest_uuid = unitTest[field_unittest_uuid];
+            let newUnitTest = await genUnitTest(unitTest, unitTestSteps, unittest_uuid, iteratorId, env)
+            newUnitTest[UNAME] = users.get(unitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
+        }
+        let retFolders = ret.folders;
+        if (retFolders.length > 0) {
+            folders = new Set();
+            for (let _ret_fold of retFolders) {
+                folders.add(_ret_fold['name'])
+            }
+        } else {
+            folders = null
         }
     }
 
@@ -576,20 +582,10 @@ export async function getIterationUnitTests(clientType : string, iteratorId : st
     });
 }
 
-export async function getUnitTestStepAsserts(iteratorId : string, unitTestId : string, stepId : string) {
-    let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-    .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-    .equals([0, iteratorId, unitTestId, stepId])
-    .reverse()
-    .toArray();
-
-    return unitTestAsserts;
-}
-
 export async function continueIteratorExecuteUnitTest(
-    clientType : string,
+    clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
-    env : string, dispatch : any, cb) {
+    env : string, cb) {
 
     let progressCb = cb;
     let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
@@ -611,11 +607,11 @@ export async function continueIteratorExecuteUnitTest(
     }
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
         async (project : string) => {
-            let datas = await getEnvHosts(clientType, project, env);
+            let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
         },
         async (project : string) => {
-            let datas = await getEnvRunModes(clientType, project, env);
+            let datas = await getEnvRunModes(clientType, teamId, project, env);
             let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
             return runMode;
         },
@@ -670,10 +666,9 @@ export async function continueIteratorExecuteUnitTest(
 }
 
 export async function continueProjectExecuteUnitTest(
-    clientType : string,
+    clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, batchId : string, stepId : string,
-    env : string, dispatch : any, cb : Function) {
-
+    env : string, cb : Function) {
     let progressCb = cb;
     let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
     .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
@@ -694,11 +689,11 @@ export async function continueProjectExecuteUnitTest(
     }
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
         async (project : string) => {
-            let datas = await getEnvHosts(clientType, project, env);
+            let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
         },
         async (project : string) => {
-            let datas = await getEnvRunModes(clientType, project, env);
+            let datas = await getEnvRunModes(clientType, teamId, project, env);
             let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
             return runMode;
         },
@@ -751,10 +746,9 @@ export async function continueProjectExecuteUnitTest(
 }
 
 export async function executeProjectUnitTest(
-    clientType : string,
-    iteratorId : string, unitTestId : string, 
-    steps : Array<any>, env : string, dispatch : any,
-    cb : Function
+    clientType : string, teamId : string,
+    unitTestId : string, steps : Array<any>, 
+    env : string, cb : Function
 )
     {
     let batch_uuid = uuidv4() as string;
@@ -769,13 +763,16 @@ export async function executeProjectUnitTest(
     unittest_result[unittest_report_ctime] = Date.now();
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+    let ret = await stepsExecutor(steps, "", unitTestId, batch_uuid, env, 
+        async (project : string, sql : string, sqlParams : Array<string>) => {
+            return await executeQuerySql(clientType, env, project, sql, sqlParams)
+        },
         async (project : string) => {
-            let datas = await getEnvHosts(clientType, project, env);
+            let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
         },
         async (project : string) => {
-            let datas = await getEnvRunModes(clientType, project, env);
+            let datas = await getEnvRunModes(clientType, teamId, project, env);
             let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
             return runMode;
         },
@@ -831,9 +828,9 @@ export async function executeProjectUnitTest(
 }
 
 export async function executeIteratorUnitTest(
-    clientType : string,
+    clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, 
-    steps : Array<any>, env : string, dispatch : any,
+    steps : Array<any>, env : string,
     cb : Function
 )
     {
@@ -852,12 +849,15 @@ export async function executeIteratorUnitTest(
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
     let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+        async (project : string, sql : string, sqlParams : Array<string>) => {
+            return await executeQuerySql(clientType, env, project, sql, sqlParams)
+        },
         async (project : string) => {
-            let datas = await getEnvHosts(clientType, project, env);
+            let datas = await getEnvHosts(clientType, teamId, project, env);
             return datas.get(env);
         },
         async (project : string) => {
-            let datas = await getEnvRunModes(clientType, project, env);
+            let datas = await getEnvRunModes(clientType, teamId, project, env);
             let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
             return runMode;
         },
@@ -917,10 +917,11 @@ export async function executeIteratorUnitTest(
 
 async function stepsExecutor(
     steps : Array<any>, 
-    iteratorId : string, 
+    iteratorId : string,
     unitTestId : string, 
     batch_uuid : string,
     env : string, 
+    getDbRetFunc : Function,
     getEnvHostFunc : Function,
     getRunModeFunc : Function,
     getEnvVarTipsFunc : Function,
@@ -953,6 +954,7 @@ async function stepsExecutor(
 
         let originRequest = await getRequestFunc(project, method, requestUri);
 
+
         jsonParamTips.setProject(project);
 
         let breakFlg = true;
@@ -966,7 +968,7 @@ async function stepsExecutor(
         }
         recentStepUuid = stepUuid;
 
-        let unitTestAsserts = await getUnitTestStepAsserts(iteratorId, unitTestId, stepUuid);
+        let unitTestAsserts = _unit_test_step.asserts;
         let envVarTips = getEnvVarTipsFunc(project);
         let requestHost = await getEnvHostFunc(project);
         let runMode = await getRunModeFunc(project);
@@ -1004,19 +1006,20 @@ async function stepsExecutor(
                 }
             }
         }
-        
-        let iteratorBodyObjectRet = await iteratorBodyObject(
-            envVarTips, param, pathVariable, header,
-            body, contentType, 
-            jsonParamTips, file,
-            unitTestId, batch_uuid,
-            originRequest.body
-        );
 
-        if (iteratorBodyObjectRet.error !== null) {
-            errorMessage = iteratorBodyObjectRet.error;
-            success = iteratorBodyObjectRet.success;
-            break outerLoop1;
+        if (originRequest != null) {
+            let iteratorBodyObjectRet = await iteratorBodyObject(
+                envVarTips, param, pathVariable, header,
+                body, contentType, 
+                jsonParamTips, file,
+                unitTestId, batch_uuid,
+                originRequest.body
+            );
+            if (iteratorBodyObjectRet.error !== null) {
+                errorMessage = iteratorBodyObjectRet.error;
+                success = iteratorBodyObjectRet.success;
+                break outerLoop1;
+            }
         }
 
         if (Object.keys(param).length > 0) {
@@ -1081,6 +1084,7 @@ async function stepsExecutor(
         let content = "";
         
         let singleCostTime = 0;
+
         if(response !== null && isStringEmpty(errorMessage)) {
             singleCostTime = response.costTime;
             if (getType(response.data) === "String" && isJsonString(response.data)) {
@@ -1122,27 +1126,65 @@ async function stepsExecutor(
                 for (let _key in unitTestAsserts) {
                     let keyNumber = Number(_key) as number;
                     let unitTestAssert = unitTestAsserts[keyNumber];
-
                     let assertLeft = unitTestAssert[unittest_step_assert_left];
                     let assertRight = unitTestAssert[unittest_step_assert_right];
                     let assertOperator = unitTestAssert[unittest_step_assert_operator];
-    
-                    jsonParamTips.setContent(assertLeft);
-                    try {
-                        assertLeftValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
-                    } catch (error) {
-                        errorMessage = error.message;
-                        breakFlg = true;
-                        break;
-                    }
-    
-                    jsonParamTips.setContent(assertRight);
-                    try {
-                        assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
-                    } catch (error) {
-                        errorMessage = error.message;
-                        breakFlg = true;
-                        break;
+                    if (unitTestAssert[unittest_step_assert_type] == ASSERT_TYPE_DB) {
+                        let sql = unitTestAssert[unittest_step_assert_sql];
+                        let sql_params = unitTestAssert[unittest_step_assert_sql_params];
+                        let parsed_sql_params = [];
+                        for (let _sql_param of sql_params) {
+                            jsonParamTips.setContent(_sql_param);
+                            try {
+                                let _parsed_value = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                                parsed_sql_params.push(_parsed_value);
+                            } catch (error) {
+                                console.error(error);
+                                errorMessage = error.message;
+                                breakFlg = true;
+                                break;
+                            }
+                        }
+
+                        try {
+                            let dbRet = await getDbRetFunc(project, sql, parsed_sql_params)
+                            assertLeftValue[keyNumber] = dbRet[assertLeft];
+                        } catch (error) {
+                            console.error(error);
+                            errorMessage = error.message;
+                            breakFlg = true;
+                            break;
+                        }
+
+                        jsonParamTips.setContent(assertRight);
+                        try {
+                            assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                        } catch (error) {
+                            console.error(error);
+                            errorMessage = error.message;
+                            breakFlg = true;
+                            break;
+                        }
+
+                    } else {
+                        jsonParamTips.setContent(assertLeft);
+                        try {
+                            assertLeftValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                        } catch (error) {
+                            errorMessage = error.message;
+                            breakFlg = true;
+                            break;
+                        }
+        
+                        jsonParamTips.setContent(assertRight);
+                        try {
+                            assertRightValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
+                        } catch (error) {
+                            console.error(error);
+                            errorMessage = error.message;
+                            breakFlg = true;
+                            break;
+                        }
                     }
 
                     if (typeof assertLeftValue[keyNumber] === "number") {
@@ -1152,8 +1194,7 @@ async function stepsExecutor(
                     if (typeof assertRightValue[keyNumber] === "number") {
                         assertRightValue[keyNumber] = assertRightValue[keyNumber].toString();
                     }
-
-                    if (assertOperator === " == ") {
+                    if (assertOperator.trim() === "==") {
                         if (assertLeftValue[keyNumber] === assertRightValue[keyNumber]) {
                             breakFlg = false;
                         } else {
@@ -1175,10 +1216,11 @@ async function stepsExecutor(
             }
         }
 
-        let requestHistoryId = await addRequestHistory(env, project, requestUri, method, 
+        let requestHistoryId = await addRequestHistory(
+            env, project, requestUri, method, iteratorId,
             header, body, pathVariable, param, file, 
             content, response?.headers, response?.cookieObj, 
-            "", isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
+            isResponseJson, isResponseHtml, isResponsePic, isResponseFile);
 
         await saveStepResultFunc(stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg);
 
@@ -1314,9 +1356,17 @@ export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
     cb();
 }
 
-export async function copyFromIteratorToProject(iteratorId : string, unittest_uuid : string, device) {
-    let clientType = device.clientType;
-    let teamId = device.teamId; 
+/**
+ * 导出到迭代
+ * @param iteratorId 
+ * @param unittest_uuid 
+ * @param device 
+ * @returns 
+ */
+export async function copyFromIteratorToProject(clientType : string, teamId : string, iteratorId : string, unittest_uuid : string, device) {
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_PROJECT_SAVE_URL, {iteratorId, unittestId: unittest_uuid});
+    }
 
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(unittest_uuid)
@@ -1336,10 +1386,6 @@ export async function copyFromIteratorToProject(iteratorId : string, unittest_uu
     let prjs = new Set<string>();
     for (let unitTestStep of unitTestSteps) {
         prjs.add(unitTestStep[unittest_step_project]);
-    }
-
-    if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(ENV_VARS_UNITTEST_COPY_URL, {iteratorId, unittestId: unittest_uuid, prjs: Array.from(prjs).join(",")});
     }
 
     let envVarKeys : any[] = [];
@@ -1474,4 +1520,66 @@ async function iteratorBodyObject(
 	result.error = null;
 	result.success = null;
 	return result;
+}
+
+async function executeQuerySql(clientType : string, env : string, project : string, sql : string, params : Array<string>) {
+    let dbConfig : any;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        dbConfig = await sendTeamMessage(DB_CONFIG_GET_URL, {prj: project, env});
+    } else {
+        let envValues = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, project, "", "" ])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return [    
+                ENV_VALUE_DB_HOST, 
+                ENV_VALUE_DB_PORT, 
+                ENV_VALUE_DB_USERNAME, 
+                ENV_VALUE_DB_PASSWORD, 
+                ENV_VALUE_DB_NAME, 
+                ENV_VALUE_DB_RUN_MODE
+            ].includes(row[env_var_pname])
+        })
+        .toArray();
+
+        dbConfig = {};
+        for(let row of envValues) {
+            if (row[env_var_pname] == ENV_VALUE_DB_HOST) {
+                dbConfig['db_host'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_PORT) {
+                dbConfig['db_port'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_USERNAME) {
+                dbConfig['db_username'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_PASSWORD) {
+                dbConfig['db_password'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_NAME) {
+                dbConfig['db_name'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_RUN_MODE) {
+                dbConfig['db_run_mode'] = row[env_var_pvalue];
+            }
+        }
+    }
+
+    return await dbQueryPromise(dbConfig, sql, params);
+}
+
+export function dbQueryPromise (dbConfig, sql, params) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsDatabaseStr, (action, isSuccess, errorMessage, ret) => {
+            if (action === ChannelsDatabaseQueryResult) {
+                listener();
+                if (isSuccess) {
+                    resolve(ret);
+                } else {
+                    reject({message: errorMessage});
+                }
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsDatabaseStr, ChannelsDatabaseQuery, dbConfig, sql, params);
+    });
 }

@@ -17,7 +17,7 @@ import {
 function getUpdateUrl() {
     let lang = getLang();
     let checkUpdateUrl = "https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/package.json";
-    if (lang == "zh-CN" || lang == "zh-TW") {
+    if (IS_CHINA_BUILD || lang == "zh-CN" || lang == "zh-TW") {
         checkUpdateUrl = "https://gitee.com/onlinetool/apichain/raw/main/package.json";
     }
 

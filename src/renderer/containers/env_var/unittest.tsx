@@ -16,14 +16,17 @@ import {
 } from '@conf/db';
 import { getWikiEnv } from '@conf/url';
 import { ENV_LIST_ROUTE } from '@conf/routers';
-import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
+import { 
+  SHOW_ADD_PROPERTY_MODEL, 
+  SHOW_EDIT_PROPERTY_MODEL,
+  GET_ENV_VALS
+} from '@conf/redux';
 
 import { getEnvs } from '@act/env';
-import { getSingleUnittest } from '@act/unittest';
+import { getProjectSingleUnittest } from '@act/unittest';
 import { getUnittestKeys } from '@act/keys';
 import {
   delUnittestEnvValues,
-  batchCopyEnvVales,
   getUnittestEnvValuesByPage,
 } from '@act/env_value';
 
@@ -105,13 +108,13 @@ class EnvVar extends Component {
                       this.props.teamId,
                       this.state.unittestId, 
                       this.state.prj, 
-                      (this.state.env ? this.state.env : this.props.env), 
+                      this.props.env, 
                       record[pname], 
                     );
                     this.getEnvValueData(
                       this.state.prj, 
                       this.state.unittestId, 
-                      (this.state.env ? this.state.env : this.props.env), 
+                      this.props.env, 
                       ""
                     );
                   }}
@@ -129,7 +132,6 @@ class EnvVar extends Component {
       unittest: {},
       tips: [],
       pkeys: [],
-      env: "",
       prj: project,
       showCurrent: true,
       listDatas: [],
@@ -141,10 +143,9 @@ class EnvVar extends Component {
   }
   
   async componentDidMount() {
-    let env = this.state.env ? this.state.env : this.props.env;
-    let unittest = await getSingleUnittest(this.state.unittestId, env, "");
+    let unittest = await getProjectSingleUnittest(this.props.clientType, this.state.unittestId, this.props.teamId, this.state.prj, this.props.env);
     this.setState({ unittest });
-    this.getEnvValueData(this.state.prj, this.state.unittestId, env, "");
+    this.getEnvValueData(this.state.prj, this.state.unittestId, this.props.env, "");
     if(this.props.envs.length === 0) {
       getEnvs(this.props.clientType, this.props.dispatch);
     }
@@ -169,12 +170,18 @@ class EnvVar extends Component {
     }
 
     setEnvironmentChange = (value: string) => {
-      this.setState({env: value});
+      this.props.dispatch({
+        type: GET_ENV_VALS,
+        prj: this.state.prj,
+        env: value,
+        iterator: "",
+        unittest: this.state.unittestId
+      });
       this.getEnvValueData(this.state.prj, this.state.unittestId, value, "");
     }
 
     setPName = (value: string) => {
-      this.getEnvValueData(this.state.prj, this.state.unittestId, this.state.env ? this.state.env : this.props.env, value);
+      this.getEnvValueData(this.state.prj, this.state.unittestId, this.props.env, value);
     }
   
     addPropertiesClick = () => {
@@ -199,7 +206,7 @@ class EnvVar extends Component {
     }
 
     getEnvValueData = async (prj: string, unittestId: string, env: string, paramName: string) => {
-      let pkeys = await getUnittestKeys(this.props.clientType, unittestId, prj);
+      let pkeys = await getUnittestKeys(this.props.clientType, this.props.teamId, unittestId, prj);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
         let listDatas = await getUnittestEnvValuesByPage(unittestId, prj, env, paramName, this.props.clientType, pagination);
@@ -229,15 +236,15 @@ class EnvVar extends Component {
                       <Select
                           style={{ width: 180 }}
                           options={this.state.unittest[unittest_projects] ? this.state.unittest[unittest_projects].map(item => {
-                              return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).remark : ""}
+                              return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : ""}
                           }) : []}
-                          onChange={ value => this.getEnvValueData(value, this.state.unittestId, this.state.env ? this.state.env : this.props.env, "")}
+                          onChange={ value => this.getEnvValueData(value, this.state.unittestId, this.props.env, "")}
                       />
                   </Form.Item>  
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
-                        value={ this.state.env ? this.state.env : this.props.env }
+                        value={ this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
                         options={this.props.envs}
@@ -263,11 +270,11 @@ class EnvVar extends Component {
                       </AutoComplete>
                   </Form.Item>
               </Form>
-              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>添加环境变量</Button>
+              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.props.env) }>添加环境变量</Button>
               <AddEnvVarComponent 
-                env={this.state.env ? this.state.env : this.props.env}
+                env={this.props.env}
                 cb={()=>{
-                  this.getEnvValueData(this.state.prj, this.state.unittestId, this.state.env ? this.state.env : this.props.env, "");
+                  this.getEnvValueData(this.state.prj, this.state.unittestId, this.props.env, "");
                 }} />
             </Flex>
             <Table 
@@ -277,7 +284,7 @@ class EnvVar extends Component {
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.prj, this.state.unittestId, this.state.env ? this.state.env : this.props.env, "");
+                this.getEnvValueData(this.state.prj, this.state.unittestId, this.props.env, "");
               }}
             />
           </Content>

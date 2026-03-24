@@ -44,10 +44,9 @@ export async function getRequestHistory(id : number) : Promise<any> {
 }
 
 export async function addRequestHistory(
-    env : string, prj : string, uri : string, method : string,
+    env : string, prj : string, uri : string, method : string, iteratorId : string,
     head, body, pathVariable, param, paramFile,
     responseContent : string, responseHead : any, responseCookie : any, 
-    iteratorId : string,
     jsonFlg : boolean, htmlFlg : boolean, picFlg : boolean, fileFlg : boolean) : Promise<number> {
 
     let file = cloneDeep(paramFile);

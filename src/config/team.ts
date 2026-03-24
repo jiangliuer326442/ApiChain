@@ -30,8 +30,6 @@ export const TEAM_DISSOLVE_URL = "/team/close-team";
 
 export const TEAM_RENAME_URL = "/team/rename-team";
 
-export const TEAM_DB_SYNC_URL = "/team/syncDb";
-
 export const ENVS_LIST_URL = "/envs/page";
 
 export const ENVS_ALL_LIST_URL = "/envs/all";
@@ -72,8 +70,6 @@ export const ENV_VARS_PROJECT_KEYS_URL = "/envvars/project/keys";
 
 export const ENV_VARS_PROJECT_COPY_URL = "/envvars/project/copy";
 
-export const ENV_VARS_UNITTEST_COPY_URL = "/envvars/unittest/copy";
-
 export const PRJ_HOST_URL = "/envvars/project/apiHosts";
 
 export const PRJ_RUN_MODE_URL = "/envvars/project/runModes";
@@ -99,6 +95,12 @@ export const ENV_VARS_ITERATOR_KEYS_URL = "/envvars/iteration/keys";
 export const ENV_VARS_UNITTEST_KEYS_URL = "/envvars/unittest/keys";
 
 export const ENV_VARS_ITERATION_COPY_URL = "/envvars/iteration/copy";
+
+export const PROJECT_CONFIG_GET_URL = "/envvars/project/getPrjConfig";
+
+export const DB_CONFIG_GET_URL = "/envvars/project/getDbConfig";
+
+export const PROJECT_CONFIG_SAVE_URL = "/envvars/project/savePrjConfig";
 
 export const VERSION_ITERATIONS_PAGE_URL = "/version_iterations/page";
 
@@ -188,6 +190,8 @@ export const REQUEST_COMMON_GET_URL = "/request_common/get";
 
 export const OS_ENV_VALUE_SET_URL = "/os_env_value/set";
 
+export const AI_CHAT_MODEL_SET_URL = "/os_env_value/setChatModel";
+
 export const AI_TOKEN_SET_URL = "/os_env_value/setOpenApi";
 
 export const AI_TOKENS_GET_URL = "/os_env_value/getOpenAiKeys";
@@ -203,3 +207,27 @@ export const AI_LANGUAGE_MODELS_URL = "/ai/languageModels";
 export const AI_VECTOR_MODELS_URL = "/ai/vector";
 
 export const AI_RE_VECTOR_MODELS_URL = "/ai/reVector";
+
+export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";
+
+export const UNITTES_ITERATION_SAVE_URL = "/unittest/iteration/save"
+
+export const UNITTES_PROJECT_SAVE_URL = "/unittest/project/save";
+
+export const UNITTES_ITERATION_DEL_URL = "/unittest/iteration/del"
+
+export const UNITTES_ITERATION_FOLD_ADD_URL = "/unittest/iteration/addFold"
+
+export const UNITTES_ITERATION_FOLD_LIST_URL = "/unittest/iteration/getFolds"
+
+export const UNITTES_ITERATION_ALL_URL = "/unittest/iteration/all"
+
+export const UNITTES_PROJECT_ALL_URL = "/unittest/project/all"
+
+export const UNITTES_ITERATION_FETCH_SINGLE_URL = "/unittest/iteration/getSingle"
+
+export const UNITTES_PROJECT_FETCH_SINGLE_URL = "/unittest/project/getSingle"
+
+export const UNITTES_ITERATION_STEP_SAVE_URL = "/unittest/iteration/saveStep"
+
+export const UNITTES_ITERATION_STEP_DEL_URL = "/unittest/iteration/delStep"

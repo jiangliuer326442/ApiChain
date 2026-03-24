@@ -11,7 +11,10 @@ import {
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_UNITTEST_MODEL } from '@conf/redux';
-import { addIteratorUnitTest, editUnitTest } from '@act/unittest';
+import { 
+    addIteratorUnitTest, 
+    editIteratorUnitTest 
+} from '@act/unittest';
 import { 
     addIteratorUnitTestFolder, 
     getIteratorUnitTestFolders,
@@ -69,7 +72,7 @@ class AddUnittestComponent extends Component {
 
         if (this.state.actionType === "create") {
             if (isStringEmpty(this.props.project)) {
-                await addIteratorUnitTest(this.props.iteratorId, unitTestTitle, selectedFolder, this.props.device);
+                await addIteratorUnitTest(this.props.clientType, this.props.iteratorId, unitTestTitle, selectedFolder, this.props.device);
                 this.clearInput();
                 this.setState({
                     loadingFlg: false
@@ -82,7 +85,7 @@ class AddUnittestComponent extends Component {
                 });
             }
         } else {
-            await editUnitTest(this.state.unitTestUuid, unitTestTitle, selectedFolder);
+            await editIteratorUnitTest(this.props.clientType, this.props.iteratorId, this.state.unitTestUuid, unitTestTitle, selectedFolder);
             this.clearInput();
             this.setState({
                 loadingFlg: false
@@ -120,15 +123,15 @@ class AddUnittestComponent extends Component {
         if (!isStringEmpty(this.props.project) && this.props.project !== prevProps.project) {  
             getProjectUnitTestFolders(this.props.project, folders => this.setState({ folders }));
         } else if (!isStringEmpty(this.props.iteratorId) && this.props.iteratorId !== prevProps.iteratorId) {  
-            getIteratorUnitTestFolders(this.props.iteratorId, folders => this.setState({ folders }));
+            getIteratorUnitTestFolders(this.props.clientType, this.props.iteratorId, folders => this.setState({ folders }));
         }  
     }
 
     handleCreateFolder = async () => {
         if (isStringEmpty(this.props.project)) {
-            await addIteratorUnitTestFolder(this.props.iteratorId, this.state.folderName, this.props.device);
+            await addIteratorUnitTestFolder(this.props.clientType, this.props.iteratorId, this.state.folderName, this.props.device);
             this.setState({folderName: ""});
-            getIteratorUnitTestFolders(this.props.iteratorId, folders => this.setState({ folders }));
+            getIteratorUnitTestFolders(this.props.clientType, this.props.iteratorId, folders => this.setState({ folders }));
         } else {
             await addProjectUnitTestFolder(this.props.project, this.state.folderName, this.props.device);
             this.setState({folderName: ""});
@@ -192,6 +195,8 @@ function mapStateToProps (state) {
         unitTestUuid: state.unittest.unitTestUuid,
         title: state.unittest.title,
         folder: state.unittest.folder,
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
     }
 }
 

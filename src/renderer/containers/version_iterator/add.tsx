@@ -7,13 +7,14 @@ import {
 
 import "./less/add.less";
 import MarkdownEditor from '@comp/markdown/edit';
-import { isStringEmpty, getdayjs } from "@rutil/index";
+import { getdayjs } from "@rutil/index";
 import { 
     PROJECT_LIST_ROUTE, 
     VERSION_ITERATOR_LIST_ROUTE 
 } from "@conf/routers";
 import { TABLE_VERSION_ITERATION_FIELDS, UNAME } from '@conf/db';
 import { ChannelsLoadAppStr } from '@conf/channel';
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
 import { getPrjs } from '@act/project';
 import { 
     getRemoteVersionIterator,
@@ -54,7 +55,7 @@ class VersionIteratorAdd extends Component {
             uuid,
             mode,
             version_iteration: {},
-            content: "",
+            content: langTrans("iterator md content"),
         }
     }
 
@@ -76,10 +77,15 @@ class VersionIteratorAdd extends Component {
 
     onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         let title = values.title.trim();
+        let projects = [];
+        for (let item of values.projects) {
+            let arr = item.split("$$");
+            projects.push(arr[0]);
+        }
         if (this.state.mode === "add") {
-            await addVersionIterator(this.props.clientType, this.props.teamId, title, this.state.content, values.projects, this.props.device);
+            await addVersionIterator(this.props.clientType, this.props.teamId, title, this.state.content, projects, this.props.device);
         } else {
-            await editVersionIterator(this.props.clientType, this.props.teamId, this.state.uuid, title, this.state.content, values.projects);
+            await editVersionIterator(this.props.clientType, this.props.teamId, this.state.uuid, title, this.state.content, projects);
         }
         this.props.history.push(VERSION_ITERATOR_LIST_ROUTE)
         window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
@@ -106,7 +112,7 @@ class VersionIteratorAdd extends Component {
                     {this.state.formReadyFlg ? 
                     <Form
                         layout='vertical'
-                        style={{ maxWidth: 600 }}
+                        style={{ maxWidth: this.props.collapsed ? 1140 : 950 }}
                         initialValues={{
                             title: this.state.version_iteration[version_iterator_title],
                             projects: this.state.version_iteration[version_iterator_prjs]
@@ -133,9 +139,14 @@ class VersionIteratorAdd extends Component {
                                 allowClear
                                 style={{ width: '100%' }}
                                 placeholder={langTrans("iterator add check3")}
-                                options={this.props.projects} />
+                                options={
+                                    this.props.projects
+                                    .filter(item => this.props.clientType == CLIENT_TYPE_SINGLE || item.teamId == this.props.teamId)
+                                    .map(item => { return {label: item.label, value: item.value + "$$" + item.label} })
+                                } 
+                            />
                             :
-                            <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>创建微服务</Button>
+                            <Button type="link" href={"#" + PROJECT_LIST_ROUTE}>{langTrans("iterator add form2 empty")}</Button>
                             }    
                         </Form.Item>
 
@@ -143,7 +154,7 @@ class VersionIteratorAdd extends Component {
                             label={langTrans("iterator add form3")}
                             name="content"
                         >
-                            <MarkdownEditor mode={this.state.mode} content={this.state.content} cb={content => this.setState({content}) } />
+                            <MarkdownEditor content={this.state.content} cb={content => this.setState({content}) } />
                         </Form.Item>
 
                         {this.state.mode === "update" ? 
@@ -190,6 +201,7 @@ function mapStateToProps (state) {
       device : state.device,
       teamId: state.device.teamId,
       clientType: state.device.clientType,
+      collapsed: state.nav.collapsed,
   }
 }
 

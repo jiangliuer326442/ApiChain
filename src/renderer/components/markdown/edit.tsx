@@ -3,19 +3,14 @@ import ReactMde, { ReactMdeTypes } from 'react-mde';
 import * as Showdown from 'showdown';
 import 'react-mde/lib/styles/css/react-mde-all.css';
 
-import { isStringEmpty } from '@rutil/index';
-import { langTrans } from '@lang/i18n';
-
 export default class extends Component {
 
     constructor(props) {
         super(props);
 
-        let content = props.content;
-
         this.state = {
             mdeState: {
-                markdown: isStringEmpty(content) ? langTrans("iterator md content") : content,
+                markdown: props.content,
             },
         }
 

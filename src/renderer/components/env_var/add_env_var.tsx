@@ -1,11 +1,11 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Form, Input, Modal, Select, message } from "antd";
+import { Form, Input, Modal, Radio, message } from "antd";
 
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_PROPERTY_MODEL } from '@conf/redux';
-import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER } from '@conf/envKeys';
-import { addEnvValues } from '@act/env_value';
+import { CLIENT_TYPE_SINGLE } from '@conf/team';
+import { addEnvValues, encryptPromise } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
 
 const { TextArea } = Input;
@@ -19,7 +19,10 @@ class AddEnvVarComponent extends Component {
             loadingFlg: false,
             pname: "",
             pvalue: "",
+            oldPValue: "",
             premark: "",
+            encryptFlg: 0,
+            oldEncryptFlg: 0,
         };
     }
 
@@ -31,7 +34,10 @@ class AddEnvVarComponent extends Component {
                 actionType: "edit",
                 pname: nextProps.pname,
                 pvalue: nextProps.pvalue,
+                oldPValue: nextProps.pvalue,
                 premark: nextProps.premark,
+                encryptFlg: nextProps.encryptFlg,
+                oldEncryptFlg: nextProps.encryptFlg,
             });
         }
     }
@@ -43,29 +49,36 @@ class AddEnvVarComponent extends Component {
         if (!isStringEmpty(this.state.premark)) {
             premark = this.state.premark.trim();
         }
+        let encryptFlg = this.state.encryptFlg;
 
         if (isStringEmpty(pname)) {
             message.error(langTrans("envvar global add check1"));
             return;
         }
 
-        if(pname === ENV_VALUE_API_HOST) {
-            if(!(pvalue.indexOf("http://") === 0 || pvalue.indexOf("https://") === 0)) {
-                message.error(langTrans("envvar prj host check1"));
-                return;
-            }
-            if(!pvalue.endsWith("/")) {
-                message.error(langTrans("envvar prj host check2"));
-                return;
-            }
-        }
-
         this.setState({
             loadingFlg: true
         });
-        await addEnvValues(this.props.clientType, this.props.teamId, this.props.prj, this.props.env, this.props.iteration ? this.props.iteration : "", this.props.unittest ? this.props.unittest : "" , 
-            pname, pvalue, premark,
-            this.props.device);
+
+        let handledData;
+        //团队版，走服务端加密
+        if (encryptFlg == 1 && (pvalue != this.state.oldPValue || encryptFlg != this.state.oldEncryptFlg) && this.props.clientType == CLIENT_TYPE_SINGLE) {
+            handledData = await encryptPromise(pvalue);
+        } else {
+            handledData = pvalue;
+        }
+
+        await addEnvValues(
+            this.props.clientType, 
+            this.props.teamId, 
+            this.props.prj, 
+            this.props.env, 
+            this.props.iteration ? this.props.iteration : "", this.props.unittest ? this.props.unittest : "" , 
+            pname, handledData, this.state.oldPValue, premark, encryptFlg, this.state.oldEncryptFlg,
+            this.props.device
+        );
+
+        message.success(langTrans("prj unittest status2"))
 
         this.clearInput();
         this.setState({
@@ -93,6 +106,7 @@ class AddEnvVarComponent extends Component {
             pname: "",
             pvalue: "",
             premark: "",
+            encryptFlg: 0,
         });
     }
 
@@ -104,35 +118,32 @@ class AddEnvVarComponent extends Component {
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
                 onCancel={this.handleCancel}
-                width={300}
+                width={350}
             >
-               <Form layout="vertical">
-                    <Form.Item>
-                        <Input allowClear placeholder={langTrans("envvar global add form1")} disabled={ this.state.actionType === "edit" } 
+               <Form layout="horizontal" labelCol={{ span: 5 }} wrapperCol={{ span: 19 }}>
+                    <Form.Item label={langTrans("envvar global add form1")}>
+                        <Input allowClear disabled={ this.state.actionType === "edit" } 
                             value={this.state.pname} onChange={ event=>this.setState({pname : event.target.value}) } />
                     </Form.Item>
-                    <Form.Item>
-                        {
-                            this.state.pname === ENV_VALUE_RUN_MODE ? 
-                            <Select 
-                                value={this.state.pvalue} 
-                                onChange={value => this.setState({pvalue : value})}
-                                options={[
-                                    {label:ENV_VALUE_RUN_MODE_CLIENT, value:ENV_VALUE_RUN_MODE_CLIENT},
-                                    {label:ENV_VALUE_RUN_MODE_RUMMER, value:ENV_VALUE_RUN_MODE_RUMMER}
-                                ]} />
-                            :
-                            <TextArea allowClear rows={ 3 }
-                                placeholder={langTrans("envvar global add form2")} 
-                                value={this.state.pvalue} 
-                                onChange={ e=>this.setState({pvalue : e.target.value}) } />
-                        }
+                    <Form.Item label={langTrans("envvar global add form2")}>
+                        <TextArea allowClear rows={ 3 }
+                            value={(this.state.oldEncryptFlg == 1 && this.state.pvalue == this.state.oldPValue) ? "******" : this.state.pvalue} 
+                            onChange={ e=>this.setState({pvalue : e.target.value}) } />
                     </Form.Item>
-                    <Form.Item>
-                        <TextArea allowClear 
-                            placeholder={langTrans("envvar global add form3")}
+                    <Form.Item label={langTrans("envvar global add form3")}>
+                        <TextArea allowClear
                             value={this.state.premark} 
                             onChange={ e=>this.setState({premark : e.target.value}) } />
+                    </Form.Item>
+                    <Form.Item label={langTrans("envvar global add form4")}>
+                        <Radio.Group 
+                            value={this.state.encryptFlg}
+                            onChange={ event=>this.setState({encryptFlg : event.target.value}) }
+                            disabled={ this.state.oldEncryptFlg == 1 }
+                            >
+                            <Radio value={0}>{langTrans("envvar global add form4 no")}</Radio>
+                            <Radio value={1}>{langTrans("envvar global add form4 yes")}</Radio>
+                        </Radio.Group>
                     </Form.Item>
                 </Form>
             </Modal>
@@ -153,6 +164,7 @@ function mapStateToProps (state) {
         pname: state.env_var.pname,
         pvalue: state.env_var.pvalue,
         premark: state.env_var.premark,
+        encryptFlg: state.env_var.encryptFlg,
     }
 }
 

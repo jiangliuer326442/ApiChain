@@ -10,6 +10,7 @@ import {
     AI_TOKENS_CHANGE_URL,
     AI_TOKENS_GAS_QUERY_URL,
     AI_BIG_MODELS_URL,
+    AI_GET_INTERFACE_TRANSLATE,
 } from '@conf/team';
 
 export async function getBigModels() {
@@ -32,8 +33,8 @@ export async function enableToken(tokenName : string) {
     await sendTeamMessage(AI_TOKENS_CHANGE_URL, {tokenName});
 }
 
-export async function queryRemainGas(tokenName : string) {
-    await sendTeamMessage(AI_TOKENS_GAS_QUERY_URL, {tokenName});
+export async function queryRemainGas(tokenContent : string) {
+    await sendTeamMessage(AI_TOKENS_GAS_QUERY_URL, {tokenContent});
 }
 
 export async function getTokens() {
@@ -45,4 +46,8 @@ export async function getTokens() {
         token["create_name"] = getMapValueOrDefault(users, createUid, "");
     }
     return tokens;
+}
+
+export async function getInterfaceTranslate(prj : string, url : string, keys : string, isAiSupport : boolean) {
+    return await sendTeamMessage(AI_GET_INTERFACE_TRANSLATE, {prj, url, keys, isAiSupport});
 }

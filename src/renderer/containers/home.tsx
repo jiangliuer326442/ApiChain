@@ -22,9 +22,8 @@ import {
   SendOutlined, 
 } from '@ant-design/icons';
 
-import { 
-  LAST_SHOWTEAM_TIME,
-} from '@conf/storage';
+import { LAST_SHOWTEAM_TIME } from '@conf/storage';
+import { getWikiAiAssistant } from '@conf/url';
 import {
   ChannelsAutoUpgradeStr, 
   ChannelsAutoUpgradeCheckStr, 
@@ -46,9 +45,6 @@ import { SET_DEVICE_INFO } from '@conf/redux';
 import {
   SYNC_TABLES
 } from '@conf/global_config';
-import {
-  TEAM_DB_SYNC_URL
-} from '@conf/team';
 import { 
   getdayjs,
   isStringEmpty,
@@ -58,7 +54,6 @@ import {
 } from '@rutil/index';
 import { addUser, getUser, setUserName as ac_setUserName, setUserCountryLangIp } from '@act/user';
 import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
-import { sendTeamMessage } from '@act/message';
 import ChatBox from '@comp/chat_box/index'
 import PayMemberModel from '@comp/topup/member';
 import TeamModel from '@comp/team';
@@ -184,34 +179,6 @@ class Home extends Component {
           await setUserCountryLangIp(this.props.clientType, this.props.teamId, uuid, userCountry, userLang, ip);
       }
       this.setState({user, showTeam})
-
-      //延迟两秒，团队模式同步数据
-      setTimeout(async () => {
-        if (this.props.clientType === CLIENT_TYPE_TEAM) {
-          let syncObjects = {};
-          const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
-          for (const tableName of tableNames) {
-            const table = window.db.table(tableName);
-        
-            // 获取所有记录
-            const records = await table.filter(item => item.upload_flg === 0).toArray();
-            if (records.length > 0) {
-              syncObjects[tableName] = records;
-            }
-          }
-          if (Object.keys(syncObjects).length > 0) {
-            await sendTeamMessage(TEAM_DB_SYNC_URL, {dbJson: JSON.stringify(syncObjects)})
-            for (const tableName in syncObjects) {
-              const table = window.db.table(tableName);
-              for (const record of syncObjects[tableName]) {
-                record.upload_flg = 1;
-                record.team_id = this.props.teamId;
-                await table.put(record);
-              }
-            }
-          }
-        }
-      }, 2000);
   }
 
   handleCkCode = (e) => {
@@ -416,9 +383,17 @@ class Home extends Component {
               ]}
             />
             <Flex vertical>
-              {this.props.clientType === CLIENT_TYPE_TEAM ?
-              <ChatBox />
-              : 
+            {this.props.clientType === CLIENT_TYPE_TEAM ?
+              <Card title={<>
+            { langTrans("chatbox title") } <Text type="secondary"><Link href={ getWikiAiAssistant() }>{langTrans("link robot chat")}</Link></Text>
+            </>} style={{ width: 1050 }}>
+                <ChatBox 
+                  from="home"
+                  meWidth={500}
+                  robotWidth={970}
+                />
+              </Card>
+            : 
               (isStringEmpty(this.props.iterator) ? null :
               <>      
                 <Title level={1}>
@@ -492,7 +467,7 @@ class Home extends Component {
               : null}
               </>
               )
-              }
+            }
             </Flex>
           </Content>
           <Footer style={{ textAlign: 'center' }}>

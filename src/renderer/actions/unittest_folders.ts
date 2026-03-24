@@ -1,4 +1,10 @@
 import { TABLE_UNITTEST_FOLD_NAME, TABLE_UNITTEST_FOLD_FIELDS } from '@conf/db';
+import { 
+    UNITTES_ITERATION_FOLD_LIST_URL,
+    UNITTES_ITERATION_FOLD_ADD_URL, 
+    CLIENT_TYPE_TEAM,
+} from '@conf/team';
+import { sendTeamMessage, } from '@act/message';
 
 let unittest_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR;
 let unittest_folder_project = TABLE_UNITTEST_FOLD_FIELDS.FIELD_PROJECT;
@@ -43,7 +49,12 @@ export async function getProjectUnitTestFolders(project : string, cb) {
     cb(result);
 }
 
-export async function addIteratorUnitTestFolder(versionIteratorId : string, folderName : string, device) {
+export async function addIteratorUnitTestFolder(clientType : string, versionIteratorId : string, folderName : string, device) {
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_ITERATION_FOLD_ADD_URL, {iterator: versionIteratorId, fold: folderName});
+    }
+
     let version_iteration_test_folder : any = {};
     version_iteration_test_folder[unittest_folder_iterator] = versionIteratorId;
     version_iteration_test_folder[unittest_folder_project] = "";
@@ -55,21 +66,32 @@ export async function addIteratorUnitTestFolder(versionIteratorId : string, fold
     await window.db[TABLE_UNITTEST_FOLD_NAME].put(version_iteration_test_folder);
 }
 
-export async function getIteratorUnitTestFolders(version_iterator : string, cb) {
+export async function getIteratorUnitTestFolders(clientType : string, version_iterator : string, cb) {
 
     let result = [];
 
-    let unit_test_folders = await window.db[TABLE_UNITTEST_FOLD_NAME]
-    .where([unittest_folder_delFlg, unittest_folder_iterator])
-    .equals([0, version_iterator])
-    .reverse()
-    .toArray();
+    if (clientType === CLIENT_TYPE_TEAM) {
+        let unit_test_folders = await sendTeamMessage(UNITTES_ITERATION_FOLD_LIST_URL, {iterator: version_iterator});
+        for (let unit_test_folder of unit_test_folders) {
+            let item = {};
+            item.label = "/" + unit_test_folder[unittest_folder_name];
+            item.value = unit_test_folder[unittest_folder_name];
+            result.push(item);
+        }
+    } else {
 
-    for (let unit_test_folder of unit_test_folders) {
-        let item = {};
-        item.label = "/" + unit_test_folder[unittest_folder_name];
-        item.value = unit_test_folder[unittest_folder_name];
-        result.push(item);
+        let unit_test_folders = await window.db[TABLE_UNITTEST_FOLD_NAME]
+        .where([unittest_folder_delFlg, unittest_folder_iterator])
+        .equals([0, version_iterator])
+        .reverse()
+        .toArray();
+
+        for (let unit_test_folder of unit_test_folders) {
+            let item = {};
+            item.label = "/" + unit_test_folder[unittest_folder_name];
+            item.value = unit_test_folder[unittest_folder_name];
+            result.push(item);
+        }
     }
 
     let item = {};

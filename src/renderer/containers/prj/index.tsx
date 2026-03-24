@@ -41,7 +41,6 @@ let field_uid = TABLE_USER_FIELDS.FIELD_UID;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
-let prj_info = TABLE_MICRO_SERVICE_FIELDS.FIELD_INFO;
 
 let project_request_project = TABLE_PROJECT_REQUEST_FIELDS.FIELD_PROJECT_LABEL;
 let project_request_method = TABLE_PROJECT_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
@@ -294,8 +293,7 @@ class Project extends Component {
         title: langTrans("prj table5"),
         key: 'operater',
         render: (_, record) => {
-          console.log("record", record)
-          return (this.props.teamId == record["team_id"] ? 
+          return ((this.props.clientType == CLIENT_TYPE_SINGLE || this.props.teamId == record["team_id"]) ? 
             <Space size="middle">
               <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPrjClick(record)} />
               <Popconfirm
@@ -333,7 +331,6 @@ class Project extends Component {
           open: true,
           prj: record[prj_label],
           remark: record[prj_remark],
-          info: record[prj_info],
       });
     }
 

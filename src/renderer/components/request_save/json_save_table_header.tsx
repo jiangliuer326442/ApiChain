@@ -32,6 +32,19 @@ export default class extends Component {
         }
     }
 
+    async componentWillReceiveProps(nextProps) {
+        let incomeObject = nextProps.object;
+        if (this.state.object !== incomeObject) {
+            this.setState({
+                object: nextProps.object,
+            }, () => {
+                if (!nextProps.readOnly) {
+                    parseJsonToTable(this.state.object, this.state.rawJson);
+                }
+            });
+        }
+    }
+
     handleAddKey = () => {
         let rawJson = this.state.rawJson;
         let addKey = this.state.addKey;

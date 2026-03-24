@@ -38,6 +38,16 @@ export default class extends Component {
         }
     }
 
+    async componentWillReceiveProps(nextProps) {
+        let incomeObject = nextProps.object;
+        if (this.state.object !== incomeObject) {
+            this.setState({
+                object: nextProps.object,
+                jsonStr: JSON.stringify(nextProps.object),
+            });
+        }
+    }
+
     handleSetJsonStr = () => {
         if (!isJsonString(this.state.jsonStr)) {
             message.error(langTrans("json save table verify json"));

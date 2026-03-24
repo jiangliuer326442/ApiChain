@@ -1,4 +1,5 @@
 import { Component, ReactNode } from 'react';
+import Dexie from 'dexie';
 import {
   SettingOutlined,
   OneToOneOutlined,
@@ -6,21 +7,33 @@ import {
   FlagOutlined,
 } from '@ant-design/icons';
 import { connect } from 'react-redux';
-import { Button, Layout, Menu, Flex } from "antd";
+import { 
+  Button,
+  Layout, 
+  Menu, 
+  Flex 
+} from "antd";
 import { cloneDeep } from 'lodash';
 
 import { langTrans } from '@lang/i18n';
 import { 
   TABLE_VERSION_ITERATION_FIELDS,
   TABLE_MICRO_SERVICE_FIELDS,
+  DB_NAME
 } from '@conf/db';
 import { SET_NAV_COLLAPSED } from '@conf/redux';
 import {
+  EMPTY_STRING,
   NETWORK,
   SETTINGS,
   ITERATOR,
   PROJECT,
 } from '@conf/global_config';
+import {
+    ArgsCreateTeamSuccess,
+    ArgsJoinTeamSuccess,
+} from '@conf/startArgs'
+import { SYNC_TABLES } from '@conf/global_config';
 import {
   ENV_LIST_ROUTE,
   PROJECT_LIST_ROUTE,
@@ -35,15 +48,22 @@ import {
   CLIENT_TYPE_TEAM,
   CLIENT_TYPE_SINGLE,
 } from '@conf/team';
+import registerMessageHook from "@act/message";
 import { getOpenVersionIterators } from "@act/version_iterator";
 import { getPrjs } from "@act/project";
+import { isStringEmpty, getStartParams } from '@rutil/index';
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
+let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 const { Sider } = Layout;
+
+let argsObject = getStartParams();
+let clientType = argsObject.clientType;
+let teamId = argsObject.teamId;
 
 class Nav extends Component {
 
@@ -133,14 +153,6 @@ class Nav extends Component {
                   </a >
                 )
               },
-              {
-                key: BASIC_SETTING_ROUTE,
-                label: (
-                  <a href={ "#" + BASIC_SETTING_ROUTE } rel="noopener noreferrer">
-                    {langTrans("nav setting basic")}
-                  </a >
-                )
-              },
             ]
           },
         ];
@@ -154,78 +166,137 @@ class Nav extends Component {
               </a >
             )
           }) 
+          basicNavs[3].children.push(              {
+            key: BASIC_SETTING_ROUTE,
+            label: (
+              <a href={ "#" + BASIC_SETTING_ROUTE } rel="noopener noreferrer">
+                {langTrans("nav setting basic")}
+              </a >
+            )
+          });
         }
 
+        if(window.db === undefined) {
+            window.db = new Dexie(DB_NAME);
+        }
+
+        window.db.on('ready', () => {
+            if (!this.state.initNavFlg) {
+                this.cb();
+            }
+        });
+
+        require('../reducers/db/20240501001');
+        require('../reducers/db/20240601001');
+        require('../reducers/db/20240604001');
+        require('../reducers/db/20240613001');
+        require('../reducers/db/20241028001');
+        require('../reducers/db/20241111001');
+        require('../reducers/db/20241112001');
+        require('../reducers/db/20241114001');
+        require('../reducers/db/20241216001');
+        require('../reducers/db/20250102001');
+        require('../reducers/db/20250614001');
+        require('../reducers/db/20250614002');
+        require('../reducers/db/20250706001');
+
         this.state = {
+          initNavFlg: false,
           navs: basicNavs,
-          initPrjsFlg: false,
-          initIterationFlg: false,
         };
     }
 
-    static getDerivedStateFromProps(nextProps, prevState) {  
-        if (!prevState.initPrjsFlg && nextProps.prjs.length > 0 && prevState.navs[2].children.length === 0 ) {
-          let newSstate = cloneDeep(prevState);
-          newSstate.navs[2].children = nextProps.prjs.map((prj) => {
-            const children = [];
-            if (nextProps.clientType === CLIENT_TYPE_SINGLE || prj.teamId === nextProps.teamId) {
-              children.push({
-                key: prj[prj_label] + "_envvar",
-                label: <a href={`#/prj_envvars/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
-              });
-            }
-            children.push({
-              key: prj[prj_label] + "_doc",
-              label: <a href={`#/project_requests/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
-            });
-            if (nextProps.clientType === CLIENT_TYPE_SINGLE || prj.teamId === nextProps.teamId) {
-              children.push({
-                key: prj[prj_label] + "_params",
-                label: <a href={`#/project_params/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project params")}</a >
-              });
-              children.push(                {
-                key: prj[prj_label] + "_unittest",
-                label: <a href={`#/project_tests/${prj.teamId}/${prj.value}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
-              });
-            }
-            return {
-              key: prj.value,
-              label: prj.label,
-              children
-            }
-          });
-          return {initPrjsFlg: true, navs: newSstate.navs};
-        } 
+    async componentDidMount() {
+        await window.db.open();
+        if (!this.state.initNavFlg) {
+            this.cb();
+        }
+        registerMessageHook();
+    }
+
+    cb = async () => {
+        if ("action" in argsObject && (ArgsCreateTeamSuccess === argsObject.action || ArgsJoinTeamSuccess === argsObject.action)) {
+            // 获取所有表的名称
+            const tableNames = window.db.tables.map(table => table.name).filter(name => SYNC_TABLES.includes(name));
         
-        if (!prevState.initIterationFlg && nextProps.iterations.length > 0 && prevState.navs[1].children.length === 0 ) {
-          let newSstate = cloneDeep(prevState);
-          newSstate.navs[1].children = nextProps.iterations.map(iteration => {
-            return {
-              key: ITERATOR + "_" + iteration[version_iterator_uuid],
-              label: iteration[version_iterator_title],
-              children: [
-                {
-                  key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_envvar",
-                  label: <a href={"#/iterator_envvars/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator envvar")}</a >
-                },
-                {
-                  key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_doc",
-                  label: <a href={"#/version_iterator_requests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator doc")}</a >
-                },
-                {
-                  key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_unittest",
-                  label: <a href={"#/version_iterator_tests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator unittest")}</a >
-                },
-                {
-                  key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_vip",
-                  label: <a href={"#/version_iterator_vip/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator member")}</a >
+            for (const tableName of tableNames) {
+                const table = window.db.table(tableName);
+            
+                // 获取所有记录
+                const records = await table.toArray();
+            
+                // 更新每个记录
+                for (const record of records) {
+                    record.upload_flg = 1;
+                    record.team_id = argsObject.tmpTeamId;
+                    await table.put(record);
                 }
-              ],
             }
+        }
+        const prjs = await getPrjs(clientType, this.props.dispatch);
+        const navs = cloneDeep(this.state.navs);
+        navs[2].children = prjs.map((prj:any) => {
+          const prjTeamId = isStringEmpty(prj["team_id"]) ? EMPTY_STRING : prj["team_id"];
+          const children = [];
+          children.push({
+            key: prj[prj_label] + "_envvar",
+            label: <a href={`#/prj_envvars/${prjTeamId}/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav project envvar")}</a >
           });
-          return {initIterationFlg: true, navs: newSstate.navs};
-        } 
-        return null;
+          children.push({
+            key: prj[prj_label] + "_doc",
+            label: <a href={`#/project_requests/${prjTeamId}/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav project doc")}</a >
+          });
+          children.push({
+            key: prj[prj_label] + "_params",
+            label: <a href={`#/project_params/${prjTeamId}/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav project params")}</a >
+          });
+          if (clientType === CLIENT_TYPE_SINGLE || prjTeamId === teamId) {
+            children.push({
+              key: prj[prj_label] + "_setting",
+              label: <a href={`#/prj_setting/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav setting")}</a >
+            });
+            children.push({
+              key: prj[prj_label] + "_unittest",
+              label: <a href={`#/project_tests/${prjTeamId}/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
+            });
+          }
+          return {
+            key: prj[prj_label],
+            label: prj[prj_remark],
+            children
+          }
+        });
+
+        const iterations = await getOpenVersionIterators(clientType, this.props.dispatch);
+        navs[1].children = iterations.map((iteration:any) => {
+          return {
+            key: ITERATOR + "_" + iteration[version_iterator_uuid],
+            label: iteration[version_iterator_title],
+            children: [
+              {
+                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_envvar",
+                label: <a href={"#/iterator_envvars/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator envvar")}</a >
+              },
+              {
+                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_doc",
+                label: <a href={"#/version_iterator_requests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator doc")}</a >
+              },
+              {
+                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_unittest",
+                label: <a href={"#/version_iterator_tests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator unittest")}</a >
+              },
+              {
+                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_vip",
+                label: <a href={"#/version_iterator_vip/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator member")}</a >
+              }
+            ],
+          }
+        });
+
+        this.setState({
+          navs,
+          initNavFlg: true,
+        });
     }
 
     setCollapsed = (collapsed) => {

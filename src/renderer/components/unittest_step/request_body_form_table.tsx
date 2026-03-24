@@ -1,6 +1,11 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
-import { Table, Button, Input } from "antd";
+import { 
+    Table, 
+    Button, 
+    Input,
+    Select
+} from "antd";
 import { cloneDeep } from 'lodash';
 
 import StepExpressionBuilderBox from "./step_expression_builder_box";
@@ -12,6 +17,9 @@ import {
     buildJsonString,
 } from '@rutil/json';
 import { getType, isNumeric } from '@rutil/index';
+import { 
+    DataTypeSelectValues,
+} from '@conf/global_config';
 import { langTrans } from '@lang/i18n';
 
 class RequestBodyFormTable extends Component {
@@ -72,6 +80,12 @@ class RequestBodyFormTable extends Component {
                 {
                     title: langTrans("network table2"),
                     dataIndex: TABLE_FIELD_TYPE,
+                    render: (dtype : any, row : any) => {
+                        if (dtype === DataTypeSelectValues || dtype.indexOf(DataTypeSelectValues + "|") > -1) {
+                            dtype === DataTypeSelectValues;
+                        }
+                        return <span>{dtype}</span>;
+                    }
                 },
                 {
                     title: langTrans("network table3"),
@@ -105,6 +119,16 @@ class RequestBodyFormTable extends Component {
                                 />
                             </>);
                         } else {
+                            let options = [];
+                            if (type === DataTypeSelectValues || type.indexOf(DataTypeSelectValues + "|") > -1) {
+                                if (type.indexOf(DataTypeSelectValues + "|") > -1) {
+                                    options = type.substring((DataTypeSelectValues + "|").length).split('|').map(pair => {
+                                        const [label, value] = pair.split(':');
+                                        return { label, value };
+                                    });
+                                }
+                            }
+
                             return (
                                 <StepExpressionBuilderBox
                                     enableFlag={ props.enableFlag }
@@ -115,6 +139,7 @@ class RequestBodyFormTable extends Component {
                                     stepResponseContentData={ props.stepResponseContentData }
                                     stepResponseHeaderData={ props.stepResponseHeaderData }
                                     stepResponseCookieData={ props.stepResponseCookieData }
+                                    options={options}
                                     value={data}
                                     cb={value => this.setData(key, value)}
                                     width={288}

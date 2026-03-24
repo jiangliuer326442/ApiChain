@@ -8,7 +8,9 @@ import {
   USERLANG,
   APPVERSION, 
   VIP_FLG, 
+  UNIT_TEST_FLG,
   CKCODE_FLG,
+  AISUPPORT_FLG,
   CKCODE_TYPE,
   PAY_METHOD,
   EXPIRE_TIME, 
@@ -19,7 +21,7 @@ import {
 } from '@conf/storage';
 
 import { CLIENT_TYPE_SINGLE } from '@conf/team';
-import { SET_DEVICE_INFO } from '@conf/redux';
+import { SET_DEVICE_INFO, SET_AI_SUPPORT_INFO } from '@conf/redux';
 import { isStringEmpty } from '@rutil/index';
 
 export default function (state = {
@@ -27,6 +29,8 @@ export default function (state = {
   appName: "",
   defaultRunnerUrl: "",
   defaultRunnerVersion: "",
+  isAiSupport: false,
+  isUnitTest: false,
   appVersion: "",
   userCountry: "",
   userLang: "",
@@ -41,7 +45,12 @@ export default function (state = {
   teamId: "",
   buyTimes: 0,
 }, action : any) {
-  if(action.type === SET_DEVICE_INFO) {
+  if (action.type === SET_AI_SUPPORT_INFO) {
+        let newState : any = {};
+        sessionStorage.setItem(AISUPPORT_FLG, action.isAiSupport ? "1" : "0");
+        newState.isAiSupport = action.isAiSupport;
+        return Object.assign({}, state, newState);
+  } else if (action.type === SET_DEVICE_INFO) {
       let newState : any = {};
 
       if (action.uuid !== undefined) {
@@ -52,6 +61,11 @@ export default function (state = {
       if (action.buyTimes !== undefined) {
         sessionStorage.setItem(BUY_TIMES, action.buyTimes);
         newState.buyTimes = action.buyTimes;
+      }
+
+      if (action.isAiSupport !== undefined) {
+        sessionStorage.setItem(AISUPPORT_FLG, action.isAiSupport ? "1" : "0");
+        newState.isAiSupport = action.isAiSupport;
       }
 
       if (action.showCkCode !== undefined) {
@@ -72,6 +86,11 @@ export default function (state = {
       if (action.vipFlg !== undefined) {
         sessionStorage.setItem(VIP_FLG, action.vipFlg ? "1" : "0");
         newState.vipFlg = action.vipFlg;
+      }
+
+      if (action.isUnitTest !== undefined) {
+        sessionStorage.setItem(UNIT_TEST_FLG, action.isUnitTest ? "1" : "0");
+        newState.isUnitTest = action.isUnitTest;
       }
 
       if (action.expireTime !== undefined) {
@@ -130,10 +149,12 @@ export default function (state = {
       }
       
       return Object.assign({}, state, newState);
-  }else if(state.uuid === "") {
+  } else if(state.uuid === "") {
     state.uuid = isStringEmpty(sessionStorage.getItem(UUID)) ? "" : sessionStorage.getItem(UUID) as string;
     state.vipFlg = isStringEmpty(sessionStorage.getItem(VIP_FLG)) ? false : (sessionStorage.getItem(VIP_FLG) === "1" ? true : false);
+    state.isUnitTest = isStringEmpty(sessionStorage.getItem(UNIT_TEST_FLG)) ? false : (sessionStorage.getItem(UNIT_TEST_FLG) === "1" ? true : false);
     state.showCkCode = isStringEmpty(sessionStorage.getItem(CKCODE_FLG)) ? false : (sessionStorage.getItem(CKCODE_FLG) === "1" ? true : false);
+    state.isAiSupport = isStringEmpty(sessionStorage.getItem(AISUPPORT_FLG)) ? false : (sessionStorage.getItem(AISUPPORT_FLG) === "1" ? true : false);
     state.ckCodeType = isStringEmpty(sessionStorage.getItem(CKCODE_TYPE)) ? "" : sessionStorage.getItem(CKCODE_TYPE) as string;
     state.payMethod = isStringEmpty(sessionStorage.getItem(PAY_METHOD)) ? "" : sessionStorage.getItem(PAY_METHOD) as string;
     state.expireTime = isStringEmpty(sessionStorage.getItem(EXPIRE_TIME)) ? 0 : Number(sessionStorage.getItem(EXPIRE_TIME));

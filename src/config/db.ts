@@ -44,6 +44,7 @@ export const TABLE_ENV_VAR_FIELDS = {
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
+    FIELD_ENCRYPTFLG : "encrypt_flg",
 }
 
 export const TABLE_ENV_KEY_NAME = "microservices_keys";
@@ -215,7 +216,7 @@ export const TABLE_UNITTEST_STEPS_FIELDS = {
     FIELD_REQUEST_PARAM : "param",
     FIELD_REQUEST_PATH_VARIABLE : "path_variable",
     FIELD_REQUEST_BODY : "body",
-    FIELD_CONTINUE : "continue", //0 手动执行 1 自动执行 2 等待执行
+    FIELD_CONTINUE : "continue_type", //0 手动执行 1 自动执行 2 等待执行
     FIELD_WAIT_SECONDS : "wait_seconds",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
@@ -229,6 +230,9 @@ export const TABLE_UNITTEST_STEP_ASSERT_FIELDS = {
     FIELD_STEP_UUID : "step_uuid",
     FIELD_UUID : "uuid",
     FIELD_TITLE : "title",
+    FIELD_TYPE : "assert_type",
+    FIELD_SQL : "sql",
+    FIELD_SQL_PARAMS : "sql_params",
     FIELD_ASSERT_LEFT : "assert_left",
     FIELD_ASSERT_OPERATOR : "assert_operator",
     FIELD_ASSERT_RIGHT : "assert_right",

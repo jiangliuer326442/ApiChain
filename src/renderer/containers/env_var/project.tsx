@@ -10,15 +10,16 @@ import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
-import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE } from '@conf/envKeys';
+import {
+  CLIENT_TYPE_SINGLE,
+} from '@conf/team';
 import { ENV_LIST_ROUTE } from '@conf/routers';
-import { GET_ENV_VALS } from '@conf/redux';
+import { GET_ENV_VALS, GET_PRJ } from '@conf/redux';
 import { getWikiEnv } from '@conf/url';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
 import { 
   getPrjEnvValuesByPage, 
-  addEnvValues,
   delPrjEnvValues,
   batchCopyProjectEnvValues,
 } from '@act/env_value';
@@ -35,11 +36,14 @@ let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
+let encryptFlg = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 
 class EnvVar extends Component {
 
   constructor(props) {
     super(props);
+    const teamId = isStringEmpty(props.match.params.team) ? "" : props.match.params.team;
+    const prj = props.match.params.prj;
     this.state = {
       listColumn: [
         {
@@ -56,10 +60,14 @@ class EnvVar extends Component {
           title: langTrans("envvar prj table2"),
           dataIndex: pvar,
           width: 205,
-          render: (value) => {
-            return (
-              <Text copyable={{text: value}}>{ value }</Text>
-            );
+          render: (value, record) => {
+              if (record[encryptFlg] !== undefined && record[encryptFlg] == 1) {
+                return "******";
+              } else {
+                return (
+                  <Text copyable={{text: value}}>{ value }</Text>
+                );
+              }
           }
         },
         {
@@ -88,21 +96,22 @@ class EnvVar extends Component {
               this.state.disabledKeys.push(record[pname]);
             }
             return (
+              (this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId) && 
               <Space size="small">
                 <Button type="link" icon={<EditOutlined />} onClick={()=>this.editPropertiesClick(record)} />
-                {(record.source === 'prj' && record[pname] !== ENV_VALUE_API_HOST) && record[pname] !== ENV_VALUE_RUN_MODE ? 
+                {record.source === 'prj' && 
                 <Popconfirm
                   title={langTrans("envvar prj del title")}
                   description={langTrans("envvar prj del desc")}
                   onConfirm={async e => {
-                      await delPrjEnvValues(this.state.prj, (this.state.env ? this.state.env : this.props.env), record[pname], this.props.clientType, this.props.teamId);
-                      this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                      await delPrjEnvValues(this.state.prj, this.props.env, record[pname], this.props.clientType, this.props.teamId);
+                      this.getEnvValueData(this.state.teamId, this.state.prj, this.props.env, "", "");
                   }}
                   okText={langTrans("envvar prj del sure")}
                   cancelText={langTrans("envvar prj del cancel")}
                 >
                   <Button danger type="link" icon={<DeleteOutlined />} />
-                </Popconfirm> : null}
+                </Popconfirm>}
               </Space>
             )
           },
@@ -113,17 +122,21 @@ class EnvVar extends Component {
         current: 1,
         pageSize: 10,
       },
-      prj: this.props.match.params.prj,
+      prj,
+      teamId,
       tips: [],
       pkeys: [],
-      env: "",
       copiedKeys: [],
       disabledKeys: [],
     }
+    this.props.dispatch({
+        type: GET_PRJ,
+        prj,
+    });
   }
   
   componentDidMount(): void {
-    this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+    this.getEnvValueData(this.state.teamId, this.state.prj, this.props.env, "", "");
     if(this.props.envs.length === 0) {
       getEnvs(this.props.clientType, this.props.dispatch);
     }
@@ -143,7 +156,11 @@ class EnvVar extends Component {
         copiedKeys: [],
         disabledKeys: [],
       });
-      this.getEnvValueData(nextPrj, this.state.env ? this.state.env : this.props.env, "");
+      this.getEnvValueData(this.state.teamId, nextPrj, this.props.env, "", "");
+      nextProps.dispatch({
+          type: GET_PRJ,
+          prj: nextPrj,
+      });
     }
   }
 
@@ -155,12 +172,20 @@ class EnvVar extends Component {
         iterator: "",
         unittest: ""
       });
-      this.setState({env: value});
-      this.getEnvValueData(this.state.prj, value, "");
+      this.getEnvValueData(this.state.teamId, this.state.prj, value, "", "");
     }
 
     setPName = (value: string) => {
-      this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, value);
+      this.getEnvValueData(this.state.teamId, this.state.prj, this.props.env, value, "");
+    }
+
+    searchRemark = (event) => {
+      let remark = event.target.value.trim();
+      if (isStringEmpty(remark)) {
+        this.getEnvValueData(this.state.teamId, this.state.prj, this.props.env, "", "");
+      } else {
+        this.getEnvValueData(this.state.teamId, this.state.prj, this.props.env, "", remark);
+      }
     }
   
     addPropertiesClick = () => {
@@ -179,44 +204,21 @@ class EnvVar extends Component {
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
+          encryptFlg: record[encryptFlg],
       });
     }
 
-    getEnvValueData = async (prj: string, env: string, paramName: string) => {
-      let pkeys = await getProjectKeys(this.props.clientType, prj);
-      if(!isStringEmpty(env)) {
-        let pagination = cloneDeep(this.state.pagination);
-        let listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
-        this.setState({
-          prj, 
-          listDatas, 
-          pagination,
-          pkeys: !paramName ? pkeys : [],
-        });
-
-        let hasApiHost = false;
-        let hasRunMode = false;
-        for (let item of listDatas) {
-          if (item[pname] === ENV_VALUE_API_HOST) {
-            hasApiHost = true;
-          }
-          if (item[pname] === ENV_VALUE_RUN_MODE) {
-            hasRunMode = true;
-          }
-        }
-        if (!hasApiHost || !hasApiHost) {
-          if (!hasApiHost) {
-            await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
-            ENV_VALUE_API_HOST, "", langTrans("envvar prj api"), this.props.device);
-          }
-          if (!hasRunMode) {
-            await addEnvValues(this.props.clientType, this.props.teamId, prj, env, "", "", 
-              ENV_VALUE_RUN_MODE, "client", langTrans("envvar prj run mode"), this.props.device);
-          }
-          listDatas = await getPrjEnvValuesByPage(prj, env, paramName, this.props.clientType, pagination);
-          this.setState({listDatas, pagination});
-        }
-      }
+    getEnvValueData = async (teamId: string, prj: string, env: string, paramName: string, paramRemark : string) => {
+      let pkeys = await getProjectKeys(this.props.clientType, teamId, prj);
+      if(isStringEmpty(env)) return;
+      let pagination = cloneDeep(this.state.pagination);
+      let listDatas = await getPrjEnvValuesByPage(teamId, prj, env, paramName, paramRemark, this.props.clientType, pagination);
+      this.setState({
+        prj, 
+        listDatas, 
+        pagination,
+        pkeys: !paramName ? pkeys : [],
+      });
     }
     
     setCopiedKeys = copiedKeys => {
@@ -241,7 +243,7 @@ class EnvVar extends Component {
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
-                        value={ this.state.env ? this.state.env : this.props.env }
+                        value={ this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
                         options={this.props.envs}
@@ -266,6 +268,12 @@ class EnvVar extends Component {
                           <Input />
                       </AutoComplete>
                   </Form.Item>
+                  <Form.Item style={{paddingBottom: 20}} label={langTrans("envvar prj table3")}>
+                      <Input 
+                        onPressEnter={this.searchRemark}
+                      />
+                  </Form.Item>
+                {(this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId) ? 
                   <Form.Item label={langTrans("envvar select tip3")}>
                     <Select
                         onChange={ async value => {
@@ -275,7 +283,7 @@ class EnvVar extends Component {
                             this.props.clientType, 
                             this.props.teamId, 
                             this.state.prj, 
-                            (this.state.env ? this.state.env : this.props.env), 
+                            this.props.env, 
                             value, 
                             this.state.copiedKeys
                           );
@@ -285,20 +293,25 @@ class EnvVar extends Component {
                         }}
                         style={{ width: 120 }}
                         options={this.props.envs
-                          .filter(item => item.value != (this.state.env ? this.state.env : this.props.env))
-                          .map(item => {
-                            return {value: item.value, label: item.label}
-                          })
+                          .filter(item => item.value != this.props.env)
                         }
                         allowClear
                     />
                   </Form.Item>
+                : null}
               </Form>
-              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
+            {(this.props.clientType == CLIENT_TYPE_SINGLE || this.state.teamId == this.props.teamId) ? 
+              <Button  
+                style={{ margin: '16px 0' }} type="primary" 
+                onClick={this.addPropertiesClick} 
+                disabled={ isStringEmpty(this.props.env) }>
+                  {langTrans("envvar global add")}
+              </Button>
+            : null}
               <AddEnvVarComponent 
-                env={this.state.env ? this.state.env : this.props.env}
+                env={this.props.env}
                 cb={()=>{
-                  this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                  this.getEnvValueData(this.state.teamId, this.state.prj, this.props.env, "", "");
                 }}  
                 />
             </Flex>
@@ -310,7 +323,7 @@ class EnvVar extends Component {
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.prj, this.state.env ? this.state.env : this.props.env, "");
+                this.getEnvValueData(this.state.teamId, this.state.prj, this.props.env, "", "");
               }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>

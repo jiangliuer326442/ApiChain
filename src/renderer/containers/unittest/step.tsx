@@ -2,13 +2,14 @@ import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { 
     Layout, Breadcrumb, Form, Select, Space, 
-    Tabs, Input, InputNumber, Divider,
+    Tabs, Input, InputNumber, Divider, Table,
     Button, message
 } from 'antd';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 
 import { 
+    TABLE_FIELD_NAME,
     TABLE_FIELD_VALUE,
     buildJsonString
 } from '@rutil/json';
@@ -16,6 +17,7 @@ import { isStringEmpty } from '@rutil/index';
 import {
     REQUEST_METHOD_POST,
 } from '@conf/global_config';
+import { ASSERT_TYPE_API, ASSERT_TYPE_DB } from '@conf/unittest'
 import {
     TABLE_UNITTEST_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
@@ -27,23 +29,25 @@ import { getUnitTestRequests, getVersionIteratorRequest } from '@act/version_ite
 import { getProjectRequest } from '@act/project_request';
 import { 
     getIterationUnitTests,
+} from '@act/unittest';
+import {
     addUnitTestStep,
     editUnitTestStep,
-    getUnitTestStepAsserts,
-} from '@act/unittest';
+} from '@act/unittest_step';
 import RequestPathVariableFormTable from "@comp/unittest_step/request_path_variable_form_table";
 import RequestParamFormTable from "@comp/unittest_step/request_param_form_table";
 import RequestHeadFormTable from "@comp/unittest_step/request_head_form_table";
 import RequestBodyFormTable from "@comp/unittest_step/request_body_form_table";
 import StepExpressionBuilderBox from "@comp/unittest_step/step_expression_builder_box";
-import { langTrans } from '@lang/i18n';
+import { langTrans, langFormat } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
+
+const { TextArea } = Input
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 
-let iteration_request_iteration_uuid = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_ITERATOR_UUID;
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
 let iteration_request_uri = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_URI;
@@ -71,6 +75,9 @@ let unittest_step_request_body = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_BODY;
 
 let unittest_step_assert_uuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UUID;
 let unittest_step_assert_title = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TITLE;
+let unittest_step_assert_type = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TYPE;
+let unittest_step_assert_sql = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL;
+let unittest_step_assert_sql_params = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL_PARAMS;
 let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
 let unittest_step_assert_operator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
 let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
@@ -90,6 +97,10 @@ class UnittestStepContainer extends Component {
         let title = "";
         let assertLength = 1;
         let assertTitle = [null];
+        let assertType = [ASSERT_TYPE_API];
+        let assertUuidArr = [""]
+        let assertSql = [""];
+        let assertSqlParams = [[]];
         let assertPrev = [""];
         let assertOperator = [" == "];
         let assertAfter = [""];
@@ -102,14 +113,15 @@ class UnittestStepContainer extends Component {
         let requestHead = {};
         let requestBody = {};
 
-        let prjsSelectector = this.props.projects.map(_prj => ({label: _prj.label, value: _prj.value + "$$" + _prj.label}));
+        let responseContent = {};
+        let responseHeader = {};
+        let responseCookie = {};
+
+
+        let prjsSelectector = props.projects.map(_prj => ({label: _prj.label, value: _prj.value + "$$" + _prj.label}));
 
         if (this.props.unittest[iteratorId]) {
-            for (let unitTest of this.props.unittest[iteratorId]) {
-                if (unitTest[unittest_uuid] === unitTestUuid) {
-                    cUnitTest = unitTest;
-                }
-            }
+            cUnitTest = this.getCurrentUnitTest(props.unittest, iteratorId, unitTestUuid);
 
             if (!isStringEmpty(unitTestStepUuid)) {
                 let cUnitTestStep = cUnitTest.children.find(row => row[unittest_step_uuid] === unitTestStepUuid);
@@ -118,12 +130,36 @@ class UnittestStepContainer extends Component {
                 uri = cUnitTestStep[unittest_step_uri];
                 title = cUnitTestStep[unittest_step_title];
                 sort = cUnitTestStep[unittest_step_sort];
-                continueEnable = cUnitTestStep[unittest_step_continue] == 0 ? "0" : cUnitTestStep[unittest_step_continue];
+                continueEnable = cUnitTestStep[unittest_step_continue] == 0 ? "0" : "" +cUnitTestStep[unittest_step_continue];
                 waitSeconds = cUnitTestStep[unittest_step_wait_seconds];
+                jsonFlg = cUnitTestStep[iteration_request_json_flg];
                 requestParam = cUnitTestStep[unittest_step_request_param];
                 requestPathVariable = cUnitTestStep[unittest_step_request_path_variable] ? cUnitTestStep[unittest_step_request_path_variable] : {};
                 requestHead = cUnitTestStep[unittest_step_request_head];
                 requestBody = cUnitTestStep[unittest_step_request_body];
+
+                let assertList = cUnitTestStep.asserts;
+                assertLength = assertList.length;
+                if (assertLength > 0) {
+                    assertTitle = [];
+                    assertType = [];
+                    assertUuidArr = [];
+                    assertSql = [];
+                    assertSqlParams = [];
+                    assertPrev = [];
+                    assertOperator = [];
+                    assertAfter = [];
+                    for (let _assert of assertList) {
+                        assertUuidArr.push(_assert[unittest_step_assert_uuid]);
+                        assertTitle.push(_assert[unittest_step_assert_title]);
+                        assertType.push(isStringEmpty(_assert[unittest_step_assert_type]) ? ASSERT_TYPE_API : _assert[unittest_step_assert_type]);
+                        assertSql.push(isStringEmpty(_assert[unittest_step_assert_sql]) ? "" : _assert[unittest_step_assert_sql]);
+                        assertSqlParams.push(_assert[unittest_step_assert_sql_params] == undefined ? [] : _assert[unittest_step_assert_sql_params]);
+                        assertPrev.push(_assert[unittest_step_assert_left]);
+                        assertOperator.push(_assert[unittest_step_assert_operator]);
+                        assertAfter.push(_assert[unittest_step_assert_right]);
+                    }
+                }
             } else {
                 sort = cUnitTest.children.length + 1
             }
@@ -151,24 +187,69 @@ class UnittestStepContainer extends Component {
             uri,
             title,
             tips: [],
-            responseContent: {},
-            responseHeader: {},
-            responseCookie: {},
+            responseContent,
+            responseHeader,
+            responseCookie,
             continueEnable,
             waitSeconds,
             sort,
             jsonFlg,
             paramTips: [],
             assertTitle,
+            assertType,
+            assertSql,
+            assertSqlParams,
+            assertSqlParamsTable: this.buildAssertSqlParamsTable(assertSqlParams),
             assertPrev,
             assertOperator,
             assertAfter,
             assertLength,
-            assertUuidArr: [],
+            assertUuidArr,
+            sqlParamColumns: [
+                {
+                    title: langTrans("network table1"),
+                    dataIndex: TABLE_FIELD_NAME,
+                },
+                {
+                    title: langTrans("network table4"),
+                    dataIndex: TABLE_FIELD_VALUE,
+                    render: (data, row) => {
+                        let [i, j] = row.key.split("_");
+                        return (
+                            <StepExpressionBuilderBox
+                                enableFlag={Object.keys(this.state.request).length > 0}
+                                stepPathVariableData={this.state.formRequestPathVariableData}
+                                stepHeaderData={this.state.formRequestHeadData}
+                                stepBodyData={this.state.formRequestBodyData}
+                                stepParamData={this.state.formRequestParamData}
+                                stepResponseContentData={this.state.responseContent}
+                                stepResponseHeaderData={this.state.responseHeader}
+                                stepResponseCookieData={this.state.responseCookie}
+                                value={data}
+                                cb={value => {
+                                    let assertSqlParams = this.state.assertSqlParams[i];
+                                    assertSqlParams[j] = value;
+                                    let assertSqlParamsRow = this.state.assertSqlParamsTable[i];
+                                    assertSqlParamsRow[j][TABLE_FIELD_VALUE] = value
+                                    this.setState({
+                                        assertSqlParams: cloneDeep(this.state.assertSqlParams),
+                                        assertSqlParamsTable: cloneDeep(this.state.assertSqlParamsTable)
+                                    });
+                                }}
+                                width={ 288 }
+                                iteratorId={ this.state.iteratorId}
+                                unitTestUuid={ this.state.unitTestUuid}
+                                unitTestStepUuid={ this.state.unitTestStepUuid}
+                                project={ this.state.prj}
+                            />
+                        );
+                    }
+                },
+            ],
         }
         this.requestSendTip = new RequestSendTips();
         if (!isStringEmpty(prj)) {
-            this.initPrj(iteratorId, prj, props.dispatch);
+            this.requestSendTip.init("iterator", prj, iteratorId, "", props.clientType);
         }
     }
 
@@ -177,39 +258,109 @@ class UnittestStepContainer extends Component {
             getIterationUnitTests(this.props.clientType, this.state.iteratorId, null, null, this.props.dispatch);
         }
         if (!isStringEmpty(this.state.unitTestStepUuid)) {
-            getUnitTestStepAsserts(this.state.iteratorId, this.state.unitTestUuid, this.state.unitTestStepUuid).then(unitTestAsserts => {
-                let assertLength = unitTestAsserts.length;
-                let assertTitle = [];
-                let assertPrev = [];
-                let assertOperator = [];
-                let assertAfter = [];
-                let assertUuidArr = [];
-                for (let _index in unitTestAsserts) {
-                    let unitTestAssertItem = unitTestAsserts[_index];
-                    assertUuidArr.push(unitTestAssertItem[unittest_step_assert_uuid]);
-                    assertTitle.push(unitTestAssertItem[unittest_step_assert_title]);
-                    assertPrev.push(unitTestAssertItem[unittest_step_assert_left]);
-                    assertOperator.push(unitTestAssertItem[unittest_step_assert_operator]);
-                    assertAfter.push(unitTestAssertItem[unittest_step_assert_right]);
-                }
-                this.setState({assertUuidArr, assertLength, assertTitle, assertPrev, assertOperator, assertAfter});
-            });
+            this.initMethodUri2(this.state.method, this.state.uri);
         }
+    }
+
+    getCurrentUnitTest = (unitTest, iteratorId, unitTestUuid) => {
+        let cUnitTest = null;
+        for (let _unitTest of unitTest[iteratorId]) {
+            if (_unitTest[unittest_uuid] === unitTestUuid) {
+                cUnitTest = _unitTest;
+                break;
+            }
+        }
+        return cUnitTest;
     }
 
     handleRequestUri = value => {
         let arr = value.split("$$");
         let method = arr[0];
         let uri = arr[1];
-        this.initMethodUri(method, uri);
+        this.setState({
+            uri: value,
+            request: {}, 
+            method: "", 
+            formRequestHeadData:{}, 
+            formRequestBodyData:{}, 
+            formRequestParamData:{}, 
+            formRequestPathVariableData:{},
+            requestHead:{}, 
+            requestBody:{}, 
+            requestParam:{}, 
+            requestPathVariable:{},
+            assertLength:1,
+            title: "", 
+            responseContent:{}, 
+            responseHeader:{}, 
+            responseCookie:{},
+            jsonFlg: false,
+            paramTips: []
+        }, ()=>{
+            this.initMethodUri(method, uri);
+        })
+    }
+
+    initMethodUri2 = async (method, uri) => {
+        let prj = this.state.prj.includes("$$") ? this.state.prj.split("$$")[0] : this.state.prj;
+        let request;
+        if (isStringEmpty(this.state.iteratorId)) {
+            request = await getProjectRequest(this.props.clientType, prj, method, uri);
+        } else {
+            request = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, prj, method, uri);
+        }
+        if (request == null) {
+            request = await getProjectRequest(this.props.clientType, prj, method, uri);
+        }
+        
+        let formRequestHeadData = request[iteration_request_header];
+        for (let _key in this.state.requestHead) {
+            formRequestHeadData[_key][TABLE_FIELD_VALUE] = this.state.requestHead[_key];
+        }
+
+        let formRequestBodyData = request[iteration_request_body];
+        for (let _key in this.state.requestBody) {
+            formRequestBodyData[_key][TABLE_FIELD_VALUE] = this.state.requestBody[_key];
+        }
+
+        let formRequestParamData = request[iteration_request_param];
+        for (let _key in this.state.requestParam) {
+            formRequestParamData[_key][TABLE_FIELD_VALUE] = this.state.requestParam[_key];
+        }
+
+        let formRequestPathVariableData = request[iteration_request_path_variable];
+        for (let _key in this.state.requestPathVariable) {
+            formRequestPathVariableData[_key][TABLE_FIELD_VALUE] = this.state.requestPathVariable[_key];
+        }
+
+        let responseContent = request[iteration_response_content];
+        let responseHeader = request[iteration_response_header];
+        let responseCookie = request[iteration_response_cookie];
+
+        let envKeys = await this.requestSendTip.getTips();
+        this.setState({ 
+            request, method, 
+            formRequestHeadData, 
+            formRequestBodyData, 
+            formRequestParamData, 
+            formRequestPathVariableData,
+            responseContent, 
+            responseHeader, 
+            responseCookie,
+            paramTips: envKeys
+        });
     }
 
     initMethodUri = async (method, uri) => {
-        let request = this.state.requests.find(row => row[iteration_request_method] === method && row[iteration_request_uri] === uri);
-        if (isStringEmpty(request[iteration_request_iteration_uuid])) {
-            request = await getProjectRequest(this.props.clientType, this.state.prj, method, uri);
+        let prj = this.state.prj.includes("$$") ? this.state.prj.split("$$")[0] : this.state.prj;
+        let request;
+        if (isStringEmpty(this.state.iteratorId)) {
+            request = await getProjectRequest(this.props.clientType, prj, method, uri);
         } else {
-            request = await getVersionIteratorRequest(this.props.clientType, request[iteration_request_iteration_uuid], this.state.prj, method, uri);
+            request = await getVersionIteratorRequest(this.props.clientType, this.state.iteratorId, prj, method, uri);
+        }
+        if (request == null) {
+            request = await getProjectRequest(this.props.clientType, prj, method, uri);
         }
         let formRequestHeadData = request[iteration_request_header];
         let formRequestBodyData = request[iteration_request_body];
@@ -221,55 +372,24 @@ class UnittestStepContainer extends Component {
             assertLength = 0;
         }
 
-        let requestHead : any;
-        if (Object.keys(this.state.requestHead).length === 0){
-            requestHead = {};
-            for (let _key in formRequestHeadData) {
-                requestHead[_key] = formRequestHeadData[_key][TABLE_FIELD_VALUE];
-            }
-        } else {
-            requestHead = this.state.requestHead;
-            for (let _key in requestHead) {
-                formRequestHeadData[_key][TABLE_FIELD_VALUE] = requestHead[_key];
-            }
+        let requestHead : any = {};
+        for (let _key in formRequestHeadData) {
+            requestHead[_key] = formRequestHeadData[_key][TABLE_FIELD_VALUE];
         }
 
-        let requestBody : any;
-        if (Object.keys(this.state.requestBody).length === 0){
-            let buildJsonStringRet = await buildJsonString(formRequestBodyData);
-            requestBody = buildJsonStringRet.returnObject;
-        } else {
-            requestBody = this.state.requestBody;
-            for (let _key in requestBody) {
-                if (!(_key in formRequestBodyData)) continue;
-                formRequestBodyData[_key][TABLE_FIELD_VALUE] = requestBody[_key];
-            }
+        let buildJsonStringRet = await buildJsonString(formRequestBodyData);
+        let requestBody = buildJsonStringRet.returnObject;
+
+        let requestParam : any = {};
+        for (let _key in formRequestParamData) {
+            requestParam[_key] = formRequestParamData[_key][TABLE_FIELD_VALUE];
         }
 
-        let requestParam : any;
-        if (Object.keys(this.state.requestParam).length === 0){
-            requestParam = {};
-            for (let _key in formRequestParamData) {
-                requestParam[_key] = formRequestParamData[_key][TABLE_FIELD_VALUE];
-            }
-        } else {
-            requestParam = this.state.requestParam;
-            for (let _key in requestParam) {
-                formRequestParamData[_key][TABLE_FIELD_VALUE] = requestParam[_key];
-            }
+        let requestPathVariable : any = {};
+        for (let _key in formRequestPathVariableData) {
+            requestPathVariable[_key] = formRequestPathVariableData[_key][TABLE_FIELD_VALUE];
         }
-        let requestPathVariable : any;
-        if (Object.keys(this.state.requestPathVariable).length === 0){
-            requestPathVariable = {};
-            for (let _key in formRequestPathVariableData) {
-                requestPathVariable[_key] = formRequestPathVariableData[_key][TABLE_FIELD_VALUE];
-            }
-        } else {
-            requestPathVariable = this.state.requestPathVariable;
-            for (let _key in requestPathVariable) {
-                formRequestPathVariableData[_key][TABLE_FIELD_VALUE] = requestPathVariable[_key];
-            }
-        }
+
         let responseContent = request[iteration_response_content];
         let responseHeader = request[iteration_response_header];
         let responseCookie = request[iteration_response_cookie];
@@ -277,7 +397,7 @@ class UnittestStepContainer extends Component {
 
         let envKeys = await this.requestSendTip.getTips();
         this.setState({ 
-            request, method, uri, 
+            request, method, 
             formRequestHeadData, 
             formRequestBodyData, 
             formRequestParamData, 
@@ -296,7 +416,7 @@ class UnittestStepContainer extends Component {
         });
     }
 
-    initPrj = (iteratorId, prj, dispatch) => {
+    initPrj = (iteratorId, prj) => {
         getUnitTestRequests(
             this.props.clientType, 
             prj, 
@@ -305,9 +425,10 @@ class UnittestStepContainer extends Component {
         ).then(requests => {
             let urisSelector = [];
             for (let request of requests) {
+                let label = request[iteration_request_title] + " | " + request[iteration_request_uri];
                 let item = {};
-                item.value = this.buildApiSelectValue(request[iteration_request_method], request[iteration_request_uri]);
-                item.label = request[iteration_request_title] + " | " + request[iteration_request_uri];
+                item.value = this.buildApiSelectValue(request[iteration_request_method], request[iteration_request_uri], label);
+                item.label = label;
                 urisSelector.push(item);
             }
             this.setState( {urisSelector, requests}, ()=>{
@@ -319,30 +440,39 @@ class UnittestStepContainer extends Component {
         this.requestSendTip.init("iterator", prj, iteratorId, "", this.props.clientType);
     }
 
-    buildApiSelectValue = (method : string, uri : string) : string => {
-        return method + "$$" + uri;
+    buildApiSelectValue = (method : string, uri : string, label : string) : string => {
+        return method + "$$" + uri + "$$" + label;
     }
 
     handleRequestProject = originPrj => {
         let prj = originPrj.split("$$")[0];
-        this.setState( {urisSelector : [], prj, uri: ""} );
-        this.initPrj(this.state.iteratorId, prj, this.props.dispatch);
+        this.setState( {urisSelector : [], prj: originPrj, uri: ""} );
+        this.initPrj(this.state.iteratorId, prj);
     }
     
     addAssert = () => {
 
         let assertTitle = cloneDeep(this.state.assertTitle);
         let assertPrev = cloneDeep(this.state.assertPrev);
+        let assertType = cloneDeep(this.state.assertType);
+        let assertSql = cloneDeep(this.state.assertSql);
+        let assertSqlParams = cloneDeep(this.state.assertSqlParams);
         let assertOperator = cloneDeep(this.state.assertOperator);
         let assertAfter = cloneDeep(this.state.assertAfter);
         let assertLength = this.state.assertLength;
         assertTitle.push(null);
-        assertPrev.push("占位断言左侧表达式");
+        assertType.push(ASSERT_TYPE_API);
+        assertSql.push("");
+        assertSqlParams.push([]);
+        assertPrev.push("");
         assertOperator.push(" == ");
-        assertAfter.push("占位断言右侧表达式");
+        assertAfter.push("");
         assertLength += 1;
         this.setState({
             assertTitle,
+            assertSql,
+            assertType,
+            assertSqlParams,
             assertOperator,
             assertLength,
             assertPrev,
@@ -354,16 +484,64 @@ class UnittestStepContainer extends Component {
         let assertPrev = cloneDeep(this.state.assertPrev);
         let assertAfter = cloneDeep(this.state.assertAfter);
         let assertLength = this.state.assertLength;
+        let assertType = cloneDeep(this.state.assertType);
+        let assertSql = cloneDeep(this.state.assertSql);
+        let assertSqlParams = cloneDeep(this.state.assertSqlParams);
         if (assertLength > 1) {
             assertPrev.pop();
             assertAfter.pop();
+            assertType.pop();
+            assertSql.pop();
+            assertSqlParams.pop();
             assertLength -= 1;
             this.setState({
                 assertLength,
+                assertType,
+                assertSql,
+                assertSqlParams,
                 assertPrev,
                 assertAfter
             });
         }
+    }
+
+    handleSqlBlur = (index: number) => {
+        const assertSqlParamArr = cloneDeep(this.state.assertSqlParams);
+        let assertSql = this.state.assertSql[index];
+        let assertSqlParams = assertSqlParamArr[index];
+        if (isStringEmpty(assertSql)) {
+            assertSqlParams = [];
+            assertSqlParamArr[index] = assertSqlParams;
+        } else {
+            assertSqlParams = Array((assertSql.match(/\?/g) || []).length).fill('');
+            assertSqlParamArr[index] = assertSqlParams;
+        }
+        const assertSqlParamsTable = this.buildAssertSqlParamsTable(assertSqlParamArr);
+        this.setState({
+            assertSqlParamsTable,
+            assertSqlParams: assertSqlParamArr
+        });
+    }
+
+    buildAssertSqlParamsTable = (assertSqlParamArr) => {
+        let list = [];
+        for (let i = 0; i < assertSqlParamArr.length; i++) {
+            let assertSqlParams = assertSqlParamArr[i];
+            let item = [];
+            if (assertSqlParams.length > 0) {
+                for (let j = 0; j < assertSqlParams.length; j++) {
+                    let item2 : any = {};
+                    item2.key = i + "_" + j;
+                    item2[TABLE_FIELD_NAME] = langFormat("unittest step db param", {
+                        "index": (j + 1)
+                    });
+                    item2[TABLE_FIELD_VALUE] = assertSqlParams[j];
+                    item.push(item2);
+                }
+            }
+            list.push(item);
+        }
+        return cloneDeep(list);
     }
 
     getNavs() {
@@ -494,21 +672,30 @@ class UnittestStepContainer extends Component {
                 return;
             }
         }
+        let prj = this.state.prj.split("$$")[0];
+        let uri = this.state.uri.split("$$")[1];
         if (isStringEmpty(this.state.unitTestStepUuid)) {
             addUnitTestStep(
+                this.props.clientType,
                 this.state.iteratorId, this.state.unitTestUuid,
-                this.state.title, this.state.prj, this.state.method, this.state.uri,
+                this.state.title, prj, this.state.method, uri,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
-                this.state.assertTitle, this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
+                this.state.assertTitle, 
+                this.state.assertType, this.state.assertSql, this.state.assertSqlParams,
+                this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
                 this.state.sort, this.state.continueEnable, this.state.waitSeconds,
                 this.props.device, ()=>{
                     this.props.history.goBack();
                 }
             );
         } else {
-            editUnitTestStep(this.state.unitTestStepUuid, this.state.title,
+            editUnitTestStep(
+                this.props.clientType, this.state.iteratorId, this.state.unitTestUuid,this.state.unitTestStepUuid, 
+                this.state.title,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
-                this.state.assertTitle, this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
+                this.state.assertTitle, 
+                this.state.assertType, this.state.assertSql, this.state.assertSqlParams,
+                this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
                 this.state.assertUuidArr, 
                 this.state.sort, this.state.continueEnable, this.state.waitSeconds,
                 this.props.device, ()=>{
@@ -526,6 +713,7 @@ class UnittestStepContainer extends Component {
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
+                        { title: langTrans("step add title") },
                         { title: <a href={ '#/version_iterator_tests/' + this.state.iteratorId }>{ this.state.unitTest[unittest_title] }</a > }, 
                         { title: isStringEmpty(this.state.unitTestStepUuid) ? langTrans("step bread add") : langTrans("step bread edit") }
                     ]} />
@@ -536,7 +724,9 @@ class UnittestStepContainer extends Component {
                         }}
                     >
                         <Form
-                            style={{ maxWidth: 600 }}
+                            style={{ maxWidth: 700 }}
+                            labelCol={{ span: 4 }} 
+                            wrapperCol={{ span: 20 }}
                             onFinish={this.onFinish}
                             autoComplete="off"
                         >
@@ -554,7 +744,7 @@ class UnittestStepContainer extends Component {
                                     />
                                     <Select showSearch
                                         disabled={!isStringEmpty(this.state.unitTestStepUuid)}
-                                        value={this.state.method && this.state.uri ? this.buildApiSelectValue(this.state.method, this.state.uri) : null}
+                                        value={this.state.uri}
                                         style={{ width: 328 }}
                                         options={ this.state.urisSelector }
                                         onChange={ this.handleRequestUri }
@@ -591,7 +781,7 @@ class UnittestStepContainer extends Component {
                             {Object.keys(this.state.request).length > 0 ? 
                             <Tabs defaultActiveKey={ this.state.method === REQUEST_METHOD_POST ? "body" : "param" } items={ this.getNavs() } /> 
                             : null}
-                            {this.state.assertLength > 0 ? 
+                            {this.state.assertLength > 0 &&
                             <>
                                 <Divider>
                                     <Space size={"middle"}>
@@ -605,7 +795,7 @@ class UnittestStepContainer extends Component {
                                     label={langTrans("step add assert title") + (i+1)}
                                     style={{marginTop: 24}}
                                 >
-                                    <Space wrap>
+                                    <Space direction='vertical' size={"middle"}>
                                         <Input 
                                             placeholder={langTrans("step add assert tip1")}
                                             style={{width: 500}}
@@ -615,7 +805,83 @@ class UnittestStepContainer extends Component {
                                                 this.setState({assertTitle});
                                             }} 
                                         />
-                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertPrev[i])) ? 
+                                        <Select
+                                            value={this.state.assertType[i]}
+                                            style={{width: 500}}
+                                            onChange={ value => {
+                                                let assertType = cloneDeep(this.state.assertType);
+                                                assertType[i] = value;
+                                                this.setState({assertType});
+                                            } }
+                                        >
+                                            <Select.Option value={ASSERT_TYPE_API}>{ langTrans("unittest step db type1") }</Select.Option>
+                                            <Select.Option value={ASSERT_TYPE_DB}>{ langTrans("unittest step db type2") }</Select.Option>
+                                        </Select>
+
+                                    { this.state.assertType[i] === ASSERT_TYPE_DB && <>
+                                        <TextArea 
+                                            placeholder={ langTrans("unittest step db sql") }
+                                            value={this.state.assertSql[i]}
+                                            onChange={event => {
+                                                let assertSql = cloneDeep(this.state.assertSql);
+                                                assertSql[i] = event.target.value;
+                                                this.setState({assertSql});
+                                            }}
+                                            onBlur={event => this.handleSqlBlur(i)}
+                                            style={{width: 500}}
+                                        /> 
+                                        <Table
+                                            style={{width : "100%"}}
+                                            columns={this.state.sqlParamColumns}
+                                            dataSource={this.state.assertSqlParamsTable[i]}
+                                            pagination={ false }
+                                        />
+                                        <>
+                                            {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertPrev[i])) && 
+                                            <Input value={this.state.assertPrev[i]} onChange={event => {
+                                                let assertPrev = cloneDeep(this.state.assertPrev);
+                                                assertPrev[i] = event.target.value;
+                                                this.setState({assertPrev});
+                                            }} />
+                                            }
+                                            <Select 
+                                                style={{width: 75}}
+                                                value={ this.state.assertOperator[i] }
+                                                onChange={ value => {
+                                                    let assertOperator = cloneDeep(this.state.assertOperator);
+                                                    assertOperator[i] = value;
+                                                    this.setState({assertOperator});
+                                                } }>
+                                                <Select.Option value={ " == " }>==</Select.Option>
+                                                <Select.Option value={ " !== " }>!==</Select.Option>
+                                            </Select>
+                                            {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertAfter[i])) && 
+                                            <StepExpressionBuilderBox
+                                                enableFlag={Object.keys(this.state.request).length > 0}
+                                                stepHeaderData={this.state.formRequestHeadData}
+                                                stepBodyData={this.state.formRequestBodyData}
+                                                stepParamData={this.state.formRequestParamData}
+                                                stepPathVariableData={this.state.formRequestPathVariableData}
+                                                stepResponseContentData={this.state.responseContent}
+                                                stepResponseHeaderData={this.state.responseHeader}
+                                                stepResponseCookieData={this.state.responseCookie}
+                                                value={this.state.assertAfter[i]}
+                                                cb={text => {
+                                                    let assertAfter = cloneDeep(this.state.assertAfter);
+                                                    assertAfter[i] = text;
+                                                    this.setState({assertAfter});
+                                                }}
+                                                width={500}
+                                                iteratorId={this.state.iteratorId}
+                                                unitTestUuid={this.state.unitTestUuid}
+                                                unitTestStepUuid={this.state.unitTestStepUuid}
+                                                project={this.state.prj}
+                                            />
+                                            }
+                                        </>
+                                    </>}
+                                    { this.state.assertType[i] == ASSERT_TYPE_API && <>
+                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertPrev[i])) && 
                                         <StepExpressionBuilderBox
                                             enableFlag={Object.keys(this.state.request).length > 0}
                                             stepHeaderData={this.state.formRequestHeadData}
@@ -637,7 +903,7 @@ class UnittestStepContainer extends Component {
                                             unitTestStepUuid={this.state.unitTestStepUuid}
                                             project={this.state.prj}
                                         />
-                                        : null}
+                                        }
                                         <Select 
                                             style={{width: 75}}
                                             value={ this.state.assertOperator[i] }
@@ -649,7 +915,7 @@ class UnittestStepContainer extends Component {
                                             <Select.Option value={ " == " }>==</Select.Option>
                                             <Select.Option value={ " !== " }>!==</Select.Option>
                                         </Select>
-                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertAfter[i])) ? 
+                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertAfter[i])) && 
                                         <StepExpressionBuilderBox
                                             enableFlag={Object.keys(this.state.request).length > 0}
                                             stepHeaderData={this.state.formRequestHeadData}
@@ -671,12 +937,13 @@ class UnittestStepContainer extends Component {
                                             unitTestStepUuid={this.state.unitTestStepUuid}
                                             project={this.state.prj}
                                         />
-                                        : null}
+                                        }
+                                    </> }
                                     </Space>
                                 </Form.Item>
                                 ))}
                             </>
-                             : null}
+                            }
                             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                 <Button type="primary" htmlType="submit">
                                     {isStringEmpty(this.state.unitTestStepUuid) ? langTrans("step btn add") : langTrans("step btn edit")}

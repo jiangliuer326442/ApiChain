@@ -19,10 +19,14 @@ import {
     iteratorBodyGenHash,
     shortJsonContent,
     parseJsonToTable,
+    parseJsonToTableWithDict,
+    retParseBodyJsonToTableWithDict,
     retParseBodyJsonToTable,
     parseJsonToFilledTable,
     cleanJson,
+    getJsonKeys,
 } from '@rutil/json';
+import { setToJson } from '@rutil/sets';
 
 import { createWindow } from '@rutil/window';
 import { 
@@ -30,7 +34,6 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_FIELDS,
     TABLE_REQUEST_HISTORY_FIELDS,
-    TABLE_MICRO_SERVICE_FIELDS,
 } from '@conf/db';
 import {
     REQUEST_METHOD_GET,
@@ -40,6 +43,7 @@ import {
     FoldSourceIterator,
 } from '@conf/global_config';
 import { VERSION_ITERATOR_ADD_ROUTE } from '@conf/routers';
+import { CLIENT_TYPE_TEAM } from '@conf/team';
 import { getRemoteVersionIterator, getOpenVersionIteratorsByPrj } from "@act/version_iterator";
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
@@ -51,6 +55,9 @@ import {
 import {
     getProjectFolders 
 } from '@act/project_folders';
+import {
+    getInterfaceTranslate
+} from '@act/ai';
 import { addProjectRequest } from '@act/project_request';
 import { addVersionIteratorRequest } from '@act/version_iterator_requests';
 import FolderSelector from "@comp/folders/index";
@@ -114,10 +121,6 @@ let project_request_response_cookie = TABLE_PROJECT_REQUEST_FIELDS.FIELD_RESPONS
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_name = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
-let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-let prj_remark = TABLE_MICRO_SERVICE_FIELDS.FIELD_REMARK;
 
 class RequestSaveContainer extends Component {
 
@@ -411,20 +414,68 @@ class RequestSaveContainer extends Component {
 
     simpleBootByRequestHistoryRecord = (historyRecord: any, prj : string, method : string, uri : string, isExportDoc : boolean) => {
         let requestHeadData = historyRecord[request_history_head];
+        let requestBodyData = historyRecord[request_history_body];
+        let requestFileData = historyRecord[request_history_file];
+        let requestParamData = historyRecord[request_history_param];
+        let requestPathVariableData = historyRecord[request_history_path_variable];
+
+        const allKeys = getJsonKeys(
+            requestHeadData, requestBodyData, requestFileData, requestParamData, requestPathVariableData, 
+            historyRecord[request_history_jsonFlg] ? JSON.parse(historyRecord[request_history_response_content]) : {}
+        );
+        this.props.clientType == CLIENT_TYPE_TEAM && getInterfaceTranslate(prj, uri, setToJson(allKeys), this.props.isAiSupport).then(dictory => {
+            let formRequestHeadData = {};
+            parseJsonToTableWithDict(formRequestHeadData, requestHeadData, dictory);
+    
+            let formRequestBodyData = retParseBodyJsonToTableWithDict(requestBodyData, requestFileData, dictory);
+
+            let formRequestParamData = {};
+            parseJsonToTableWithDict(formRequestParamData, requestParamData, dictory);
+    
+            let formRequestPathVariableData = {};
+            parseJsonToTableWithDict(formRequestPathVariableData, requestPathVariableData, dictory);
+            let shortResponseJsonObject = {};
+            let formResponseData = {};
+            let responseDemo = "";
+            if (historyRecord[request_history_jsonFlg]) {
+                let responseData = JSON.parse(historyRecord[request_history_response_content]);
+                shortJsonContent(shortResponseJsonObject, responseData);
+                parseJsonToTableWithDict(formResponseData, shortResponseJsonObject, dictory);
+            } else {
+                responseDemo = historyRecord[request_history_response_content];
+            }
+    
+            let formResponseHeadData = {};
+            let responseHead = historyRecord[request_history_response_head];
+            parseJsonToTableWithDict(formResponseHeadData, responseHead, dictory);
+    
+            let formResponseCookieData = {};
+            let responseCookie = historyRecord[request_history_response_cookie];
+            parseJsonToTableWithDict(formResponseCookieData, responseCookie, dictory);
+    
+            this.setState({
+                title: dictory[uri],
+                formRequestHeadData,
+                formRequestBodyData,
+                formRequestParamData,
+                formRequestPathVariableData,
+                formResponseData,
+                formResponseHeadData,
+                formResponseCookieData,
+            });
+        })
+
         let requestHeaderHash = iteratorGenHash(requestHeadData);
         let formRequestHeadData = {};
         parseJsonToTable(formRequestHeadData, requestHeadData);
-        let requestBodyData = historyRecord[request_history_body];
-        let requestFileData = historyRecord[request_history_file];
+
         let requestBodyHash = iteratorBodyGenHash(requestBodyData, requestFileData);
         let formRequestBodyData = retParseBodyJsonToTable(requestBodyData, requestFileData);
 
-        let requestParamData = historyRecord[request_history_param];
         let requestParamHash = iteratorGenHash(requestParamData);
         let formRequestParamData = {};
         parseJsonToTable(formRequestParamData, requestParamData);
 
-        let requestPathVariableData = historyRecord[request_history_path_variable];
         let requestPathVariableHash = iteratorGenHash(requestPathVariableData);
         let formRequestPathVariableData = {};
         parseJsonToTable(formRequestPathVariableData, requestPathVariableData);
@@ -593,10 +644,10 @@ class RequestSaveContainer extends Component {
                     this.props.device
                 );
                 message.success(langTrans("request save result2"));
-                this.props.history.push("/project_requests/" + this.state.prj);
+                this.props.history.push(`/project_requests/${this.props.teamId}/${this.state.prj}`);
             } else {
                 if (this.state.responseDemo === undefined) {
-                    message.error("错误");
+                    message.error("error");
                     return;
                 }
                 //编辑迭代接口
@@ -901,6 +952,7 @@ function mapStateToProps (state) {
         device : state.device,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        isAiSupport: state.device.isAiSupport
     }
 }
   

@@ -28,21 +28,23 @@ import {
 import {
     SHOW_ADD_UNITTEST_MODEL,
     GET_ITERATOR_TESTS,
-    SHOW_EDIT_UNITTEST_MODEL
+    SHOW_EDIT_UNITTEST_MODEL,
+    GET_ENV
 } from '@conf/redux';
-import { UNITTEST_ENV } from '@conf/storage';
 import { getdayjs, isStringEmpty } from '@rutil/index';
 import { getEnvs } from '@act/env';
 import {
     getIterationUnitTests, 
     delUnitTest, 
-    delUnitTestStep,
     executeIteratorUnitTest,
     continueIteratorExecuteUnitTest,
     copyFromIteratorToProject,
     copyFromProjectToIterator,
     batchMoveIteratorUnittest,
 } from '@act/unittest';
+import {
+    delUnitTestStep,
+} from '@act/unittest_step';
 import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { getOpenVersionIterators } from '@act/version_iterator';
 import { buildUnitTestStepFromRequest } from '@act/unittest_step';
@@ -177,12 +179,12 @@ class UnittestListVersion extends Component {
 
                                         let batchUuid = await continueIteratorExecuteUnitTest(
                                             this.props.clientType,
+                                            this.props.teamId,
                                             this.state.iteratorId, 
                                             valueUnittestStepUnittestUuid, 
                                             record[unittest_report_batch], 
                                             valueUnittestReportStep, 
-                                            record[unittest_report_env], 
-                                            this.props.dispatch,
+                                            record[unittest_report_env],
                                             (batchUuid : string, stepUuid : string) => {
                                                 this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid})
                                             }
@@ -219,7 +221,7 @@ class UnittestListVersion extends Component {
                                             this.props.clientType, 
                                             this.state.iteratorId, 
                                             this.state.folder, 
-                                            this.state.env, 
+                                            this.props.env, 
                                             this.props.dispatch
                                         );
                                     }}>{langTrans("version unittest act4")}</Button>
@@ -236,7 +238,6 @@ class UnittestListVersion extends Component {
             unittestUuid: "", 
             batchUuid: "",
             stepUuid: "",
-            env: localStorage.getItem(UNITTEST_ENV) ? localStorage.getItem(UNITTEST_ENV) : null,
             folder: null,
             showPay: false,
             versionIterators: [],
@@ -265,8 +266,8 @@ class UnittestListVersion extends Component {
         getIterationUnitTests(
             this.props.clientType,
             this.state.iteratorId, 
-            this.state.folder, 
-            this.state.env, 
+            this.state.folder,
+            this.props.env,
             this.props.dispatch
         );
         this.setMovedIteratos();
@@ -278,7 +279,7 @@ class UnittestListVersion extends Component {
                 this.props.clientType, 
                 this.state.iteratorId, 
                 this.state.folder, 
-                this.state.env, 
+                this.props.env, 
                 this.props.dispatch
             );
             this.setMovedIteratos();
@@ -309,12 +310,12 @@ class UnittestListVersion extends Component {
                         title={langTrans("version unittest del title")}
                         description={langTrans("version unittest del desc")}
                         onConfirm={e => {
-                            delUnitTestStep(valueUnittestStepUuid, ()=>{
+                            delUnitTestStep(this.props.clientType, this.state.iteratorId, valueUnittestStepUnittestUuid, valueUnittestStepUuid, ()=>{
                                 getIterationUnitTests(
                                     this.props.clientType,
                                     this.state.iteratorId, 
                                     this.state.folder, 
-                                    this.state.env, 
+                                    this.props.env, 
                                     this.props.dispatch
                                 );
                             });
@@ -341,16 +342,15 @@ class UnittestListVersion extends Component {
                 label:  <Popconfirm
                             title={langTrans("prj unittest del title")}
                             description={langTrans("prj unittest del desc")}
-                            onConfirm={e => {
-                                delUnitTest(record, ()=>{
-                                    getIterationUnitTests(
-                                        this.props.clientType, 
-                                        this.state.iteratorId, 
-                                        this.state.folder, 
-                                        this.state.env, 
-                                        this.props.dispatch
-                                    );
-                                });
+                            onConfirm={async e => {
+                                await delUnitTest(this.props.clientType, record);
+                                getIterationUnitTests(
+                                    this.props.clientType, 
+                                    this.state.iteratorId, 
+                                    this.state.folder, 
+                                    this.props.env, 
+                                    this.props.dispatch
+                                );
                             }}
                             okText={langTrans("prj unittest del sure")}
                             cancelText={langTrans("prj unittest del cancel")}
@@ -381,7 +381,6 @@ class UnittestListVersion extends Component {
     }
 
     setEnvironmentChange = (value: string) => {
-        this.setState({env: value});
         if (isStringEmpty(value)) {
             this.props.dispatch({
                 type: GET_ITERATOR_TESTS,
@@ -398,6 +397,10 @@ class UnittestListVersion extends Component {
                 this.props.dispatch
             );
         }
+        this.props.dispatch({
+            type: GET_ENV,
+            env: value
+        });
     }
 
     setFolderChange = (value: string) => {
@@ -412,7 +415,7 @@ class UnittestListVersion extends Component {
             this.props.clientType, 
             this.state.iteratorId, 
             selectedFolder, 
-            this.state.env, 
+            this.props.env, 
             this.props.dispatch
         );
     }
@@ -425,7 +428,7 @@ class UnittestListVersion extends Component {
                 this.props.clientType, 
                 this.state.iteratorId, 
                 this.state.folder, 
-                this.state.env, 
+                this.props.env, 
                 this.props.dispatch
             );
         });
@@ -434,13 +437,15 @@ class UnittestListVersion extends Component {
     exportUnitTestClick = async record => {
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        await copyFromIteratorToProject(iteratorId, unittestId, this.props.device);
+        await copyFromIteratorToProject(
+            this.props.clientType, this.props.teamId,
+            iteratorId, unittestId, this.props.device);
         message.success(langTrans("unittest export success"));
         getIterationUnitTests(
             this.props.clientType, 
             iteratorId, 
             this.state.folder, 
-            this.state.env, 
+            this.props.env, 
             this.props.dispatch
         );
     }
@@ -481,7 +486,7 @@ class UnittestListVersion extends Component {
                         this.props.clientType,
                         this.state.iteratorId, 
                         this.state.folder, 
-                        this.state.env, 
+                        this.props.env, 
                         this.props.dispatch
                     )} />
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
@@ -494,7 +499,7 @@ class UnittestListVersion extends Component {
                             <Form.Item label={langTrans("prj unittest operator1")}>
                                 <Select
                                     allowClear
-                                    value={ this.state.env }
+                                    value={ this.props.env }
                                     onChange={this.setEnvironmentChange}
                                     style={{ width: 120 }}
                                     options={this.props.envs}
@@ -506,7 +511,7 @@ class UnittestListVersion extends Component {
                                     onChange={this.setFolderChange}
                                     style={{ width: 120 }}
                                     options={this.state.iteratorId in this.props.folders && this.props.folders[this.state.iteratorId].map(item => {
-                                        return { value: item, label: item }
+                                        return { value: item, label: "/" + item }
                                     })}
                                 />
                             </Form.Item>
@@ -524,7 +529,7 @@ class UnittestListVersion extends Component {
                                                 this.props.clientType, 
                                                 this.state.iteratorId, 
                                                 this.state.folder, 
-                                                this.state.env, 
+                                                this.props.env, 
                                                 this.props.dispatch
                                             );
                                         });
@@ -537,18 +542,16 @@ class UnittestListVersion extends Component {
                                     type="primary"  
                                     disabled={!this.state.executeFlg || this.state.selectedUnittests.length === 0} 
                                     onClick={() => {
-                                        if (!this.props.device.vipFlg) {
+                                        if (!this.props.device.vipFlg && !this.props.device.isUnitTest) {
                                             this.setState({
                                                 showPay: true,
                                             });
                                             return;
                                         }
-                                        if (isStringEmpty(this.state.env)) {
+                                        if (isStringEmpty(this.props.env)) {
                                             message.error(langTrans("unittest env check"));
                                             return;
                                         }
-
-                                        localStorage.setItem(UNITTEST_ENV, this.state.env);
 
                                         for (let unittestUuid of this.state.selectedUnittests) {
                                             this.setState({
@@ -558,8 +561,8 @@ class UnittestListVersion extends Component {
                                             });
                                             let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
                                             executeIteratorUnitTest(
-                                                this.props.clientType,
-                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.state.env, this.props.dispatch, 
+                                                this.props.clientType, this.props.teamId,
+                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.props.env, 
                                                 (batchUuid : string, stepUuid : string) => {
                                                     this.setState({ unittestUuid, batchUuid, stepUuid})
                                                 }
@@ -576,14 +579,14 @@ class UnittestListVersion extends Component {
                         unittestUuid={ this.state.unittestUuid }
                         batchUuid={ this.state.batchUuid }
                         stepUuid={ this.state.stepUuid }
-                        env={ this.state.env }
+                        env={ this.props.env }
                         cb={ () => {
                             this.setState({executeFlg: true});
                             getIterationUnitTests(
                                 this.props.clientType, 
                                 this.state.iteratorId, 
                                 this.state.folder, 
-                                this.state.env, 
+                                this.props.env, 
                                 this.props.dispatch
                             );
                         } }
@@ -608,7 +611,10 @@ function mapStateToProps (state) {
         device : state.device,
         unittest: state.unittest.list,
         folders: state.unittest.folders,
+        env: state.env_var.env,
         envs: state.env.list,
+        teamId: state.device.teamId,
+        clientType: state.device.clientType,
     }
 }
       

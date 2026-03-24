@@ -3,6 +3,7 @@ import { URL } from 'url';
 import fernet from 'fernet';
 import path from 'path';
 import { app } from 'electron';
+import log from 'electron-log';
 import os from 'os';
 import crypto from 'crypto';
 import axios from 'axios';
@@ -60,7 +61,7 @@ export function getAssetPath(...paths: string[]): string {
   return path.join(RESOURCES_PATH, ...paths);
 }
 
-export function rsaEncrypt(plaintext: string, publicKey : string, privateKey : string) : string {
+export function rsaEncryptWithPrivateKey(plaintext: string, publicKey : string, privateKey : string) : string {
     const signature = crypto.publicEncrypt({
         key: publicKey,
         padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
@@ -71,12 +72,51 @@ export function rsaEncrypt(plaintext: string, publicKey : string, privateKey : s
     return data;
 }
 
+export function rsaEncrypt(plaintext: string, publicKey : string) : string {
+  const signature = crypto.publicEncrypt({
+      key: publicKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: 'sha256',
+  }, Buffer.from(plaintext, 'utf8'))
+
+  const data = signature.toString('base64')
+  return data;
+}
+
+export function rsaDecrypt(encryptText: string, privateKey : string) : string {
+
+    // 1. 将 Base64 加密数据转为 Buffer
+    const encryptedBuffer = Buffer.from(encryptText, 'base64');
+
+    // 2. 使用私钥解密（必须与加密时的参数一致）
+    const decryptedBuffer = crypto.privateDecrypt(
+        {
+            key: privateKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: 'sha256',
+            passphrase: 'BE1BDEC0AA74B4DCB079943E70528096CCA985F8'
+        },
+        encryptedBuffer
+    );
+
+    // 3. 将 Buffer 转为字符串
+    return decryptedBuffer.toString('utf8');
+}
+
 export function fernetDecrypt(encryptText: string, key : string) : string {
     let realKey = base64Encode(key)
     const secret = new fernet.Secret(realKey);
     const token = new fernet.Token({secret: secret, token: encryptText, ttl: 0});
     const line = token.decode();
     return line;
+}
+
+export function fernetEncrypt(text: string, key : string) : string {
+  let realKey = base64Encode(key)
+  const secret = new fernet.Secret(realKey);
+  const token = new fernet.Token({secret: secret, token: text, ttl: 0});
+  const encryptText = token.encode();
+  return encryptText;
 }
 
 export function getUid(privateKey : string) : string {
@@ -104,6 +144,16 @@ export function getDefaultRunner(lang : string) : string {
   } else {
     return "http://runner.fanghailiang.cn";
   }
+}
+
+export function logInfo (...params: any[]): void {
+  if (process.env.NODE_ENV === 'development') {
+    log.info(params)
+  }
+}
+
+export function logError (...params: any[]): void {
+  log.error(params)
 }
 
 export function getPayJump(lang : string) : string {

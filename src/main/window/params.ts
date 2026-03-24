@@ -25,10 +25,11 @@ import {
     getIpV4,
     getPackageJson,
     base64Encode,
+    logInfo,
 } from '../util/util';
 import { urlEncode } from '../../renderer/util';
 import { TEAM_QUERY_NAME, CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '../../config/team';
-import { osLocale } from '../third_party/os-locale';
+import { osLocaleSync } from '../third_party/os-locale';
 import { isStringEmpty } from '../../renderer/util';
 
 export function systemInit() {
@@ -70,9 +71,10 @@ export function systemInit() {
 
 export async function getInitParams(privateKey : string, startupParams : object, store : Store) : Promise<string[]> {
     let packageJson = await getPackageJson();
-    let lang = await osLocale();
+    const lang = osLocaleSync();
+    logInfo(`lang:${lang}`)
     // if (process.env.NODE_ENV === 'development') {
-    //     lang = 'en-AU';
+        // lang = 'en-US';
     // }
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
@@ -84,9 +86,10 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let clientType = CLIENT_TYPE_SINGLE;
     let isAdmin = false;
     let isSuperAdmin = false;
+    let isAiSupport = false;
     if (isStringEmpty(teamServerErrorMessage)) {
-        let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store)
-        log.info('get team name ret:', ret);
+        let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store);
+        logInfo('get team name ret:', ret);
         if (isStringEmpty(ret[1].teamId)) {
             setClientInfo(CLIENT_TYPE_SINGLE, null, store)
         } else {
@@ -96,6 +99,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
             clientType = CLIENT_TYPE_TEAM;
             isAdmin = ret[1].isAdmin;
             isSuperAdmin = ret[1].isSuperAdmin;
+            isAiSupport = ret[1].isAiSupport;
         }
     }
 
@@ -114,7 +118,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let defaultRunner = getDefaultRunner(syslang);
 
     return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, userLang, userCountry, teamName, firstLauch, 
-        teamId, clientHost, clientType, isSuperAdmin, isAdmin,
+        teamId, clientHost, clientType, isSuperAdmin, isAdmin, isAiSupport,
         startupParams, store);
 }
 
@@ -123,7 +127,7 @@ function doGetInitParams(
     defaultRunner : string,
     showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, 
     firstLauch : boolean, 
-    teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean,
+    teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean, isAiSupport : boolean,
     startupParams : object, store : Store) : string[] {
     let uname = getUname();
     let ip = getIpV4();
@@ -156,7 +160,9 @@ function doGetInitParams(
         "clientHost=" + clientHost,
         "teamId=" + teamId,
         "isSuperAdmin=" + (isSuperAdmin ? "1" : "0"),
-        "isAdmin=" + (isAdmin ? "1" : "0")
+        "isAdmin=" + (isAdmin ? "1" : "0"),
+        "isAiSupport=" + (isAiSupport ? "1" : "0"),
+        "isUnitTest=" + ((process.env.NODE_ENV !== 'production' || process.env.CHAT_PROVIDER === "ZHAOHANG") ? "1" : "0")
     ]
 
     for (let startupKey in startupParams) {
@@ -165,7 +171,7 @@ function doGetInitParams(
         }
     }
 
-    log.info('restart params:', response);
+    logInfo('restart params:', response);
 
     const base64Response = response.map(row => `$$${base64Encode(row)}`);
 

@@ -2,11 +2,13 @@ import {
   SHOW_ADD_PROPERTY_MODEL,
   SHOW_EDIT_PROPERTY_MODEL,
   GET_ENV_VALS,
-  GET_ITERATOR
+  GET_ITERATOR,
+  GET_PRJ,
+  GET_ENV,
 } from '@conf/redux';
 
 import {
-    AI_LINK_PROJECT, ENV, ITERATOR
+    ENV, ITERATOR
 } from '@conf/storage';
 
 import { isStringEmpty } from '@rutil/index';
@@ -19,6 +21,8 @@ export default function (state = {
     unittest: "",
     pname: "",
     pvalue: "",
+    premark: "",
+    encryptFlg: 0,
     list: []
   }, action : any) {
     switch(action.type) {
@@ -28,8 +32,16 @@ export default function (state = {
               iterator: action.iterator,
               unittest: action.unittest,
             });
+        case GET_ENV:
+            localStorage.setItem(ENV, action.env);
+            return Object.assign({}, state, {
+              env: action.env,
+            });
+        case GET_PRJ:
+            return Object.assign({}, state, {
+              prj: action.prj,
+            });
         case GET_ENV_VALS:
-            localStorage.setItem(AI_LINK_PROJECT, action.prj);
             localStorage.setItem(ENV, action.env);
             return Object.assign({}, state, {
               prj: action.prj,
@@ -46,6 +58,7 @@ export default function (state = {
               pname: "",
               pvalue: "",
               premark: "",
+              encryptFlg: 0,
         });
         case SHOW_EDIT_PROPERTY_MODEL:
           return Object.assign({}, state, {
@@ -56,9 +69,9 @@ export default function (state = {
             pname : action.pname,
             pvalue : action.pvalue,
             premark : action.premark,
+            encryptFlg: action.encryptFlg,
           });
         default:
-            state.prj = localStorage.getItem(AI_LINK_PROJECT);
             state.env = localStorage.getItem(ENV);
             state.iterator = localStorage.getItem(ITERATOR);
             return state;

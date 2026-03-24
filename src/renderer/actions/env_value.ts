@@ -4,7 +4,14 @@ import {
     isStringEmpty,
     mixedSort
 } from '@rutil/index'
-import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE } from '@conf/envKeys';
+import { ENV_VALUE_API_HOST, ENV_VALUE_RUN_MODE, ENV_VALUE_API_PREFIX } from '@conf/envKeys';
+import { 
+    ChannelsEncryptStr, 
+    ChannelsEncryptEncrypt, 
+    ChannelsEncryptEncryptResult,
+    ChannelsEncryptDecrypt,
+    ChannelsEncryptDecryptResult,
+} from '@conf/channel';
 import { 
     TABLE_ENV_KEY_NAME, TABLE_ENV_KEY_FIELDS,
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
@@ -51,9 +58,38 @@ let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
 let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let env_var_premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
+let env_var_pencrypt = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
 let env_var_cuid = TABLE_ENV_VAR_FIELDS.FIELD_CUID;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
+
+export function encryptPromise (content : string) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsEncryptStr, (action, encryptContent) => {
+            if (action === ChannelsEncryptEncryptResult) {
+                listener();
+                resolve(encryptContent);
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsEncryptStr, ChannelsEncryptEncrypt, content);
+    });
+}
+
+export function batchDecryptPromise (keyvarEncryptContent) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsEncryptStr, (action, dataContent) => {
+            if (action === ChannelsEncryptDecryptResult) {
+                listener();
+                resolve(dataContent);
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsEncryptStr, ChannelsEncryptDecrypt, keyvarEncryptContent);
+    });
+}
 
 export async function batchMoveIteratorEnvValue(prj : string, env : string, oldIterator : string, envVarKeyArr : Array<string>, newIterator : string, cb : () => void) {
     for (let _envVarKey of envVarKeyArr) {
@@ -151,7 +187,7 @@ export async function getEnvHosts(clientType : string, teamId : string, prj : st
     let datas : any = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
-        const envVarItems = await db[TABLE_ENV_VAR_NAME]
+        let envVarItems = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
         .equals([prj, "", "", ENV_VALUE_API_HOST])
         .filter(row => {
@@ -167,6 +203,25 @@ export async function getEnvHosts(clientType : string, teamId : string, prj : st
         for (let globalRow of envVarItems) {
             datas[globalRow[env_var_env]] = globalRow[env_var_pvalue];
         }
+        envVarItems = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+        .equals([prj, "", "", ENV_VALUE_API_PREFIX])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (env && row[env_var_env] !== env) {
+                return false
+            }
+            return true;
+        })
+        .toArray();
+        for (let globalRow of envVarItems) {
+            if (!isStringEmpty(globalRow[env_var_pvalue])) {
+                datas[globalRow[env_var_env]] = datas[globalRow[env_var_env]] + (globalRow[env_var_pvalue].substr(1));
+            }
+        }
+
     } else {
         datas = await sendTeamMessage(PRJ_HOST_URL, {teamId, prj, env});
     }
@@ -308,7 +363,7 @@ export async function batchCopyEnvVales(prj : string, env : string, iterator : s
     }
 }
 
-export async function getGlobalEnvValuesByPage(env : string, pname : string, clientType : string, pagination : any) {
+export async function getGlobalEnvValuesByPage(env : string, pname : string, premark, clientType : string, pagination : any) {
     let page = pagination.current;
     let pageSize = pagination.pageSize;
     let datas = [];
@@ -325,6 +380,9 @@ export async function getGlobalEnvValuesByPage(env : string, pname : string, cli
             if (pname) {
                 return row[env_var_pname] === pname;
             }
+            if (premark) {
+                return row[env_var_premark].toLowerCase().includes(premark.toLowerCase());
+            }
             return true;
         })
         .toArray();
@@ -339,7 +397,7 @@ export async function getGlobalEnvValuesByPage(env : string, pname : string, cli
             item[UNAME] = users.get(item[env_var_cuid]);
         });
     } else {
-        let params = Object.assign({}, pagination, {env, pname});
+        let params = Object.assign({}, pagination, {env, pname, premark});
         let result = await sendTeamMessage(ENV_VARS_GLOBAL_PAGE_URL, params);
         let count = result.count;
         pagination.total = count;
@@ -373,7 +431,7 @@ export async function getGlobalEnvValues(env : string, clientType : string) {
     return new Map(Object.entries(datas));
 }
 
-export async function getPrjEnvValuesByPage(prj : string, env : string, pname : string, clientType : string, pagination : any) {
+export async function getPrjEnvValuesByPage(teamId, prj : string, env : string, pname : string, premark : string, clientType : string, pagination : any) {
     let page = pagination.current;
     let pageSize = pagination.pageSize;
     let datas = [];
@@ -388,7 +446,15 @@ export async function getPrjEnvValuesByPage(prj : string, env : string, pname : 
             if (pname) {
                 return row[env_var_pname] === pname;
             }
+            if (premark) {
+                return row[env_var_premark].toLowerCase().includes(premark.toLowerCase());
+            }
             if (row[env_var_delFlg]) {
+                return false;
+            }
+            if (row[env_var_pname] === ENV_VALUE_API_HOST || 
+                row[env_var_pname] === ENV_VALUE_RUN_MODE || 
+                row[env_var_pname] === ENV_VALUE_API_PREFIX) {
                 return false;
             }
             return true;
@@ -406,6 +472,9 @@ export async function getPrjEnvValuesByPage(prj : string, env : string, pname : 
         .filter(row => {
             if (pname) {
                 return row[env_var_pname] === pname;
+            }
+            if (premark) {
+                return row[env_var_premark].toLowerCase().includes(premark.toLowerCase());
             }
             if (projectKeys.has(row[env_var_pname])) {
                 return false;
@@ -430,7 +499,7 @@ export async function getPrjEnvValuesByPage(prj : string, env : string, pname : 
             item[UNAME] = users.get(item[env_var_cuid]);
         });
     } else {
-        let params = Object.assign({}, pagination, {env, pname, prj});
+        let params = Object.assign({}, pagination, {teamId, env, pname, premark, prj});
         let result = await sendTeamMessage(ENV_VARS_PROJECT_PAGE_URL, params);
         let count = result.count;
         pagination.total = count;
@@ -440,10 +509,11 @@ export async function getPrjEnvValuesByPage(prj : string, env : string, pname : 
     return datas;
 }
 
-export async function getPrjEnvValues(prj : string, env : string, clientType : string) {
+export async function getPrjEnvValues(prj : string, env : string, teamId : string, clientType : string) {
     let datas : any = {};
 
     if (clientType === CLIENT_TYPE_SINGLE) {
+        let waitDecryptDatas : any = {};
         let projectKeys = new Set<String>();
         let projectArrays = await db[TABLE_ENV_VAR_NAME]
         .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
@@ -457,7 +527,11 @@ export async function getPrjEnvValues(prj : string, env : string, clientType : s
         .toArray();
         projectKeys = new Set(projectArrays.map(item => ( item[env_var_pname])));
         for (let projectRow of projectArrays) {
-            datas[projectRow[env_var_pname]] = projectRow[env_var_pvalue];
+            if (projectRow[env_var_pencrypt] != undefined && projectRow[env_var_pencrypt] == 1) {
+                waitDecryptDatas[projectRow[env_var_pname]] = projectRow[env_var_pvalue];
+            } else {
+                datas[projectRow[env_var_pname]] = projectRow[env_var_pvalue];
+            }
         }
         let globalArrays = await db[TABLE_ENV_VAR_NAME]
         .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
@@ -473,10 +547,20 @@ export async function getPrjEnvValues(prj : string, env : string, clientType : s
         })
         .toArray(); 
         for (let globalRow of globalArrays) {
-            datas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
+            if (globalRow[env_var_pencrypt] != undefined && globalRow[env_var_pencrypt] == 1) {
+                waitDecryptDatas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
+            } else {
+                datas[globalRow[env_var_pname]] = globalRow[env_var_pvalue];
+            }
+        }
+        if (Object.keys(waitDecryptDatas).length > 0) {
+            let decryptResult = await batchDecryptPromise(waitDecryptDatas);
+            Object.keys(decryptResult).forEach(key => {
+                datas[key] = decryptResult[key]
+            })
         }
     } else {
-        datas = await sendTeamMessage(ENV_VARS_PROJECT_DATAS_URL, {env, prj});
+        datas = await sendTeamMessage(ENV_VARS_PROJECT_DATAS_URL, {teamId, env, prj});
     }
 
     return new Map(Object.entries(datas));
@@ -490,24 +574,26 @@ export async function getIteratorEnvValuesByPage(iterator : string, prj : string
     if (clientType === CLIENT_TYPE_SINGLE) {
         const offset = (page - 1) * pageSize;
         let excludeKeys = new Set<String>();
-        let iteratorPrjArrays = await db[TABLE_ENV_VAR_NAME]
-        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
-        .equals([ env, prj, iterator, "" ])
-        .filter(row => {
-            if (pname) {
-                return row[env_var_pname] === pname;
+        if (!isStringEmpty(prj)) {
+            let iteratorPrjArrays = await db[TABLE_ENV_VAR_NAME]
+            .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+            .equals([ env, prj, iterator, "" ])
+            .filter(row => {
+                if (pname) {
+                    return row[env_var_pname] === pname;
+                }
+                if (row[env_var_delFlg]) {
+                    return false;
+                }
+                return true;
+            })
+            .toArray();
+            mixedSort(iteratorPrjArrays, env_var_pname);
+            excludeKeys = new Set(iteratorPrjArrays.map(item => ( item[env_var_pname])));
+            for (let iteratorPrjRow of iteratorPrjArrays) {
+                iteratorPrjRow.source = 'iterator_prj';
+                datas.push(iteratorPrjRow);
             }
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return true;
-        })
-        .toArray();
-        mixedSort(iteratorPrjArrays, env_var_pname);
-        excludeKeys = new Set(iteratorPrjArrays.map(item => ( item[env_var_pname])));
-        for (let iteratorPrjRow of iteratorPrjArrays) {
-            iteratorPrjRow.source = 'iterator_prj';
-            datas.push(iteratorPrjRow);
         }
 
         let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
@@ -904,11 +990,11 @@ export async function delGlobalEnvValues(env : string, pname : string, clientTyp
             delEnvKeyFlag = false;
         }
     }
-    if (delEnvKeyFlag) {
-        let env_key = await window.db[TABLE_ENV_KEY_NAME]
+    let env_key = await window.db[TABLE_ENV_KEY_NAME]
         .where('[' + env_key_prj + '+' + env_key_pname + ']')
         .equals(['', pname])
         .first();
+    if (delEnvKeyFlag && env_key !== undefined) {
         env_key[env_key_prj] = '';
         env_key[env_key_pname] = pname;
         env_key[env_key_delFlg] = 1;
@@ -952,11 +1038,11 @@ export async function delPrjEnvValues(prj : string, env : string, pname : string
             delEnvKeyFlag = false;
         }
     }
-    if (delEnvKeyFlag) {
-        let env_key = await window.db[TABLE_ENV_KEY_NAME]
+    let env_key = await window.db[TABLE_ENV_KEY_NAME]
         .where('[' + env_key_prj + '+' + env_key_pname + ']')
         .equals([prj, pname])
         .first();
+    if (delEnvKeyFlag && env_key !== undefined) {
         env_key[env_key_prj] = prj;
         env_key[env_key_pname] = pname;
         env_key[env_key_delFlg] = 1;
@@ -1023,19 +1109,19 @@ export async function delUnittestEnvValues(
 export async function addEnvValues(
     clientType : string, teamId : string, 
     prj : string, env : string, iterator : string, unittest : string, 
-    pname : string, pvar, remark,
+    pname : string, pvar, oldVar, remark, encryptFlg, oldEncryptFlg,
     device) {
 
     if (clientType === CLIENT_TYPE_TEAM) {
         //全局环境变量
         if (isStringEmpty(prj) && isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, env, remark});
+            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg});
         } else if (isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, env, remark})
+            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
         } else if (isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, env, remark})
+            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
         } else {
-            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, env, remark})
+            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
         }
     }
 
@@ -1062,6 +1148,7 @@ export async function addEnvValues(
     property_key[env_var_pname] = pname;
     property_key[env_var_pvalue] = pvar;
     property_key[env_var_premark] = remark;
+    property_key[env_var_pencrypt] = encryptFlg;
     property_key[env_var_cuid] = device.uuid;
     property_key[env_var_ctime] = Date.now();
     property_key[env_var_delFlg] = 0;

@@ -284,7 +284,7 @@ export async function closeVersionIterator(clientType : string, teamId : string,
             let version_iteration_folder : any = {};
             version_iteration_folder[version_iteration_folder_uuid] = "";
             version_iteration_folder[version_iteration_folder_project] = project;
-            version_iteration_folder[version_iteration_folder_name] = name;
+            version_iteration_folder[version_iteration_folder_name] = foldName;
             version_iteration_folder[version_iteration_folder_cuid] = device.uuid;
             version_iteration_folder[version_iteration_folder_ctime] = Date.now();
             version_iteration_folder[version_iteration_folder_delFlg] = 0;

@@ -7,6 +7,7 @@ import {
     TEAM_MEMBER_UNAME_URL,
     TEAM_MEMBER_AWAY_URL,
     TEAM_MEMBER_ADMIN_URL,
+    AI_CHAT_MODEL_SET_URL,
     TEAM_DISSOLVE_URL,
     TEAM_RENAME_URL,
 } from '@conf/team';
@@ -30,6 +31,12 @@ export async function setChatModel(provider : string, chatModel : string) {
     await sendTeamMessage(OS_ENV_VALUE_SET_URL, {
         key: provider + "_OPENAI_CHAT_MODEL",
         value: chatModel
+    });
+}
+
+export async function setChatModel2(chatModel : string) {
+    await sendTeamMessage(AI_CHAT_MODEL_SET_URL, {
+        chatModel
     });
 }
 

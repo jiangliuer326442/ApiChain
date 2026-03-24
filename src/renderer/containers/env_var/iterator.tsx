@@ -21,7 +21,8 @@ import {
 } from '@conf/routers';
 import { 
   SHOW_ADD_PROPERTY_MODEL, 
-  SHOW_EDIT_PROPERTY_MODEL 
+  SHOW_EDIT_PROPERTY_MODEL,
+  GET_ENV_VALS,
 } from '@conf/redux';
 import { 
   getEnvs 
@@ -40,6 +41,7 @@ const { Text, Link } = Typography;
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
+let encryptFlg = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
@@ -67,10 +69,14 @@ class EnvVar extends Component {
         {
           title: langTrans("envvar global table2"),
           dataIndex: pvar,
-          render: (value) => {
-            return (
-              <Text copyable={{text: value}}>{ value }</Text>
-            );
+          render: (value, record) => {
+            if (record[encryptFlg] !== undefined && record[encryptFlg] == 1) {
+              return "******";
+            } else {
+              return (
+                <Text copyable={{text: value}}>{ value }</Text>
+              );
+            }
           }
         },
         {
@@ -117,13 +123,13 @@ class EnvVar extends Component {
                       this.props.teamId,
                       this.state.iterator, 
                       this.state.prj, 
-                      (this.state.env ? this.state.env : this.props.env), 
+                      this.props.env, 
                       record[pname], 
                     );
                     this.getEnvValueData(
                       this.state.prj, 
                       this.state.iterator, 
-                      (this.state.env ? this.state.env : this.props.env), 
+                      this.props.env, 
                       ""
                     );
                   }}
@@ -139,7 +145,6 @@ class EnvVar extends Component {
       ],
       iterator: iteratorId,
       pkeys: [],
-      env: "",
       prj: "",
       copiedKeys: [],
       disabledKeys: [],
@@ -153,7 +158,7 @@ class EnvVar extends Component {
   }
   
     async componentDidMount(): void {
-      this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+      this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
       if (this.props.envs.length === 0) {
         getEnvs(this.props.clientType, this.props.dispatch);
       }
@@ -175,17 +180,23 @@ class EnvVar extends Component {
             pageSize: 10,
           },
         });
-        this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+        this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
       }
     }
 
     setEnvironmentChange = (value: string) => {
-      this.setState({env: value});
+      this.props.dispatch({
+        type: GET_ENV_VALS,
+        prj: this.state.prj,
+        env: value,
+        iterator: this.state.iterator,
+        unittest: ""
+      });
       this.getEnvValueData(this.state.prj, this.state.iterator, value, "");
     }
 
     setPName = (value: string) => {
-      this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, value);
+      this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, value);
     }
   
     addPropertiesClick = () => {
@@ -206,11 +217,12 @@ class EnvVar extends Component {
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
+          encryptFlg: record[encryptFlg],
       });
     }
 
     getEnvValueData = async (prj: string, iterator: string, env: string, paramName: string) => {
-      let pkeys = await getIteratorKeys(this.props.clientType, iterator, prj);
+      let pkeys = await getIteratorKeys(this.props.clientType, this.props.teamId, iterator, prj);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
         let listDatas = await getIteratorEnvValuesByPage(iterator, prj, env, paramName, this.props.clientType, pagination);
@@ -259,7 +271,7 @@ class EnvVar extends Component {
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
-                        value={ this.state.env ? this.state.env : this.props.env }
+                        value={ this.props.env }
                         onChange={this.setEnvironmentChange}
                         style={{ width: 120 }}
                         options={this.props.envs}
@@ -294,7 +306,7 @@ class EnvVar extends Component {
                             this.props.teamId,
                             this.state.iterator, 
                             this.state.prj, 
-                            (this.state.env ? this.state.env : this.props.env),
+                            this.props.env,
                             value,
                             this.state.copiedKeys);
                           this.state.copiedKeys = [];
@@ -303,10 +315,7 @@ class EnvVar extends Component {
                         }}
                         style={{ width: 120 }}
                         options={this.props.envs
-                          .filter(item => item.label != (this.state.env ? this.state.env : this.props.env))
-                          .map(item => {
-                            return {value: item.label, label: item.remark}
-                          })
+                          .filter(item => item.value != this.props.env)
                         }
                         allowClear
                     />
@@ -317,7 +326,7 @@ class EnvVar extends Component {
                       this.getEnvValueData(
                         this.state.prj, 
                         this.state.iterator, 
-                        (this.state.env ? this.state.env : this.props.env), 
+                        this.props.env, 
                         ""
                       );
                     }}>
@@ -325,11 +334,11 @@ class EnvVar extends Component {
                     </Checkbox>
                   </Form.Item>
               </Form>
-              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.state.env ? this.state.env : this.props.env) }>{langTrans("envvar global add")}</Button>
+              <Button  style={{ margin: '16px 0' }} type="primary" onClick={this.addPropertiesClick} disabled={ isStringEmpty(this.props.env) }>{langTrans("envvar global add")}</Button>
               <AddEnvVarComponent 
-                env={this.state.env ? this.state.env : this.props.env}
+                env={this.props.env}
                 cb={()=>{
-                  this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+                  this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
                 }} 
               />
             </Flex>
@@ -339,9 +348,9 @@ class EnvVar extends Component {
               rowKey={(record) => record[pname]}
               columns={this.state.listColumn} 
               pagination={this.state.pagination}
-              onChange={ async (pagination, filters, sorter) => {
+              onChange={ async (pagination) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.prj, this.state.iterator, this.state.env ? this.state.env : this.props.env, "");
+                this.getEnvValueData(this.state.prj, this.state.iterator, this.props.env, "");
               }} />
           </Content>
           <Footer style={{ textAlign: 'center' }}>

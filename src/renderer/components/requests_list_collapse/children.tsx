@@ -89,7 +89,7 @@ class RequestListCollapseChildren extends Component {
                 title: langTrans("prj doc table field3"),
                 dataIndex: props.type === "prj" ? project_request_sort : iteration_request_sort,
                 render: (sort, record) => {
-                    if (record["team_id"] != this.props.teamId) {
+                    if (this.props.myTeamId != this.props.teamId) {
                         return sort;
                     }
                     let method;
@@ -130,11 +130,11 @@ class RequestListCollapseChildren extends Component {
                             <Tooltip title={langTrans("prj doc table act2")}>
                                 <Button type="link" icon={<EyeOutlined />} href={ docDetailUrl } />
                             </Tooltip>
-                        {record["team_id"] == this.props.teamId ? 
+                        {this.props.myTeamId == this.props.teamId &&
                             <Dropdown menu={this.getMore(record)}>
                                 <Button type="text" icon={<MoreOutlined />} />
                             </Dropdown>
-                        : null}
+                        }
                         </Space>
                     );
                 },
@@ -346,7 +346,6 @@ class RequestListCollapseChildren extends Component {
 
 function mapStateToProps (state) {
     return {
-      teamId: state.device.teamId,
       clientType: state.device.clientType,
       prjs: state.prj.list,
       iterators: state.version_iterator.list,

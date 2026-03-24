@@ -1,7 +1,7 @@
 import { getLang } from '../lang/i18n';
 
 export function getProjectUrl() {
-    if (getLang() === 'zh-CN' || getLang() === 'zh-TW') {
+    if (IS_CHINA_BUILD || (getLang() === 'zh-CN' || getLang() === 'zh-TW')) {
         return "https://gitee.com/onlinetool/apichain";
     } else {
         return "https://github.com/jiangliuer326442/ApiChain";

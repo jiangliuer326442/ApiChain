@@ -22,12 +22,13 @@ import { langTrans } from '@lang/i18n';
 import {
     ChannelsVipStr,
     ChannelsVipCloseCkCodeStr,
+    ChannelsVipCkCodeStr,
 } from '@conf/channel';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import {
     CLIENT_TYPE_TEAM 
 } from '@conf/team';
-import { getdayjs } from '@rutil/index';
+import { getStartParams, getdayjs } from '@rutil/index';
 import { 
     setBaseUrl, 
     setApiKey,
@@ -46,6 +47,10 @@ import PayAiTokenModel from '@comp/topup/aitoken';
 
 const { Header, Content, Footer } = Layout;
 const { Link, Text } = Typography;
+
+const argsObject = getStartParams();
+const isAdmin = argsObject.isAdmin;
+const isSuperAdmin = argsObject.isSuperAdmin;
 
 class BasicSetting extends Component {
 
@@ -87,8 +92,8 @@ class BasicSetting extends Component {
                         type="link" 
                         icon={<ReloadOutlined style={{ fontSize: '16px', color: '#1890ff' }} />}
                         onClick={async () => {
-                            let tokenName = record["token_name"];
-                            await queryRemainGas(tokenName).then(async () => this.setState({tokens: await getTokens()}))
+                            let tokenContent = record["token_content"];
+                            await queryRemainGas(tokenContent).then(async () => this.setState({tokens: await getTokens()}))
                         }}
                         >
                     {remainGas}
@@ -143,10 +148,39 @@ class BasicSetting extends Component {
                 let providerArr = providerRow.split(":");
                 providers.push({label:providerArr[0], value:providerArr[1]})
             }
+            this.setProvider(selectedProvider);
             let baseUrlArr = this.getBaseUrl(bigModelProviders, selectedProvider);
+            if (baseUrlArr.length > 1) {
+                this.setBaseUrl2(baseUrlArr[0].value);
+            } else {
+                this.setBaseUrl2(baseUrlArr[0]);
+            }
             let langguageModelArr = this.getLanguageModels(bigModelProviders, selectedProvider);
+            if (langguageModelArr.length > 1) {
+                this.setLanguageModel2(langguageModelArr[0].value);
+            } else {
+                this.setLanguageModel2(langguageModelArr[0]);
+            }
             let apiKey = this.getApiKey(bigModelProviders, selectedProvider);
             const tokenList = await getTokens();
+            let hasUsed = false;
+            for (let _token of tokenList) {
+                if (_token['use_flg']) {
+                    hasUsed = true;
+                    break;
+                }
+            }
+            if (!hasUsed && tokenList.length > 0) {
+                const record = tokenList[0];
+                let tokenName = record["token_name"];
+                await enableToken(tokenName).then(async () => {
+                    let selectedProvider = "YUNWU";
+                    this.setState({
+                        selectedProvider,
+                        tokens: await getTokens(),
+                    });
+                })
+            }
             this.setState({
                 selectedProvider,
                 bigModelProviders,
@@ -240,12 +274,12 @@ class BasicSetting extends Component {
     }
 
     setProvider = async (newProvider : string) => {
+        this.state.selectedProvider = newProvider;
         await setProvider(newProvider).then(()=> {
             let baseUrlArr = this.getBaseUrl(null, newProvider);
             let langguageModelArr = this.getLanguageModels(null, newProvider);
             let apiKey = this.getApiKey(null, newProvider);
             this.setState({
-                selectedProvider : newProvider,
                 baseUrls : baseUrlArr,
                 languageModels: langguageModelArr,
                 apiKey,
@@ -291,9 +325,10 @@ class BasicSetting extends Component {
         });
     }
 
-    showCkCode = (e) => {
+    handleCkCode = (e) => {
         if (!this.state.closeShowPay) {
-            this.setState({showPayWriteOff: true})
+            //发消息生成核销码
+            window.electron.ipcRenderer.sendMessage(ChannelsVipStr, ChannelsVipCkCodeStr);
         }
     }
 
@@ -322,7 +357,7 @@ class BasicSetting extends Component {
                         type="warning" 
                         closable 
                         onClose={this.closeShowPay} 
-                        onClick={this.showCkCode}
+                        onClick={this.handleCkCode}
                     /> 
                 : null}
                     <PayAiTokenModel 
@@ -431,6 +466,7 @@ class BasicSetting extends Component {
                                             message.error(error.errorMessage);
                                         }
                                 }} color="primary">{langTrans("knowledge management update")}</Button>
+                            {((isAdmin == 1) || (isSuperAdmin == 1)) ? 
                                 <Popconfirm
                                     title={langTrans("knowledge management rebuild confirm")}
                                     onConfirm={async ()=>{
@@ -446,6 +482,7 @@ class BasicSetting extends Component {
                                         variant="outlined" 
                                         color="primary" danger>{langTrans("knowledge management rebuild")}</Button>
                                 </Popconfirm>
+                            : null}
                             </Space>
                         </Form.Item>
                     </>
