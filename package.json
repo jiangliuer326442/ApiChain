@@ -38,7 +38,6 @@
     "build:7zip": "ts-node ./.erb/scripts/clean.js dist && cross-env PACKAGE_TARGET=china yarn build:d7zip",
     "package:d1": "cross-env TS_NODE_COPY_ZIP=false yarn build:d7zip && cross-env TS_NODE_COPY_ZIP=true yarn build && electron-builder build",
     "build:d7zip": "yarn build && ts-node ./.erb/scripts/build-dist-zip.js",
-    "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "cross-env PACKAGE_TARGET=global yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true PACKAGE_TARGET=global webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
@@ -82,7 +81,6 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@electron/rebuild": "^3.3.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
     "@svgr/webpack": "^8.1.0",
     "@teamsupercell/typings-for-css-modules-loader": "^2.5.2",
