@@ -1,6 +1,7 @@
 import { ipcMain, BrowserWindow } from "electron";
+import log from 'electron-log';
 import Store from 'electron-store';
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise';
 
 import { langTrans } from '../../../lang/i18n';
 import {
@@ -27,32 +28,44 @@ export default function (privateKey : string, mainWindow : BrowserWindow, store 
         if(action !== ChannelsDatabaseQuery) return;
 
         const clientType = getClientType(store);
-        let connection;
         if (clientType === CLIENT_TYPE_SINGLE) {
             dbConfig['db_password'] = rsaDecrypt(dbConfig['db_password'], privateKey);
         }
-        connection = mysql.createConnection({
-            host: dbConfig['db_host'],
-            port: dbConfig['db_port'],
-            user: dbConfig['db_username'],
-            password: dbConfig['db_password'],
-            database: dbConfig['db_name'],
-        });
-
-        connection.connect((err) => {
-            if (err) {
-                mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, langTrans("database connect error"), null);
-                return;
-            }
-            connection.query(sql, sqlParams, (err, results) => {
-                if (err) {
-                    mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, langTrans("database sql error"), null);
-                    return;
-                }
-                const firstRecord = results.length > 0 ? results[0] : {};
-                const serializableData = JSON.parse(JSON.stringify(firstRecord));
-                mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, true, "", serializableData);
+        let connection;
+        try {
+            // 1. 创建连接（Promise 写法）
+            connection = await mysql.createConnection({
+                host: dbConfig['db_host'],
+                port: dbConfig['db_port'],
+                user: dbConfig['db_username'],
+                password: dbConfig['db_password'],
+                database: dbConfig['db_name'],
             });
-        });
+
+            // 2. 执行 SQL（mysql2/promise 直接返回 [results, fields]）
+            const [results] = await connection.query(sql, sqlParams);
+
+            const firstRecord = results.length > 0 ? results[0] : {};
+            const serializableData = JSON.parse(JSON.stringify(firstRecord));
+
+            mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, true, "", serializableData);
+
+        } catch (err) {
+            // 统一捕获：连接失败 / SQL 错误
+            log.error('数据库错误:', err);
+            if (err.message.includes('connect')) {
+                // 连接错误
+                mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, langTrans("database connect error"), null);
+            } else {
+                // SQL 执行错误
+                mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, langTrans("database sql error"), null);
+            }
+
+        } finally {
+            // 4. 无论成功失败，都要关闭连接（重要！）
+            if (connection) {
+                await connection.end();
+            }
+        }
     });
 }

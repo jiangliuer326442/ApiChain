@@ -464,9 +464,9 @@ class UnittestStepContainer extends Component {
         assertType.push(ASSERT_TYPE_API);
         assertSql.push("");
         assertSqlParams.push([]);
-        assertPrev.push("");
+        assertPrev.push(" ");
         assertOperator.push(" == ");
-        assertAfter.push("");
+        assertAfter.push(" ");
         assertLength += 1;
         this.setState({
             assertTitle,
