@@ -1126,8 +1126,8 @@ async function stepsExecutor(
                 for (let _key in unitTestAsserts) {
                     let keyNumber = Number(_key) as number;
                     let unitTestAssert = unitTestAsserts[keyNumber];
-                    let assertLeft = unitTestAssert[unittest_step_assert_left];
-                    let assertRight = unitTestAssert[unittest_step_assert_right];
+                    let assertLeft = unitTestAssert[unittest_step_assert_left].trim();
+                    let assertRight = unitTestAssert[unittest_step_assert_right].trim();
                     let assertOperator = unitTestAssert[unittest_step_assert_operator];
                     if (unitTestAssert[unittest_step_assert_type] == ASSERT_TYPE_DB) {
                         let sql = unitTestAssert[unittest_step_assert_sql];
@@ -1148,7 +1148,11 @@ async function stepsExecutor(
 
                         try {
                             let dbRet = await getDbRetFunc(project, sql, parsed_sql_params)
-                            assertLeftValue[keyNumber] = dbRet[assertLeft];
+                            if (assertLeft in dbRet) {
+                                assertLeftValue[keyNumber] = dbRet[assertLeft];
+                            } else {
+                                assertLeftValue[keyNumber] = "";
+                            }
                         } catch (error) {
                             console.error(error);
                             errorMessage = error.message;
@@ -1165,7 +1169,6 @@ async function stepsExecutor(
                             breakFlg = true;
                             break;
                         }
-
                     } else {
                         jsonParamTips.setContent(assertLeft);
                         try {

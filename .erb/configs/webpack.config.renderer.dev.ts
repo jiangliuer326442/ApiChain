@@ -11,8 +11,6 @@ import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
 
-// When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
-// at the dev webpack config is not accidentally run in a production environment
 if (process.env.NODE_ENV === 'production') {
   checkNodeEnv('development');
 }
@@ -20,8 +18,7 @@ if (process.env.NODE_ENV === 'production') {
 const port = process.env.PORT || 1212;
 const manifest = path.resolve(webpackPaths.dllPath, 'renderer.json');
 const skipDLLs =
-  module.parent?.filename.includes('webpack.config.renderer.dev.dll') ||
-  module.parent?.filename.includes('webpack.config.eslint');
+  module.parent?.filename.includes('webpack.config.renderer.dev.dll');
 
 /**
  * Warn if the DLL is not built
@@ -74,13 +71,12 @@ const configuration: webpack.Configuration = {
               importLoaders: 1,
             },
           },
-          'sass-loader',
         ],
         include: /\.module\.s?(c|a)ss$/,
       },
       {
         test: /\.s?css$/,
-        use: ['style-loader', 'css-loader', 'sass-loader'],
+        use: ['style-loader', 'css-loader'],
         exclude: /\.module\.s?(c|a)ss$/,
       },
       // Fonts
