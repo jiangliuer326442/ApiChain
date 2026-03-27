@@ -85,13 +85,16 @@ export async function getPrjsByPage(clientType : string, pagination : any) {
 
 export async function savePrjConfig(clientType : string, teamId : string, prj : string, env : string, 
     apiHost : string, apiPrefix : string, runMode : string, projectDesc : string,
-    dbHost : string, dbPort : number, dbUsername : string, dbPassword : string, dbName : string, dbRunMode : string,
-device) {
+    dbHost : string, dbPort : number, dbUsername : string, 
+    localPassword : string, dbPassword : string, oldPassword : string, 
+    dbName : string, dbRunMode : string, device) {
     if (clientType === CLIENT_TYPE_TEAM) {
         await sendTeamMessage(PROJECT_CONFIG_SAVE_URL, {
             prj, env, 
             apiHost, apiPrefix, runMode, 
-            dbHost, dbPort, dbUsername, dbPassword, dbName, dbRunMode,
+            dbHost, dbPort, dbUsername, 
+            dbPassword, oldPassword, 
+            dbName, dbRunMode,
             projectDesc
         }
         );
@@ -334,7 +337,7 @@ device) {
     property_key[env_var_iteration] = "";
     property_key[env_var_unittest] = "";
     property_key[env_var_pname] = ENV_VALUE_DB_PASSWORD;
-    property_key[env_var_pvalue] = dbPassword;
+    property_key[env_var_pvalue] = localPassword;
     property_key[env_var_premark] = "";
     property_key[env_var_pencrypt] = 1;
     property_key[env_var_cuid] = device.uuid;

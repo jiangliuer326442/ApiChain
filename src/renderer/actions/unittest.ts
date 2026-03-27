@@ -12,7 +12,6 @@ import {
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
     UNAME,
 } from '@conf/db';
-import { ChannelsDatabaseStr, ChannelsDatabaseQuery, ChannelsDatabaseQueryResult } from '@conf/channel';
 import {
     CONTENT_TYPE,
     REQUEST_METHOD_GET,
@@ -42,14 +41,7 @@ import {
     ASSERT_TYPE_DB,
 } from '@conf/unittest';
 import {
-    ENV_VALUE_RUN_MODE_CLIENT, 
-    ENV_VALUE_RUN_MODE_RUMMER,
-    ENV_VALUE_DB_HOST, 
-    ENV_VALUE_DB_PORT, 
-    ENV_VALUE_DB_USERNAME, 
-    ENV_VALUE_DB_PASSWORD, 
-    ENV_VALUE_DB_NAME, 
-    ENV_VALUE_DB_RUN_MODE
+    ENV_VALUE_RUN_MODE_CLIENT,
 } from '@conf/envKeys';
 import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 import {
@@ -57,7 +49,6 @@ import {
     CLIENT_TYPE_SINGLE,
     UNITTES_PROJECT_SAVE_URL,
     UNITTES_ITERATION_SAVE_URL,
-    DB_CONFIG_GET_URL,
     UNITTES_ITERATION_DEL_URL,
     UNITTES_ITERATION_ALL_URL,
     UNITTES_PROJECT_FETCH_SINGLE_URL,
@@ -66,8 +57,8 @@ import {
 } from '@conf/team';
 
 import { 
-    sendAjaxMessageByClient,
-    sendAjaxMessageByRunner,
+    executeQuerySql,
+    sendAjaxMessage,
     sendTeamMessage,
 } from '@act/message';
 import { getUsers } from '@act/user';
@@ -1044,32 +1035,20 @@ async function stepsExecutor(
         if (method === REQUEST_METHOD_POST) {
             if (contentType === CONTENT_TYPE_FORMDATA) {
                 try {
-                    if (runMode === ENV_VALUE_RUN_MODE_RUMMER) {
-                        response = await sendAjaxMessageByRunner(REQUEST_METHOD_POST, url, header, body, file)
-                    } else if (runMode === ENV_VALUE_RUN_MODE_CLIENT) {
-                        response = await sendAjaxMessageByClient(REQUEST_METHOD_POST, url, header, body, file);
-                    }
+                    response = await sendAjaxMessage(runMode, REQUEST_METHOD_POST, url, header, body, file)
                 } catch (err) {
                     errorMessage = err.errorMessage;
                 }
             } else {
                 try {
-                    if (runMode === ENV_VALUE_RUN_MODE_RUMMER) {
-                        response = await sendAjaxMessageByRunner(REQUEST_METHOD_POST, url, header, body, null)
-                    } else if (runMode === ENV_VALUE_RUN_MODE_CLIENT) {
-                        response = await sendAjaxMessageByClient(REQUEST_METHOD_POST, url, header, body, null);
-                    }
+                    response = await sendAjaxMessage(runMode, REQUEST_METHOD_POST, url, header, body, null)
                 } catch (err) {
                     errorMessage = err.errorMessage;
                 }
             }
         } else if (method === REQUEST_METHOD_GET) {
             try {
-                if (runMode === ENV_VALUE_RUN_MODE_RUMMER) {
-                    response = await sendAjaxMessageByRunner(REQUEST_METHOD_GET, url, header, null, null)
-                } else if (runMode === ENV_VALUE_RUN_MODE_CLIENT) {
-                    response = await sendAjaxMessageByClient(REQUEST_METHOD_GET, url, header, null, null);
-                }
+                response = await sendAjaxMessage(runMode, REQUEST_METHOD_GET, url, header, null, null)
             } catch (err) {
                 errorMessage = err.errorMessage;
             }
@@ -1523,66 +1502,4 @@ async function iteratorBodyObject(
 	result.error = null;
 	result.success = null;
 	return result;
-}
-
-async function executeQuerySql(clientType : string, env : string, project : string, sql : string, params : Array<string>) {
-    let dbConfig : any;
-    if (clientType === CLIENT_TYPE_TEAM) {
-        dbConfig = await sendTeamMessage(DB_CONFIG_GET_URL, {prj: project, env});
-    } else {
-        let envValues = await db[TABLE_ENV_VAR_NAME]
-        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
-        .equals([ env, project, "", "" ])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return [    
-                ENV_VALUE_DB_HOST, 
-                ENV_VALUE_DB_PORT, 
-                ENV_VALUE_DB_USERNAME, 
-                ENV_VALUE_DB_PASSWORD, 
-                ENV_VALUE_DB_NAME, 
-                ENV_VALUE_DB_RUN_MODE
-            ].includes(row[env_var_pname])
-        })
-        .toArray();
-
-        dbConfig = {};
-        for(let row of envValues) {
-            if (row[env_var_pname] == ENV_VALUE_DB_HOST) {
-                dbConfig['db_host'] = row[env_var_pvalue];
-            } else if (row[env_var_pname] == ENV_VALUE_DB_PORT) {
-                dbConfig['db_port'] = row[env_var_pvalue];
-            } else if (row[env_var_pname] == ENV_VALUE_DB_USERNAME) {
-                dbConfig['db_username'] = row[env_var_pvalue];
-            } else if (row[env_var_pname] == ENV_VALUE_DB_PASSWORD) {
-                dbConfig['db_password'] = row[env_var_pvalue];
-            } else if (row[env_var_pname] == ENV_VALUE_DB_NAME) {
-                dbConfig['db_name'] = row[env_var_pvalue];
-            } else if (row[env_var_pname] == ENV_VALUE_DB_RUN_MODE) {
-                dbConfig['db_run_mode'] = row[env_var_pvalue];
-            }
-        }
-    }
-
-    return await dbQueryPromise(dbConfig, sql, params);
-}
-
-export function dbQueryPromise (dbConfig, sql, params) {
-    return new Promise((resolve, reject) => {
-
-        let listener = window.electron.ipcRenderer.on(ChannelsDatabaseStr, (action, isSuccess, errorMessage, ret) => {
-            if (action === ChannelsDatabaseQueryResult) {
-                listener();
-                if (isSuccess) {
-                    resolve(ret);
-                } else {
-                    reject({message: errorMessage});
-                }
-            }
-        });
-
-        window.electron.ipcRenderer.sendMessage(ChannelsDatabaseStr, ChannelsDatabaseQuery, dbConfig, sql, params);
-    });
 }
