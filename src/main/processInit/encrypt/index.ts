@@ -25,16 +25,7 @@ export default function (privateKey : string, publicKey : string, store : Store)
 
         if (action !== ChannelsEncryptEncrypt) return;
 
-        const clientType = getClientType(store);
-        let encryptContent;
-        if (clientType === CLIENT_TYPE_SINGLE) {
-            encryptContent = rsaEncrypt(content, publicKey);
-        } else {
-            //团队版服务端加密去
-            // const key = md5(getTeamId(store));
-            // encryptContent = fernetEncrypt(content, key)
-            encryptContent = content;
-        }
+        let encryptContent = rsaEncrypt(content, publicKey);
 
         event.reply(ChannelsEncryptStr, ChannelsEncryptEncryptResult, encryptContent);
 

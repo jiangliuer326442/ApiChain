@@ -27,10 +27,7 @@ export default function (privateKey : string, mainWindow : BrowserWindow, store 
     ipcMain.on(ChannelsDatabaseStr, async (event, action, dbConfig, sql, sqlParams) => {
         if(action !== ChannelsDatabaseQuery) return;
 
-        const clientType = getClientType(store);
-        if (clientType === CLIENT_TYPE_SINGLE) {
-            dbConfig['db_password'] = rsaDecrypt(dbConfig['db_password'], privateKey);
-        }
+        dbConfig['db_password'] = rsaDecrypt(dbConfig['db_password'], privateKey);
         let connection;
         try {
             // 1. 创建连接（Promise 写法）
@@ -41,6 +38,12 @@ export default function (privateKey : string, mainWindow : BrowserWindow, store 
                 password: dbConfig['db_password'],
                 database: dbConfig['db_name'],
             });
+
+            // 2. 检查 SQL 语句是否为 SELECT 查询
+            if (!sql.trim().toUpperCase().startsWith('SELECT')) {
+                mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseQueryResult, false, langTrans("database query sql error"), null);
+                return;
+            }
 
             // 2. 执行 SQL（mysql2/promise 直接返回 [results, fields]）
             const [results] = await connection.query(sql, sqlParams);

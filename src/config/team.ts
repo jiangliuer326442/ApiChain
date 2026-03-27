@@ -180,6 +180,8 @@ export const USERS_SET_MY_INFO_URL = "/users/set_user_info";
 
 export const NETWORK_REQUEST_URL = "/network/request";
 
+export const NETWORK_DB_REQUEST_URL = "/network/dbQuery";
+
 export const OPENAI_REQUEST_URL = "/network/question";
 
 export const VECTOR_MAKE_URL = "/network/vector";

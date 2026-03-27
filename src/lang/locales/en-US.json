@@ -315,6 +315,7 @@
     "unittest step db sql": "SQL statement for verification execution, example 'SELECT title, address, category FROM apichain_link WHERE team_id = ?'",
     "database connect error": "Database connection failed",
     "database sql error": "SQL statement execution error",
+    "database query sql error": "Only SELECT queries are supported",
     "unittest report success": "Success",
     "unittest report fail": "Failure",
     "member title": "Member Features",

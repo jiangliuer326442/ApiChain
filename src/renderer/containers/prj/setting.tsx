@@ -31,6 +31,7 @@ class ProjectSetting extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            loading: false,
             apiHost: "",
             apiPrefix: "",
             runMode: ENV_VALUE_RUN_MODE_CLIENT,
@@ -42,7 +43,6 @@ class ProjectSetting extends Component {
             oldDbPassword: "",
             dbName: "",
             dbRunMode: ENV_VALUE_RUN_MODE_CLIENT,
-            loading: true
         }
     }
 
@@ -57,6 +57,9 @@ class ProjectSetting extends Component {
     }
 
     getData = async () => {
+        this.setState({
+            loading: true,
+        })
         let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, this.props.env);
         this.setState({
             loading: false,
@@ -98,19 +101,27 @@ class ProjectSetting extends Component {
             }
         }
 
+        this.setState({loading: true});
+
+        // 文本输入框内的密码
         let dbPassword = this.state.dbPassword.trim();
-        if (this.props.clientType == CLIENT_TYPE_SINGLE && this.state.oldDbPassword != dbPassword) {
-            dbPassword = await encryptPromise(dbPassword);
+        //用于本地存储的密码
+        let localPassword = dbPassword;
+        if (this.state.oldDbPassword != dbPassword) {
+            localPassword = await encryptPromise(dbPassword);
         }
 
         await savePrjConfig(this.props.clientType, this.props.teamId, this.props.match.params.prj, this.props.env,
             apiHost, apiPrefix, this.state.runMode, this.state.projectDesc,
-            this.state.dbHost, this.state.dbPort, this.state.dbUsername, dbPassword, this.state.dbName, this.state.dbRunMode,
+            this.state.dbHost, this.state.dbPort, this.state.dbUsername, 
+            localPassword, dbPassword, this.state.oldDbPassword, 
+            this.state.dbName, this.state.dbRunMode,
             this.props.device);
         
         message.success(langTrans("project setting save success"));
 
         this.getData();
+        this.setState({loading: false});
     }
 
     setEnvironmentChange = async (value: string) => {
@@ -120,12 +131,8 @@ class ProjectSetting extends Component {
             env: value,
             iterator: "",
             unittest: ""
-        });
-        let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, value);
-        this.setState({
-            apiHost: ret["api_host"],
-            apiPrefix: ret["api_prefix"],
-            runMode: ret["run_mode"] 
+        }, () => {
+            this.getData();
         });
     }
 
@@ -218,7 +225,11 @@ class ProjectSetting extends Component {
                             <MarkdownEditor content={this.state.projectDesc} cb={content => this.setState({projectDesc: content}) } />
                         </Form.Item>}
                         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-                            <Button type="primary" onClick={this.handleSubmit}>
+                            <Button 
+                                type="primary" 
+                                onClick={this.handleSubmit}
+                                loading={this.state.loading}
+                                >
                             {langTrans("iterator edit btn")}
                             </Button>
                         </Form.Item>

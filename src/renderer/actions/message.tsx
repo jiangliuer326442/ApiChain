@@ -10,12 +10,23 @@ import {
     ENV,
 } from '@conf/storage';
 import { 
+    TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_MICRO_SERVICE_FIELDS,
     TABLE_REQUEST_HISTORY_NAME,
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME,
     TABLE_UNITTEST_EXECUTOR_NAME,
 } from '@conf/db';
+import {
+    ENV_VALUE_RUN_MODE_CLIENT,
+    ENV_VALUE_DB_HOST, 
+    ENV_VALUE_DB_PORT, 
+    ENV_VALUE_DB_USERNAME, 
+    ENV_VALUE_DB_PASSWORD, 
+    ENV_VALUE_DB_NAME, 
+    ENV_VALUE_DB_RUN_MODE,
+    ENV_VALUE_RUN_MODE_RUMMER 
+} from '@conf/envKeys';
 import {
     ChannelsDbLongStr, 
     ChannelsDbExportStr,
@@ -39,20 +50,34 @@ import {
     ChannelsMessageStr,
     ChannelsMessageErrorStr,
     ChannelsMessageInfoStr,
+    ChannelsDatabaseStr, 
+    ChannelsDatabaseQuery, 
+    ChannelsDatabaseQueryResult
 } from '@conf/channel';
 import {
-    NETWORK_REQUEST_URL
+    CLIENT_TYPE_TEAM,
+    NETWORK_REQUEST_URL,
+    DB_CONFIG_GET_URL,
+    NETWORK_DB_REQUEST_URL,
 } from '@conf/team';
 import {
     CONTENT_TYPE_FORMDATA
 } from '@conf/contentType';
 
-import { getEnvHosts } from '@act/env_value';
+import { getEnvHosts, encryptPromise } from '@act/env_value';
 import { getPrjs } from '@act/project';
 import { getEnvs } from '@act/env';
 import { getRemoteVersionIterator } from '@act/version_iterator';
 import { getSimpleVersionIteratorRequests } from '@act/version_iterator_requests';
 import { langFormat, langTrans } from '@lang/i18n';
+
+let env_var_env = TABLE_ENV_VAR_FIELDS.FIELD_ENV_LABEL;
+let env_var_micro_service = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
+let env_var_iteration = TABLE_ENV_VAR_FIELDS.FIELD_ITERATION;
+let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
+let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
+let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
+let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 
 let argsObject = getStartParams();
 let clientType = argsObject.clientType;
@@ -85,6 +110,101 @@ export function sendTeamMessage(url : string, postData) {
     });
 }
 
+export async function executeQuerySql(clientType : string, env : string, project : string, sql : string, params : Array<string>) {
+    let dbConfig = await getDbConfig(clientType, env, project);
+    if (dbConfig['db_run_mode'] == ENV_VALUE_RUN_MODE_CLIENT) {
+        return executeQuerySqlByClient(dbConfig, sql, params);
+    } else {
+        let teamRet = await sendTeamMessage(NETWORK_DB_REQUEST_URL, {
+            project,
+            env,
+            sql,
+            params: JSON.stringify(params),
+        });
+        return new Promise((resolve, reject) => {
+            let isSuccess = teamRet["isSuccess"];
+            let errorMessage = teamRet['errorMessage'];
+            let ret = teamRet['ret'];
+            if (isSuccess) {
+                resolve(ret);
+            } else {
+                reject({message: errorMessage});
+            }
+        });
+    }
+}
+
+function executeQuerySqlByClient(dbConfig, sql : string, params : Array<string>) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsDatabaseStr, (action, isSuccess, errorMessage, ret) => {
+            if (action === ChannelsDatabaseQueryResult) {
+                listener();
+                if (isSuccess) {
+                    resolve(ret);
+                } else {
+                    reject({message: errorMessage});
+                }
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsDatabaseStr, ChannelsDatabaseQuery, dbConfig, sql, params);
+    });
+}
+
+async function getDbConfig(clientType : string, env : string, project : string) {
+    let dbConfig : any;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        dbConfig = await sendTeamMessage(DB_CONFIG_GET_URL, {prj: project, env});
+        let encryptPwd = await encryptPromise(dbConfig["db_password"]);
+        dbConfig["db_password"] = encryptPwd;
+    } else {
+        let envValues = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, project, "", "" ])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return [    
+                ENV_VALUE_DB_HOST, 
+                ENV_VALUE_DB_PORT, 
+                ENV_VALUE_DB_USERNAME, 
+                ENV_VALUE_DB_PASSWORD, 
+                ENV_VALUE_DB_NAME, 
+                ENV_VALUE_DB_RUN_MODE
+            ].includes(row[env_var_pname])
+        })
+        .toArray();
+
+        dbConfig = {};
+        for(let row of envValues) {
+            if (row[env_var_pname] == ENV_VALUE_DB_HOST) {
+                dbConfig['db_host'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_PORT) {
+                dbConfig['db_port'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_USERNAME) {
+                dbConfig['db_username'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_PASSWORD) {
+                dbConfig['db_password'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_NAME) {
+                dbConfig['db_name'] = row[env_var_pvalue];
+            } else if (row[env_var_pname] == ENV_VALUE_DB_RUN_MODE) {
+                dbConfig['db_run_mode'] = row[env_var_pvalue];
+            }
+        }
+    }
+    return dbConfig;
+}
+
+export function sendAjaxMessage(runMode : string, method : string, url : string, headData, postData, fileData) {
+    if (runMode === ENV_VALUE_RUN_MODE_RUMMER) {
+        return sendAjaxMessageByRunner(method, url, headData, postData, fileData);
+    } else {
+        return sendAjaxMessageByClient(method, url, headData, postData, fileData);
+    }
+}
+
 /**
  * 发送网络请求
  * @param method 请求方法
@@ -94,7 +214,7 @@ export function sendTeamMessage(url : string, postData) {
  * @param fileData 文件数据
  * @returns 
  */
-export function sendAjaxMessageByClient(method : string, url : string, headData, postData, fileData) {
+function sendAjaxMessageByClient(method : string, url : string, headData, postData, fileData) {
     return new Promise((resolve, reject) => {
 
         let messageSendListener = window.electron.ipcRenderer.on(ChannelsAxioBreidgeStr, (action, originUrl, targetUrl, statusCode, costTime, errorMessage, cookieObj, headers, data) => {
@@ -118,7 +238,7 @@ export function sendAjaxMessageByClient(method : string, url : string, headData,
     });
 }
 
-export function sendAjaxMessageByRunner(method : string, url : string, headData, postData, fileData) {
+function sendAjaxMessageByRunner(method : string, url : string, headData, postData, fileData) {
     let formData = new FormData();
     formData.append("url", url);
     formData.append("method", method);

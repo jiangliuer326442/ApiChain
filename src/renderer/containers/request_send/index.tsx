@@ -79,8 +79,7 @@ import {
   addRequestHistory 
 } from '@act/request_history';
 import {
-  sendAjaxMessageByClient,
-  sendAjaxMessageByRunner,
+  sendAjaxMessage,
 } from '@act/message';
 import SelectPrjEnvComponent from "@comp/env_var/select_prj_env";
 import RequestSendBody from "@comp/request_send/body_form";
@@ -560,8 +559,12 @@ class RequestSendContainer extends Component {
       );
 
       if (this.state.contentType === CONTENT_TYPE_FORMDATA) {
-        if (this.state.runMode === ENV_VALUE_RUN_MODE_RUMMER) {
-          sendAjaxMessageByRunner(REQUEST_METHOD_POST, url, headData, postData, this.state.requestFileData).then(response => {
+          sendAjaxMessage(
+            this.state.runMode, 
+            REQUEST_METHOD_POST, 
+            url, headData, postData, 
+            this.state.requestFileData
+          ).then(response => {
             this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
             this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
           }).catch(err => this.setState({
@@ -569,19 +572,12 @@ class RequestSendContainer extends Component {
             sendingFlg: false, 
             statusCode: err.statusCode,
           }));
-        } else if (this.state.runMode === ENV_VALUE_RUN_MODE_CLIENT) {
-          sendAjaxMessageByClient(REQUEST_METHOD_POST, url, headData, postData, this.state.requestFileData).then(response => {
-            this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
-            this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
-          }).catch(err => this.setState({
-            alertMessage: err.errorMessage, 
-            sendingFlg: false, 
-            statusCode: err.statusCode,
-          }));
-        }
       } else {
-        if (this.state.runMode === ENV_VALUE_RUN_MODE_RUMMER) {
-          sendAjaxMessageByRunner(REQUEST_METHOD_POST, url, headData, postData, null).then(response => {
+          sendAjaxMessage(
+            this.state.runMode, 
+            REQUEST_METHOD_POST, 
+            url, headData, postData, null
+          ).then(response => {
             this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
             this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
           }).catch(err => this.setState({
@@ -589,20 +585,13 @@ class RequestSendContainer extends Component {
             sendingFlg: false, 
             statusCode: err.statusCode,
           }));
-        } else if (this.state.runMode === ENV_VALUE_RUN_MODE_CLIENT) {
-          sendAjaxMessageByClient(REQUEST_METHOD_POST, url, headData, postData, null).then(response => {
-            this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
-            this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
-          }).catch(err => this.setState({
-            alertMessage: err.errorMessage, 
-            sendingFlg: false, 
-            statusCode: err.statusCode,
-          }));
-        }
       }
     } else if (this.state.requestMethod === REQUEST_METHOD_GET) {
-      if (this.state.runMode === ENV_VALUE_RUN_MODE_RUMMER) {
-        sendAjaxMessageByRunner(REQUEST_METHOD_GET, url, headData, null, null).then(response => {
+        sendAjaxMessage(
+          this.state.runMode, 
+          REQUEST_METHOD_GET, 
+          url, headData, null, null
+        ).then(response => {
           this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
           this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
         }).catch(err => this.setState({
@@ -610,16 +599,6 @@ class RequestSendContainer extends Component {
           sendingFlg: false, 
           statusCode: err.statusCode,
         }));
-      } else if (this.state.runMode === ENV_VALUE_RUN_MODE_CLIENT) {
-        sendAjaxMessageByClient(REQUEST_METHOD_GET, url, headData, null, null).then(response => {
-          this.handleResponse(response.originUrl, response.cookieObj, response.headers, response.costTime, response.data);
-          this.setState({alertMessage: "", sendingFlg: false, statusCode: 200});
-        }).catch(err => this.setState({
-          alertMessage: err.errorMessage, 
-          sendingFlg: false, 
-          statusCode: err.statusCode,
-        }));
-      }
     }
   }
 

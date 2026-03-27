@@ -352,6 +352,7 @@
     "unittest step db sql": "执行进行校验的sql语句，示例 'SELECT title, address, category FROM apichain_link WHERE team_id = ?'",
     "database connect error": "连接数据库失败",
     "database sql error": "执行sql语句报错",
+    "database query sql error": "只支持查询语句使用",
     "unittest report success": "成功",
     "unittest report fail": "失败",
     "member title": "会员功能",
