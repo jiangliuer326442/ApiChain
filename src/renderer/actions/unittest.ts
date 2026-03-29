@@ -190,14 +190,6 @@ export async function batchMoveIteratorUnittest(oldIterator : string, unittestAr
         .equals([0, oldIterator, _unittestRow])
         .toArray();
 
-        for (let iteration_unittest_step of iteration_unittest_steps) {
-            let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
-            let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-            .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
-            .toArray();
-        }
-
         version_iteration_unittest[unittest_iterator_uuid] = newIterator;
         await window.db[TABLE_UNITTEST_NAME].put(version_iteration_unittest);
 

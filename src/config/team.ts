@@ -233,3 +233,5 @@ export const UNITTES_PROJECT_FETCH_SINGLE_URL = "/unittest/project/getSingle"
 export const UNITTES_ITERATION_STEP_SAVE_URL = "/unittest/iteration/saveStep"
 
 export const UNITTES_ITERATION_STEP_DEL_URL = "/unittest/iteration/delStep"
+
+export const UNITTES_ITERATION_TEMPLATE_ADD_URL = "/unittest/iteration/addTemplate"
