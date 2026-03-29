@@ -189,14 +189,45 @@ export const TABLE_UNITTEST_FOLD_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
+export const TABLE_UNITTEST_TEMPLATE_NAME = "unittest_template";
+export const TABLE_UNITTEST_TEMPLATE_FIELDS = {
+    FIELD_UUID : "uuid",
+    FIELD_TITLE : "title",
+    FIELD_FOLD_NAME : "fold",
+    FIELD_CUID : "create_uid",
+    FIELD_CTIME : "create_time",
+    FIELD_DELFLG : "del_flg",
+}
+
 export const TABLE_UNITTEST_NAME = "unittest";
 export const TABLE_UNITTEST_FIELDS = {
     FIELD_PROJECTS : "projects",
     FIELD_COLLECT : "collect_flg",
     FIELD_ITERATOR_UUID : "iterator_uuid",
     FIELD_UUID : "uuid",
+    FIELD_REFER_FROM : "refer_from",
     FIELD_TITLE : "title",
     FIELD_FOLD_NAME : "fold",
+    FIELD_CUID : "create_uid",
+    FIELD_CTIME : "create_time",
+    FIELD_DELFLG : "del_flg",
+}
+
+export const TABLE_UNITTEST_TEMPLATE_STEPS_NAME = "unittest_template_steps";
+export const TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS = {
+    FIELD_UNITTEST_UUID : "unittest_uuid",
+    FIELD_UUID : "uuid",
+    FIELD_TITLE : "title",
+    FIELD_SORT : "sort",
+    FIELD_MICRO_SERVICE_LABEL : "microservices",
+    FIELD_URI : "uri",
+    FIELD_REQUEST_METHOD : "method",
+    FIELD_REQUEST_HEADER : "header",
+    FIELD_REQUEST_PARAM : "param",
+    FIELD_REQUEST_PATH_VARIABLE : "path_variable",
+    FIELD_REQUEST_BODY : "body",
+    FIELD_CONTINUE : "continue_type", //0 手动执行 1 自动执行 2 等待执行
+    FIELD_WAIT_SECONDS : "wait_seconds",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
@@ -218,6 +249,23 @@ export const TABLE_UNITTEST_STEPS_FIELDS = {
     FIELD_REQUEST_BODY : "body",
     FIELD_CONTINUE : "continue_type", //0 手动执行 1 自动执行 2 等待执行
     FIELD_WAIT_SECONDS : "wait_seconds",
+    FIELD_CUID : "create_uid",
+    FIELD_CTIME : "create_time",
+    FIELD_DELFLG : "del_flg",
+}
+
+export const TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME = "unittest_template_asserts";
+export const TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS = {
+    FIELD_UNITTEST_UUID : "unittest_uuid",
+    FIELD_STEP_UUID : "step_uuid",
+    FIELD_UUID : "uuid",
+    FIELD_TITLE : "title",
+    FIELD_TYPE : "assert_type",
+    FIELD_SQL : "sql",
+    FIELD_SQL_PARAMS : "sql_params",
+    FIELD_ASSERT_LEFT : "assert_left",
+    FIELD_ASSERT_OPERATOR : "assert_operator",
+    FIELD_ASSERT_RIGHT : "assert_right",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",

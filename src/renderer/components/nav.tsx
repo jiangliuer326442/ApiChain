@@ -199,6 +199,7 @@ class Nav extends Component {
         require('../reducers/db/20250614001');
         require('../reducers/db/20250614002');
         require('../reducers/db/20250706001');
+        require('../reducers/db/20260329001');
 
         this.state = {
           initNavFlg: false,
