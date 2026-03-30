@@ -77,7 +77,7 @@ export default function (state = {
                 unittest.key = unittest[unittest_uuid];
                 let children = unittest.children;
                 for(let unittest_step of children) {
-                    unittest_step.key = unittest_step[step_unittest_uuid] + "$$" + unittest_step[step_uuid];
+                    unittest_step.key = unittest[unittest_uuid] + "$$" + unittest_step[step_uuid];
                 }
             }
             return Object.assign({}, state, {

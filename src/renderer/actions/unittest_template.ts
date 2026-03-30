@@ -106,6 +106,20 @@ let unittest_step_assert_ctime = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CTIME;
 export async function allTemplates(clientType : string) {
     if (clientType === CLIENT_TYPE_TEAM) {
         return await sendTeamMessage(UNITTES_TEMPLATE_ALL_URL, {});
+    } else {
+        let unitTests = await window.db[TABLE_UNITTEST_TEMPLATE_NAME]
+        .where(unittest_template_delFlg)
+        .equals(0)
+        .reverse()
+        .toArray();
+        let list = [];
+        for (let unitTest of unitTests) {
+            list.push({
+                label: unitTest[unittest_template_title],
+                value: unitTest[field_unittest_template_uuid],
+            });
+        }
+        return list;
     }
 }
 
@@ -191,11 +205,11 @@ export async function addUnittestTemplate(clientType : string, iteratorId : stri
                 .toArray();
                 for (let _unitTestAssert of unitTestAsserts) {
                     let unit_test_template_step_assert : any = {};
-                    unit_test_template_step_assert[unittest_template_step_assert_unittest] = unittestId;
+                    unit_test_template_step_assert[unittest_template_step_assert_unittest] = unittest_template_uuid;
                     unit_test_template_step_assert[unittest_template_step_assert_step] = _stepId;
                     unit_test_template_step_assert[unittest_template_step_assert_uuid] = _unitTestAssert[unittest_step_assert_uuid];
                     unit_test_template_step_assert[unittest_template_step_assert_title] = _unitTestAssert[unittest_step_assert_title];
-                    unit_test_template_step_assert[unittest_template_step_assert_type] = _unitTestAssert[unittest_step_assert_title];
+                    unit_test_template_step_assert[unittest_template_step_assert_type] = _unitTestAssert[unittest_step_assert_type];
                     unit_test_template_step_assert[unittest_template_step_assert_sql] = _unitTestAssert[unittest_step_assert_sql];
                     unit_test_template_step_assert[unittest_template_step_assert_sql_params] = _unitTestAssert[unittest_step_assert_sql_params];
                     unit_test_template_step_assert[unittest_template_step_assert_left] = _unitTestAssert[unittest_step_assert_left];
@@ -206,16 +220,18 @@ export async function addUnittestTemplate(clientType : string, iteratorId : stri
                     unit_test_template_step_assert[unittest_template_step_assert_ctime] = Date.now();
                     await window.db[TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME].put(unit_test_template_step_assert);
 
-                    await _unitTestAssert.delete();
+                    _unitTestAssert[unittest_step_assert_delFlg] = 1;
+                    await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].put(unit_test_template_step_assert);
                 }
 
-                await unitTestStep.delete();
-
-                cb();
+                unitTestStep[unittest_delFlg] = 1;
+                await window.db[TABLE_UNITTEST_STEPS_NAME].put(unitTestStep);
             }
 
             unitTest[field_unittest_refer_from] = unittest_template_uuid;
             await window.db[TABLE_UNITTEST_NAME].put(unitTest);
+
+            cb();
         }
     )
 
