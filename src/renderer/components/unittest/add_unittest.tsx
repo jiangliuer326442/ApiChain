@@ -21,6 +21,9 @@ import {
     addProjectUnitTestFolder,
     getProjectUnitTestFolders, 
 } from '@act/unittest_folders';
+import { 
+    allTemplates
+} from '@act/unittest_template';
 import { langTrans } from '@lang/i18n';
 
 class AddUnittestComponent extends Component {
@@ -35,7 +38,17 @@ class AddUnittestComponent extends Component {
             folders: [],
             folderName: "",
             unitTestUuid: "",
+            templates: [],
+            referFrom: null,
         };
+    }
+
+    componentDidMount(): void {
+        allTemplates(this.props.clientType).then(result => {
+            this.setState({
+                "templates": result
+            });
+        })
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {  
@@ -72,7 +85,14 @@ class AddUnittestComponent extends Component {
 
         if (this.state.actionType === "create") {
             if (isStringEmpty(this.props.project)) {
-                await addIteratorUnitTest(this.props.clientType, this.props.iteratorId, unitTestTitle, selectedFolder, this.props.device);
+                await addIteratorUnitTest(
+                    this.props.clientType, 
+                    this.props.iteratorId, 
+                    unitTestTitle, 
+                    selectedFolder, 
+                    this.state.referFrom,
+                    this.props.device
+                );
                 this.clearInput();
                 this.setState({
                     loadingFlg: false
@@ -179,6 +199,19 @@ class AddUnittestComponent extends Component {
                             options={ this.state.folders }
                         />
                     </Form.Item>
+                {this.state.actionType === "create" && 
+                    <Form.Item>
+                        <Select
+                            showSearch
+                            allowClear
+                            style={{minWidth: 130}}
+                            options={this.state.templates}
+                            onChange={ value => this.setState({referFrom: value}) }
+                            placeholder={ "选择继承的单侧模板" }
+                            value={ this.state.referFrom }
+                        />
+                    </Form.Item>
+                }
                 </Form>
             </Modal>
         )

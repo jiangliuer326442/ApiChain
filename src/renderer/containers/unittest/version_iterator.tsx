@@ -3,16 +3,19 @@ import { connect } from 'react-redux';
 import { 
     Breadcrumb, Layout, Flex, Dropdown,
     Popconfirm, Table, Space, Button, 
-    Select, Form, message, Typography
+    Select, Form, message, Typography,
+    Modal, Input,
 } from "antd";
 import type { MenuProps } from 'antd';
 import { 
     EditOutlined, 
     MergeOutlined, 
     DeleteOutlined, 
-    MoreOutlined
+    MoreOutlined,
+    CameraOutlined
 } from '@ant-design/icons';
 
+import { ChannelsLoadAppStr } from '@conf/channel';
 import { 
     TABLE_UNITTEST_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
@@ -45,6 +48,9 @@ import {
 import {
     delUnitTestStep,
 } from '@act/unittest_step';
+import {
+    addUnittestTemplate,
+} from '@act/unittest_template';
 import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { getOpenVersionIterators } from '@act/version_iterator';
 import { buildUnitTestStepFromRequest } from '@act/unittest_step';
@@ -61,6 +67,7 @@ let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
+let unittest_refer = TABLE_UNITTEST_FIELDS.FIELD_REFER_FROM;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
@@ -169,7 +176,7 @@ class UnittestListVersion extends Component {
                             let valueUnittestReportStep = record[unittest_report_step];
                             return (
                                 <Space>
-                                    {valueUnittestStepUuid === valueUnittestReportStep ? 
+                                    {valueUnittestStepUuid === valueUnittestReportStep &&
                                     <Button type="link" onClick={async ()=>{
                                         this.setState({
                                             executeFlg: false,
@@ -195,7 +202,9 @@ class UnittestListVersion extends Component {
                                             batchUuid,
                                         })
                                     }}>{langTrans("prj unittest act3")}</Button>
-                                    : null}
+                                    }
+                                {record["source"] == "db" &&
+                                <>
                                     <Button 
                                         type='link' 
                                         href={ "#/version_iterator_tests_step_edit/" + this.state.iteratorId + "/" + valueUnittestStepUnittestUuid + "/" + valueUnittestStepUuid }
@@ -228,6 +237,8 @@ class UnittestListVersion extends Component {
                                     <Dropdown menu={this.getMoreStep(record)}>
                                         <Button type="text" icon={<MoreOutlined />} />
                                     </Dropdown>
+                                </>
+                                }
                                 </Space>
                             );
                         }
@@ -242,6 +253,10 @@ class UnittestListVersion extends Component {
             showPay: false,
             versionIterators: [],
             selectedUnittests: [],
+            selectedSteps: [],
+            addTemplateTile: "",
+            addTemplateDialog: false,
+            loadingFlg: false,
         };
     }
 
@@ -333,7 +348,7 @@ class UnittestListVersion extends Component {
 
     getMoreUnittest = (record : any) : MenuProps => {
         if (record[unittest_folder] !== undefined) {
-            return {'items': [{
+            let items = [{
                 key: "1",
                 label: <Button type='link' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>{langTrans("prj unittest act4")}</Button>,
             },{
@@ -374,7 +389,14 @@ class UnittestListVersion extends Component {
                     </Popconfirm> 
                 : 
                     <Button type='text' icon={<MergeOutlined />} onClick={()=>this.exportUnitTestClick(record)}>{langTrans("version unittest act2")}</Button>),
-            }]};
+            }];
+            if (isStringEmpty(record[unittest_refer])) {
+                items.push({
+                    key: "4",
+                    label: <Button type='text' icon={<CameraOutlined />} onClick={()=>this.exportStepsClick(record)}>{langTrans("version unittest act5")}</Button>
+                });
+            }
+            return {'items': items};
         } else {
             return {'items': [] };
         }
@@ -434,6 +456,28 @@ class UnittestListVersion extends Component {
         });
     }
 
+    exportStepsClick = async record => {
+        let stepIds = [];
+        let unittestId = record[unittest_uuid];
+        for (let step of record.children) {
+            let stepId = step[unittest_step_uuid];
+            if (this.state.selectedSteps.includes(unittestId + "$$" + stepId)) {
+                stepIds.push(unittestId + "$$" + stepId);
+            } else {
+                break;
+            }
+        }
+        this.setState({selectedSteps: stepIds});
+        if (stepIds.length === 0) {
+            message.error(langTrans("version unittest act5 empty"));
+            return;
+        }
+        this.setState({
+            addTemplateTile : "", 
+            addTemplateDialog : true, loadingFlg : false
+        })
+    }
+
     exportUnitTestClick = async record => {
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
@@ -472,7 +516,22 @@ class UnittestListVersion extends Component {
 
     setSelectedUnittests = newSelectedUnittests => {
         let filteredUnittestKeys = newSelectedUnittests.filter(item => item.indexOf("$$") === -1);
-        this.setState({selectedUnittests: filteredUnittestKeys});
+        let filteredStepKeys = newSelectedUnittests.filter(item => item.indexOf("$$") >= -1);
+        this.setState({
+            selectedUnittests: filteredUnittestKeys,
+            selectedSteps: filteredStepKeys,
+        });
+    }
+
+    handleAddTemplate = () => {
+        if (isStringEmpty(this.state.addTemplateTile) || this.state.selectedSteps.length === 0) {
+            return;
+        }
+        this.setState({loadingFlg: true});
+        addUnittestTemplate(this.props.clientType, this.state.iteratorId, this.state.selectedSteps, this.state.addTemplateTile, this.props.device, () => {
+            message.success(langTrans("version unittest unittest template add form success"))
+            window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
+        });
     }
 
     render() : ReactNode {
@@ -489,6 +548,20 @@ class UnittestListVersion extends Component {
                         this.props.env, 
                         this.props.dispatch
                     )} />
+                    <Modal 
+                        title={langTrans("version unittest unittest template add title")}
+                        open={this.state.addTemplateDialog}
+                        onOk={this.handleAddTemplate}
+                        confirmLoading={this.state.loadingFlg}
+                        onCancel={()=>this.setState({addTemplateTile: "", addTemplateDialog : false, loadingFlg : false})}
+                        width={230}
+                    >
+                        <Form layout="vertical">
+                            <Form.Item>
+                                <Input placeholder={langTrans("version unittest unittest template add form input1")} value={this.state.addTemplateTile} onChange={ event=>this.setState({addTemplateTile : event.target.value}) } />
+                            </Form.Item>
+                        </Form>
+                    </Modal>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: langTrans("version unittest bread1") }, 
                         { title: langTrans("version unittest bread2") }
@@ -592,7 +665,10 @@ class UnittestListVersion extends Component {
                         } }
                         />
                     <Table 
-                        rowSelection={{selectedRowKeys: this.state.selectedUnittests, onChange: this.setSelectedUnittests}}
+                        rowSelection={{
+                            selectedRowKeys: this.state.selectedUnittests.concat(this.state.selectedSteps), 
+                            onChange: this.setSelectedUnittests
+                        }}
                         columns={this.state.column} 
                         dataSource={this.props.unittest[this.state.iteratorId] ? this.props.unittest[this.state.iteratorId] : []} 
                         />

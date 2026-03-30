@@ -10,6 +10,8 @@ import {
     TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
     TABLE_REQUEST_HISTORY_FIELDS, 
     TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
+    TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME, TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS,
+    TABLE_UNITTEST_TEMPLATE_STEPS_NAME, TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS,
     UNAME,
 } from '@conf/db';
 import {
@@ -91,6 +93,7 @@ let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
+let unittest_refer_from = TABLE_UNITTEST_FIELDS.FIELD_REFER_FROM;
 let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
@@ -134,6 +137,38 @@ let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_
 let unittest_step_assert_cuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CUID;
 let unittest_step_assert_delFlg = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_DELFLG;
 let unittest_step_assert_ctime = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CTIME;
+
+
+let field_unittest_template_step_uuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_UUID;
+let unittest_template_step_unittest_uuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_UNITTEST_UUID;
+let unittest_template_step_title = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_TITLE;
+let unittest_template_step_project = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
+let unittest_template_step_method = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_METHOD;
+let unittest_template_step_uri = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_URI;
+let unittest_template_step_header = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_HEADER;
+let unittest_template_step_param = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_PARAM;
+let unittest_template_step_path_variable = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
+let unittest_template_step_body = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_BODY;
+let unittest_template_step_continue = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_CONTINUE;
+let unittest_template_step_wait_seconds = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_WAIT_SECONDS;
+let unittest_template_step_sort = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_SORT;
+let unittest_template_step_cuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_CUID;
+let unittest_template_step_ctime = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_CTIME;
+let unittest_template_step_delFlg = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_DELFLG;
+
+let unittest_template_step_assert_unittest = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_UNITTEST_UUID;
+let unittest_template_step_assert_step = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_STEP_UUID;
+let unittest_template_step_assert_uuid = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_UUID;
+let unittest_template_step_assert_title = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_TITLE;
+let unittest_template_step_assert_type = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_TYPE;
+let unittest_template_step_assert_sql = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_SQL;
+let unittest_template_step_assert_sql_params = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_SQL_PARAMS;
+let unittest_template_step_assert_left = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
+let unittest_template_step_assert_operator = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
+let unittest_template_step_assert_right = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
+let unittest_template_step_assert_cuid = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_CUID;
+let unittest_template_step_assert_delFlg = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_DELFLG;
+let unittest_template_step_assert_ctime = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_CTIME;
 
 let unittest_executor_batch = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_BATCH_UUID;
 let unittest_executor_iterator = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_ITERATOR_UUID;
@@ -190,14 +225,6 @@ export async function batchMoveIteratorUnittest(oldIterator : string, unittestAr
         .equals([0, oldIterator, _unittestRow])
         .toArray();
 
-        for (let iteration_unittest_step of iteration_unittest_steps) {
-            let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
-            let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-            .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
-            .toArray();
-        }
-
         version_iteration_unittest[unittest_iterator_uuid] = newIterator;
         await window.db[TABLE_UNITTEST_NAME].put(version_iteration_unittest);
 
@@ -228,11 +255,24 @@ export async function batchMoveIteratorUnittest(oldIterator : string, unittestAr
     cb();
 }
 
-export async function addIteratorUnitTest(clientType, versionIteratorId : string, title : string, folder : string, device : object) {
+export async function addIteratorUnitTest(
+    clientType : string, 
+    versionIteratorId : string, 
+    title : string, 
+    folder : string, 
+    referFrom : string,
+    device : object
+) {
 
     const unittest_uuid = uuidv4() as string;
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {iterator: versionIteratorId, uuid: unittest_uuid, title, fold: folder});
+        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {
+            iterator: versionIteratorId, 
+            uuid: unittest_uuid, 
+            title, 
+            fold: folder,
+            referFrom
+        });
     }
 
     let unit_test : any = {};
@@ -240,6 +280,7 @@ export async function addIteratorUnitTest(clientType, versionIteratorId : string
     unit_test[field_unittest_uuid] = unittest_uuid;
     unit_test[unittest_title] = title;
     unit_test[unittest_fold] = folder;
+    unit_test[unittest_refer_from] = referFrom;
     unit_test[unittest_cuid] = device.uuid;
     unit_test[unittest_ctime] = Date.now();
     unit_test[unittest_delFlg] = 0;
@@ -296,12 +337,39 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
         .equals(unittest_uuid)
         .first();
 
-        unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+        let unitTestStepsTemplate = [];
+
+        let referFrom = unitTest[unittest_refer_from];
+        if (!isStringEmpty(referFrom)) {
+            unitTestStepsTemplate = await window.db[TABLE_UNITTEST_TEMPLATE_STEPS_NAME]
+            .where([unittest_template_step_delFlg, unittest_template_step_unittest_uuid])
+            .equals([0, referFrom])
+            .toArray();
+            for (let _unittest_step of unitTestStepsTemplate) {
+                let _step_uuid = _unittest_step[field_unittest_template_step_uuid]
+                let unitTestAsserts = await window.db[TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME]
+                .where([unittest_template_step_assert_delFlg, unittest_template_step_assert_unittest, unittest_template_step_assert_step])
+                .equals([0, referFrom, _step_uuid])
+                .reverse()
+                .toArray();
+                console.log("unitTestAsserts", referFrom, _step_uuid, unitTestAsserts);
+                for (let _unitTestAssert of unitTestAsserts) {
+                    if (isStringEmpty(_unitTestAssert[unittest_template_step_assert_type])) {
+                        _unitTestAssert[unittest_template_step_assert_type] = ASSERT_TYPE_API;
+                    }
+                }
+                _unittest_step["source"] = "template";
+                _unittest_step.asserts = unitTestAsserts;
+            }
+        }
+
+        let unitTestStepsDb = [];
+        unitTestStepsDb = await window.db[TABLE_UNITTEST_STEPS_NAME]
         .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
         .equals([0, iteratorId, unittest_uuid])
         .toArray();
 
-        for (let _unittest_step of unitTestSteps) {
+        for (let _unittest_step of unitTestStepsDb) {
             let _step_uuid = _unittest_step[field_unittest_step_uuid]
             let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
             .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
@@ -313,15 +381,16 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
                     _unitTestAssert[unittest_step_assert_type] = ASSERT_TYPE_API;
                 }
             }
+            _unittest_step["source"] = "db";
             _unittest_step.asserts = unitTestAsserts;
         }
+        unitTestSteps = [...unitTestStepsTemplate, ...unitTestStepsDb];
     }
 
     return genUnitTest(unitTest, unitTestSteps, unittest_uuid, iteratorId, env);
 }
 
 async function genUnitTest(unitTest, unitTestSteps, unittest_uuid : string, iteratorId : string, env : string | null) {
-    
     let batch_uuid = "";
     //拿整体执行报告
     let unittestReport;
