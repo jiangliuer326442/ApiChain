@@ -91,6 +91,7 @@ let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
+let unittest_refer_from = TABLE_UNITTEST_FIELDS.FIELD_REFER_FROM;
 let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
@@ -220,11 +221,24 @@ export async function batchMoveIteratorUnittest(oldIterator : string, unittestAr
     cb();
 }
 
-export async function addIteratorUnitTest(clientType, versionIteratorId : string, title : string, folder : string, device : object) {
+export async function addIteratorUnitTest(
+    clientType : string, 
+    versionIteratorId : string, 
+    title : string, 
+    folder : string, 
+    referFrom : string,
+    device : object
+) {
 
     const unittest_uuid = uuidv4() as string;
     if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {iterator: versionIteratorId, uuid: unittest_uuid, title, fold: folder});
+        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {
+            iterator: versionIteratorId, 
+            uuid: unittest_uuid, 
+            title, 
+            fold: folder,
+            referFrom
+        });
     }
 
     let unit_test : any = {};
@@ -232,6 +246,7 @@ export async function addIteratorUnitTest(clientType, versionIteratorId : string
     unit_test[field_unittest_uuid] = unittest_uuid;
     unit_test[unittest_title] = title;
     unit_test[unittest_fold] = folder;
+    unit_test[unittest_refer_from] = referFrom;
     unit_test[unittest_cuid] = device.uuid;
     unit_test[unittest_ctime] = Date.now();
     unit_test[unittest_delFlg] = 0;

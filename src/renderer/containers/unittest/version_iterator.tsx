@@ -47,8 +47,10 @@ import {
 } from '@act/unittest';
 import {
     delUnitTestStep,
-    addUnittestTemplate,
 } from '@act/unittest_step';
+import {
+    addUnittestTemplate,
+} from '@act/unittest_template';
 import { getUnitTestRequests } from '@act/version_iterator_requests';
 import { getOpenVersionIterators } from '@act/version_iterator';
 import { buildUnitTestStepFromRequest } from '@act/unittest_step';
