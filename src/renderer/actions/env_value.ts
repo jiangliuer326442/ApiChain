@@ -684,7 +684,7 @@ export async function getIteratorEnvValuesByPage(iterator : string, prj : string
     return datas;
 }
 
-export async function getUnittestEnvValuesByPage(unittest : string, prj : string, env : string, pname : string, clientType : string, pagination : any) {
+export async function getUnittestEnvValuesByPage(unittest : string, iteratorId : string, prj : string, env : string, pname : string, clientType : string, pagination : any) {
     let page = pagination.current;
     let pageSize = pagination.pageSize;
     let datas = [];
@@ -692,6 +692,7 @@ export async function getUnittestEnvValuesByPage(unittest : string, prj : string
     if (clientType === CLIENT_TYPE_SINGLE) {
         const offset = (page - 1) * pageSize;
         let excludeKeys = new Set<String>();
+
         let unittestPrjArrays = await db[TABLE_ENV_VAR_NAME]
         .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
         .equals([ env, prj, "", unittest ])
@@ -733,6 +734,52 @@ export async function getUnittestEnvValuesByPage(unittest : string, prj : string
             excludeKeys.add(unittestRow[env_var_pname]);
             unittestRow.source = 'unittest';
             datas.push(unittestRow);
+        }
+
+        let iteratorPrjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, iteratorId, "" ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(iteratorPrjArrays, env_var_pname);
+        for (let iteratorPrjRow of iteratorPrjArrays) {
+            excludeKeys.add(iteratorPrjRow[env_var_pname]);
+            iteratorPrjRow.source = 'iterator_prj';
+            datas.push(iteratorPrjRow);
+        }
+
+        let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, '', iteratorId, "" ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(iteratorArrays, env_var_pname);
+        for (let iteratorRow of iteratorArrays) {
+            excludeKeys.add(iteratorRow[env_var_pname]);
+            iteratorRow.source = 'iterator';
+            datas.push(iteratorRow);
         }
 
         let prjArrays = await db[TABLE_ENV_VAR_NAME]
@@ -790,7 +837,7 @@ export async function getUnittestEnvValuesByPage(unittest : string, prj : string
             item[UNAME] = users.get(item[env_var_cuid]);
         });
     } else {
-        let params = Object.assign({}, pagination, {unittest, env, pname, prj});
+        let params = Object.assign({}, pagination, {unittest, env, pname, prj, iteratorId});
         let result = await sendTeamMessage(ENV_VARS_UNITTEST_PAGE_URL, params);
         let count = result.count;
         pagination.total = count;

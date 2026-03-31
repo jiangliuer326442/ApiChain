@@ -12,9 +12,11 @@ import {
     MergeOutlined, 
     DeleteOutlined, 
     MoreOutlined,
+    DotChartOutlined,
     CameraOutlined
 } from '@ant-design/icons';
 
+import { EMPTY_STRING } from '@conf/global_config';
 import { ChannelsLoadAppStr } from '@conf/channel';
 import { 
     TABLE_UNITTEST_FIELDS,
@@ -350,9 +352,16 @@ class UnittestListVersion extends Component {
         if (record[unittest_folder] !== undefined) {
             let items = [{
                 key: "1",
-                label: <Button type='link' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>{langTrans("prj unittest act4")}</Button>,
+                label: <Button type='link' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>
+                    {langTrans("prj unittest act4")}
+                    </Button>,
             },{
                 key: "2",
+                label: <Button type="link" icon={<DotChartOutlined />} href={`#/unittest_envvars/${this.state.iteratorId}/${record[unittest_uuid]}/${EMPTY_STRING}`}>
+                    {langTrans("prj unittest act1")}
+                    </Button>,
+            },{
+                key: "3",
                 danger: true,
                 label:  <Popconfirm
                             title={langTrans("prj unittest del title")}
@@ -373,7 +382,7 @@ class UnittestListVersion extends Component {
                             <Button danger type="link" icon={<DeleteOutlined />}>{langTrans("prj unittest act5")}</Button>
                         </Popconfirm>,
             },{
-                key: "3",
+                key: "4",
                 danger: (record[unittest_collectFlg] ? true : false),
                 label: (record[unittest_collectFlg] ? 
                     <Popconfirm
@@ -392,7 +401,7 @@ class UnittestListVersion extends Component {
             }];
             if (isStringEmpty(record[unittest_refer])) {
                 items.push({
-                    key: "4",
+                    key: "5",
                     label: <Button type='text' icon={<CameraOutlined />} onClick={()=>this.exportStepsClick(record)}>{langTrans("version unittest act5")}</Button>
                 });
             }

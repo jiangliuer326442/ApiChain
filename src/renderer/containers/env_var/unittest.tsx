@@ -23,7 +23,7 @@ import {
 } from '@conf/redux';
 
 import { getEnvs } from '@act/env';
-import { getProjectSingleUnittest } from '@act/unittest';
+import { getProjectSingleUnittest, getIteratorSingleUnittest } from '@act/unittest';
 import { getUnittestKeys } from '@act/keys';
 import {
   delUnittestEnvValues,
@@ -42,6 +42,7 @@ let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
 let premark = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_REMARK;
+let encryptFlg = TABLE_ENV_VAR_FIELDS.FIELD_ENCRYPTFLG;
 let env_var_ctime = TABLE_ENV_VAR_FIELDS.FIELD_CTIME;
 
 class EnvVar extends Component {
@@ -49,8 +50,9 @@ class EnvVar extends Component {
   constructor(props) {
     super(props);
 
+    let iteratorId = isStringEmpty(props.match.params.iteratorId) ? "" : props.match.params.iteratorId;
     let unittestId = props.match.params.unittestId;
-    let project = props.match.params.prj;
+    let project = isStringEmpty(props.match.params.prj) ? "" : props.match.params.prj;
 
     this.state = {
       listColumn: [
@@ -67,10 +69,14 @@ class EnvVar extends Component {
         {
           title: langTrans("envvar prj table2"),
           dataIndex: pvar,
-          render: (value) => {
-            return (
-              <Text copyable={{text: value}}>{ value }</Text>
-            );
+          render: (value, record) => {
+            if (record[encryptFlg] !== undefined && record[encryptFlg] == 1) {
+              return "******";
+            } else {
+              return (
+                <Text copyable={{text: value}}>{ value }</Text>
+              );
+            }
           }
         },
         {
@@ -112,6 +118,7 @@ class EnvVar extends Component {
                       record[pname], 
                     );
                     this.getEnvValueData(
+                      this.state.iteratorId,
                       this.state.prj, 
                       this.state.unittestId, 
                       this.props.env, 
@@ -128,12 +135,12 @@ class EnvVar extends Component {
           },
         }
       ],
+      iteratorId,
       unittestId,
       unittest: {},
       tips: [],
       pkeys: [],
       prj: project,
-      showCurrent: true,
       listDatas: [],
       pagination: {
         current: 1,
@@ -143,9 +150,15 @@ class EnvVar extends Component {
   }
   
   async componentDidMount() {
-    let unittest = await getProjectSingleUnittest(this.props.clientType, this.state.unittestId, this.props.teamId, this.state.prj, this.props.env);
+    let unittest;
+    if (!isStringEmpty(this.state.iteratorId)) {
+      //拿迭代单侧
+      unittest = await getIteratorSingleUnittest(this.props.clientType, this.state.unittestId, this.state.iteratorId, this.props.env)
+    } else {
+      unittest = await getProjectSingleUnittest(this.props.clientType, this.state.unittestId, this.props.teamId, this.state.prj, this.props.env)
+    }
     this.setState({ unittest });
-    this.getEnvValueData(this.state.prj, this.state.unittestId, this.props.env, "");
+    this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, this.props.env, "");
     if(this.props.envs.length === 0) {
       getEnvs(this.props.clientType, this.props.dispatch);
     }
@@ -159,7 +172,6 @@ class EnvVar extends Component {
             unittestId,
             prj: project,
             pkeys: [],
-            showCurrent: true,
             listDatas: [],
             pagination: {
               current: 1,
@@ -177,11 +189,11 @@ class EnvVar extends Component {
         iterator: "",
         unittest: this.state.unittestId
       });
-      this.getEnvValueData(this.state.prj, this.state.unittestId, value, "");
+      this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, value, "");
     }
 
     setPName = (value: string) => {
-      this.getEnvValueData(this.state.prj, this.state.unittestId, this.props.env, value);
+      this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, this.props.env, value);
     }
   
     addPropertiesClick = () => {
@@ -197,22 +209,21 @@ class EnvVar extends Component {
       this.props.dispatch({
           type: SHOW_EDIT_PROPERTY_MODEL,
           open: true,
+          iterator: this.state.iteratorId,
           unittest: this.state.unittestId,
           prj: this.state.prj,
           pname: record[pname],
           pvalue: record[pvar],
           premark: record[premark],
+          encryptFlg: record[encryptFlg],
       });
     }
 
-    getEnvValueData = async (prj: string, unittestId: string, env: string, paramName: string) => {
-      let pkeys = await getUnittestKeys(this.props.clientType, this.props.teamId, unittestId, prj);
+    getEnvValueData = async (iteratorId: string, prj: string, unittestId: string, env: string, paramName: string) => {
+      let pkeys = await getUnittestKeys(this.props.clientType, this.props.teamId, unittestId, iteratorId, prj);
       if(!isStringEmpty(env)) {
         let pagination = cloneDeep(this.state.pagination);
-        let listDatas = await getUnittestEnvValuesByPage(unittestId, prj, env, paramName, this.props.clientType, pagination);
-        if (this.state.showCurrent) {
-          listDatas = listDatas.filter(envVar => (envVar.source === "unittest_prj" || envVar.source === "unittest"));
-        }
+        let listDatas = await getUnittestEnvValuesByPage(unittestId, iteratorId, prj, env, paramName, this.props.clientType, pagination);
         this.setState({
           prj, 
           listDatas, 
@@ -238,7 +249,7 @@ class EnvVar extends Component {
                           options={this.state.unittest[unittest_projects] ? this.state.unittest[unittest_projects].map(item => {
                               return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : ""}
                           }) : []}
-                          onChange={ value => this.getEnvValueData(value, this.state.unittestId, this.props.env, "")}
+                          onChange={ value => this.getEnvValueData(this.state.iteratorId, value, this.state.unittestId, this.props.env, "")}
                       />
                   </Form.Item>  
                   <Form.Item label={langTrans("envvar select tip1")}>
@@ -274,7 +285,7 @@ class EnvVar extends Component {
               <AddEnvVarComponent 
                 env={this.props.env}
                 cb={()=>{
-                  this.getEnvValueData(this.state.prj, this.state.unittestId, this.props.env, "");
+                  this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, this.props.env, "");
                 }} />
             </Flex>
             <Table 
@@ -284,7 +295,7 @@ class EnvVar extends Component {
               pagination={this.state.pagination}
               onChange={ async (pagination, filters, sorter) => {
                 this.state.pagination = pagination;
-                this.getEnvValueData(this.state.prj, this.state.unittestId, this.props.env, "");
+                this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, this.props.env, "");
               }}
             />
           </Content>
