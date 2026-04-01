@@ -3,7 +3,6 @@ import { AutoComplete, Select, Space, Input, Button, Modal, Form } from 'antd';
 import { CalculatorOutlined } from '@ant-design/icons';
 import { connect } from 'react-redux';
 import JsonView from 'react-json-view';
-import { cloneDeep } from 'lodash';
 
 import JsonParamTips from '@clazz/JsonParamTips';
 import { cleanJson } from '@rutil/json';
@@ -74,7 +73,11 @@ class StepExpressionBuilderBox extends Component {
         let content = props.value;
 
         this.paramTips  = new JsonParamTips(props.iteratorId, props.unitTestUuid, props.clientType);
-        this.paramTips.setProject(props.project);
+        if (props.project) {
+            this.paramTips.setProject(props.project);
+        } else {
+            this.paramTips.setProject("");
+        }
         this.paramTips.setContent(content);
 
         this.state = {
@@ -372,7 +375,7 @@ class StepExpressionBuilderBox extends Component {
                         </Form.Item>
                     </>
                     }
-                    {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV &&
+                    {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV && this.state.selectedProject &&
                         <Form.Item>
                             <Select 
                                 style={{width: 445}}

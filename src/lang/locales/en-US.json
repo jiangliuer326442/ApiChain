@@ -210,7 +210,7 @@
     "envvar global add form1": "Parameter Name",
     "envvar global add form2": "Parameter Value",
     "envvar global add form3": "Remarks",
-    "envvar global add form4": "Is Encryption Enabled?",
+    "envvar global add form4": "Encryption Flag",
     "envvar global add form4 no": "No",
     "envvar global add form4 yes": "Yes",
     "envvar global add check1": "Please enter parameter name",

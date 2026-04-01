@@ -1156,56 +1156,99 @@ export async function delUnittestEnvValues(
 export async function addEnvValues(
     clientType : string, teamId : string, 
     prj : string, env : string, iterator : string, unittest : string, 
+    source : string,
     pname : string, pvar, oldVar, remark, encryptFlg, oldEncryptFlg,
     device) {
 
-    if (clientType === CLIENT_TYPE_TEAM) {
-        //全局环境变量
-        if (isStringEmpty(prj) && isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg});
-        } else if (isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
-        } else if (isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
-        } else {
-            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
+    if (source === "iterator") {
+        if (clientType === CLIENT_TYPE_TEAM) {
+            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg});
         }
-    }
 
-    let env_key : any = {};
-    env_key[env_key_prj] = prj;
-    env_key[env_key_pname] = pname;
-    env_key[env_key_cuid] = device.uuid;
-    env_key[env_key_ctime] = Date.now();
-    env_key[env_key_delFlg] = 0;
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        env_key.upload_flg = 0;
-        env_key.team_id = "";
-    } else {
-        env_key.upload_flg = 1;
-        env_key.team_id = teamId;
-    }
-    await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+        let env_key : any = {};
+        env_key[env_key_prj] = prj;
+        env_key[env_key_pname] = pname;
+        env_key[env_key_cuid] = device.uuid;
+        env_key[env_key_ctime] = Date.now();
+        env_key[env_key_delFlg] = 0;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            env_key.upload_flg = 0;
+            env_key.team_id = "";
+        } else {
+            env_key.upload_flg = 1;
+            env_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
 
-    let property_key : any = {};
-    property_key[env_var_micro_service] = prj;
-    property_key[env_var_env] = env;
-    property_key[env_var_iteration] = iterator;
-    property_key[env_var_unittest] = unittest;
-    property_key[env_var_pname] = pname;
-    property_key[env_var_pvalue] = pvar;
-    property_key[env_var_premark] = remark;
-    property_key[env_var_pencrypt] = encryptFlg;
-    property_key[env_var_cuid] = device.uuid;
-    property_key[env_var_ctime] = Date.now();
-    property_key[env_var_delFlg] = 0;
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        property_key.upload_flg = 0;
-        property_key.team_id = "";
+        let property_key : any = {};
+        property_key[env_var_micro_service] = prj;
+        property_key[env_var_env] = env;
+        property_key[env_var_iteration] = iterator;
+        property_key[env_var_unittest] = "";
+        property_key[env_var_pname] = pname;
+        property_key[env_var_pvalue] = pvar;
+        property_key[env_var_premark] = remark;
+        property_key[env_var_pencrypt] = encryptFlg;
+        property_key[env_var_cuid] = device.uuid;
+        property_key[env_var_ctime] = Date.now();
+        property_key[env_var_delFlg] = 0;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            property_key.upload_flg = 0;
+            property_key.team_id = "";
+        } else {
+            property_key.upload_flg = 1;
+            property_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_VAR_NAME].put(property_key);
     } else {
-        property_key.upload_flg = 1;
-        property_key.team_id = teamId;
+        if (clientType === CLIENT_TYPE_TEAM) {
+            //全局环境变量
+            if (isStringEmpty(prj) && isStringEmpty(iterator) && isStringEmpty(unittest)) {
+                await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg});
+            } else if (isStringEmpty(iterator) && isStringEmpty(unittest)) {
+                await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
+            } else if (isStringEmpty(unittest)) {
+                await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
+            } else {
+                await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
+            }
+        }
+
+        let env_key : any = {};
+        env_key[env_key_prj] = prj;
+        env_key[env_key_pname] = pname;
+        env_key[env_key_cuid] = device.uuid;
+        env_key[env_key_ctime] = Date.now();
+        env_key[env_key_delFlg] = 0;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            env_key.upload_flg = 0;
+            env_key.team_id = "";
+        } else {
+            env_key.upload_flg = 1;
+            env_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+
+        let property_key : any = {};
+        property_key[env_var_micro_service] = prj;
+        property_key[env_var_env] = env;
+        property_key[env_var_iteration] = iterator;
+        property_key[env_var_unittest] = unittest;
+        property_key[env_var_pname] = pname;
+        property_key[env_var_pvalue] = pvar;
+        property_key[env_var_premark] = remark;
+        property_key[env_var_pencrypt] = encryptFlg;
+        property_key[env_var_cuid] = device.uuid;
+        property_key[env_var_ctime] = Date.now();
+        property_key[env_var_delFlg] = 0;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            property_key.upload_flg = 0;
+            property_key.team_id = "";
+        } else {
+            property_key.upload_flg = 1;
+            property_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_VAR_NAME].put(property_key);
     }
-    await window.db[TABLE_ENV_VAR_NAME].put(property_key);
 
 }

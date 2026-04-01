@@ -5,6 +5,7 @@ import { Form, Input, Modal, Radio, message } from "antd";
 import { isStringEmpty } from '@rutil/index';
 import { SHOW_ADD_PROPERTY_MODEL } from '@conf/redux';
 import { CLIENT_TYPE_SINGLE } from '@conf/team';
+import StepExpressionBuilderBox from "@comp/unittest_step/step_expression_builder_box";
 import { addEnvValues, encryptPromise } from '@act/env_value';
 import { langTrans } from '@lang/i18n';
 
@@ -60,6 +61,16 @@ class AddEnvVarComponent extends Component {
             loadingFlg: true
         });
 
+        let iteration = this.props.iteration;
+        let unittest = this.props.unittest;
+        //在迭代中增加单侧环境变量
+        if (this.props.iteration && this.props.unittest) {
+            if (this.state.actionType === "create") {
+                iteration = "";
+                unittest = this.props.unittest;
+            }
+        } 
+
         let handledData;
         //团队版，走服务端加密
         if (encryptFlg == 1 && (pvalue != this.state.oldPValue || encryptFlg != this.state.oldEncryptFlg) && this.props.clientType == CLIENT_TYPE_SINGLE) {
@@ -73,7 +84,9 @@ class AddEnvVarComponent extends Component {
             this.props.teamId, 
             this.props.prj, 
             this.props.env, 
-            this.props.iteration ? this.props.iteration : "", this.props.unittest ? this.props.unittest : "" , 
+            iteration ? iteration : "", 
+            unittest ? unittest : "" , 
+            this.props.source ? this.props.source : "",
             pname, handledData, this.state.oldPValue, premark, encryptFlg, this.state.oldEncryptFlg,
             this.props.device
         );
@@ -118,18 +131,35 @@ class AddEnvVarComponent extends Component {
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}
                 onCancel={this.handleCancel}
-                width={350}
+                width={450}
             >
-               <Form layout="horizontal" labelCol={{ span: 5 }} wrapperCol={{ span: 19 }}>
+               <Form layout="horizontal" labelCol={{ span: 7 }} wrapperCol={{ span: 17 }}>
                     <Form.Item label={langTrans("envvar global add form1")}>
                         <Input allowClear disabled={ this.state.actionType === "edit" } 
                             value={this.state.pname} onChange={ event=>this.setState({pname : event.target.value}) } />
                     </Form.Item>
+                {this.props.unittest 
+                ?
+                    <Form.Item label={langTrans("envvar global add form2")}>
+                        <StepExpressionBuilderBox
+                            enableFlag={true}
+                            value={(this.state.oldEncryptFlg == 1 && this.state.pvalue == this.state.oldPValue) ? "******" : this.state.pvalue}
+                            cb={value => {
+                                this.setState({pvalue : value})
+                            }}
+                            width={ 288 }
+                            iteratorId={ this.props.iteration}
+                            unitTestUuid={ this.props.unittest}
+                            project={ this.state.prj}
+                        />
+                    </Form.Item>
+                :
                     <Form.Item label={langTrans("envvar global add form2")}>
                         <TextArea allowClear rows={ 3 }
                             value={(this.state.oldEncryptFlg == 1 && this.state.pvalue == this.state.oldPValue) ? "******" : this.state.pvalue} 
                             onChange={ e=>this.setState({pvalue : e.target.value}) } />
                     </Form.Item>
+                }
                     <Form.Item label={langTrans("envvar global add form3")}>
                         <TextArea allowClear
                             value={this.state.premark} 
@@ -161,6 +191,7 @@ function mapStateToProps (state) {
         prj: state.env_var.prj ? state.env_var.prj : "",
         iteration: state.env_var.iterator ? state.env_var.iterator : "",
         unittest: state.env_var.unittest ? state.env_var.unittest : "",
+        source: state.env_var.source ? state.env_var.source : "",
         pname: state.env_var.pname,
         pvalue: state.env_var.pvalue,
         premark: state.env_var.premark,

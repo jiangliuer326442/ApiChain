@@ -98,6 +98,9 @@ export default class {
     }
 
     setProject(project: string) {
+        if (isStringEmpty(project)) {
+            this.selectedProject = "";
+        }
         this.project = project;
         this.currentProject = project;
         this.envVarTips = new RequestSendTips();
