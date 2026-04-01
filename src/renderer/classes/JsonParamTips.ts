@@ -88,10 +88,10 @@ export default class {
     ) {
         this.currentIteration = iteration;
         this.currentUnittest = unittest;
-        if (isStringEmpty(iteration)) {
-            this.env_var_type = 'unittest';
-        } else {
+        if (isStringEmpty(unittest)) {
             this.env_var_type = 'iterator';
+        } else {
+            this.env_var_type = 'unittest';
         }
         this.clientType = clientType;
         this.randomVal = Math.random();
@@ -311,6 +311,7 @@ export default class {
                     //当前项目环境变量
                     value = tmp === undefined ? "" : tmp as string;
                     value = prefixStr + value + suffixStr;
+                    console.log("22222", value);
                 }
             }
             return value;

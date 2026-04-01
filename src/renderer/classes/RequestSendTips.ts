@@ -83,7 +83,7 @@ export default class {
             } else if (this.env_var_type === "iterator") {
               envKeys = await getIteratorKeys(this.clientType, this.teamId, this.iteration, this.prj);
             } else if (this.env_var_type === "unittest") {
-              envKeys = await getUnittestKeys(this.clientType, this.teamId, this.unittest, this.prj);
+              envKeys = await getUnittestKeys(this.clientType, this.teamId, this.unittest, this.iteration, this.prj);
             }
             const excludeKeys = [
                 ENV_VALUE_API_HOST,

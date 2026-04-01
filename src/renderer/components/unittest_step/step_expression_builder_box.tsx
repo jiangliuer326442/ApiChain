@@ -80,6 +80,11 @@ class StepExpressionBuilderBox extends Component {
         }
         this.paramTips.setContent(content);
 
+        let selectedStep = this.paramTips.getSelectedStep();
+        if (isStringEmpty(props.unitTestStepUuid)) {
+            selectedStep = "";
+        }
+
         this.state = {
             loadeadFlg: false,
             responseTips: this.props.options != undefined ? this.props.options : [],
@@ -90,8 +95,8 @@ class StepExpressionBuilderBox extends Component {
             prjSelect:[],
             dataSourceType: this.paramTips.getDataSourceType(),
             initializeDataSourceType: this.paramTips.getDataSourceType(),
-            selectedStep: this.paramTips.getSelectedStep(),
-            initializeSelectedStep: this.paramTips.getSelectedStep(),
+            selectedStep,
+            initializeSelectedStep: selectedStep,
             selectedProject: this.paramTips.getSelectedProject(),
             selectedDataSource: this.paramTips.getSelectedDataSource(),
             initializeSelectedDataSource: this.paramTips.getSelectedDataSource(),
@@ -137,10 +142,12 @@ class StepExpressionBuilderBox extends Component {
         }
         if (prevState.stepsSelect.length === 0 && prevState.loadeadFlg) {
             let stepsSelect = [];
-            let item = {};
-            item.label = langTrans("expression builder step");
-            item.value = UNITTEST_STEP_CURRENT;
-            stepsSelect.push(item);
+            if (!isStringEmpty(nextProps.unitTestStepUuid)) {
+                let item = {};
+                item.label = langTrans("expression builder step");
+                item.value = UNITTEST_STEP_CURRENT;
+                stepsSelect.push(item);
+            }
             let steps = nextProps.unittest[nextProps.iteratorId].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children;
             for (let step of steps) {
                 //有效的其他步骤
