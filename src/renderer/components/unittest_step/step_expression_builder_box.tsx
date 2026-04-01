@@ -78,6 +78,7 @@ class StepExpressionBuilderBox extends Component {
         } else {
             this.paramTips.setProject("");
         }
+        console.log("project", props.project)
         this.paramTips.setContent(content);
 
         let selectedStep = this.paramTips.getSelectedStep();
@@ -142,12 +143,10 @@ class StepExpressionBuilderBox extends Component {
         }
         if (prevState.stepsSelect.length === 0 && prevState.loadeadFlg) {
             let stepsSelect = [];
-            if (!isStringEmpty(nextProps.unitTestStepUuid)) {
-                let item = {};
-                item.label = langTrans("expression builder step");
-                item.value = UNITTEST_STEP_CURRENT;
-                stepsSelect.push(item);
-            }
+            let item = {};
+            item.label = langTrans("expression builder step");
+            item.value = UNITTEST_STEP_CURRENT;
+            stepsSelect.push(item);
             let steps = nextProps.unittest[nextProps.iteratorId].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children;
             for (let step of steps) {
                 //有效的其他步骤
@@ -260,7 +259,11 @@ class StepExpressionBuilderBox extends Component {
     }
 
     setAssertPrev = (value : string) => {
-        this.setState({assertPrev: value.trim()});
+        if (isStringEmpty(value)) {
+            this.setState({assertPrev: ""});
+        } else {
+            this.setState({assertPrev: value.trim()});
+        }
     }
 
     setAssertOptions = (text) => {
@@ -431,6 +434,7 @@ class StepExpressionBuilderBox extends Component {
 function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
+        iteratorId: state.unittest.iteratorId,
         prjs: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,

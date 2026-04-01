@@ -446,7 +446,7 @@ class UnittestStepContainer extends Component {
 
     handleRequestProject = originPrj => {
         let prj = originPrj.split("$$")[0];
-        this.setState( {urisSelector : [], prj: originPrj, uri: ""} );
+        this.setState( {urisSelector : [], prj, uri: ""} );
         this.initPrj(this.state.iteratorId, prj);
     }
     
@@ -881,7 +881,7 @@ class UnittestStepContainer extends Component {
                                         </>
                                     </>}
                                     { this.state.assertType[i] == ASSERT_TYPE_API && <>
-                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertPrev[i])) && 
+                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertPrev[i])) && this.state.prj && 
                                         <StepExpressionBuilderBox
                                             enableFlag={Object.keys(this.state.request).length > 0}
                                             stepHeaderData={this.state.formRequestHeadData}
@@ -915,7 +915,7 @@ class UnittestStepContainer extends Component {
                                             <Select.Option value={ " == " }>==</Select.Option>
                                             <Select.Option value={ " !== " }>!==</Select.Option>
                                         </Select>
-                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertAfter[i])) && 
+                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertAfter[i])) && this.state.prj && 
                                         <StepExpressionBuilderBox
                                             enableFlag={Object.keys(this.state.request).length > 0}
                                             stepHeaderData={this.state.formRequestHeadData}

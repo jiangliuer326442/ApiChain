@@ -148,7 +148,6 @@ class AddEnvVarComponent extends Component {
                                 this.setState({pvalue : value})
                             }}
                             width={ 288 }
-                            iteratorId={ this.props.iteration}
                             unitTestUuid={ this.props.unittest}
                             project={ this.state.prj}
                         />

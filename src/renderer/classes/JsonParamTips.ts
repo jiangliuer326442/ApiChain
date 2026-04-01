@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, indexOf } from 'lodash';
 
 import RequestSendTips from '@clazz/RequestSendTips';
 import { isStringEmpty, getType } from "@rutil/index";
@@ -311,8 +311,15 @@ export default class {
                     //当前项目环境变量
                     value = tmp === undefined ? "" : tmp as string;
                     value = prefixStr + value + suffixStr;
-                    console.log("22222", value);
                 }
+            }
+            //递归调用
+            if (value.indexOf("{{") >= 0) {
+                this.setContent(value);
+                return this.getValue(envVarTips, 
+                    paramData, pathVariableData, headData, bodyData, responseHeaderData, responseCookieData, responseData, 
+                    unittest_uuid, unittest_executor_batch
+                );
             }
             return value;
         } else {
