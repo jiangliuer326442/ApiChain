@@ -237,3 +237,5 @@ export const UNITTES_ITERATION_STEP_DEL_URL = "/unittest/iteration/delStep"
 export const UNITTES_TEMPLATE_ADD_URL = "/unittest/template/add"
 
 export const UNITTES_TEMPLATE_ALL_URL = "/unittest/template/all"
+
+export const UNITTES_TEMPLATE_PAGE_URL = "/unittest/template/page"

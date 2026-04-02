@@ -10,13 +10,21 @@ import {
     TABLE_UNITTEST_TEMPLATE_NAME, TABLE_UNITTEST_TEMPLATE_FIELDS,
     TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME, TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS,
     TABLE_UNITTEST_TEMPLATE_STEPS_NAME, TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS,
+    UNAME,
 } from '@conf/db';
+import {
+    GET_TEMPLATE_TESTS
+} from '@conf/redux';
+import {
+    ASSERT_TYPE_API,
+} from '@conf/unittest';
 import {
     UNITTES_TEMPLATE_ADD_URL,
     UNITTES_TEMPLATE_ALL_URL,
+    UNITTES_TEMPLATE_PAGE_URL,
     CLIENT_TYPE_TEAM,
 } from '@conf/team';
-
+import { getUsers } from '@act/user';
 import {
     sendTeamMessage,
 } from '@act/message';
@@ -102,6 +110,89 @@ let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_
 let unittest_step_assert_cuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CUID;
 let unittest_step_assert_delFlg = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_DELFLG;
 let unittest_step_assert_ctime = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CTIME;
+
+export async function getUnitTests(clientType : string, folder : string | null, dispatch : any) {
+    let users = await getUsers(clientType);
+
+    let unitTests;
+    let folders;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        let ret = await sendTeamMessage(UNITTES_TEMPLATE_PAGE_URL, {});
+        unitTests = ret.list;
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i].unitTest;
+            let unitTestSteps = unitTests[i].unitTestSteps;
+            let newUnitTest = await genUnitTest(unitTest, unitTestSteps)
+            newUnitTest[UNAME] = users.get(unitTest[unittest_template_cuid]);
+            unitTests[i] = newUnitTest;
+        }
+        let retFolders = ret.folders;
+        if (retFolders.length > 0) {
+            folders = new Set();
+            for (let _ret_fold of retFolders) {
+                folders.add(_ret_fold['name'])
+            }
+        } else {
+            folders = null
+        }
+    } else {
+        folders = new Set();
+        unitTests = await window.db[TABLE_UNITTEST_TEMPLATE_NAME]
+        .where(unittest_template_delFlg)
+        .equals(0)
+        .reverse()
+        .toArray();
+        for (let i = 0; i < unitTests.length; i++) {
+            let unitTest = unitTests[i];
+            let unittest_template_uuid = unitTest[field_unittest_template_uuid];
+            let newUnitTest = await getSingleUnittest(clientType, unittest_template_uuid);
+            newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
+            unitTests[i] = newUnitTest;
+            if (folder === null) {
+                folders.add(newUnitTest[unittest_fold]);
+            }
+        }
+    }
+    dispatch({
+        type: GET_TEMPLATE_TESTS,
+        unitTests,
+        folders: folders === null ? null : Array.from(folders)
+    });
+}
+
+export async function getSingleUnittest(clientType : string, unittest_uuid : string) {
+    let unitTest = await window.db[TABLE_UNITTEST_TEMPLATE_NAME]
+    .where(field_unittest_template_uuid)
+    .equals(unittest_uuid)
+    .first();
+
+    let unitTestSteps = await window.db[TABLE_UNITTEST_TEMPLATE_STEPS_NAME]
+    .where([unittest_template_step_delFlg, unittest_template_step_unittest_uuid])
+    .equals([0, unittest_uuid])
+    .toArray();
+
+    for (let _unittest_step of unitTestSteps) {
+        let _step_uuid = _unittest_step[field_unittest_template_step_uuid]
+        let unitTestAsserts = await window.db[TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME]
+        .where([unittest_template_step_assert_delFlg, unittest_template_step_assert_unittest, unittest_template_step_assert_step])
+        .equals([0, unittest_uuid, _step_uuid])
+        .reverse()
+        .toArray();
+        for (let _unitTestAssert of unitTestAsserts) {
+            if (isStringEmpty(_unitTestAssert[unittest_template_step_assert_type])) {
+                _unitTestAssert[unittest_template_step_assert_type] = ASSERT_TYPE_API;
+            }
+        }
+        _unittest_step.asserts = unitTestAsserts;
+    }
+
+    return genUnitTest(unitTest, unitTestSteps);
+}
+
+async function genUnitTest(unitTest, unitTestSteps) {
+    unitTest['children'] = unitTestSteps;
+    return unitTest;
+}
 
 export async function allTemplates(clientType : string) {
     if (clientType === CLIENT_TYPE_TEAM) {

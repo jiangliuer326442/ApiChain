@@ -27,6 +27,7 @@
     "nav setting": "Settings",
     "nav setting iterator": "Version Iterator",
     "nav setting envvar": "Global Variables",
+    "nav setting unittest template": "Unit Test Template",
     "nav setting project": "Project",
     "nav setting env": "Env Config",
     "nav setting basic": "Basic Settings",

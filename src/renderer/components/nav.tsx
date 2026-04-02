@@ -42,6 +42,7 @@ import {
   REQUEST_HISTORY,
   ENVVAR_GLOBAL_LIST_ROUTE,
   BASIC_SETTING_ROUTE,
+  UNITTEST_TEMPLATE_LIST_ROUTE,
   TEAM_MEMBER_ROUTE,
 } from '@conf/routers';
 import {
@@ -127,6 +128,14 @@ class Nav extends Component {
                   <a href={ "#" + VERSION_ITERATOR_LIST_ROUTE } rel="noopener noreferrer">
                     {langTrans("nav setting iterator")}
                   </a>
+                )
+              },
+              {
+                key: UNITTEST_TEMPLATE_LIST_ROUTE,
+                label: (
+                  <a href={ "#" + UNITTEST_TEMPLATE_LIST_ROUTE } rel="noopener noreferrer">
+                    {langTrans("nav setting unittest template")}
+                  </a >
                 )
               },
               {

@@ -27,6 +27,7 @@
     "nav setting": "設置",
     "nav setting iterator": "版本迭代",
     "nav setting envvar": "全局環境變量",
+    "nav setting unittest template": "單測模板",
     "nav setting project": "項目",
     "nav setting env": "開發環境",
     "nav setting basic": "基本設置",
