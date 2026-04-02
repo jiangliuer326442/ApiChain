@@ -147,7 +147,7 @@ class AddEnvVarComponent extends Component {
                             cb={value => {
                                 this.setState({pvalue : value})
                             }}
-                            width={ 288 }
+                            width={ 289 }
                             unitTestUuid={ this.props.unittest}
                             project={ this.state.prj}
                         />

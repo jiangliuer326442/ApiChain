@@ -143,7 +143,8 @@ class RequestBodyFormTable extends Component {
                                     value={data}
                                     cb={value => this.setData(key, value)}
                                     width={288}
-                                    iteratorId={props.iteratorId}
+                                    iteratorId={ props.iteratorId}
+                                    fakeIterator={ props.fakeIterator}
                                     unitTestUuid={props.unitTestUuid}
                                     unitTestStepUuid={props.unitTestStepUuid}
                                     project={props.project}

@@ -1,64 +1,31 @@
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 import { 
-    Breadcrumb, Layout, Flex, Dropdown,
+    Breadcrumb, Layout,
     Popconfirm, Table, Space, Button, 
-    Select, Form, message, Typography,
-    Modal, Input,
 } from "antd";
-import type { MenuProps } from 'antd';
 import { 
     EditOutlined, 
-    MergeOutlined, 
     DeleteOutlined, 
-    MoreOutlined,
-    DotChartOutlined,
-    CameraOutlined
 } from '@ant-design/icons';
 
-import { EMPTY_STRING } from '@conf/global_config';
-import { ChannelsLoadAppStr } from '@conf/channel';
 import { 
     TABLE_UNITTEST_TEMPLATE_FIELDS,
     TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS,
-    TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
-    UNAME, TABLE_UNITTEST_STEPS_NAME,
+    UNAME,
 } from '@conf/db';
-import { getWikiUnittest } from '@conf/url';
 import {
-    UNITTEST_RESULT_SUCCESS,
-    UNITTEST_RESULT_FAILURE,
-} from '@conf/unittest';
-import {
-    SHOW_ADD_UNITTEST_MODEL,
-    GET_ITERATOR_TESTS,
     SHOW_EDIT_UNITTEST_MODEL,
-    GET_ENV
 } from '@conf/redux';
-import { getdayjs, isStringEmpty } from '@rutil/index';
+import { getdayjs } from '@rutil/index';
+import AddUnittestComponent from '@comp/unittest/add_unittest';
 import { getEnvs } from '@act/env';
 import {
-    getIterationUnitTests, 
-    delUnitTest, 
-} from '@act/unittest';
-import {
+    delUnitTest,
     getUnitTests
 } from '@act/unittest_template';
-import {
-    delUnitTestStep,
-} from '@act/unittest_step';
-import {
-    addUnittestTemplate,
-} from '@act/unittest_template';
-import { getUnitTestRequests } from '@act/version_iterator_requests';
-import { getOpenVersionIterators } from '@act/version_iterator';
-import { buildUnitTestStepFromRequest } from '@act/unittest_step';
-import PayMemberModel from '@comp/topup/member';
-import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
-import AddUnittestComponent from '@comp/unittest/add_unittest';
 import { langTrans } from '@lang/i18n';
 
-const { Text, Link } = Typography;
 const { Header, Content, Footer } = Layout;
 
 let unittest_uuid = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_UUID;
@@ -67,19 +34,7 @@ let unittest_folder = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_FOLD_NAME;
 let unittest_ctime = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_CTIME;
 
 let unittest_step_unittest_uuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_step_project = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
-let unittest_step_uri = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_URI;
 let unittest_step_uuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_UUID;
-let unittest_step_request_head = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_HEADER;
-let unittest_step_request_body = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_BODY;
-let unittest_step_request_param = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_PARAM;
-let unittest_step_request_path_variable = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-
-let unittest_report_result = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_RESULT;
-let unittest_report_env = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_ENV;
-let unittest_report_step = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_STEP;
-let unittest_report_batch = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_BATCH_UUID;
-let unittest_report_cost_time = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST_TIME;
 
 class UnittestListVersion extends Component {
 
@@ -89,49 +44,11 @@ class UnittestListVersion extends Component {
             executeFlg: true,
             column: [
                 {
-                  title: langTrans("prj unittest table field1"),
+                  title: langTrans("unittest template field1"),
                   dataIndex: unittest_title,
                   render: (title) => {
                     return title;
                   }
-                },
-                {
-                    title: langTrans("prj unittest table field2"),
-                    dataIndex: unittest_report_result,
-                    render: (result, record) => {
-                        //整体
-                        if (record[unittest_folder] !== undefined) {
-                            if (result === undefined) {
-                                return <span style={{color:"yellow"}}>{langTrans("prj unittest status1")}</span>;
-                            } else if (result === UNITTEST_RESULT_SUCCESS) {
-                                return <span style={{color:"green"}}>{langTrans("prj unittest status2")}</span>;
-                            } else if (result === UNITTEST_RESULT_FAILURE) {
-                                return <span style={{color:"red"}}>{langTrans("prj unittest status3")}</span>;
-                            } else {
-                                return <span style={{color:"yellow"}}>{langTrans("prj unittest status4")}</span>;
-                            }
-                        } else {
-                            if (result === undefined) {
-                                return <span style={{color:"yellow"}}>{langTrans("prj unittest status1")}</span>;
-                            } else if (result) {
-                                return <span style={{color:"green"}}>{langTrans("prj unittest status2")}</span>;
-                            } else {
-                                return <span style={{color:"red"}}>{langTrans("prj unittest status3")}</span>;
-                            }
-                        }
-                    }
-                },
-                {
-                    title: langTrans("prj unittest table field3"),
-                    dataIndex: unittest_report_cost_time,
-                    render: (cost_time, record) => {
-                        let result = record[unittest_report_result];
-                        if (result === "success" || result === true) {
-                            return cost_time + langTrans("prj unittest costtime");
-                        } else if (result) {
-                            return "--";
-                        }
-                    }
                 },
                 {
                   title: langTrans("prj unittest table field4"),
@@ -148,16 +65,27 @@ class UnittestListVersion extends Component {
                     render: (_, record) => {
                         //整体
                         if (record[unittest_folder] !== undefined) {
-                            let unittestUuid = record[unittest_uuid];
                             return (
                                 <Space>
-                                    <Button type="link" href={ "#/version_iterator_tests_step_add/" + this.state.iteratorId + "/" + unittestUuid }>{langTrans("version unittest act1")}</Button>
-                                    {record.result !== undefined ? 
-                                    <Button type='text' href={ '#/unittest_executor_record/' + record[unittest_report_env] + '/' + this.state.iteratorId + '/' + unittestUuid }>{langTrans("prj unittest act2")}</Button>
-                                    : null}
-                                    <Dropdown menu={this.getMoreUnittest(record)}>
-                                        <Button type="text" icon={<MoreOutlined />} />
-                                    </Dropdown>
+                                    <Button type='link' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>
+                                    {langTrans("prj unittest act4")}
+                                    </Button>
+                                    <Popconfirm
+                                        title={langTrans("prj unittest del title")}
+                                        description={langTrans("prj unittest del desc")}
+                                        onConfirm={async e => {
+                                            await delUnitTest(this.props.clientType, record);
+                                            getUnitTests(
+                                                this.props.clientType,
+                                                this.state.folder,
+                                                this.props.dispatch
+                                            );
+                                        }}
+                                        okText={langTrans("prj unittest del sure")}
+                                        cancelText={langTrans("prj unittest del cancel")}
+                                        >
+                                        <Button danger type="link" icon={<DeleteOutlined />}>{langTrans("prj unittest act5")}</Button>
+                                    </Popconfirm>
                                 </Space>
                             );
                         } else {
@@ -165,42 +93,12 @@ class UnittestListVersion extends Component {
                             let valueUnittestStepUnittestUuid = record[unittest_step_unittest_uuid];
                             //当前步骤的 uuid
                             let valueUnittestStepUuid = record[unittest_step_uuid];
-                            //报告中的下一步
-                            let valueUnittestReportStep = record[unittest_report_step];
                             return (
                                 <Space>
-                                    {valueUnittestStepUuid === valueUnittestReportStep &&
-                                    <Button type="link" onClick={async ()=>{
-                                        this.setState({
-                                            executeFlg: false,
-                                            unittestUuid: "",
-                                            batchUuid: "",
-                                        });
-
-                                        let batchUuid = await continueIteratorExecuteUnitTest(
-                                            this.props.clientType,
-                                            this.props.teamId,
-                                            this.state.iteratorId, 
-                                            valueUnittestStepUnittestUuid, 
-                                            record[unittest_report_batch], 
-                                            valueUnittestReportStep, 
-                                            record[unittest_report_env],
-                                            (batchUuid : string, stepUuid : string) => {
-                                                this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid})
-                                            }
-                                        );
-
-                                        this.setState({
-                                            unittestUuid: valueUnittestStepUnittestUuid,
-                                            batchUuid,
-                                        })
-                                    }}>{langTrans("prj unittest act3")}</Button>
-                                    }
-                                {record["source"] == "db" &&
-                                <Dropdown menu={this.getMoreStep(record)}>
-                                    <Button type="text" icon={<MoreOutlined />} />
-                                </Dropdown>
-                                }
+                                    <Button 
+                                        type='link' 
+                                        href={ `#/test_templates_step_edit/${valueUnittestStepUnittestUuid}/${valueUnittestStepUuid}` }
+                                    >{langTrans("prj unittest act4")}</Button>
                                 </Space>
                             );
                         }
@@ -211,12 +109,8 @@ class UnittestListVersion extends Component {
             batchUuid: "",
             stepUuid: "",
             folder: null,
-            showPay: false,
             versionIterators: [],
-            selectedUnittests: [],
-            selectedSteps: [],
             addTemplateTile: "",
-            addTemplateDialog: false,
             loadingFlg: false,
         };
     }
@@ -256,201 +150,9 @@ class UnittestListVersion extends Component {
         }
     }
 
-    getMoreStep = (record : any) : MenuProps => {
-        if (record[unittest_folder] === undefined) {
-            //整体单测的 uuid
-            let valueUnittestStepUnittestUuid = record[unittest_step_unittest_uuid];
-            //当前步骤的 uuid
-            let valueUnittestStepUuid = record[unittest_step_uuid];
-
-            return {'items': [{
-                key: "1",
-                danger: true,
-                label: (
-                    <Popconfirm
-                        title={langTrans("version unittest del title")}
-                        description={langTrans("version unittest del desc")}
-                        onConfirm={e => {
-                            delUnitTestStep(this.props.clientType, this.state.iteratorId, valueUnittestStepUnittestUuid, valueUnittestStepUuid, ()=>{
-                                getIterationUnitTests(
-                                    this.props.clientType,
-                                    this.state.iteratorId, 
-                                    this.state.folder, 
-                                    this.props.env, 
-                                    this.props.dispatch
-                                );
-                            });
-                        }}
-                        okText={langTrans("version unittest del sure")}
-                        cancelText={langTrans("version unittest del cancel")}>
-                        <Button danger type="link" icon={<DeleteOutlined />}>{langTrans("prj unittest act5")}</Button>
-                    </Popconfirm>
-                ),
-            }]};
-        } else {
-            return {'items': [] };
-        }
-    }
-
-    getMoreUnittest = (record : any) : MenuProps => {
-        if (record[unittest_folder] !== undefined) {
-            let items = [{
-                key: "1",
-                label: <Button type='link' icon={<EditOutlined />} onClick={()=>this.editUnitTestClick(record)}>
-                    {langTrans("prj unittest act4")}
-                    </Button>,
-            },{
-                key: "2",
-                label: <Button type="link" icon={<DotChartOutlined />} href={`#/unittest_envvars/${this.state.iteratorId}/${record[unittest_uuid]}/${EMPTY_STRING}`}>
-                    {langTrans("prj unittest act1")}
-                    </Button>,
-            },{
-                key: "3",
-                danger: true,
-                label:  <Popconfirm
-                            title={langTrans("prj unittest del title")}
-                            description={langTrans("prj unittest del desc")}
-                            onConfirm={async e => {
-                                await delUnitTest(this.props.clientType, record);
-                                getIterationUnitTests(
-                                    this.props.clientType, 
-                                    this.state.iteratorId, 
-                                    this.state.folder, 
-                                    this.props.env, 
-                                    this.props.dispatch
-                                );
-                            }}
-                            okText={langTrans("prj unittest del sure")}
-                            cancelText={langTrans("prj unittest del cancel")}
-                            >
-                            <Button danger type="link" icon={<DeleteOutlined />}>{langTrans("prj unittest act5")}</Button>
-                        </Popconfirm>,
-            },{
-                key: "4",
-                danger: (record[unittest_collectFlg] ? true : false),
-                label: (record[unittest_collectFlg] ? 
-                    <Popconfirm
-                        title={langTrans("version unittest remove title")}
-                        description={langTrans("version unittest remove desc")}
-                        onConfirm={e => {
-                            this.undoExportUnitTestClick(record);
-                        }}
-                        okText={langTrans("version unittest remove sure")}
-                        cancelText={langTrans("version unittest remove cancel")}
-                        >
-                        <Button danger type='link' icon={<MergeOutlined />}>{langTrans("version unittest act3")}</Button>
-                    </Popconfirm> 
-                : 
-                    <Button type='text' icon={<MergeOutlined />} onClick={()=>this.exportUnitTestClick(record)}>{langTrans("version unittest act2")}</Button>),
-            }];
-            if (isStringEmpty(record[unittest_refer])) {
-                items.push({
-                    key: "5",
-                    label: <Button type='text' icon={<CameraOutlined />} onClick={()=>this.exportStepsClick(record)}>{langTrans("version unittest act5")}</Button>
-                });
-            }
-            return {'items': items};
-        } else {
-            return {'items': [] };
-        }
-    }
-
-    setEnvironmentChange = (value: string) => {
-        if (isStringEmpty(value)) {
-            this.props.dispatch({
-                type: GET_ITERATOR_TESTS,
-                iteratorId: this.state.iteratorId,
-                unitTests: [],
-                folders: null,
-            });
-        } else {
-            getIterationUnitTests(
-                this.props.clientType, 
-                this.state.iteratorId, 
-                this.state.folder, 
-                value, 
-                this.props.dispatch
-            );
-        }
-        this.props.dispatch({
-            type: GET_ENV,
-            env: value
-        });
-    }
-
-    setFolderChange = (value: string) => {
-        let selectedFolder;
-        if (value === undefined) {
-            selectedFolder = null;
-        } else {
-            selectedFolder = value;
-        }
-        this.setState({folder: value});
-        getIterationUnitTests(
-            this.props.clientType, 
-            this.state.iteratorId, 
-            selectedFolder, 
-            this.props.env, 
-            this.props.dispatch
-        );
-    }
-
-    undoExportUnitTestClick = (record) => {
-        let unittestId = record[unittest_uuid];
-        copyFromProjectToIterator(unittestId, ()=>{
-            message.success(langTrans("unittest export revoke success"));
-            getIterationUnitTests(
-                this.props.clientType, 
-                this.state.iteratorId, 
-                this.state.folder, 
-                this.props.env, 
-                this.props.dispatch
-            );
-        });
-    }
-
-    exportStepsClick = async record => {
-        let stepIds = [];
-        let unittestId = record[unittest_uuid];
-        for (let step of record.children) {
-            let stepId = step[unittest_step_uuid];
-            if (this.state.selectedSteps.includes(unittestId + "$$" + stepId)) {
-                stepIds.push(unittestId + "$$" + stepId);
-            } else {
-                break;
-            }
-        }
-        this.setState({selectedSteps: stepIds});
-        if (stepIds.length === 0) {
-            message.error(langTrans("version unittest act5 empty"));
-            return;
-        }
-        this.setState({
-            addTemplateTile : "", 
-            addTemplateDialog : true, loadingFlg : false
-        })
-    }
-
-    exportUnitTestClick = async record => {
-        let iteratorId = this.state.iteratorId;
-        let unittestId = record[unittest_uuid];
-        await copyFromIteratorToProject(
-            this.props.clientType, this.props.teamId,
-            iteratorId, unittestId, this.props.device);
-        message.success(langTrans("unittest export success"));
-        getIterationUnitTests(
-            this.props.clientType, 
-            iteratorId, 
-            this.state.folder, 
-            this.props.env, 
-            this.props.dispatch
-        );
-    }
-
     editUnitTestClick = (record) => {
         this.props.dispatch({
             type: SHOW_EDIT_UNITTEST_MODEL,
-            iteratorId: this.state.iteratorId,
             unitTestUuid: record[unittest_uuid],
             title: record[unittest_title],
             folder: record[unittest_folder],
@@ -458,162 +160,25 @@ class UnittestListVersion extends Component {
         });
     }
 
-    addUnitTestClick = () => {
-        this.props.dispatch({
-            type: SHOW_ADD_UNITTEST_MODEL,
-            iteratorId: this.state.iteratorId,
-            unitTestUuid: "",
-            open: true
-        });
-    }
-
-    setSelectedUnittests = newSelectedUnittests => {
-        let filteredUnittestKeys = newSelectedUnittests.filter(item => item.indexOf("$$") === -1);
-        let filteredStepKeys = newSelectedUnittests.filter(item => item.indexOf("$$") >= -1);
-        this.setState({
-            selectedUnittests: filteredUnittestKeys,
-            selectedSteps: filteredStepKeys,
-        });
-    }
-
-    handleAddTemplate = () => {
-        if (isStringEmpty(this.state.addTemplateTile) || this.state.selectedSteps.length === 0) {
-            return;
-        }
-        this.setState({loadingFlg: true});
-        addUnittestTemplate(this.props.clientType, this.state.iteratorId, this.state.selectedSteps, this.state.addTemplateTile, this.props.device, () => {
-            message.success(langTrans("version unittest unittest template add form success"))
-            window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
-        });
-    }
-
     render() : ReactNode {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    {langTrans("version unittest title")} <Text type="secondary"><Link href={getWikiUnittest()}>{langTrans("version unittest link")}</Link></Text>
+                    {langTrans("unittest template title")}
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
-                    <AddUnittestComponent refreshCb={() => getIterationUnitTests(
+                    <AddUnittestComponent refreshCb={() => getUnitTests(
                         this.props.clientType,
-                        this.state.iteratorId, 
-                        this.state.folder, 
-                        this.props.env, 
+                        this.state.folder,
                         this.props.dispatch
                     )} />
-                    <Modal 
-                        title={langTrans("version unittest unittest template add title")}
-                        open={this.state.addTemplateDialog}
-                        onOk={this.handleAddTemplate}
-                        confirmLoading={this.state.loadingFlg}
-                        onCancel={()=>this.setState({addTemplateTile: "", addTemplateDialog : false, loadingFlg : false})}
-                        width={230}
-                    >
-                        <Form layout="vertical">
-                            <Form.Item>
-                                <Input placeholder={langTrans("version unittest unittest template add form input1")} value={this.state.addTemplateTile} onChange={ event=>this.setState({addTemplateTile : event.target.value}) } />
-                            </Form.Item>
-                        </Form>
-                    </Modal>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
-                        { title: langTrans("version unittest bread1") }, 
-                        { title: langTrans("version unittest bread2") }
+                        { title: langTrans("unittest template bread1") }, 
+                        { title: langTrans("unittest template bread2") }
                     ]} />
-                    <PayMemberModel showPay={this.state.showPay} cb={showPay => this.setState({showPay})} />
-                    <Flex justify="space-between" align="center" style={{marginBottom: 16}}>
-                        <Form layout="inline">
-                            <Form.Item label={langTrans("prj unittest operator1")}>
-                                <Select
-                                    allowClear
-                                    value={ this.props.env }
-                                    onChange={this.setEnvironmentChange}
-                                    style={{ width: 120 }}
-                                    options={this.props.envs}
-                                />
-                            </Form.Item>
-                            <Form.Item label={langTrans("version unittest operator1")}>
-                                <Select allowClear
-                                    style={{minWidth: 130}}
-                                    onChange={ value => {
-                                        if (isStringEmpty(value)) {
-                                            return;
-                                        }
-                                        batchMoveIteratorUnittest(this.state.iteratorId, this.state.selectedUnittests, value, () => {
-                                            this.state.selectedUnittests = [];
-                                            message.success("移动迭代成功");
-                                            getIterationUnitTests(
-                                                this.props.clientType, 
-                                                this.state.iteratorId, 
-                                                this.state.folder, 
-                                                this.props.env, 
-                                                this.props.dispatch
-                                            );
-                                        });
-                                    }}
-                                    options={ this.state.versionIterators }
-                                />
-                            </Form.Item>
-                            <Form.Item>
-                                <Button 
-                                    type="primary"  
-                                    disabled={!this.state.executeFlg || this.state.selectedUnittests.length === 0} 
-                                    onClick={() => {
-                                        if (!this.props.device.vipFlg && !this.props.device.isUnitTest) {
-                                            this.setState({
-                                                showPay: true,
-                                            });
-                                            return;
-                                        }
-                                        if (isStringEmpty(this.props.env)) {
-                                            message.error(langTrans("unittest env check"));
-                                            return;
-                                        }
-
-                                        for (let unittestUuid of this.state.selectedUnittests) {
-                                            this.setState({
-                                                executeFlg: false,
-                                                unittestUuid,
-                                                batchUuid: "",
-                                            });
-                                            let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
-                                            executeIteratorUnitTest(
-                                                this.props.clientType, this.props.teamId,
-                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.props.env, 
-                                                (batchUuid : string, stepUuid : string) => {
-                                                    this.setState({ unittestUuid, batchUuid, stepUuid})
-                                                }
-                                            );
-                                        }
-                                    }}
-                                >{langTrans("prj unittest btn")}</Button>
-                            </Form.Item>
-                        </Form>
-                        <Button type="link" onClick={this.addUnitTestClick}>{langTrans("version unittest btn")}</Button>
-                    </Flex>
-                    <SingleUnitTestReport 
-                        iteratorId={ this.state.iteratorId }
-                        unittestUuid={ this.state.unittestUuid }
-                        batchUuid={ this.state.batchUuid }
-                        stepUuid={ this.state.stepUuid }
-                        env={ this.props.env }
-                        cb={ () => {
-                            this.setState({executeFlg: true});
-                            getIterationUnitTests(
-                                this.props.clientType, 
-                                this.state.iteratorId, 
-                                this.state.folder, 
-                                this.props.env, 
-                                this.props.dispatch
-                            );
-                        } }
-                        />
                     <Table 
-                        rowSelection={{
-                            selectedRowKeys: this.state.selectedUnittests.concat(this.state.selectedSteps), 
-                            onChange: this.setSelectedUnittests
-                        }}
                         columns={this.state.column} 
-                        dataSource={this.props.unittest ? this.props.unittes : []} 
+                        dataSource={this.props.unittest ? this.props.unittest : []} 
                         />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>

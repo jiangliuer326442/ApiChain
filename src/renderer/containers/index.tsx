@@ -45,6 +45,7 @@ import {
     UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE,
     UNITTEST_STEP_ADD_ROUTE,
     UNITTEST_STEP_EDIT_ROUTE,
+    UNITTEST_TEMPLATE_STEP_EDIT_ROUTE,
     REQUEST_PROJECT_PARAMS,
     VIP_ITERATOR_LIST_ROUTE,
     ITERATOR_ADD_REQUEST_ROUTE,
@@ -203,6 +204,7 @@ class MyRouter extends Component {
                             <Route path={ UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE } component={UnittestExecutorListPage} />
                             <Route path={ UNITTEST_STEP_ADD_ROUTE } component={UnittestStepPage} />
                             <Route path={ UNITTEST_STEP_EDIT_ROUTE } component={UnittestStepPage} />
+                            <Route path={ UNITTEST_TEMPLATE_STEP_EDIT_ROUTE } component={UnittestStepPage} />
                             <Route path={ VIP_ITERATOR_LIST_ROUTE } component={VipFunctionPage} />
                             <Route path={ ITERATOR_ADD_REQUEST_ROUTE } component={RequestToSaveContainerPage} />
                             <Route path={ ENVVAR_GLOBAL_LIST_ROUTE } component={EnvVarGlobalPage} />

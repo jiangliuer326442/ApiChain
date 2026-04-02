@@ -66,6 +66,7 @@ export default function (state = {
             return Object.assign({}, state, {
                 list: listTemplate,
                 folders: foldersTemplate,
+                iteratorId: "",
             });
         case GET_PROJECT_TESTS:
             let project = action.project;

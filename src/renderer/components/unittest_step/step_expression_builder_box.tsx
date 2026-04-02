@@ -43,6 +43,9 @@ import {
 import { 
     getIterationUnitTests
 } from '@act/unittest';
+import {
+    getUnitTests
+} from '@act/unittest_template'
 import { getProjectRequest } from '@act/project_request';
 import { langTrans } from '@lang/i18n';
 
@@ -72,13 +75,14 @@ class StepExpressionBuilderBox extends Component {
 
         let content = props.value;
 
-        this.paramTips  = new JsonParamTips(props.iteratorId, props.unitTestUuid, props.clientType);
+        let iteration = props.iteratorId ? props.iteratorId : "";
+
+        this.paramTips  = new JsonParamTips(iteration, props.unitTestUuid, props.clientType);
         if (props.project) {
             this.paramTips.setProject(props.project);
         } else {
             this.paramTips.setProject("");
         }
-        console.log("project", props.project)
         this.paramTips.setContent(content);
 
         let selectedStep = this.paramTips.getSelectedStep();
@@ -111,12 +115,15 @@ class StepExpressionBuilderBox extends Component {
     }
 
     async componentDidMount() {
-        if (!this.props.unittest[this.props.iteratorId]) {
+        if (this.props.iteratorId && !this.props.unittest[this.props.iteratorId]) {
             await getIterationUnitTests(
                 this.props.clientType, 
                 this.props.iteratorId, 
                 null, null, this.props.dispatch
             );
+            this.setState({loadeadFlg: true});
+        } else if (!this.props.iteratorId && !this.props.unittest["__template__"]) {
+            await getUnitTests(this.props.clientType, null, this.props.dispatch);
             this.setState({loadeadFlg: true});
         } else {
             this.setState({loadeadFlg: true});
@@ -147,7 +154,12 @@ class StepExpressionBuilderBox extends Component {
             item.label = langTrans("expression builder step");
             item.value = UNITTEST_STEP_CURRENT;
             stepsSelect.push(item);
-            let steps = nextProps.unittest[nextProps.iteratorId].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children;
+            let steps;
+            if (nextProps.iteratorId) {
+                steps = nextProps.unittest[nextProps.iteratorId].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children
+            } else {
+                steps = nextProps.unittest["__template__"].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children
+            }
             for (let step of steps) {
                 //有效的其他步骤
                 if (isStringEmpty(nextProps.unitTestStepUuid) || nextProps.unitTestStepUuid !== step[unittest_step_uuid]) {
@@ -193,10 +205,11 @@ class StepExpressionBuilderBox extends Component {
                 let selectedStepId = this.state.selectedStep.replace(UNITTEST_STEP_POINTED, "");
                 let step = this.state.steps.find(row => row[unittest_step_uuid] === selectedStepId);
                 if (step === undefined) return;
+                console.log("props", this.props);
                 getUnitTestRequests(
                     this.props.clientType, 
                     step[unittest_step_prj], 
-                    this.props.iteratorId, 
+                    this.props.fakeIterator, 
                     step[unittest_step_uri]
                 ).then(async requests => {
                     let request = requests.find(row => row[iteration_request_method] === step[unittest_step_method]);
