@@ -116,10 +116,21 @@ let unittest_step_assert_cuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CUID;
 let unittest_step_assert_delFlg = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_DELFLG;
 let unittest_step_assert_ctime = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CTIME;
 
-//@todo fanghailiang
 export async function getIterator(clientType : string, referFrom : string) {
-    let iteratorId = await sendTeamMessage(UNITTES_TEMPLATE_ITERATOR_URL, {uuid: referFrom});
-    return iteratorId;
+    if (clientType === CLIENT_TYPE_TEAM) {
+        return await sendTeamMessage(UNITTES_TEMPLATE_ITERATOR_URL, {uuid: referFrom});
+    } else {
+        let unitTest = await window.db[TABLE_UNITTEST_NAME]
+        .where([unittest_delFlg, field_unittest_uuid])
+        .equals([0, referFrom])
+        .first();
+
+        if (unitTest === undefined) {
+            return "";
+        } else {
+            return unitTest[unittest_iterator_uuid];
+        }
+    }
 }
 
 export async function editUnitTestTemplateStep(

@@ -22,6 +22,7 @@ class AddEnvVarComponent extends Component {
             pvalue: "",
             oldPValue: "",
             premark: "",
+            allEnvs: false,
             encryptFlg: 0,
             oldEncryptFlg: 0,
         };
@@ -78,18 +79,35 @@ class AddEnvVarComponent extends Component {
         } else {
             handledData = pvalue;
         }
-
-        await addEnvValues(
-            this.props.clientType, 
-            this.props.teamId, 
-            this.props.prj, 
-            this.props.env, 
-            iteration ? iteration : "", 
-            unittest ? unittest : "" , 
-            this.props.source ? this.props.source : "",
-            pname, handledData, this.state.oldPValue, premark, encryptFlg, this.state.oldEncryptFlg,
-            this.props.device
-        );
+        
+        if (this.state.allEnvs) {
+            for (let _envRow of this.props.envs) {
+                let env = _envRow.value;
+                await addEnvValues(
+                    this.props.clientType, 
+                    this.props.teamId, 
+                    this.props.prj, 
+                    env, 
+                    iteration ? iteration : "", 
+                    unittest ? unittest : "" , 
+                    this.props.source ? this.props.source : "",
+                    pname, handledData, this.state.oldPValue, premark, encryptFlg, this.state.oldEncryptFlg,
+                    this.props.device
+                );
+            }
+        } else {
+            await addEnvValues(
+                this.props.clientType, 
+                this.props.teamId, 
+                this.props.prj, 
+                this.props.env, 
+                iteration ? iteration : "", 
+                unittest ? unittest : "" , 
+                this.props.source ? this.props.source : "",
+                pname, handledData, this.state.oldPValue, premark, encryptFlg, this.state.oldEncryptFlg,
+                this.props.device
+            );
+        }
 
         message.success(langTrans("prj unittest status2"))
 
@@ -145,11 +163,15 @@ class AddEnvVarComponent extends Component {
                             enableFlag={true}
                             value={(this.state.oldEncryptFlg == 1 && this.state.pvalue == this.state.oldPValue) ? "******" : this.state.pvalue}
                             cb={value => {
-                                this.setState({pvalue : value})
+                                this.setState({
+                                    pvalue : value,
+                                    allEnvs: true,
+                                })
                             }}
                             width={ 289 }
                             unitTestUuid={ this.props.unittest}
                             project={ this.state.prj}
+                            fakeIterator={ this.props.iteration }
                         />
                     </Form.Item>
                 :
@@ -187,6 +209,7 @@ function mapStateToProps (state) {
         clientType: state.device.clientType,
         open : state.env_var.showAddPropertyModelFlg,
         device : state.device,
+        envs: state.env.list,
         prj: state.env_var.prj ? state.env_var.prj : "",
         iteration: state.env_var.iterator ? state.env_var.iterator : "",
         unittest: state.env_var.unittest ? state.env_var.unittest : "",

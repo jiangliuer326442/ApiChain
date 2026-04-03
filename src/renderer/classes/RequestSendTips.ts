@@ -108,7 +108,6 @@ export default class {
 
     async getVarByKey(key : string, env : string) : string | number | undefined {
         if (this.envvars.size === 0) {
-            console.log("env_var_type", this.env_var_type);
             if (this.env_var_type === "project") {
                 this.envvars = await getPrjEnvValues(this.prj, env, this.teamId, this.clientType);
             } else if (this.env_var_type === "iterator") {

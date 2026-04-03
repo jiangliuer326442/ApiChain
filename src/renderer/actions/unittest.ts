@@ -1239,11 +1239,16 @@ async function stepsExecutor(
 
                     if (typeof assertLeftValue[keyNumber] === "number") {
                         assertLeftValue[keyNumber] = assertLeftValue[keyNumber].toString();
+                    } else if (typeof assertLeftValue[keyNumber] === "boolean") {
+                        assertLeftValue[keyNumber] = assertLeftValue[keyNumber] ? "true" : "false";
                     }
 
                     if (typeof assertRightValue[keyNumber] === "number") {
                         assertRightValue[keyNumber] = assertRightValue[keyNumber].toString();
+                    } else if (typeof assertRightValue[keyNumber] === "boolean") {
+                        assertRightValue[keyNumber] = assertRightValue[keyNumber] ? "true" : "false";
                     }
+
                     if (assertOperator.trim() === "==") {
                         if (assertLeftValue[keyNumber] === assertRightValue[keyNumber]) {
                             breakFlg = false;

@@ -831,7 +831,6 @@ class UnittestStepContainer extends Component {
     }
 
     render() : ReactNode {
-        console.log("fakeIterator", this.state.fakeIterator);
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>

@@ -205,7 +205,6 @@ class StepExpressionBuilderBox extends Component {
                 let selectedStepId = this.state.selectedStep.replace(UNITTEST_STEP_POINTED, "");
                 let step = this.state.steps.find(row => row[unittest_step_uuid] === selectedStepId);
                 if (step === undefined) return;
-                console.log("props", this.props);
                 getUnitTestRequests(
                     this.props.clientType, 
                     step[unittest_step_prj], 

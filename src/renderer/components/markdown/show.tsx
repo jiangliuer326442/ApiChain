@@ -6,7 +6,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import 'github-markdown-css/github-markdown-dark.css';
-import Markdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import { langTrans } from '@lang/i18n';
 
 export default class extends Component {
@@ -40,7 +40,7 @@ export default class extends Component {
             <Flex className='ReackMarkerContainer' gap={"middle"}>
                 <Flex>
                     <div className="ReackMarkerContent" style={{ width: this.props.width === undefined ? 920 : this.props.width }}>
-                        <Markdown 
+                        <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
                             rehypePlugins={[rehypeRaw]}
                             components={{
@@ -81,8 +81,9 @@ export default class extends Component {
                                     );
                                 },
                             }}
-                            children={ this.state.content }
-                        />
+                        >
+                            {this.state.content}
+                        </ReactMarkdown>
                     </div>
                 </Flex>
                 <FloatButton.BackTop />
