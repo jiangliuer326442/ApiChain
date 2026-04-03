@@ -3,7 +3,6 @@ import { AutoComplete, Select, Space, Input, Button, Modal, Form } from 'antd';
 import { CalculatorOutlined } from '@ant-design/icons';
 import { connect } from 'react-redux';
 import JsonView from 'react-json-view';
-import { cloneDeep } from 'lodash';
 
 import JsonParamTips from '@clazz/JsonParamTips';
 import { cleanJson } from '@rutil/json';
@@ -44,6 +43,9 @@ import {
 import { 
     getIterationUnitTests
 } from '@act/unittest';
+import {
+    getUnitTests
+} from '@act/unittest_template'
 import { getProjectRequest } from '@act/project_request';
 import { langTrans } from '@lang/i18n';
 
@@ -73,9 +75,20 @@ class StepExpressionBuilderBox extends Component {
 
         let content = props.value;
 
-        this.paramTips  = new JsonParamTips(props.iteratorId, props.unitTestUuid, props.clientType);
-        this.paramTips.setProject(props.project);
+        let iteration = props.iteratorId ? props.iteratorId : "";
+
+        this.paramTips  = new JsonParamTips(iteration, props.unitTestUuid, props.clientType);
+        if (props.project) {
+            this.paramTips.setProject(props.project);
+        } else {
+            this.paramTips.setProject("");
+        }
         this.paramTips.setContent(content);
+
+        let selectedStep = this.paramTips.getSelectedStep();
+        if (isStringEmpty(props.unitTestStepUuid)) {
+            selectedStep = "";
+        }
 
         this.state = {
             loadeadFlg: false,
@@ -87,8 +100,8 @@ class StepExpressionBuilderBox extends Component {
             prjSelect:[],
             dataSourceType: this.paramTips.getDataSourceType(),
             initializeDataSourceType: this.paramTips.getDataSourceType(),
-            selectedStep: this.paramTips.getSelectedStep(),
-            initializeSelectedStep: this.paramTips.getSelectedStep(),
+            selectedStep,
+            initializeSelectedStep: selectedStep,
             selectedProject: this.paramTips.getSelectedProject(),
             selectedDataSource: this.paramTips.getSelectedDataSource(),
             initializeSelectedDataSource: this.paramTips.getSelectedDataSource(),
@@ -102,12 +115,15 @@ class StepExpressionBuilderBox extends Component {
     }
 
     async componentDidMount() {
-        if (!this.props.unittest[this.props.iteratorId]) {
+        if (this.props.iteratorId && !this.props.unittest[this.props.iteratorId]) {
             await getIterationUnitTests(
                 this.props.clientType, 
                 this.props.iteratorId, 
                 null, null, this.props.dispatch
             );
+            this.setState({loadeadFlg: true});
+        } else if (!this.props.iteratorId && !this.props.unittest["__template__"]) {
+            await getUnitTests(this.props.clientType, null, this.props.dispatch);
             this.setState({loadeadFlg: true});
         } else {
             this.setState({loadeadFlg: true});
@@ -138,7 +154,12 @@ class StepExpressionBuilderBox extends Component {
             item.label = langTrans("expression builder step");
             item.value = UNITTEST_STEP_CURRENT;
             stepsSelect.push(item);
-            let steps = nextProps.unittest[nextProps.iteratorId].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children;
+            let steps;
+            if (nextProps.iteratorId) {
+                steps = nextProps.unittest[nextProps.iteratorId].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children
+            } else {
+                steps = nextProps.unittest["__template__"].find(row => row[unittest_uuid] === nextProps.unitTestUuid).children
+            }
             for (let step of steps) {
                 //有效的其他步骤
                 if (isStringEmpty(nextProps.unitTestStepUuid) || nextProps.unitTestStepUuid !== step[unittest_step_uuid]) {
@@ -184,10 +205,11 @@ class StepExpressionBuilderBox extends Component {
                 let selectedStepId = this.state.selectedStep.replace(UNITTEST_STEP_POINTED, "");
                 let step = this.state.steps.find(row => row[unittest_step_uuid] === selectedStepId);
                 if (step === undefined) return;
+                console.log("props", this.props);
                 getUnitTestRequests(
                     this.props.clientType, 
                     step[unittest_step_prj], 
-                    this.props.iteratorId, 
+                    this.props.fakeIterator, 
                     step[unittest_step_uri]
                 ).then(async requests => {
                     let request = requests.find(row => row[iteration_request_method] === step[unittest_step_method]);
@@ -250,7 +272,11 @@ class StepExpressionBuilderBox extends Component {
     }
 
     setAssertPrev = (value : string) => {
-        this.setState({assertPrev: value.trim()});
+        if (isStringEmpty(value)) {
+            this.setState({assertPrev: ""});
+        } else {
+            this.setState({assertPrev: value.trim()});
+        }
     }
 
     setAssertOptions = (text) => {
@@ -372,7 +398,7 @@ class StepExpressionBuilderBox extends Component {
                         </Form.Item>
                     </>
                     }
-                    {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV &&
+                    {this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_ENV && this.state.selectedProject &&
                         <Form.Item>
                             <Select 
                                 style={{width: 445}}
@@ -421,6 +447,7 @@ class StepExpressionBuilderBox extends Component {
 function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
+        iteratorId: state.unittest.iteratorId,
         prjs: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,

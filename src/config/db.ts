@@ -197,6 +197,7 @@ export const TABLE_UNITTEST_TEMPLATE_FIELDS = {
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
+    FIELD_SHOWFLG : "show_flg",
 }
 
 export const TABLE_UNITTEST_NAME = "unittest";

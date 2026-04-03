@@ -18,6 +18,7 @@ import type { MenuProps } from 'antd';
 import { EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 
 import { langTrans } from '@lang/i18n';
+import { EMPTY_STRING } from '@conf/global_config';
 import {
   TABLE_UNITTEST_FIELDS,
   TABLE_UNITTEST_STEPS_FIELDS,
@@ -145,10 +146,7 @@ class UnittestListVersion extends Component {
                   <Button
                     type="link"
                     href={
-                      '#/unittest_envvars/' +
-                      record[unittest_uuid] +
-                      '/' +
-                      this.state.project
+                      `#/unittest_envvars/${EMPTY_STRING}/${record[unittest_uuid]}/${this.state.project}`
                     }
                   >
                     {langTrans("prj unittest act1")}

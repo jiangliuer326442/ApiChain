@@ -42,6 +42,7 @@ import {
   REQUEST_HISTORY,
   ENVVAR_GLOBAL_LIST_ROUTE,
   BASIC_SETTING_ROUTE,
+  UNITTEST_TEMPLATE_LIST_ROUTE,
   TEAM_MEMBER_ROUTE,
 } from '@conf/routers';
 import {
@@ -130,6 +131,14 @@ class Nav extends Component {
                 )
               },
               {
+                key: UNITTEST_TEMPLATE_LIST_ROUTE,
+                label: (
+                  <a href={ "#" + UNITTEST_TEMPLATE_LIST_ROUTE } rel="noopener noreferrer">
+                    {langTrans("nav setting unittest template")}
+                  </a >
+                )
+              },
+              {
                 key: ENVVAR_GLOBAL_LIST_ROUTE,
                 label: (
                   <a href={ "#" + ENVVAR_GLOBAL_LIST_ROUTE } rel="noopener noreferrer">
@@ -200,6 +209,7 @@ class Nav extends Component {
         require('../reducers/db/20250614002');
         require('../reducers/db/20250706001');
         require('../reducers/db/20260329001');
+        require('../reducers/db/20260402001');
 
         this.state = {
           initNavFlg: false,

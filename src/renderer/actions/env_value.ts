@@ -684,7 +684,7 @@ export async function getIteratorEnvValuesByPage(iterator : string, prj : string
     return datas;
 }
 
-export async function getUnittestEnvValuesByPage(unittest : string, prj : string, env : string, pname : string, clientType : string, pagination : any) {
+export async function getUnittestEnvValuesByPage(unittest : string, iteratorId : string, prj : string, env : string, pname : string, clientType : string, pagination : any) {
     let page = pagination.current;
     let pageSize = pagination.pageSize;
     let datas = [];
@@ -692,6 +692,7 @@ export async function getUnittestEnvValuesByPage(unittest : string, prj : string
     if (clientType === CLIENT_TYPE_SINGLE) {
         const offset = (page - 1) * pageSize;
         let excludeKeys = new Set<String>();
+
         let unittestPrjArrays = await db[TABLE_ENV_VAR_NAME]
         .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
         .equals([ env, prj, "", unittest ])
@@ -733,6 +734,52 @@ export async function getUnittestEnvValuesByPage(unittest : string, prj : string
             excludeKeys.add(unittestRow[env_var_pname]);
             unittestRow.source = 'unittest';
             datas.push(unittestRow);
+        }
+
+        let iteratorPrjArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, prj, iteratorId, "" ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(iteratorPrjArrays, env_var_pname);
+        for (let iteratorPrjRow of iteratorPrjArrays) {
+            excludeKeys.add(iteratorPrjRow[env_var_pname]);
+            iteratorPrjRow.source = 'iterator_prj';
+            datas.push(iteratorPrjRow);
+        }
+
+        let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
+        .where([ env_var_env, env_var_micro_service, env_var_iteration, env_var_unittest ])
+        .equals([ env, '', iteratorId, "" ])
+        .filter(row => {
+            if (pname) {
+                return row[env_var_pname] === pname;
+            }
+            if (excludeKeys.has(row[env_var_pname])) {
+                return false;
+            }
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray();
+        mixedSort(iteratorArrays, env_var_pname);
+        for (let iteratorRow of iteratorArrays) {
+            excludeKeys.add(iteratorRow[env_var_pname]);
+            iteratorRow.source = 'iterator';
+            datas.push(iteratorRow);
         }
 
         let prjArrays = await db[TABLE_ENV_VAR_NAME]
@@ -790,7 +837,7 @@ export async function getUnittestEnvValuesByPage(unittest : string, prj : string
             item[UNAME] = users.get(item[env_var_cuid]);
         });
     } else {
-        let params = Object.assign({}, pagination, {unittest, env, pname, prj});
+        let params = Object.assign({}, pagination, {unittest, env, pname, prj, iteratorId});
         let result = await sendTeamMessage(ENV_VARS_UNITTEST_PAGE_URL, params);
         let count = result.count;
         pagination.total = count;
@@ -1109,56 +1156,99 @@ export async function delUnittestEnvValues(
 export async function addEnvValues(
     clientType : string, teamId : string, 
     prj : string, env : string, iterator : string, unittest : string, 
+    source : string,
     pname : string, pvar, oldVar, remark, encryptFlg, oldEncryptFlg,
     device) {
 
-    if (clientType === CLIENT_TYPE_TEAM) {
-        //全局环境变量
-        if (isStringEmpty(prj) && isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg});
-        } else if (isStringEmpty(iterator) && isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
-        } else if (isStringEmpty(unittest)) {
-            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
-        } else {
-            await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
+    if (source === "iterator") {
+        if (clientType === CLIENT_TYPE_TEAM) {
+            await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg});
         }
-    }
 
-    let env_key : any = {};
-    env_key[env_key_prj] = prj;
-    env_key[env_key_pname] = pname;
-    env_key[env_key_cuid] = device.uuid;
-    env_key[env_key_ctime] = Date.now();
-    env_key[env_key_delFlg] = 0;
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        env_key.upload_flg = 0;
-        env_key.team_id = "";
-    } else {
-        env_key.upload_flg = 1;
-        env_key.team_id = teamId;
-    }
-    await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+        let env_key : any = {};
+        env_key[env_key_prj] = prj;
+        env_key[env_key_pname] = pname;
+        env_key[env_key_cuid] = device.uuid;
+        env_key[env_key_ctime] = Date.now();
+        env_key[env_key_delFlg] = 0;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            env_key.upload_flg = 0;
+            env_key.team_id = "";
+        } else {
+            env_key.upload_flg = 1;
+            env_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
 
-    let property_key : any = {};
-    property_key[env_var_micro_service] = prj;
-    property_key[env_var_env] = env;
-    property_key[env_var_iteration] = iterator;
-    property_key[env_var_unittest] = unittest;
-    property_key[env_var_pname] = pname;
-    property_key[env_var_pvalue] = pvar;
-    property_key[env_var_premark] = remark;
-    property_key[env_var_pencrypt] = encryptFlg;
-    property_key[env_var_cuid] = device.uuid;
-    property_key[env_var_ctime] = Date.now();
-    property_key[env_var_delFlg] = 0;
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        property_key.upload_flg = 0;
-        property_key.team_id = "";
+        let property_key : any = {};
+        property_key[env_var_micro_service] = prj;
+        property_key[env_var_env] = env;
+        property_key[env_var_iteration] = iterator;
+        property_key[env_var_unittest] = "";
+        property_key[env_var_pname] = pname;
+        property_key[env_var_pvalue] = pvar;
+        property_key[env_var_premark] = remark;
+        property_key[env_var_pencrypt] = encryptFlg;
+        property_key[env_var_cuid] = device.uuid;
+        property_key[env_var_ctime] = Date.now();
+        property_key[env_var_delFlg] = 0;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            property_key.upload_flg = 0;
+            property_key.team_id = "";
+        } else {
+            property_key.upload_flg = 1;
+            property_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_VAR_NAME].put(property_key);
     } else {
-        property_key.upload_flg = 1;
-        property_key.team_id = teamId;
+        if (clientType === CLIENT_TYPE_TEAM) {
+            //全局环境变量
+            if (isStringEmpty(prj) && isStringEmpty(iterator) && isStringEmpty(unittest)) {
+                await sendTeamMessage(ENV_VARS_GLOBAL_SET_URL, {pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg});
+            } else if (isStringEmpty(iterator) && isStringEmpty(unittest)) {
+                await sendTeamMessage(ENV_VARS_PROJECT_SET_URL, {prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
+            } else if (isStringEmpty(unittest)) {
+                await sendTeamMessage(ENV_VARS_ITERATOR_SET_URL, {iterator, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
+            } else {
+                await sendTeamMessage(ENV_VARS_UNITTEST_SET_URL, {unittest, prj, pname, pvar, oldVar, env, remark, encryptFlg, oldEncryptFlg})
+            }
+        }
+
+        let env_key : any = {};
+        env_key[env_key_prj] = prj;
+        env_key[env_key_pname] = pname;
+        env_key[env_key_cuid] = device.uuid;
+        env_key[env_key_ctime] = Date.now();
+        env_key[env_key_delFlg] = 0;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            env_key.upload_flg = 0;
+            env_key.team_id = "";
+        } else {
+            env_key.upload_flg = 1;
+            env_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_KEY_NAME].put(env_key);
+
+        let property_key : any = {};
+        property_key[env_var_micro_service] = prj;
+        property_key[env_var_env] = env;
+        property_key[env_var_iteration] = iterator;
+        property_key[env_var_unittest] = unittest;
+        property_key[env_var_pname] = pname;
+        property_key[env_var_pvalue] = pvar;
+        property_key[env_var_premark] = remark;
+        property_key[env_var_pencrypt] = encryptFlg;
+        property_key[env_var_cuid] = device.uuid;
+        property_key[env_var_ctime] = Date.now();
+        property_key[env_var_delFlg] = 0;
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            property_key.upload_flg = 0;
+            property_key.team_id = "";
+        } else {
+            property_key.upload_flg = 1;
+            property_key.team_id = teamId;
+        }
+        await window.db[TABLE_ENV_VAR_NAME].put(property_key);
     }
-    await window.db[TABLE_ENV_VAR_NAME].put(property_key);
 
 }

@@ -125,15 +125,15 @@ class ProjectSetting extends Component {
     }
 
     setEnvironmentChange = async (value: string) => {
-        this.props.dispatch({
+        await this.props.dispatch({
             type: GET_ENV_VALS,
             prj: this.props.match.params.prj,
             env: value,
             iterator: "",
             unittest: ""
-        }, () => {
-            this.getData();
         });
+
+        this.getData();
     }
 
     render(): ReactNode {

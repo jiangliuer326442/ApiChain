@@ -22,6 +22,7 @@ import {
     getProjectUnitTestFolders, 
 } from '@act/unittest_folders';
 import { 
+    editUnitTestTemplate,
     allTemplates
 } from '@act/unittest_template';
 import { langTrans } from '@lang/i18n';
@@ -83,16 +84,42 @@ class AddUnittestComponent extends Component {
             loadingFlg: true
         });
 
-        if (this.state.actionType === "create") {
-            if (isStringEmpty(this.props.project)) {
-                await addIteratorUnitTest(
-                    this.props.clientType, 
-                    this.props.iteratorId, 
-                    unitTestTitle, 
-                    selectedFolder, 
-                    this.state.referFrom,
-                    this.props.device
-                );
+        if (isStringEmpty(this.props.iteratorId)) {
+            await editUnitTestTemplate(this.props.clientType, this.state.unitTestUuid, unitTestTitle, selectedFolder);
+            this.clearInput();
+            this.setState({
+                loadingFlg: false
+            });
+            this.props.refreshCb();
+            this.props.dispatch({
+                type: SHOW_ADD_UNITTEST_MODEL,
+                open: false,
+                unitTestUuid: "",
+            });
+        } else {
+            if (this.state.actionType === "create") {
+                if (isStringEmpty(this.props.project)) {
+                    await addIteratorUnitTest(
+                        this.props.clientType, 
+                        this.props.iteratorId, 
+                        unitTestTitle, 
+                        selectedFolder, 
+                        this.state.referFrom,
+                        this.props.device
+                    );
+                    this.clearInput();
+                    this.setState({
+                        loadingFlg: false
+                    });
+                    this.props.refreshCb();
+                    this.props.dispatch({
+                        type: SHOW_ADD_UNITTEST_MODEL,
+                        open: false,
+                        unitTestUuid: "",
+                    });
+                }
+            } else {
+                await editIteratorUnitTest(this.props.clientType, this.props.iteratorId, this.state.unitTestUuid, unitTestTitle, selectedFolder);
                 this.clearInput();
                 this.setState({
                     loadingFlg: false
@@ -104,18 +131,6 @@ class AddUnittestComponent extends Component {
                     unitTestUuid: "",
                 });
             }
-        } else {
-            await editIteratorUnitTest(this.props.clientType, this.props.iteratorId, this.state.unitTestUuid, unitTestTitle, selectedFolder);
-            this.clearInput();
-            this.setState({
-                loadingFlg: false
-            });
-            this.props.refreshCb();
-            this.props.dispatch({
-                type: SHOW_ADD_UNITTEST_MODEL,
-                open: false,
-                unitTestUuid: "",
-            });
         }
     };
 
@@ -162,7 +177,12 @@ class AddUnittestComponent extends Component {
     render() : ReactNode {
         return (
             <Modal
-                title={this.state.actionType === "create" ? langTrans("unittest add title") : langTrans("unittest edit title")}
+                title={
+                    isStringEmpty(this.state.iteratorId) ? 
+                    langTrans("unittest template model edit title")
+                    :
+                    (this.state.actionType === "create" ? langTrans("unittest add title") : langTrans("unittest edit title"))
+                }
                 open={this.props.open}
                 onOk={this.handleOk}
                 confirmLoading={this.state.loadingFlg}

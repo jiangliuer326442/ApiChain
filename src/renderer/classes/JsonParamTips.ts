@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, indexOf } from 'lodash';
 
 import RequestSendTips from '@clazz/RequestSendTips';
 import { isStringEmpty, getType } from "@rutil/index";
@@ -88,16 +88,19 @@ export default class {
     ) {
         this.currentIteration = iteration;
         this.currentUnittest = unittest;
-        if (isStringEmpty(iteration)) {
-            this.env_var_type = 'unittest';
-        } else {
+        if (isStringEmpty(unittest)) {
             this.env_var_type = 'iterator';
+        } else {
+            this.env_var_type = 'unittest';
         }
         this.clientType = clientType;
         this.randomVal = Math.random();
     }
 
     setProject(project: string) {
+        if (isStringEmpty(project)) {
+            this.selectedProject = "";
+        }
         this.project = project;
         this.currentProject = project;
         this.envVarTips = new RequestSendTips();
@@ -309,6 +312,14 @@ export default class {
                     value = tmp === undefined ? "" : tmp as string;
                     value = prefixStr + value + suffixStr;
                 }
+            }
+            //递归调用
+            if (value.indexOf("{{") >= 0) {
+                this.setContent(value);
+                return this.getValue(envVarTips, 
+                    paramData, pathVariableData, headData, bodyData, responseHeaderData, responseCookieData, responseData, 
+                    unittest_uuid, unittest_executor_batch
+                );
             }
             return value;
         } else {

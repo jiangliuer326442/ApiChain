@@ -214,6 +214,8 @@ export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";
 
 export const UNITTES_ITERATION_SAVE_URL = "/unittest/iteration/save"
 
+export const UNITTES_TEMPLATE_SAVE_URL = "/unittest/template/save"
+
 export const UNITTES_PROJECT_SAVE_URL = "/unittest/project/save";
 
 export const UNITTES_ITERATION_DEL_URL = "/unittest/iteration/del"
@@ -237,3 +239,11 @@ export const UNITTES_ITERATION_STEP_DEL_URL = "/unittest/iteration/delStep"
 export const UNITTES_TEMPLATE_ADD_URL = "/unittest/template/add"
 
 export const UNITTES_TEMPLATE_ALL_URL = "/unittest/template/all"
+
+export const UNITTES_TEMPLATE_PAGE_URL = "/unittest/template/page"
+
+export const UNITTES_TEMPLATE_DEL_URL = "/unittest/template/del"
+
+export const UNITTES_TEMPLATE_ITERATOR_URL = "/unittest/template/getIterator"
+
+export const UNITTES_TEMPLATE_STEP_SAVE_URL = "/unittest/template/saveStep"

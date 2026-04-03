@@ -352,7 +352,6 @@ export async function getIteratorSingleUnittest(clientType : string, unittest_uu
                 .equals([0, referFrom, _step_uuid])
                 .reverse()
                 .toArray();
-                console.log("unitTestAsserts", referFrom, _step_uuid, unitTestAsserts);
                 for (let _unitTestAssert of unitTestAsserts) {
                     if (isStringEmpty(_unitTestAssert[unittest_template_step_assert_type])) {
                         _unitTestAssert[unittest_template_step_assert_type] = ASSERT_TYPE_API;
@@ -923,11 +922,11 @@ export async function executeIteratorUnitTest(
         },
         (project : string) => {
             let envVarTips = new RequestSendTips();
-            envVarTips.init("iterator", project, iteratorId, "", clientType);
+            envVarTips.init("unittest", project, iteratorId, unitTestId, clientType);
             return envVarTips;
         },
         () => {
-            let jsonParamTips = new JsonParamTips(iteratorId, "", clientType);
+            let jsonParamTips = new JsonParamTips(iteratorId, unitTestId, clientType);
             jsonParamTips.setEnv(env);
             return jsonParamTips;
         },

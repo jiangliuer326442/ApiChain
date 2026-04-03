@@ -44,6 +44,8 @@ export const GET_ITERATOR_TESTS = "get_iterator_tests";
 
 export const GET_PROJECT_TESTS = "get_project_tests";
 
+export const GET_TEMPLATE_TESTS = "get_template_tests";
+
 export const SHOW_ADD_UNITTEST_MODEL = "show_add_unittest_model";
 
 export const SHOW_EDIT_UNITTEST_MODEL = "show_edit_unittest_model";

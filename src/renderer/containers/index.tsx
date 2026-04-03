@@ -40,10 +40,12 @@ import {
     REQUEST_HISTORY,
     REQUEST_PROJECT_LIST_ROUTE,
     UNITTEST_ITERATOR_LIST_ROUTE,
+    UNITTEST_TEMPLATE_LIST_ROUTE,
     UNITTEST_PROJECT_LIST_ROUTE,
     UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE,
     UNITTEST_STEP_ADD_ROUTE,
     UNITTEST_STEP_EDIT_ROUTE,
+    UNITTEST_TEMPLATE_STEP_EDIT_ROUTE,
     REQUEST_PROJECT_PARAMS,
     VIP_ITERATOR_LIST_ROUTE,
     ITERATOR_ADD_REQUEST_ROUTE,
@@ -86,6 +88,7 @@ import VersionIteratorRequestListPage from "@contain/request_list/version";
 import ProjectRequestListPage from "@contain/request_list/project";
 import ParamsProjectPage from "@contain/request_send/params";
 import UnittestListVersionPage from "@contain/unittest/version_iterator";
+import UnittestListTemplatePage from "@contain/unittest/template";
 import UnittestListProjectPage from "@contain/unittest/project";
 import UnittestExecutorListPage from "@contain/unittest_executor_list";
 import UnittestStepPage from "@contain/unittest/step";
@@ -195,11 +198,13 @@ class MyRouter extends Component {
                             <Route path={ REQUEST_PROJECT_LIST_ROUTE } component={ProjectRequestListPage} />
                             <Route path={ REQUEST_PROJECT_PARAMS } component={ParamsProjectPage} />
                             <Route path={ UNITTEST_ITERATOR_LIST_ROUTE } component={UnittestListVersionPage} />
+                            <Route path={ UNITTEST_TEMPLATE_LIST_ROUTE } component={UnittestListTemplatePage} />
                             <Route path={ UNITTEST_PROJECT_LIST_ROUTE } component={UnittestListProjectPage} />
                             <Route path={ HISTORY_REQUEST_TO_ITERATOR_ROUTE } component={RequestToSaveContainerPage} />
                             <Route path={ UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE } component={UnittestExecutorListPage} />
                             <Route path={ UNITTEST_STEP_ADD_ROUTE } component={UnittestStepPage} />
                             <Route path={ UNITTEST_STEP_EDIT_ROUTE } component={UnittestStepPage} />
+                            <Route path={ UNITTEST_TEMPLATE_STEP_EDIT_ROUTE } component={UnittestStepPage} />
                             <Route path={ VIP_ITERATOR_LIST_ROUTE } component={VipFunctionPage} />
                             <Route path={ ITERATOR_ADD_REQUEST_ROUTE } component={RequestToSaveContainerPage} />
                             <Route path={ ENVVAR_GLOBAL_LIST_ROUTE } component={EnvVarGlobalPage} />

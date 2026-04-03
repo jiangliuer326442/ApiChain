@@ -160,7 +160,7 @@ export async function getIteratorKeys(clientType : string, teamId : string, iter
     return datas;
 }
 
-export async function getUnittestKeys(clientType : string, teamId : string, unittest : string, project : string) {
+export async function getUnittestKeys(clientType : string, teamId : string, unittest : string, iteratorId : string, project : string) {
     let datas;
     if (clientType === CLIENT_TYPE_SINGLE) {
 
@@ -178,6 +178,20 @@ export async function getUnittestKeys(clientType : string, teamId : string, unit
         mixedSort(unittestArrays1, env_var_pname);
         let sets1 = new Set<string>(unittestArrays1.map(item => ( item[env_key_pname])));
 
+        let iteratorArrays1 = await db[TABLE_ENV_VAR_NAME]
+        .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
+        .equals(["", iteratorId, ""])
+        .filter(row => {
+            if (row[env_var_delFlg]) {
+                return false;
+            }
+            return true;
+        })
+        .toArray(); 
+
+        mixedSort(iteratorArrays1, env_var_pname);
+        let sets2 = new Set<string>(iteratorArrays1.map(item => ( item[env_key_pname])));
+
         let unittestArrays2 = await db[TABLE_ENV_VAR_NAME]
         .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + ']')
         .equals([project, "", unittest])
@@ -189,12 +203,12 @@ export async function getUnittestKeys(clientType : string, teamId : string, unit
         })
         .toArray(); 
         mixedSort(unittestArrays2, env_var_pname);
-        let sets2 = new Set<string>(unittestArrays2.map(item => ( item[env_key_pname])));
+        let sets3 = new Set<string>(unittestArrays2.map(item => ( item[env_key_pname])));
 
-        let sets3 = await getProjectKeys(clientType, teamId, project)
+        let sets4 = await getProjectKeys(clientType, teamId, project)
         datas = [...union(sets1, sets2, new Set<string>([...sets3]))]
     } else {
-        datas = await sendTeamMessage(ENV_VARS_UNITTEST_KEYS_URL, {unittest, project});
+        datas = await sendTeamMessage(ENV_VARS_UNITTEST_KEYS_URL, {unittest, iteratorId, project});
     }
     return datas;
 }

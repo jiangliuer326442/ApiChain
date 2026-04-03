@@ -218,6 +218,7 @@ class EnvVar extends Component {
           pvalue: record[pvar],
           premark: record[premark],
           encryptFlg: record[encryptFlg],
+          source: record.source,
       });
     }
 

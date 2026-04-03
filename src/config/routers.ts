@@ -7,7 +7,7 @@ export const ENV_LIST_ROUTE = "/envs";
 //微服务管理
 export const PROJECT_LIST_ROUTE = "/projects";
 //单测环境变量管理
-export const ENVVAR_UNITTEST_LIST_ROUTE = "/unittest_envvars/:unittestId/:prj";
+export const ENVVAR_UNITTEST_LIST_ROUTE = "/unittest_envvars/:iteratorId/:unittestId/:prj";
 //迭代环境变量管理
 export const ENVVAR_ITERATOR_LIST_ROUTE = "/iterator_envvars/:iteratorId";
 //全局环境变量管理
@@ -40,6 +40,8 @@ export const REQUEST_ITERATOR_DETAIL_ROUTE = "/version_iterator_request/:iterato
 export const REQUEST_PROJECT_DETAIL_ROUTE = "/project_request/:prj/:method/:uri"
 //迭代单测列表
 export const UNITTEST_ITERATOR_LIST_ROUTE = "/version_iterator_tests/:id"
+//单测模板列表
+export const UNITTEST_TEMPLATE_LIST_ROUTE = "/tests_template"
 //会员功能
 export const VIP_ITERATOR_LIST_ROUTE = "/version_iterator_vip/:id"
 //迭代单测执行列表
@@ -48,6 +50,8 @@ export const UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE = "/unittest_executor_record/
 export const UNITTEST_STEP_ADD_ROUTE = "/version_iterator_tests_step_add/:iteratorId/:unitTestUuid"
 //迭代单测步骤编辑
 export const UNITTEST_STEP_EDIT_ROUTE = "/version_iterator_tests_step_edit/:iteratorId/:unitTestUuid/:unitTestStepUuid"
+//单测模板步骤编辑
+export const UNITTEST_TEMPLATE_STEP_EDIT_ROUTE = "/test_templates_step_edit/:unitTestUuid/:unitTestStepUuid"
 //请求历史
 export const REQUEST_HISTORY = "/request_history";
 //项目环境变量管理
