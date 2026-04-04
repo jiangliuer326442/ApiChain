@@ -22,15 +22,23 @@ class AddEnvVarComponent extends Component {
             pvalue: "",
             oldPValue: "",
             premark: "",
-            allEnvs: false,
             encryptFlg: 0,
             oldEncryptFlg: 0,
+            allEnvs: false,
         };
     }
 
     componentWillReceiveProps(nextProps) {
         if (isStringEmpty(nextProps.pname) && isStringEmpty(nextProps.pvalue)) {
-            this.setState({actionType: "create"});
+            this.setState({
+                actionType: "create",
+                pname: "",
+                pvalue: "",
+                oldPValue: "",
+                premark: "",
+                encryptFlg: 0,
+                oldEncryptFlg: 0,
+            });
         } else {
             this.setState({
                 actionType: "edit",
@@ -171,7 +179,6 @@ class AddEnvVarComponent extends Component {
                             width={ 289 }
                             unitTestUuid={ this.props.unittest}
                             project={ this.state.prj}
-                            fakeIterator={ this.props.iteration }
                         />
                     </Form.Item>
                 :

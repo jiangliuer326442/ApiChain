@@ -60,6 +60,7 @@ import PayMemberModel from '@comp/topup/member';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
 import { langTrans } from '@lang/i18n';
+import { cloneDeep } from 'lodash';
 
 const { Text, Link } = Typography;
 const { Header, Content, Footer } = Layout;
@@ -254,11 +255,13 @@ class UnittestListVersion extends Component {
             folder: null,
             showPay: false,
             versionIterators: [],
-            selectedUnittests: [],
-            selectedSteps: [],
             addTemplateTile: "",
             addTemplateDialog: false,
             loadingFlg: false,
+            selectedUnittests: [],
+            selectedSteps: [],
+            selectedStepsUnitest: "",
+            selectedKeys: [],
         };
     }
 
@@ -394,7 +397,7 @@ class UnittestListVersion extends Component {
                         okText={langTrans("version unittest remove sure")}
                         cancelText={langTrans("version unittest remove cancel")}
                         >
-                        <Button danger type='link' icon={<MergeOutlined />}>{langTrans("version unittest act3")}</Button>
+                        <Button danger type='link' loading={this.state.loadingFlg} icon={<MergeOutlined />}>{langTrans("version unittest act3")}</Button>
                     </Popconfirm> 
                 : 
                     <Button type='text' icon={<MergeOutlined />} onClick={()=>this.exportUnitTestClick(record)}>{langTrans("version unittest act2")}</Button>),
@@ -402,7 +405,7 @@ class UnittestListVersion extends Component {
             if (isStringEmpty(record[unittest_refer])) {
                 items.push({
                     key: "5",
-                    label: <Button type='text' icon={<CameraOutlined />} onClick={()=>this.exportStepsClick(record)}>{langTrans("version unittest act5")}</Button>
+                    label: <Button type='text' loading={this.state.loadingFlg} icon={<CameraOutlined />} onClick={()=>this.exportStepsClick(record)}>{langTrans("version unittest act5")}</Button>
                 });
             }
             return {'items': items};
@@ -451,18 +454,26 @@ class UnittestListVersion extends Component {
         );
     }
 
-    undoExportUnitTestClick = (record) => {
+    undoExportUnitTestClick = async record => {
+        this.setState({loadingFlg: true})
+        let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        copyFromProjectToIterator(unittestId, ()=>{
-            message.success(langTrans("unittest export revoke success"));
-            getIterationUnitTests(
-                this.props.clientType, 
-                this.state.iteratorId, 
-                this.state.folder, 
-                this.props.env, 
-                this.props.dispatch
-            );
-        });
+        await copyFromProjectToIterator(
+            this.props.clientType, 
+            iteratorId,
+            unittestId
+        );
+        
+        getIterationUnitTests(
+            this.props.clientType, 
+            this.state.iteratorId, 
+            this.state.folder, 
+            this.props.env, 
+            this.props.dispatch
+        );
+        this.setState({loadingFlg: false})
+
+        message.success(langTrans("unittest export revoke success"));
     }
 
     exportStepsClick = async record => {
@@ -488,12 +499,12 @@ class UnittestListVersion extends Component {
     }
 
     exportUnitTestClick = async record => {
+        this.setState({loadingFlg: true})
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
         await copyFromIteratorToProject(
             this.props.clientType, this.props.teamId,
             iteratorId, unittestId, this.props.device);
-        message.success(langTrans("unittest export success"));
         getIterationUnitTests(
             this.props.clientType, 
             iteratorId, 
@@ -501,6 +512,8 @@ class UnittestListVersion extends Component {
             this.props.env, 
             this.props.dispatch
         );
+        this.setState({loadingFlg: false})
+        message.success(langTrans("unittest export success"));
     }
 
     editUnitTestClick = (record) => {
@@ -523,12 +536,49 @@ class UnittestListVersion extends Component {
         });
     }
 
+    setSelectedRow = (record, isSelected) => {
+        let uuid = record.key;
+        if (uuid.indexOf("$$") === -1) {
+            let unittestId = uuid;
+            let unittestIds = cloneDeep(this.state.selectedUnittests);
+            if (isSelected) {
+                unittestIds.includes(unittestId) ? unittestIds : unittestIds.push(unittestId);
+            } else {
+                unittestIds.includes(unittestId) ? unittestIds.splice(unittestIds.indexOf(unittestId), 1) : unittestIds;
+            }
+            let selectedKeys = [...new Set(unittestIds), this.state.selectedSteps]
+            this.setState({selectedUnittests: unittestIds, selectedKeys});
+        } else {
+            let stepId = uuid;
+            let oldSelectedStepsUnitest = this.state.selectedStepsUnitest;
+            let selectedStepsUnitest = uuid.split("$$")[0];
+            let stepIds = [];
+            if (oldSelectedStepsUnitest == selectedStepsUnitest) {
+                stepIds = cloneDeep(this.state.selectedSteps);
+            }
+            if (isSelected) {
+                stepIds.includes(stepId) ? stepIds : stepIds.push(stepId);
+            } else {
+                stepIds.includes(stepId) ? stepIds.splice(stepIds.indexOf(stepId), 1) : stepIds;
+            }
+            let selectedKeys = [...new Set(stepIds), this.state.selectedUnittests];
+            this.setState({
+                selectedStepsUnitest,
+                selectedSteps: stepIds, 
+                selectedKeys
+            });
+        }
+    }
+
     setSelectedUnittests = newSelectedUnittests => {
         let filteredUnittestKeys = newSelectedUnittests.filter(item => item.indexOf("$$") === -1);
-        let filteredStepKeys = newSelectedUnittests.filter(item => item.indexOf("$$") >= -1);
+        let selectedUnittests = [...new Set(filteredUnittestKeys)];
+        let selectedSteps = [];
+        let selectedKeys = [...selectedUnittests, ...selectedSteps];
         this.setState({
-            selectedUnittests: filteredUnittestKeys,
-            selectedSteps: filteredStepKeys,
+            selectedKeys,
+            selectedUnittests,
+            selectedSteps,
         });
     }
 
@@ -675,8 +725,9 @@ class UnittestListVersion extends Component {
                         />
                     <Table 
                         rowSelection={{
-                            selectedRowKeys: this.state.selectedUnittests.concat(this.state.selectedSteps), 
-                            onChange: this.setSelectedUnittests
+                            selectedRowKeys: this.state.selectedKeys, 
+                            onChange: this.setSelectedUnittests,
+                            onSelect: this.setSelectedRow
                         }}
                         columns={this.state.column} 
                         dataSource={this.props.unittest[this.state.iteratorId] ? this.props.unittest[this.state.iteratorId] : []} 

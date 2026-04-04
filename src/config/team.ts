@@ -218,6 +218,8 @@ export const UNITTES_TEMPLATE_SAVE_URL = "/unittest/template/save"
 
 export const UNITTES_PROJECT_SAVE_URL = "/unittest/project/save";
 
+export const UNITTES_PROJECT_REMOVE_URL = "/unittest/project/remove";
+
 export const UNITTES_ITERATION_DEL_URL = "/unittest/iteration/del"
 
 export const UNITTES_ITERATION_FOLD_ADD_URL = "/unittest/iteration/addFold"

@@ -13,10 +13,10 @@ import {
 import { cloneDeep } from 'lodash';
 
 import VersionIteratorSwitch from '@comp/version_iterator/switch';
+import { ChannelsLoadAppStr } from '@conf/channel';
 import { VERSION_ITERATOR_ADD_ROUTE } from "@conf/routers";
 import { TABLE_VERSION_ITERATION_FIELDS } from '@conf/db';
 import { 
-  getOpenVersionIterators,
   getVersionIteratorsByPage, 
   delVersionIterator 
 } from "@act/version_iterator";
@@ -56,10 +56,7 @@ class VersionIterator extends Component {
             width: 90,
             render: (status, row) => {
               return <VersionIteratorSwitch defaultChecked={status} uuid={row[version_iterator_uuid]} cb={async ()=>{
-                await getOpenVersionIterators(this.props.clientType, this.props.dispatch);
-                let pagination = cloneDeep(this.state.pagination);
-                let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
-                this.setState({listDatas, pagination});
+                window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
               }} />
             },
           },

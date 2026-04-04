@@ -50,6 +50,7 @@ import {
     CLIENT_TYPE_TEAM, 
     CLIENT_TYPE_SINGLE,
     UNITTES_PROJECT_SAVE_URL,
+    UNITTES_PROJECT_REMOVE_URL,
     UNITTES_ITERATION_SAVE_URL,
     UNITTES_ITERATION_DEL_URL,
     UNITTES_ITERATION_ALL_URL,
@@ -1358,7 +1359,12 @@ export async function getRecentExecutorReport(iteratorId : string) {
     return unitTestReport;
 }
 
-export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
+export async function copyFromProjectToIterator(clientType : string, iteratorId : string, unittest_uuid : string) {
+
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTES_PROJECT_REMOVE_URL, {iteratorId, unittestId: unittest_uuid});
+    }
+    
     let unitTest = await window.db[TABLE_UNITTEST_NAME]
     .where(field_unittest_uuid).equals(unittest_uuid)
     .first();
@@ -1407,8 +1413,6 @@ export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
     unitTest[unittest_collectFlg] = 0;
     
     await window.db[TABLE_UNITTEST_NAME].put(unitTest);
-
-    cb();
 }
 
 /**

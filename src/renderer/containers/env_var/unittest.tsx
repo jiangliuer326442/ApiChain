@@ -245,15 +245,6 @@ class EnvVar extends Component {
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar unittest bread1") }, { title: langTrans("envvar unittest bread2") }]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">
-                  <Form.Item label={langTrans("envvar select tip4")}>
-                      <Select
-                          style={{ width: 180 }}
-                          options={this.state.unittest[unittest_projects] ? this.state.unittest[unittest_projects].map(item => {
-                              return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : ""}
-                          }) : []}
-                          onChange={ value => this.getEnvValueData(this.state.iteratorId, value, this.state.unittestId, this.props.env, "")}
-                      />
-                  </Form.Item>  
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
@@ -312,7 +303,6 @@ class EnvVar extends Component {
 function mapStateToProps (state) {
   return {
       env: state.env_var.env,
-      prjs: state.prj.list,
       device : state.device,
       envs: state.env.list,
       teamId: state.device.teamId,
