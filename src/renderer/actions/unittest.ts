@@ -482,14 +482,40 @@ export async function getProjectSingleUnittest(clientType : string, unittest_uui
         .equals(unittest_uuid)
         .first();
 
+        let unitTestStepsTemplate = [];
+
+        let referFrom = unitTest[unittest_refer_from];
+        if (!isStringEmpty(referFrom)) {
+            unitTestStepsTemplate = await window.db[TABLE_UNITTEST_TEMPLATE_STEPS_NAME]
+            .where([unittest_template_step_delFlg, unittest_template_step_unittest_uuid])
+            .equals([0, referFrom])
+            .toArray();
+            for (let _unittest_step of unitTestStepsTemplate) {
+                let _step_uuid = _unittest_step[field_unittest_template_step_uuid]
+                let unitTestAsserts = await window.db[TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME]
+                .where([unittest_template_step_assert_delFlg, unittest_template_step_assert_unittest, unittest_template_step_assert_step])
+                .equals([0, referFrom, _step_uuid])
+                .reverse()
+                .toArray();
+                for (let _unitTestAssert of unitTestAsserts) {
+                    if (isStringEmpty(_unitTestAssert[unittest_template_step_assert_type])) {
+                        _unitTestAssert[unittest_template_step_assert_type] = ASSERT_TYPE_API;
+                    }
+                }
+                _unittest_step["source"] = "template";
+                _unittest_step.asserts = unitTestAsserts;
+            }
+        }
+
+        let unitTestStepsDb = [];
         let fakeIteratorId = unitTest[unittest_iterator_uuid];
 
-        unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
+        unitTestStepsDb = await window.db[TABLE_UNITTEST_STEPS_NAME]
         .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
         .equals([0, fakeIteratorId, unittest_uuid])
         .toArray();
 
-        for (let _unittest_step of unitTestSteps) {
+        for (let _unittest_step of unitTestStepsDb) {
             let _step_uuid = _unittest_step[field_unittest_step_uuid]
             let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
             .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
@@ -498,6 +524,8 @@ export async function getProjectSingleUnittest(clientType : string, unittest_uui
             .toArray();
             _unittest_step.asserts = unitTestAsserts;
         }
+
+        unitTestSteps = [...unitTestStepsTemplate, ...unitTestStepsDb];
     }
 
     return genUnitTest(unitTest, unitTestSteps, unittest_uuid, "", env);
