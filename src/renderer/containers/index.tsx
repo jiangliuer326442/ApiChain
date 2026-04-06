@@ -8,7 +8,7 @@ import {
     Drawer, 
 } from "antd";
 
-import { setLang, langTrans } from '@lang/i18n';
+import { setLang2, langTrans } from '@lang/i18n';
 import {
     USERCOUNTRY,
     USERLANG,
@@ -55,16 +55,16 @@ import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
 
 let argsObject = getStartParams();
 let userCountry = argsObject.userCountry;
-let userLang = argsObject.userLang;
+let preferLang = argsObject.preferLang;
 let uuid = argsObject.uuid;
 let clientType = argsObject.clientType;
 
-if (isStringEmpty(userCountry) || isStringEmpty(userLang)) {
+if (isStringEmpty(userCountry)) {
     userCountry = sessionStorage.getItem(USERCOUNTRY);
-    userLang = sessionStorage.getItem(USERLANG);
+    preferLang = sessionStorage.getItem(USERLANG);
 }
 
-setLang(userCountry, userLang);
+setLang2(preferLang);
 
 import Nav from '@comp/nav';
 import ChatBox from '@comp/chat_box/index'
@@ -119,7 +119,7 @@ class MyRouter extends Component {
             isAiSupport : argsObject.isAiSupport == 1 ? true : false,
             isUnitTest : argsObject.isUnitTest == 1 ? true : false,
             userCountry,
-            userLang,
+            preferLang,
         });
 
 

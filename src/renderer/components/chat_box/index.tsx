@@ -215,7 +215,7 @@ class AiChatBox extends Component {
           id: messageLength, 
           content:sendContent,
           header: {
-            'Sys_Lang': this.props.userLang,
+            'Sys_Lang': this.props.preferLang,
             'Sys_Country': this.props.userCountry,
             'Sys_Uid': this.props.uid,
             'Sys_Team': this.props.teamId,
@@ -375,7 +375,7 @@ function mapStateToProps (state) {
       teamId: state.device.teamId,
       clientHost: state.device.clientHost,
       projects: state.prj.list,
-      userLang: state.device.userLang,
+      preferLang: state.device.preferLang,
       userCountry: state.device.userCountry,
       uid: state.device.uuid,
       appVersion: state.device.appVersion,

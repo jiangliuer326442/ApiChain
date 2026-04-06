@@ -33,7 +33,7 @@ export default function (state = {
   isUnitTest: false,
   appVersion: "",
   userCountry: "",
-  userLang: "",
+  preferLang: "",
   vipFlg: false,
   showCkCode: false,
   ckCodeType: "",
@@ -118,9 +118,9 @@ export default function (state = {
         newState.userCountry = action.userCountry;
       }
 
-      if (action.userLang !== undefined) {
-        sessionStorage.setItem(USERLANG, action.userLang);
-        newState.userLang = action.userLang;
+      if (action.preferLang !== undefined) {
+        sessionStorage.setItem(USERLANG, action.preferLang);
+        newState.preferLang = action.preferLang;
       }
 
       if (action.appVersion !== undefined) {
