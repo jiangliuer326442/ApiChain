@@ -288,7 +288,6 @@ class UnittestStepContainer extends Component {
                     dataIndex: TABLE_FIELD_VALUE,
                     render: (data, row) => {
                         if (this.state.iteratorId || this.state.fakeIterator) {
-                            console.log("111111111", this.state.iteratorId, this.state.fakeIterator);
                             let [i, j] = row.key.split("_");
                             return (
                                 <StepExpressionBuilderBox

@@ -20,6 +20,8 @@ export const SYS_CLIENT_VERSION = "Client-Version";
 
 export const SYS_COUNTRY = "Sys-Country";
 
+export const USER_LANG = "User-Lang";
+
 export const SYS_UID = "Sys-Uid";
 
 export const SYS_TEAM = "Sys-Team";

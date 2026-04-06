@@ -186,8 +186,6 @@ tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + 
 + "[" + unittest_report_delFlg + "+" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_env + "+" + unittest_report_ctime + "]";
 tables[TABLE_PROJECT_REQUEST_PARAMS_NAME] = "&" + project_request_common_project + ", [" + project_request_common_del_flg + "+" + project_request_common_ctime + "]";
 
-console.log(tables);
-
 window.db.version(220).stores(tables).upgrade (async trans => {
 
 });

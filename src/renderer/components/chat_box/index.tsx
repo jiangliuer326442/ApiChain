@@ -66,7 +66,6 @@ class AiChatBox extends Component {
       this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/ai/ws/" + this.props.teamId + "/" + this.props.uid);
 
       this.ws.onopen = (event) => {
-          console.log("WebSocket opened:", event);
       };
 
       this.ws.onmessage = async (event) => {
@@ -101,14 +100,12 @@ class AiChatBox extends Component {
         if (tmpMessage.hasFinish) {
           this.scrollToBottom();
           localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
-          console.log("tmpMessage", tmpMessage);
           if (tmpMessage.success) {
             this.props.dispatch({
               type: SET_AI_SUPPORT_INFO,
               isAiSupport: true
             });
           } else {
-            console.log("tmpMessage", tmpMessage);
             this.setState({
               loadingWaitMessage: false,
             });
