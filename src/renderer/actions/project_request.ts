@@ -273,6 +273,7 @@ export async function getFolderProjectRequests(
     fold : string, 
     title: string | null,
     uri: string | null,
+    isAiSupport : boolean,
     pagination : any
 ) {
     let datas = [];
@@ -323,7 +324,10 @@ export async function getFolderProjectRequests(
             return asort - bsort;
         });
     } else {
-        let result = await sendTeamMessage(REQUEST_PROJECT_PAGE_FOLD_URL, Object.assign({}, pagination, {prj, fold, title, uri}));
+        let result = await sendTeamMessage(REQUEST_PROJECT_PAGE_FOLD_URL, Object.assign({}, pagination, {
+            prj, fold, title, uri,
+            isAiSupport
+        }));
         let count = result.count;
         pagination.total = count;
         datas = result.list;

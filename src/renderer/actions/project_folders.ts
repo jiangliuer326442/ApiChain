@@ -33,8 +33,12 @@ let project_request_uri = TABLE_PROJECT_REQUEST_FIELDS.FIELD_URI;
 let project_request_fold = TABLE_PROJECT_REQUEST_FIELDS.FIELD_FOLD;
 let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
 
-export async function getProjectFolders(clientType : string, project : string, title : string|null, uri : string|null) {
-    let folders = await getFolders(clientType, project, title, uri);
+export async function getProjectFolders(
+    clientType : string, project : string, 
+    title : string|null, uri : string|null,
+    isAiSupport : boolean
+) {
+    let folders = await getFolders(clientType, project, title, uri, isAiSupport);
     let result = [];
 
     for (let folder of folders) {
@@ -123,7 +127,7 @@ export async function addProjectFolder(
         await window.db[TABLE_VERSION_ITERATION_FOLD_NAME].put(version_iteration_folder);
 }
 
-async function getFolders(clientType : string, project : string, title : string|null, uri : string|null) : Promise<Set<string>> {
+async function getFolders(clientType : string, project : string, title : string|null, uri : string|null, isAiSupport : boolean) : Promise<Set<string>> {
     let folders = new Set<string>();
 
     if (clientType === CLIENT_TYPE_SINGLE) {
@@ -167,7 +171,11 @@ async function getFolders(clientType : string, project : string, title : string|
             folders = intersect(folders, filterFolders);
         }
     } else {
-        let ret = await sendTeamMessage(FOLDERS_PROJECT_ALL, {prj: project, title, uri});
+        let ret = await sendTeamMessage(FOLDERS_PROJECT_ALL, {
+            prj: project, 
+            title, uri, 
+            isAiSupport
+        });
         folders = new Set(ret.list);
     }
     return folders;

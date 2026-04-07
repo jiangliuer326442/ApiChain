@@ -83,7 +83,7 @@ class RequestListProject extends Component {
         let title = values?.title;
         let uri = values?.uri;
         if (isStringEmpty(uri) && isStringEmpty(title)) {
-            let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, null, null);
+            let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, null, null, this.props.isAiSupport);
             this.setState({
                 folders,
                 filterTitle: "",
@@ -98,7 +98,7 @@ class RequestListProject extends Component {
         if (uri === undefined) {
             uri = "";
         }
-        let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, title, uri);
+        let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, title, uri, this.props.isAiSupport);
         this.setState({
             folders,
             filterTitle: title,
@@ -182,6 +182,7 @@ function mapStateToProps (state) {
         prjs: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        isAiSupport: state.device.isAiSupport
     }
 }
       
