@@ -186,7 +186,7 @@ class EnvVar extends Component {
         type: GET_ENV_VALS,
         prj: this.state.prj,
         env: value,
-        iterator: "",
+        iterator: this.state.iteratorId,
         unittest: this.state.unittestId
       });
       this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, value, "");

@@ -536,7 +536,7 @@ class UnittestListVersion extends Component {
             } else {
                 unittestIds.includes(unittestId) ? unittestIds.splice(unittestIds.indexOf(unittestId), 1) : unittestIds;
             }
-            let selectedKeys = [...new Set(unittestIds), this.state.selectedSteps]
+            let selectedKeys = [...new Set(unittestIds), ...this.state.selectedSteps]
             this.setState({selectedUnittests: unittestIds, selectedKeys});
         } else {
             let stepId = uuid;
@@ -546,17 +546,19 @@ class UnittestListVersion extends Component {
             if (oldSelectedStepsUnitest == selectedStepsUnitest) {
                 stepIds = cloneDeep(this.state.selectedSteps);
             }
+            let unittestIds = cloneDeep(this.state.selectedUnittests);
             if (isSelected) {
+                unittestIds.includes(selectedStepsUnitest) ? unittestIds : unittestIds.push(selectedStepsUnitest);
                 stepIds.includes(stepId) ? stepIds : stepIds.push(stepId);
             } else {
                 stepIds.includes(stepId) ? stepIds.splice(stepIds.indexOf(stepId), 1) : stepIds;
             }
-            let selectedKeys = [...new Set(stepIds), this.state.selectedUnittests];
-            this.setState({
-                selectedStepsUnitest,
-                selectedSteps: stepIds, 
-                selectedKeys
-            });
+            let selectedKeys = [...new Set(stepIds), ...unittestIds];
+            this.state.selectedSteps = stepIds;
+            this.state.selectedUnittests = unittestIds;
+            this.state.selectedStepsUnitest = selectedStepsUnitest;
+            this.state.selectedKeys = selectedKeys;
+            this.setState({ selectedKeys });
         }
     }
 
@@ -579,7 +581,13 @@ class UnittestListVersion extends Component {
     setSelectedUnittests = newSelectedUnittests => {
         let filteredUnittestKeys = newSelectedUnittests.filter(item => item.indexOf("$$") === -1);
         let selectedUnittests = [...new Set(filteredUnittestKeys)];
-        let selectedSteps = [];
+        let selectedSteps = cloneDeep(this.state.selectedSteps);
+        if (!isStringEmpty(this.state.selectedStepsUnitest) && selectedSteps.length > 0) {
+            if (selectedSteps[0].split("$$")[0] != this.state.selectedStepsUnitest) {
+                selectedSteps = [];
+            }
+        }
+        
         let selectedKeys = [...selectedUnittests, ...selectedSteps];
         this.setState({
             selectedKeys,
