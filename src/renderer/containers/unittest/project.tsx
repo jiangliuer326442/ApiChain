@@ -22,6 +22,7 @@ import { EMPTY_STRING } from '@conf/global_config';
 import {
   TABLE_UNITTEST_FIELDS,
   TABLE_UNITTEST_STEPS_FIELDS,
+  TABLE_VERSION_ITERATION_FIELDS,
   TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
   UNAME,
 } from '@conf/db';
@@ -41,6 +42,7 @@ import { getEnvs } from '@act/env';
 import {
   getProjectUnitTests,
   executeProjectUnitTest,
+  batchMoveUnittest,
   continueProjectExecuteUnitTest,
   copyFromProjectToIterator,
 } from '@act/unittest';
@@ -68,6 +70,9 @@ const unittest_report_batch =
   TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_BATCH_UUID;
 const unittest_report_cost_time =
   TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST_TIME;
+
+let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
+let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 class UnittestListVersion extends Component {
   constructor(props) {
@@ -224,6 +229,7 @@ class UnittestListVersion extends Component {
       showPay: false,
       selectedUnittests: [],
       teamId,
+      movedIterator: "",
     };
     props.dispatch({
       type: GET_PRJ,
@@ -243,6 +249,7 @@ class UnittestListVersion extends Component {
         project: nextProject,
         unittestUuid: '',
         batchUuid: '',
+        movedIterator: "",
       };
     }
 
@@ -266,6 +273,8 @@ class UnittestListVersion extends Component {
   async componentDidUpdate(prevProps) {
     if (this.props.match.params.id !== prevProps.match.params.id) {
       await getProjectUnitTests(
+        this.props.clientType,
+        this.state.teamId,
         this.state.project,
         this.state.folder,
         this.props.env,
@@ -376,6 +385,22 @@ class UnittestListVersion extends Component {
     this.setState({ selectedUnittests: filteredUnittestKeys });
   };
 
+  moveUnitestIterator = async (newIterator) => { 
+      if (newIterator === undefined) {
+          this.setState({movedIterator: ""})
+          return;
+      }
+      if (this.state.selectedUnittests.length === 0) return;
+      await batchMoveUnittest(
+          this.props.clientType, 
+          this.state.selectedUnittests, 
+          newIterator, 
+          this.props.device
+      )
+      this.setState({movedIterator: newIterator})
+      message.success(langTrans("prj unittest status2"));
+  }
+
   render(): ReactNode {
     return (
       <Layout>
@@ -423,6 +448,19 @@ class UnittestListVersion extends Component {
                       options={this.state.project in this.props.folders && this.props.folders[this.state.project].map(item => {
                           return { value: item, label: item }
                       })}
+                  />
+              </Form.Item>
+              <Form.Item label={ langTrans("version doc operator3") }>
+                  <Select 
+                      showSearch
+                      allowClear
+                      value={this.state.movedIterator}
+                      style={{minWidth: 260}}
+                      options={this.props.iterators.map(item => ({
+                          value: item[version_iterator_uuid],
+                          label: item[version_iterator_title]
+                      })) }
+                      onChange={ this.moveUnitestIterator }
                   />
               </Form.Item>
               <Form.Item>
@@ -513,6 +551,7 @@ function mapStateToProps(state) {
     device : state.device,
     unittest: state.unittest.list,
     folders: state.unittest.folders,
+    iterators: state.version_iterator.list,
     env: state.env_var.env,
     envs: state.env.list,
     clientType: state.device.clientType,

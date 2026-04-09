@@ -326,14 +326,20 @@ class Home extends Component {
             }}
           >
             {this.props.vipFlg ? 
-            <div>
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }}>
               {langTrans("member welcome")}
               <Text editable={{onChange: this.setUserName}}>{substr(this.state.user[db_field_uname], 15)}</Text>
               {langTrans("welcome") + langFormat("member expired", {"date": getdayjs(this.props.expireTime).format("YYYY-MM-DD")})}
               <Button type='link' onClick={() => this.setState({showPay: true})}>{langTrans("member renew")}</Button>
             </div> 
             :
-            <div>
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }}>
               <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
               {langTrans("welcome")}
               <Button type='link' onClick={() => this.setState({showPay: true})}>{langTrans("member buy")}</Button>

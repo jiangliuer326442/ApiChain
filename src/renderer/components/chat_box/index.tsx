@@ -41,10 +41,6 @@ class AiChatBox extends Component {
           messageLength: messages.length,
           linkOperators: [
             {
-              value: "searchInterfaces",
-              label: langTrans("chatbox link action1"),
-            },
-            {
               value: "retrieveiterationDocuments",
               label: langTrans("chatbox link action2"),
             }
@@ -155,8 +151,6 @@ class AiChatBox extends Component {
     handleLinkOperator = oroginOperator => {
       if (isStringEmpty(oroginOperator)) {
         this.setState( {input : ""} );
-      } else if (oroginOperator === "searchInterfaces") {
-        this.setState( {input : "【" + langTrans("chatbox link action1") + "】" + this.state.input} );
       } else if (oroginOperator === "retrieveiterationDocuments") {
         this.setState( {input : "【" + langTrans("chatbox link action2") + "】" + this.state.input} );
       }

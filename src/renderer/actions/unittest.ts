@@ -53,6 +53,7 @@ import {
     UNITTES_PROJECT_REMOVE_URL,
     UNITTES_ITERATION_SAVE_URL,
     UNITTES_ITERATION_DEL_URL,
+    UNITTEST_MOVE_ITERATOR_URL,
     UNITTES_ITERATION_ALL_URL,
     UNITTES_PROJECT_FETCH_SINGLE_URL,
     UNITTES_PROJECT_ALL_URL,
@@ -465,6 +466,20 @@ async function genUnitTest(unitTest, unitTestSteps, unittest_uuid : string, iter
 
     unitTest['children'] = unitTestSteps;
     return unitTest;
+}
+
+export async function batchMoveUnittest(clientType : string, unittestArr : Array<string>, newIterator : string, device : object) {
+    const newUnittestArr = unittestArr.map(item => {
+        // 对每个 item 做处理，返回新值
+        return uuidv4() as string;
+    });
+    if (clientType === CLIENT_TYPE_TEAM) {
+        await sendTeamMessage(UNITTEST_MOVE_ITERATOR_URL, {
+            new_iterator: newIterator, 
+            old_uuids: unittestArr.join(','),
+            new_uuids: newUnittestArr.join(','),
+        })
+    }
 }
 
 export async function getProjectSingleUnittest(clientType : string, unittest_uuid : string, teamId : string, project : string, env : string | null) {

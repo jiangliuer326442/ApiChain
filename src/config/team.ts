@@ -132,6 +132,8 @@ export const REQUEST_VERSION_ITERATION_SET_SORT_URL = "/requests/iteration/set_s
 
 export const REQUEST_ITERATOR_MOVE_ITERATOR_URL = "/requests/iteration/set_requests_iterator";
 
+export const UNITTEST_MOVE_ITERATOR_URL = "/unittest/iteration/move";
+
 export const REQUEST_VERSION_ITERATION_FIND_URL = "/requests/iteration/find";
 
 export const REQUEST_VERSION_ITERATION_PAGE_FOLD_URL = "/requests/iteration/pageByFold";
@@ -213,6 +215,8 @@ export const AI_RE_VECTOR_MODELS_URL = "/ai/reVector";
 export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";
 
 export const UNITTES_ITERATION_SAVE_URL = "/unittest/iteration/save"
+
+export const UNITTES_ITERATION_MOVE_URL = "/unittest/iteration/move"
 
 export const UNITTES_TEMPLATE_SAVE_URL = "/unittest/template/save"
 
