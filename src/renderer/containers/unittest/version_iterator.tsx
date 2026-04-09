@@ -45,7 +45,7 @@ import {
     continueIteratorExecuteUnitTest,
     copyFromIteratorToProject,
     copyFromProjectToIterator,
-    batchMoveIteratorUnittest,
+    batchMoveUnittest,
 } from '@act/unittest';
 import {
     delUnitTestStep,
@@ -54,7 +54,6 @@ import {
     addUnittestTemplate,
 } from '@act/unittest_template';
 import { getUnitTestRequests } from '@act/version_iterator_requests';
-import { getOpenVersionIterators } from '@act/version_iterator';
 import { buildUnitTestStepFromRequest } from '@act/unittest_step';
 import PayMemberModel from '@comp/topup/member';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
@@ -215,6 +214,7 @@ class UnittestListVersion extends Component {
                                     <Button type="text" onClick={async ()=>{
                                         let request = (await getUnitTestRequests(
                                             this.props.clientType, 
+                                            this.props.isAiSupport,
                                             record[unittest_step_project], 
                                             this.state.iteratorId, 
                                             record[unittest_step_uri]
@@ -254,7 +254,6 @@ class UnittestListVersion extends Component {
             stepUuid: "",
             folder: null,
             showPay: false,
-            versionIterators: [],
             addTemplateTile: "",
             addTemplateDialog: false,
             loadingFlg: false,
@@ -262,6 +261,7 @@ class UnittestListVersion extends Component {
             selectedSteps: [],
             selectedStepsUnitest: "",
             selectedKeys: [],
+            movedIterator: "",
         };
     }
 
@@ -273,6 +273,7 @@ class UnittestListVersion extends Component {
                 iteratorId: nextIteratorId,
                 unittestUuid: "",
                 batchUuid: "",
+                movedIterator: "",
             };
         }
 
@@ -290,7 +291,6 @@ class UnittestListVersion extends Component {
             this.props.env,
             this.props.dispatch
         );
-        this.setMovedIteratos();
     }
 
     async componentDidUpdate(prevProps) {  
@@ -302,17 +302,7 @@ class UnittestListVersion extends Component {
                 this.props.env, 
                 this.props.dispatch
             );
-            this.setMovedIteratos();
         }
-    }
-
-    setMovedIteratos = async () => {
-        let versionIterators = (await getOpenVersionIterators(this.props.clientType, this.props.dispatch))
-        .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
-        .map(item => {
-            return {value: item[version_iterator_uuid], label: item[version_iterator_title]}
-        });
-        this.setState({ versionIterators });
     }
 
     getMoreStep = (record : any) : MenuProps => {
@@ -570,6 +560,22 @@ class UnittestListVersion extends Component {
         }
     }
 
+    moveUnitestIterator = async (newIterator) => { 
+        if (newIterator === undefined) {
+            this.setState({movedIterator: ""})
+            return;
+        }
+        if (this.state.selectedUnittests.length === 0) return;
+        await batchMoveUnittest(
+            this.props.clientType, 
+            this.state.selectedUnittests, 
+            newIterator, 
+            this.props.device
+        )
+        this.setState({movedIterator: newIterator})
+        message.success(langTrans("prj unittest status2"));
+    }
+
     setSelectedUnittests = newSelectedUnittests => {
         let filteredUnittestKeys = newSelectedUnittests.filter(item => item.indexOf("$$") === -1);
         let selectedUnittests = [...new Set(filteredUnittestKeys)];
@@ -650,23 +656,15 @@ class UnittestListVersion extends Component {
                             <Form.Item label={langTrans("version unittest operator1")}>
                                 <Select allowClear
                                     style={{minWidth: 130}}
-                                    onChange={ value => {
-                                        if (isStringEmpty(value)) {
-                                            return;
-                                        }
-                                        batchMoveIteratorUnittest(this.state.iteratorId, this.state.selectedUnittests, value, () => {
-                                            this.state.selectedUnittests = [];
-                                            message.success("移动迭代成功");
-                                            getIterationUnitTests(
-                                                this.props.clientType, 
-                                                this.state.iteratorId, 
-                                                this.state.folder, 
-                                                this.props.env, 
-                                                this.props.dispatch
-                                            );
-                                        });
-                                    }}
-                                    options={ this.state.versionIterators }
+                                    value={this.state.movedIterator}
+                                    onChange={ this.moveUnitestIterator }
+                                    options={this.props.iterators
+                                        .filter(item => item[version_iterator_uuid] != this.state.iteratorId)
+                                        .map(item => ({
+                                            value: item[version_iterator_uuid],
+                                            label: item[version_iterator_title]
+                                        })) 
+                                    }
                                 />
                             </Form.Item>
                             <Form.Item>
@@ -747,10 +745,12 @@ function mapStateToProps (state) {
         device : state.device,
         unittest: state.unittest.list,
         folders: state.unittest.folders,
+        iterators: state.version_iterator.list,
         env: state.env_var.env,
         envs: state.env.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        isAiSupport: state.device.isAiSupport
     }
 }
       

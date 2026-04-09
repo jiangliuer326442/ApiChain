@@ -177,6 +177,7 @@ class AddEnvVarComponent extends Component {
                                 })
                             }}
                             width={ 289 }
+                            sourceId={ "1" }
                             unitTestUuid={ this.props.unittest}
                             project={ this.state.prj}
                         />

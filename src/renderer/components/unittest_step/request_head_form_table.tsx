@@ -98,6 +98,7 @@ class RequestHeadFormTable extends Component {
                                     value={data}
                                     cb={value => this.setData(key, value)}
                                     width={ 288 }
+                                    sourceId={ "3" }
                                     iteratorId={ props.iteratorId}
                                     unitTestUuid={ props.unitTestUuid}
                                     unitTestStepUuid={ props.unitTestStepUuid}

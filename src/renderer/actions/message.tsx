@@ -101,6 +101,7 @@ export function sendTeamMessage(url : string, postData) {
                 if (isStringEmpty(errorMessage)) {
                     resolve(data);
                 } else {
+                    console.error("url", url, "errorMessage", errorMessage);
                     reject({errorMessage});
                 }
             }

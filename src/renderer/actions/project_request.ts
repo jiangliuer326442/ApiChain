@@ -336,7 +336,7 @@ export async function getFolderProjectRequests(
     return datas;
 }
 
-export async function getProjectRequests(clientType : string, project : string, fold : string | null, title : string, uri : string) {
+export async function getProjectRequests(clientType : string, project : string, isAiSupport : boolean, fold : string | null, title : string, uri : string) {
     let project_requests;
     
     if (clientType === CLIENT_TYPE_SINGLE) {
@@ -366,7 +366,7 @@ export async function getProjectRequests(clientType : string, project : string, 
 
         mixedSort(project_requests, project_request_title);
     } else {
-        let ret = await sendTeamMessage(REQUEST_PROJECT_QUERY_URL, {prj: project, fold, title, uri});
+        let ret = await sendTeamMessage(REQUEST_PROJECT_QUERY_URL, {prj: project, fold, title, uri, isAiSupport});
         project_requests = ret.requests;
     }
     

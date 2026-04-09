@@ -123,6 +123,8 @@ class UnittestStepContainer extends Component {
         let unitTestUuid = props.match.params.unitTestUuid;
         let unitTestStepUuid = props.match.params.unitTestStepUuid;
 
+        console.log("props", props)
+
         let cUnitTest = {};
         let method = "";
         let uri = "";
@@ -311,6 +313,7 @@ class UnittestStepContainer extends Component {
                                         });
                                     }}
                                     width={ 288 }
+                                    sourceId={ "7" }
                                     iteratorId={ this.state.iteratorId}
                                     fakeIterator={ this.state.fakeIterator}
                                     unitTestUuid={ this.state.unitTestUuid}
@@ -523,6 +526,7 @@ class UnittestStepContainer extends Component {
     initPrj = (iteratorId, prj) => {
         getUnitTestRequests(
             this.props.clientType, 
+            this.props.isAiSupport,
             prj, 
             iteratorId, 
             ""
@@ -996,6 +1000,7 @@ class UnittestStepContainer extends Component {
                                                     this.setState({assertAfter});
                                                 }}
                                                 width={500}
+                                                sourceId={ "8" }
                                                 iteratorId={ this.state.iteratorId}
                                                 fakeIterator={ this.state.fakeIterator}
                                                 unitTestUuid={this.state.unitTestUuid}
@@ -1006,7 +1011,10 @@ class UnittestStepContainer extends Component {
                                         </>
                                     </>}
                                     { this.state.assertType[i] == ASSERT_TYPE_API && <>
-                                        {(isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertPrev[i])) && (this.state.iteratorId || this.state.fakeIterator) && this.state.prj && 
+                                        {
+                                        (isStringEmpty(this.state.unitTestStepUuid) || !isStringEmpty(this.state.assertPrev[i])) 
+                                        && 
+                                        (this.state.iteratorId || this.state.fakeIterator) && this.state.prj && 
                                         <StepExpressionBuilderBox
                                             enableFlag={Object.keys(this.state.request).length > 0}
                                             stepHeaderData={this.state.formRequestHeadData}
@@ -1023,6 +1031,7 @@ class UnittestStepContainer extends Component {
                                                 this.setState({assertPrev});
                                             }}
                                             width={500}
+                                            sourceId={ "9" }
                                             iteratorId={ this.state.iteratorId}
                                             fakeIterator={ this.state.fakeIterator}
                                             unitTestUuid={this.state.unitTestUuid}
@@ -1058,6 +1067,7 @@ class UnittestStepContainer extends Component {
                                                 this.setState({assertAfter});
                                             }}
                                             width={500}
+                                            sourceId={ "10" }
                                             iteratorId={ this.state.iteratorId}
                                             fakeIterator={ this.state.fakeIterator}
                                             unitTestUuid={this.state.unitTestUuid}
@@ -1095,6 +1105,7 @@ function mapStateToProps (state) {
         projects: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        isAiSupport: state.device.isAiSupport
     }
 }
       

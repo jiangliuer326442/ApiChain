@@ -104,13 +104,13 @@ export async function delVersionIteratorRequest(clientType : string, teamId : st
     await window.db[TABLE_VERSION_ITERATION_REQUEST_NAME].put(version_iteration_request);
 }
 
-export async function getUnitTestRequests(clientType : string, project : string, iteration_uuid : string, uri : string) {
+export async function getUnitTestRequests(clientType : string, isAiSupport : boolean, project : string, iteration_uuid : string, uri : string) {
     let uris = new Set();
     let requests = await getSimpleVersionIteratorRequests(clientType, iteration_uuid, project, null, "", uri);
     for (let _request of requests) {
         uris.add(_request[iteration_request_uri]);
     }
-    let projectRequests = await getProjectRequests(clientType, project, null, "", uri);
+    let projectRequests = await getProjectRequests(clientType, project, isAiSupport, null, "", uri);
     for (let _request of projectRequests) {
         if (!uris.has(_request[project_request_uri])) {
             requests.push(_request);

@@ -148,6 +148,7 @@ class RequestBodyFormTable extends Component {
                                     unitTestUuid={props.unitTestUuid}
                                     unitTestStepUuid={props.unitTestStepUuid}
                                     project={props.project}
+                                    sourceId={ "2" }
                                 />
                             );
                         }

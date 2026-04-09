@@ -252,6 +252,7 @@ class StepExpressionBuilderBox extends Component {
                 if (step === undefined) return;
                 getUnitTestRequests(
                     this.props.clientType, 
+                    this.props.isAiSupport,
                     step[unittest_step_prj], 
                     this.props.iteratorId ? this.props.iteratorId : this.props.fakeIterator, 
                     step[unittest_step_uri]
@@ -491,10 +492,10 @@ class StepExpressionBuilderBox extends Component {
 function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
-        iteratorId: state.unittest.iteratorId,
         prjs: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        isAiSupport: state.device.isAiSupport
     }
 }
       
