@@ -28,25 +28,21 @@ export default function (state = {
   }, action : any) {
     switch(action.type) {
         case GET_ITERATOR:
-          console.log("11111");
             localStorage.setItem(ITERATOR, action.iterator);
             return Object.assign({}, state, {
               iterator: action.iterator,
               unittest: action.unittest,
             });
         case GET_ENV:
-          console.log("222222");
             localStorage.setItem(ENV, action.env);
             return Object.assign({}, state, {
               env: action.env,
             });
         case GET_PRJ:
-          console.log("333333");
             return Object.assign({}, state, {
               prj: action.prj,
             });
         case GET_ENV_VALS:
-          console.log("4444444");
             localStorage.setItem(ENV, action.env);
             return Object.assign({}, state, {
               prj: action.prj,
@@ -68,7 +64,6 @@ export default function (state = {
             encryptFlg: 0,
         });
         case SHOW_EDIT_PROPERTY_MODEL:
-          console.log("66666666");
           return Object.assign({}, state, {
             showAddPropertyModelFlg : action.open,
             prj: isStringEmpty(action.prj) ? "" : action.prj,

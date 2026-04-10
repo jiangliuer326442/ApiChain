@@ -83,7 +83,7 @@ class RequestListProject extends Component {
         let title = values?.title;
         let uri = values?.uri;
         if (isStringEmpty(uri) && isStringEmpty(title)) {
-            let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, null, null, this.props.isAiSupport);
+            let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, null, null);
             this.setState({
                 folders,
                 filterTitle: "",
@@ -98,7 +98,7 @@ class RequestListProject extends Component {
         if (uri === undefined) {
             uri = "";
         }
-        let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, title, uri, this.props.isAiSupport);
+        let folders = await getProjectFolders(this.props.clientType, this.state.projectLabel, title, uri);
         this.setState({
             folders,
             filterTitle: title,
