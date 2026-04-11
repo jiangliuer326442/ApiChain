@@ -123,8 +123,6 @@ class UnittestStepContainer extends Component {
         let unitTestUuid = props.match.params.unitTestUuid;
         let unitTestStepUuid = props.match.params.unitTestStepUuid;
 
-        console.log("props", props)
-
         let cUnitTest = {};
         let method = "";
         let uri = "";

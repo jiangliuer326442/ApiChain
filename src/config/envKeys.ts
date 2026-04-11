@@ -63,6 +63,9 @@ export const UNITTEST_FUNCTION_ARRAY_FIRST = "*first()"
 //取最后一个元素
 export const UNITTEST_FUNCTION_ARRAY_LAST = "*last()"
 
+//获取元素长度
+export const UNITTEST_FUNCTION_LENGTH = "*length()"
+
 //随机取一个元素
 export const UNITTEST_FUNCTION_ARRAY_RANDOM = "*random()"
 

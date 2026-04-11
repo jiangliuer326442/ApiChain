@@ -18,6 +18,7 @@ import {
 } from '@rutil/json';
 import { getType, isNumeric } from '@rutil/index';
 import { 
+    KEY_SEPARATOR,
     DataTypeSelectValues,
 } from '@conf/global_config';
 import { langTrans } from '@lang/i18n';
@@ -182,7 +183,13 @@ class RequestBodyFormTable extends Component {
         if (value === undefined) {
             value = "";
         }
-        let keyArr = key.split(".");
+        let keyArr;
+        if (key.includes(KEY_SEPARATOR)) {
+            keyArr = key.split(KEY_SEPARATOR);
+        } else {
+            keyArr = key.split(".");
+        }
+                                    
         let initObj = cloneDeep(this.setReturnObject(this.state.returnObject));
         let _obj = initObj;
         let keyIndex = 0;
