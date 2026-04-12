@@ -176,9 +176,9 @@ class SingleUnitTestReport extends Component {
     buildRecentExecutorResult = async (unittestUuid : string, batchUuid : string, hosts : any) => {
         let selectedUnitTest;
         if (this.state.type === "iterator") {
-            selectedUnitTest = await getIteratorSingleUnittest(this.props.clientType, unittestUuid, this.props.iteratorId, this.props.env);
+            selectedUnitTest = await getIteratorSingleUnittest(unittestUuid, this.props.iteratorId, this.props.env);
         } else {
-            selectedUnitTest = await getProjectSingleUnittest(this.props.clientType, unittestUuid, this.props.teamId, this.props.projectId, this.props.env);
+            selectedUnitTest = await getProjectSingleUnittest(unittestUuid, this.props.teamId, this.props.projectId, this.props.env);
         }
         //单测报告
         let unitTestReport = await getSingleExecutorReport(this.state.type === "iterator" ? this.props.iteratorId : "", unittestUuid, batchUuid);

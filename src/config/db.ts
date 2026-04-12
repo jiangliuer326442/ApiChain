@@ -32,7 +32,7 @@ export const TABLE_MICRO_SERVICE_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
-export const TABLE_ENV_VAR_NAME = "env_vars_241112001";
+export const TABLE_ENV_VAR_NAME = "env_vars";
 export const TABLE_ENV_VAR_FIELDS = {
     FIELD_ENV_LABEL : "env",
     FIELD_MICRO_SERVICE_LABEL : "microservices",
@@ -179,7 +179,6 @@ export const TABLE_PROJECT_REQUEST_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
-export const TABLE_UNITTEST_FOLD_NAME = "unittest_fold";
 export const TABLE_UNITTEST_FOLD_FIELDS = {
     FIELD_ITERATOR : "iterator_uuid",
     FIELD_PROJECT : "project",
@@ -189,7 +188,6 @@ export const TABLE_UNITTEST_FOLD_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
-export const TABLE_UNITTEST_TEMPLATE_NAME = "unittest_template";
 export const TABLE_UNITTEST_TEMPLATE_FIELDS = {
     FIELD_UUID : "uuid",
     FIELD_TITLE : "title",
@@ -200,7 +198,6 @@ export const TABLE_UNITTEST_TEMPLATE_FIELDS = {
     FIELD_SHOWFLG : "show_flg",
 }
 
-export const TABLE_UNITTEST_NAME = "unittest";
 export const TABLE_UNITTEST_FIELDS = {
     FIELD_PROJECTS : "projects",
     FIELD_COLLECT : "collect_flg",
@@ -214,7 +211,6 @@ export const TABLE_UNITTEST_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
-export const TABLE_UNITTEST_TEMPLATE_STEPS_NAME = "unittest_template_steps";
 export const TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS = {
     FIELD_UNITTEST_UUID : "unittest_uuid",
     FIELD_UUID : "uuid",
@@ -234,7 +230,6 @@ export const TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
-export const TABLE_UNITTEST_STEPS_NAME = "unittest_steps";
 export const TABLE_UNITTEST_STEPS_FIELDS = {
     FIELD_ITERATOR_UUID : "iterator_uuid",
     FIELD_UNITTEST_UUID : "unittest_uuid",
@@ -255,7 +250,6 @@ export const TABLE_UNITTEST_STEPS_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
-export const TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME = "unittest_template_asserts";
 export const TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS = {
     FIELD_UNITTEST_UUID : "unittest_uuid",
     FIELD_STEP_UUID : "step_uuid",
@@ -272,7 +266,6 @@ export const TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS = {
     FIELD_DELFLG : "del_flg",
 }
 
-export const TABLE_UNITTEST_STEP_ASSERTS_NAME = "unittest_asserts";
 export const TABLE_UNITTEST_STEP_ASSERT_FIELDS = {
     FIELD_ITERATOR_UUID : "iterator_uuid",
     FIELD_UNITTEST_UUID : "unittest_uuid",

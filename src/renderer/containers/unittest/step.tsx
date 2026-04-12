@@ -337,7 +337,7 @@ class UnittestStepContainer extends Component {
             await getIterationUnitTests(this.props.clientType, this.state.iteratorId, null, null, this.props.dispatch);
         }
         if (!this.state.iteratorId && !this.props.unittest["__template__"]) {
-            await getUnitTests(this.props.clientType, null, this.props.dispatch);
+            await getUnitTests(this.props.clientType, this.props.dispatch);
         }
         if (!isStringEmpty(this.state.unitTestStepUuid)) {
             this.initMethodUri2(this.state.method, this.state.uri);
@@ -407,7 +407,7 @@ class UnittestStepContainer extends Component {
             request = await getProjectRequest(this.props.clientType, prj, method, uri);
         }
         if (request == null) {
-            fakeIterator = await getIterator(this.props.clientType, this.state.unitTestUuid);
+            fakeIterator = await getIterator(this.state.unitTestUuid);
             if (fakeIterator) {
                 request = await getVersionIteratorRequest(this.props.clientType, fakeIterator, prj, method, uri);
             }
@@ -786,17 +786,13 @@ class UnittestStepContainer extends Component {
         let uri = this.state.uri.includes("$$") ? this.state.uri.split("$$")[1] : this.state.uri;
         if (isStringEmpty(this.state.iteratorId)) {
             editUnitTestTemplateStep(
-                this.props.clientType, this.state.unitTestUuid,this.state.unitTestStepUuid, 
+                this.state.unitTestUuid,this.state.unitTestStepUuid, 
                 this.state.title,
                 this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
                 this.state.assertTitle, 
                 this.state.assertType, this.state.assertSql, this.state.assertSqlParams,
                 this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
-                this.state.assertUuidArr, 
-                this.state.sort, this.state.continueEnable, this.state.waitSeconds,
-                this.props.device, ()=>{
-                    this.props.history.goBack();
-                }
+                this.state.sort, this.state.continueEnable, this.state.waitSeconds
             );
         } else {
             if (isStringEmpty(this.state.unitTestStepUuid)) {
@@ -808,24 +804,17 @@ class UnittestStepContainer extends Component {
                     this.state.assertTitle, 
                     this.state.assertType, this.state.assertSql, this.state.assertSqlParams,
                     this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
-                    this.state.sort, this.state.continueEnable, this.state.waitSeconds,
-                    this.props.device, ()=>{
-                        this.props.history.goBack();
-                    }
+                    this.state.sort, this.state.continueEnable, this.state.waitSeconds
                 );
             } else {
                 editUnitTestStep(
-                    this.props.clientType, this.state.iteratorId, this.state.unitTestUuid,this.state.unitTestStepUuid, 
+                    this.state.iteratorId, this.state.unitTestUuid,this.state.unitTestStepUuid, 
                     this.state.title,
                     this.state.requestHead, this.state.requestParam, this.state.requestPathVariable, this.state.requestBody,
                     this.state.assertTitle, 
                     this.state.assertType, this.state.assertSql, this.state.assertSqlParams,
                     this.state.assertPrev, this.state.assertOperator, this.state.assertAfter,
-                    this.state.assertUuidArr, 
-                    this.state.sort, this.state.continueEnable, this.state.waitSeconds,
-                    this.props.device, ()=>{
-                        this.props.history.goBack();
-                    }
+                    this.state.sort, this.state.continueEnable, this.state.waitSeconds
                 );
             }
         }

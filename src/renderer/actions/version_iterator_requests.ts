@@ -19,7 +19,6 @@ import {
 import { isStringEmpty, mixedSort } from '@rutil/index';
 import { sendTeamMessage } from '@act/message';
 import { getProjectRequests } from '@act/project_request';
-import { getIterator } from '@act/unittest_template';
 import { getUsers } from '@act/user';
 import { addIteratorFolder } from './version_iterator_folders';
 

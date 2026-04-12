@@ -5,7 +5,6 @@ import {
   Layout,
   Flex,
   Dropdown,
-  Popconfirm,
   Table,
   Space,
   Button,
@@ -15,13 +14,12 @@ import {
   message,
 } from 'antd';
 import type { MenuProps } from 'antd';
-import { EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
+import { EditOutlined, MoreOutlined } from '@ant-design/icons';
 
 import { langTrans } from '@lang/i18n';
 import { EMPTY_STRING } from '@conf/global_config';
 import {
   TABLE_UNITTEST_FIELDS,
-  TABLE_UNITTEST_STEPS_FIELDS,
   TABLE_VERSION_ITERATION_FIELDS,
   TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
   UNAME,
@@ -43,8 +41,6 @@ import {
   getProjectUnitTests,
   executeProjectUnitTest,
   batchMoveUnittest,
-  continueProjectExecuteUnitTest,
-  copyFromProjectToIterator,
 } from '@act/unittest';
 import PayMemberModel from '@comp/topup/member';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
@@ -59,17 +55,9 @@ const unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 const unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 const unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
-const unittest_step_unittest_uuid =
-  TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
-const unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
-
 const unittest_report_result = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_RESULT;
 const unittest_report_env = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_ENV;
-const unittest_report_step = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_STEP;
-const unittest_report_batch =
-  TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_BATCH_UUID;
-const unittest_report_cost_time =
-  TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST_TIME;
+const unittest_report_cost_time = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST_TIME;
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
@@ -175,48 +163,7 @@ class UnittestListVersion extends Component {
                 </Space>
               );
             } else {
-              //整体单测的 uuid
-              const valueUnittestStepUnittestUuid =
-                record[unittest_step_unittest_uuid];
-              //当前步骤的 uuid
-              const valueUnittestStepUuid = record[unittest_step_uuid];
-              //报告中的下一步
-              const valueUnittestReportStep = record[unittest_report_step];
-              return (
-                <Space>
-                  {valueUnittestStepUuid === valueUnittestReportStep ? (
-                    <Button
-                      type="link"
-                      onClick={async () => {
-                        this.setState({
-                          executeFlg: false,
-                          unittestUuid: '',
-                          batchUuid: '',
-                        });
-
-                        const batchUuid = await continueProjectExecuteUnitTest(
-                          this.props.clientType, this.state.teamId,
-                          iteratorId,
-                          valueUnittestStepUnittestUuid,
-                          record[unittest_report_batch],
-                          valueUnittestReportStep,
-                          record[unittest_report_env],
-                          (batchUuid: string, stepUuid: string) => {
-                            this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid });
-                          },
-                        );
-
-                        this.setState({
-                          unittestUuid: valueUnittestStepUnittestUuid,
-                          batchUuid,
-                        });
-                      }}
-                    >
-                      {langTrans("prj unittest act3")}
-                    </Button>
-                  ) : null}
-                </Space>
-              );
+              return null;
             }
           },
         },
@@ -299,34 +246,6 @@ class UnittestListVersion extends Component {
               </Button>
             ),
           },
-          {
-            key: '2',
-            danger: true,
-            label: (
-              <Popconfirm
-                title={langTrans("prj unittest del title")}
-                description={langTrans("prj unittest del desc")}
-                onConfirm={(e) => {
-                  this.undoExportUnitTestClick(record, () => {
-                    getProjectUnitTests(
-                      this.props.clientType,
-                      this.state.teamId,
-                      this.state.project,
-                      this.state.folder,
-                      this.props.env,
-                      this.props.dispatch,
-                    );
-                  });
-                }}
-                okText={langTrans("prj unittest del sure")}
-                cancelText={langTrans("prj unittest del cancel")}
-              >
-                <Button danger type="link" icon={<DeleteOutlined />}>
-                {langTrans("prj unittest act5")}
-                </Button>
-              </Popconfirm>
-            ),
-          },
         ],
       };
     } else {
@@ -361,11 +280,6 @@ class UnittestListVersion extends Component {
       this.setState({folder: value});
       getProjectUnitTests(this.props.clientType, this.state.teamId, this.state.project, selectedFolder, this.props.env, this.props.dispatch);
   }
-
-  undoExportUnitTestClick = (record, cb) => {
-    const unittestId = record[unittest_uuid];
-    copyFromProjectToIterator(unittestId, cb);
-  };
 
   editUnitTestClick = (record) => {
     this.props.dispatch({

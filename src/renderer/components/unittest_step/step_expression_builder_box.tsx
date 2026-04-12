@@ -127,7 +127,7 @@ class StepExpressionBuilderBox extends Component {
             );
             this.setState({loadeadFlg: true});
         } else if (!this.props.iteratorId && !this.props.unittest["__template__"]) {
-            await getUnitTests(this.props.clientType, null, this.props.dispatch);
+            await getUnitTests(this.props.clientType, this.props.dispatch);
             this.setState({loadeadFlg: true});
         } else {
             this.setState({loadeadFlg: true});

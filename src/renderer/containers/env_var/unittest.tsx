@@ -153,9 +153,9 @@ class EnvVar extends Component {
     let unittest;
     if (!isStringEmpty(this.state.iteratorId)) {
       //拿迭代单侧
-      unittest = await getIteratorSingleUnittest(this.props.clientType, this.state.unittestId, this.state.iteratorId, this.props.env)
+      unittest = await getIteratorSingleUnittest(this.state.unittestId, this.state.iteratorId, this.props.env)
     } else {
-      unittest = await getProjectSingleUnittest(this.props.clientType, this.state.unittestId, this.props.teamId, this.state.prj, this.props.env)
+      unittest = await getProjectSingleUnittest(this.state.unittestId, this.props.teamId, this.state.prj, this.props.env)
     }
     this.setState({ unittest });
     this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, this.props.env, "");

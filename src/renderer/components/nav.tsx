@@ -195,20 +195,6 @@ class Nav extends Component {
             }
         });
 
-        require('../reducers/db/20240501001');
-        require('../reducers/db/20240601001');
-        require('../reducers/db/20240604001');
-        require('../reducers/db/20240613001');
-        require('../reducers/db/20241028001');
-        require('../reducers/db/20241111001');
-        require('../reducers/db/20241112001');
-        require('../reducers/db/20241114001');
-        require('../reducers/db/20241216001');
-        require('../reducers/db/20250102001');
-        require('../reducers/db/20250614001');
-        require('../reducers/db/20250614002');
-        require('../reducers/db/20250706001');
-        require('../reducers/db/20260329001');
         require('../reducers/db/20260402001');
 
         this.state = {

@@ -74,10 +74,9 @@ class UnittestListVersion extends Component {
                                         title={langTrans("prj unittest del title")}
                                         description={langTrans("prj unittest del desc")}
                                         onConfirm={async e => {
-                                            await delUnitTest(this.props.clientType, record);
+                                            await delUnitTest(record);
                                             getUnitTests(
                                                 this.props.clientType,
-                                                this.state.folder,
                                                 this.props.dispatch
                                             );
                                         }}
@@ -135,7 +134,6 @@ class UnittestListVersion extends Component {
         }
         getUnitTests(
             this.props.clientType,
-            this.state.folder,
             this.props.dispatch
         );
     }
@@ -143,8 +141,7 @@ class UnittestListVersion extends Component {
     async componentDidUpdate(prevProps) {  
         if (this.props.match.params.id !== prevProps.match.params.id) { 
             getUnitTests(
-                this.props.clientType, 
-                this.state.folder, 
+                this.props.clientType,
                 this.props.dispatch
             );
         }
@@ -169,7 +166,6 @@ class UnittestListVersion extends Component {
                 <Content style={{ padding: '0 16px' }}>
                     <AddUnittestComponent refreshCb={() => getUnitTests(
                         this.props.clientType,
-                        this.state.folder,
                         this.props.dispatch
                     )} />
                     <Breadcrumb style={{ margin: '16px 0' }} items={[

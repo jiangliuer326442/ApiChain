@@ -17,13 +17,12 @@ import {
 } from '@ant-design/icons';
 
 import { EMPTY_STRING } from '@conf/global_config';
-import { ChannelsLoadAppStr } from '@conf/channel';
 import { 
     TABLE_UNITTEST_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
-    UNAME, TABLE_UNITTEST_STEPS_NAME,
+    UNAME,
 } from '@conf/db';
 import { getWikiUnittest } from '@conf/url';
 import {
@@ -42,7 +41,6 @@ import {
     getIterationUnitTests, 
     delUnitTest, 
     executeIteratorUnitTest,
-    continueIteratorExecuteUnitTest,
     copyFromIteratorToProject,
     copyFromProjectToIterator,
     batchMoveUnittest,
@@ -53,8 +51,6 @@ import {
 import {
     addUnittestTemplate,
 } from '@act/unittest_template';
-import { getUnitTestRequests } from '@act/version_iterator_requests';
-import { buildUnitTestStepFromRequest } from '@act/unittest_step';
 import PayMemberModel from '@comp/topup/member';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
@@ -75,18 +71,10 @@ let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
 let unittest_step_unittest_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_step_project = TABLE_UNITTEST_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
-let unittest_step_uri = TABLE_UNITTEST_STEPS_FIELDS.FIELD_URI;
 let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
-let unittest_step_request_head = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_HEADER;
-let unittest_step_request_body = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_BODY;
-let unittest_step_request_param = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PARAM;
-let unittest_step_request_path_variable = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
 let unittest_report_result = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_RESULT;
 let unittest_report_env = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_ENV;
-let unittest_report_step = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_STEP;
-let unittest_report_batch = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_BATCH_UUID;
 let unittest_report_cost_time = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST_TIME;
 
 class UnittestListVersion extends Component {
@@ -174,69 +162,14 @@ class UnittestListVersion extends Component {
                             let valueUnittestStepUnittestUuid = record[unittest_step_unittest_uuid];
                             //当前步骤的 uuid
                             let valueUnittestStepUuid = record[unittest_step_uuid];
-                            //报告中的下一步
-                            let valueUnittestReportStep = record[unittest_report_step];
                             return (
                                 <Space>
-                                    {valueUnittestStepUuid === valueUnittestReportStep &&
-                                    <Button type="link" onClick={async ()=>{
-                                        this.setState({
-                                            executeFlg: false,
-                                            unittestUuid: "",
-                                            batchUuid: "",
-                                        });
-
-                                        let batchUuid = await continueIteratorExecuteUnitTest(
-                                            this.props.clientType,
-                                            this.props.teamId,
-                                            this.state.iteratorId, 
-                                            valueUnittestStepUnittestUuid, 
-                                            record[unittest_report_batch], 
-                                            valueUnittestReportStep, 
-                                            record[unittest_report_env],
-                                            (batchUuid : string, stepUuid : string) => {
-                                                this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid})
-                                            }
-                                        );
-
-                                        this.setState({
-                                            unittestUuid: valueUnittestStepUnittestUuid,
-                                            batchUuid,
-                                        })
-                                    }}>{langTrans("prj unittest act3")}</Button>
-                                    }
                                 {record["source"] == "db" &&
                                 <>
                                     <Button 
                                         type='link' 
                                         href={ "#/version_iterator_tests_step_edit/" + this.state.iteratorId + "/" + valueUnittestStepUnittestUuid + "/" + valueUnittestStepUuid }
                                     >{langTrans("prj unittest act4")}</Button>
-                                    <Button type="text" onClick={async ()=>{
-                                        let request = (await getUnitTestRequests(
-                                            this.props.clientType, 
-                                            this.props.isAiSupport,
-                                            record[unittest_step_project], 
-                                            this.state.iteratorId, 
-                                            record[unittest_step_uri]
-                                        ))[0];
-                                        let stepRequest = await buildUnitTestStepFromRequest(request);
-                                        let unit_test_step = await window.db[TABLE_UNITTEST_STEPS_NAME]
-                                        .where(unittest_step_uuid).equals(valueUnittestStepUuid)
-                                        .first();
-                                        unit_test_step[unittest_step_request_head] = stepRequest.requestHead;
-                                        unit_test_step[unittest_step_request_body] = stepRequest.requestBody;
-                                        unit_test_step[unittest_step_request_param] = stepRequest.requestParam;
-                                        unit_test_step[unittest_step_request_path_variable] = stepRequest.requestPathVariable;
-                                        await window.db[TABLE_UNITTEST_STEPS_NAME].put(unit_test_step);
-                                        message.success("重置步骤 " + unit_test_step[unittest_title] + " 的参数成功");
-                                        getIterationUnitTests(
-                                            this.props.clientType, 
-                                            this.state.iteratorId, 
-                                            this.state.folder, 
-                                            this.props.env, 
-                                            this.props.dispatch
-                                        );
-                                    }}>{langTrans("version unittest act4")}</Button>
                                     <Dropdown menu={this.getMoreStep(record)}>
                                         <Button type="text" icon={<MoreOutlined />} />
                                     </Dropdown>
@@ -319,16 +252,15 @@ class UnittestListVersion extends Component {
                     <Popconfirm
                         title={langTrans("version unittest del title")}
                         description={langTrans("version unittest del desc")}
-                        onConfirm={e => {
-                            delUnitTestStep(this.props.clientType, this.state.iteratorId, valueUnittestStepUnittestUuid, valueUnittestStepUuid, ()=>{
-                                getIterationUnitTests(
-                                    this.props.clientType,
-                                    this.state.iteratorId, 
-                                    this.state.folder, 
-                                    this.props.env, 
-                                    this.props.dispatch
-                                );
-                            });
+                        onConfirm={async e => {
+                            await delUnitTestStep(this.state.iteratorId, valueUnittestStepUnittestUuid, valueUnittestStepUuid);
+                            getIterationUnitTests(
+                                this.props.clientType,
+                                this.state.iteratorId, 
+                                this.state.folder, 
+                                this.props.env, 
+                                this.props.dispatch
+                            );
                         }}
                         okText={langTrans("version unittest del sure")}
                         cancelText={langTrans("version unittest del cancel")}>
@@ -360,7 +292,7 @@ class UnittestListVersion extends Component {
                             title={langTrans("prj unittest del title")}
                             description={langTrans("prj unittest del desc")}
                             onConfirm={async e => {
-                                await delUnitTest(this.props.clientType, record);
+                                await delUnitTest(record);
                                 getIterationUnitTests(
                                     this.props.clientType, 
                                     this.state.iteratorId, 
@@ -492,9 +424,7 @@ class UnittestListVersion extends Component {
         this.setState({loadingFlg: true})
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
-        await copyFromIteratorToProject(
-            this.props.clientType, this.props.teamId,
-            iteratorId, unittestId, this.props.device);
+        await copyFromIteratorToProject(iteratorId, unittestId);
         getIterationUnitTests(
             this.props.clientType, 
             iteratorId, 
@@ -601,10 +531,7 @@ class UnittestListVersion extends Component {
             return;
         }
         this.setState({loadingFlg: true});
-        addUnittestTemplate(this.props.clientType, this.state.iteratorId, this.state.selectedSteps, this.state.addTemplateTile, this.props.device, () => {
-            message.success(langTrans("version unittest unittest template add form success"))
-            window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
-        });
+        addUnittestTemplate(this.props.clientType, this.state.iteratorId, this.state.selectedSteps, this.state.addTemplateTile);
     }
 
     render() : ReactNode {
