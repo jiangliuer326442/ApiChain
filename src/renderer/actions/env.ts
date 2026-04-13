@@ -1,10 +1,6 @@
 import { TABLE_ENV_NAME, UNAME, TABLE_ENV_FIELDS } from '@conf/db';
 import { GET_ENVS } from '@conf/redux';
 import { 
-    ENV_VALUE_RUN_MODE,
-    ENV_VALUE_RUN_MODE_RUMMER
-} from '@conf/envKeys';
-import { 
     CLIENT_TYPE_SINGLE, 
     CLIENT_TYPE_TEAM, 
     ENVS_LIST_URL, 
@@ -12,9 +8,7 @@ import {
     ENVS_ALL_LIST_URL,
 } from '@conf/team';
 import { getUsers } from '@act/user';
-import { addEnvValues } from '@act/env_value';
 import { sendTeamMessage } from '@act/message';
-import { langTrans } from '@lang/i18n';
 
 let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;

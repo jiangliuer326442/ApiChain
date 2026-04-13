@@ -8,7 +8,7 @@ import {
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { cloneDeep } from 'lodash';
 
-import { TABLE_ENV_FIELDS, TABLE_ENV_VAR_FIELDS } from '@conf/db';
+import { TABLE_ENV_FIELDS } from '@conf/db';
 import { SHOW_ADD_ENV_MODEL, SHOW_EDIT_ENV_MODEL } from '@conf/redux';
 import AddEnvComponent from '@comp/env/add_env';
 import { langTrans } from '@lang/i18n';

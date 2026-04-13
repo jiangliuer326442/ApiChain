@@ -11,8 +11,8 @@ import {
 } from '@conf/db';
 import {
     UNITTES_ITERATION_STEP_SAVE_URL,
+    UNITTES_ITERATION_CLEAN_NODE_SAVE_URL,
     UNITTES_ITERATION_STEP_DEL_URL,
-    CLIENT_TYPE_TEAM,
 } from '@conf/team';
 import {
     sendTeamMessage,
@@ -48,8 +48,19 @@ export async function editUnitTestStep(
     });
 }
 
+export async function addUnitTestCleanNode(
+    versionIteratorId : string, unitTestUuid : string, cleanNodeTitleArr: Array<string>, cleanNodeSqlArr: Array<string>, cleanNodeSqlParamArr: Array<any>) {
+
+    let cleanNodeId = uuidv4() as string;
+    await sendTeamMessage(UNITTES_ITERATION_CLEAN_NODE_SAVE_URL, {
+        iterator: versionIteratorId, unitTest: unitTestUuid, cleanNode: cleanNodeId,
+        cleanNodeTitles: cleanNodeTitleArr.join(','), 
+        cleanNodeSqls: JSON.stringify(cleanNodeSqlArr), 
+        cleanNodeSqlParams: JSON.stringify(cleanNodeSqlParamArr)
+    });
+}
+
 export async function addUnitTestStep(
-    clientType : string, 
     versionIteratorId : string, unitTestUuid : string, 
     title : string, project : string, method: string, uri : string,
     header: object, param: object, pathVariable: object, body: object,
@@ -59,18 +70,15 @@ export async function addUnitTestStep(
     sort: number, continueEnable: string, waitSeconds: number) {
 
     let stepId = uuidv4() as string;
-
-    if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTES_ITERATION_STEP_SAVE_URL, {
-            iterator: versionIteratorId, unitTest: unitTestUuid, step: stepId,
-            title, prj: project, method, uri,
-            header: JSON.stringify(header), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable), body: JSON.stringify(body),
-            assertTitles: assertTitleArr.join(','), 
-            assertTypes: assertTypeArr.join(','), assertSqls: JSON.stringify(assertSqlArr), assertSqlParams: JSON.stringify(assertSqlParamArr),
-            assertPrevs: assertPrevArr.join(','), assertOperators: assertOperatorArr.join(','), assertAfters: assertAfterArr.join(','),
-            sort, continueEnable, waitSeconds
-        });
-    }
+    await sendTeamMessage(UNITTES_ITERATION_STEP_SAVE_URL, {
+        iterator: versionIteratorId, unitTest: unitTestUuid, step: stepId,
+        title, prj: project, method, uri,
+        header: JSON.stringify(header), param: JSON.stringify(param), pathVariable: JSON.stringify(pathVariable), body: JSON.stringify(body),
+        assertTitles: assertTitleArr.join(','), 
+        assertTypes: assertTypeArr.join(','), assertSqls: JSON.stringify(assertSqlArr), assertSqlParams: JSON.stringify(assertSqlParamArr),
+        assertPrevs: assertPrevArr.join(','), assertOperators: assertOperatorArr.join(','), assertAfters: assertAfterArr.join(','),
+        sort, continueEnable, waitSeconds
+    });
 }
 
 export async function delUnitTestStep(iteratorId : string, unittestUuid : string, unittestStepUuid : string) {

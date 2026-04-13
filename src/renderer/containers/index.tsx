@@ -39,6 +39,8 @@ import {
     REQUEST_ITERATOR_LIST_ROUTE,
     REQUEST_HISTORY,
     REQUEST_PROJECT_LIST_ROUTE,
+    UNITTEST_CLEAN_DATA_ADD_ROUTE,
+    UNITTEST_CLEAN_DATA_EDIT_ROUTE,
     UNITTEST_ITERATOR_LIST_ROUTE,
     UNITTEST_TEMPLATE_LIST_ROUTE,
     UNITTEST_PROJECT_LIST_ROUTE,
@@ -85,6 +87,7 @@ import RequestHistoryPage from '@contain/request_history';
 import RequestToSaveContainerPage from '@contain/request_save/to_save';
 import RequestSaveDetailContainerPage from '@contain/request_save/save_detail';
 import VersionIteratorRequestListPage from "@contain/request_list/version";
+import UnittestCleanDataPage from "@contain/unittest/clean";
 import ProjectRequestListPage from "@contain/request_list/project";
 import ParamsProjectPage from "@contain/request_send/params";
 import UnittestListVersionPage from "@contain/unittest/version_iterator";
@@ -192,6 +195,8 @@ class MyRouter extends Component {
                             <Route path={ INTERNET_REQUEST_BY_PRJ_API_ROUTE } component={NetSendPage} />
                             <Route path={ REQUEST_HISTORY } component={RequestHistoryPage} />
                             <Route path={ REQUEST_TO_ITERATOR_ROUTE } component={RequestToSaveContainerPage} />
+                            <Route path={ UNITTEST_CLEAN_DATA_ADD_ROUTE } component={UnittestCleanDataPage} />
+                            <Route path={ UNITTEST_CLEAN_DATA_EDIT_ROUTE } component={UnittestCleanDataPage} />
                             <Route path={ REQUEST_ITERATOR_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
                             <Route path={ REQUEST_PROJECT_DETAIL_ROUTE } component={RequestSaveDetailContainerPage} />
                             <Route path={ REQUEST_ITERATOR_LIST_ROUTE } component={VersionIteratorRequestListPage} />

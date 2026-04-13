@@ -12,6 +12,7 @@ import {
     MergeOutlined, 
     DeleteOutlined, 
     MoreOutlined,
+    ClearOutlined,
     DotChartOutlined,
     CameraOutlined
 } from '@ant-design/icons';
@@ -66,6 +67,7 @@ let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_refer = TABLE_UNITTEST_FIELDS.FIELD_REFER_FROM;
+let unittest_clean = TABLE_UNITTEST_FIELDS.FIELD_CLEANNER;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
@@ -330,6 +332,17 @@ class UnittestListVersion extends Component {
                     label: <Button type='text' loading={this.state.loadingFlg} icon={<CameraOutlined />} onClick={()=>this.exportStepsClick(record)}>{langTrans("version unittest act5")}</Button>
                 });
             }
+            if (isStringEmpty(record[unittest_clean])) {
+                items.push({
+                    key: "6",
+                    label: <Button type='text' icon={<ClearOutlined />} href={`#/version_iterator_tests_clean_add/${this.state.iteratorId}/${record[unittest_uuid]}`}>{langTrans("version unittest act6")}</Button>
+                });
+            } else {
+                items.push({
+                    key: "6",
+                    label: <Button type='text' icon={<ClearOutlined />} href={`#/version_iterator_tests_clean_edit/${this.state.iteratorId}/${record[unittest_uuid]}/${record[unittest_clean]}`}>{langTrans("version unittest act6")}</Button>
+                });
+            }
             return {'items': items};
         } else {
             return {'items': [] };
@@ -381,7 +394,6 @@ class UnittestListVersion extends Component {
         let iteratorId = this.state.iteratorId;
         let unittestId = record[unittest_uuid];
         await copyFromProjectToIterator(
-            this.props.clientType, 
             iteratorId,
             unittestId
         );

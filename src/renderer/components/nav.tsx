@@ -131,14 +131,6 @@ class Nav extends Component {
                 )
               },
               {
-                key: UNITTEST_TEMPLATE_LIST_ROUTE,
-                label: (
-                  <a href={ "#" + UNITTEST_TEMPLATE_LIST_ROUTE } rel="noopener noreferrer">
-                    {langTrans("nav setting unittest template")}
-                  </a >
-                )
-              },
-              {
                 key: ENVVAR_GLOBAL_LIST_ROUTE,
                 label: (
                   <a href={ "#" + ENVVAR_GLOBAL_LIST_ROUTE } rel="noopener noreferrer">
@@ -172,6 +164,14 @@ class Nav extends Component {
             label: (
               <a href={ "#" + TEAM_MEMBER_ROUTE } rel="noopener noreferrer">
                 {langTrans("nav setting member")}
+              </a >
+            )
+          }) 
+          basicNavs[3].children.push({
+            key: UNITTEST_TEMPLATE_LIST_ROUTE,
+            label: (
+              <a href={ "#" + UNITTEST_TEMPLATE_LIST_ROUTE } rel="noopener noreferrer">
+                {langTrans("nav setting unittest template")}
               </a >
             )
           }) 
@@ -252,6 +252,8 @@ class Nav extends Component {
               key: prj[prj_label] + "_setting",
               label: <a href={`#/prj_setting/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav setting")}</a >
             });
+          }
+          if (clientType === CLIENT_TYPE_TEAM && prjTeamId === teamId) {
             children.push({
               key: prj[prj_label] + "_unittest",
               label: <a href={`#/project_tests/${prjTeamId}/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
@@ -266,27 +268,30 @@ class Nav extends Component {
 
         const iterations = await getOpenVersionIterators(clientType, this.props.dispatch);
         navs[1].children = iterations.map((iteration:any) => {
+          let children = [
+            {
+              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_envvar",
+              label: <a href={"#/iterator_envvars/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator envvar")}</a >
+            },
+            {
+              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_doc",
+              label: <a href={"#/version_iterator_requests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator doc")}</a >
+            },
+            {
+              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_vip",
+              label: <a href={"#/version_iterator_vip/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator member")}</a >
+            }
+          ];
+          if (clientType === CLIENT_TYPE_TEAM) {
+            children.push({
+              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_unittest",
+              label: <a href={"#/version_iterator_tests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator unittest")}</a >
+            });
+          }
           return {
             key: ITERATOR + "_" + iteration[version_iterator_uuid],
             label: iteration[version_iterator_title],
-            children: [
-              {
-                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_envvar",
-                label: <a href={"#/iterator_envvars/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator envvar")}</a >
-              },
-              {
-                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_doc",
-                label: <a href={"#/version_iterator_requests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator doc")}</a >
-              },
-              {
-                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_unittest",
-                label: <a href={"#/version_iterator_tests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator unittest")}</a >
-              },
-              {
-                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_vip",
-                label: <a href={"#/version_iterator_vip/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator member")}</a >
-              }
-            ],
+            children,
           }
         });
 

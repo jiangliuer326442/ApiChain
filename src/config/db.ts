@@ -204,6 +204,7 @@ export const TABLE_UNITTEST_FIELDS = {
     FIELD_ITERATOR_UUID : "iterator_uuid",
     FIELD_UUID : "uuid",
     FIELD_REFER_FROM : "refer_from",
+    FIELD_CLEANNER : "cleanner",
     FIELD_TITLE : "title",
     FIELD_FOLD_NAME : "fold",
     FIELD_CUID : "create_uid",
