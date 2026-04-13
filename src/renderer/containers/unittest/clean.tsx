@@ -6,7 +6,9 @@ import {
     Input,
     Layout,
     message,
+    Select,
     Space,
+    Switch,
     Table,
 } from 'antd';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
@@ -16,14 +18,19 @@ import { connect } from 'react-redux';
 import { isStringEmpty } from '@rutil/index';
 import { 
     TABLE_FIELD_NAME,
-    TABLE_FIELD_VALUE,
-    buildJsonString
+    TABLE_FIELD_VALUE
 } from '@rutil/json';
-import { TABLE_UNITTEST_FIELDS, } from '@conf/db';
+import { 
+    TABLE_UNITTEST_FIELDS, 
+    TABLE_UNITTEST_CLEAN_FIELDS,
+} from '@conf/db';
 import { langTrans, langFormat } from '@lang/i18n';
 import StepExpressionBuilderBox from "@comp/unittest_step/step_expression_builder_box";
 import { 
-    addUnitTestCleanNode
+    saveUnitTestCleanNode,
+    addUnitTestCleanNode,
+    getUnittestCleanNodes,
+    enableUnittestCleanNodes,
  } from '@act/unittest_step';
 
 const { Header, Content, Footer } = Layout;
@@ -31,6 +38,13 @@ const { TextArea } = Input
 
 let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
+let unittest_clean_flg = TABLE_UNITTEST_FIELDS.FIELD_CLEANFLG;
+
+let field_clean_prj = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_PROJECTS;
+let field_clean_sql = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_SQL;
+let field_clean_sql_params = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_SQL_PARAMS;
+let field_clean_title = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_TITLE;
+
 
 class UnittestStepContainer extends Component {
     constructor(props) {
@@ -42,6 +56,7 @@ class UnittestStepContainer extends Component {
 
         let cleanLength = 1;
         let cleanTitle = [null];
+        let cleanPrj = [null];
         let cleanSql = [""];
         let cleanSqlParams = [[]];
 
@@ -57,6 +72,7 @@ class UnittestStepContainer extends Component {
             cleanLength,
             unitTest: cUnitTest,
             cleanTitle,
+            cleanPrj,
             cleanSql,
             cleanSqlParams,
             cleanSqlParamsTable: this.buildCleanSqlParamsTable(cleanSqlParams),
@@ -97,21 +113,45 @@ class UnittestStepContainer extends Component {
     }
 
     async componentDidMount() {
-
+        if (!isStringEmpty(this.state.unitTestCleanUuid)) {
+            let cleanNodes = await getUnittestCleanNodes(this.state.unitTestCleanUuid, this.state.iteratorId, this.state.unitTestUuid);
+            let cleanLength = cleanNodes.length;
+            let cleanTitle = [];
+            let cleanPrj = [];
+            let cleanSql = [];
+            let cleanSqlParams = [];
+            for (let cleanNode of cleanNodes) {
+                cleanTitle.push(cleanNode[field_clean_title]);
+                cleanPrj.push(cleanNode[field_clean_prj]);
+                cleanSql.push(cleanNode[field_clean_sql]);
+                cleanSqlParams.push(cleanNode[field_clean_sql_params]);
+            }
+            this.setState({
+                cleanLength,
+                cleanTitle,
+                cleanPrj,
+                cleanSql,
+                cleanSqlParams,
+                cleanSqlParamsTable: this.buildCleanSqlParamsTable(cleanSqlParams),
+            });
+        }
     }
 
     addClean = () => {
 
         let cleanTitle = cloneDeep(this.state.cleanTitle);
+        let cleanPrj = cloneDeep(this.state.cleanPrj);
         let cleanSql = cloneDeep(this.state.cleanSql);
         let cleanSqlParams = cloneDeep(this.state.cleanSqlParams);
         let cleanLength = this.state.cleanLength;
         cleanTitle.push(null);
+        cleanPrj.push(null);
         cleanSql.push("");
         cleanSqlParams.push([]);
         cleanLength += 1;
         this.setState({
             cleanTitle,
+            cleanPrj,
             cleanSql,
             cleanSqlParams,
             cleanLength,
@@ -159,15 +199,19 @@ class UnittestStepContainer extends Component {
 
     subClean = () => {
         let cleanTitle = cloneDeep(this.state.cleanTitle);
+        let cleanPrj = cloneDeep(this.state.cleanPrj);
         let cleanLength = this.state.cleanLength;
         let cleanSql = cloneDeep(this.state.cleanSql);
         let cleanSqlParams = cloneDeep(this.state.cleanSqlParams);
         if (cleanLength > 1) {
             cleanTitle.pop();
+            cleanPrj.pop();
             cleanSql.pop();
             cleanSqlParams.pop();
             cleanLength -= 1;
             this.setState({
+                cleanTitle,
+                cleanPrj,
                 cleanLength,
                 cleanSql,
                 cleanSqlParams,
@@ -225,10 +269,14 @@ class UnittestStepContainer extends Component {
         if (isStringEmpty(this.state.unitTestCleanUuid)) {
             await addUnitTestCleanNode(
                 this.state.iteratorId, this.state.unitTestUuid,
-                this.state.cleanTitle, this.state.cleanSql, this.state.cleanSqlParams
+                this.state.cleanTitle, this.state.cleanPrj, this.state.cleanSql, this.state.cleanSqlParams
             );
         } else {
-
+            await saveUnitTestCleanNode(
+                this.state.unitTestCleanUuid,
+                this.state.iteratorId, this.state.unitTestUuid,
+                this.state.cleanTitle, this.state.cleanPrj, this.state.cleanSql, this.state.cleanSqlParams
+            );
         }
         this.props.history.goBack();
     }
@@ -269,6 +317,14 @@ class UnittestStepContainer extends Component {
                             onFinish={this.onFinish}
                             autoComplete="off"
                         >
+                            <Form.Item label={langTrans("unittest clean node switch")}>
+                                <Switch checked={this.state.unitTest[unittest_clean_flg] == 1} onChange={async checked => {
+                                    await enableUnittestCleanNodes(checked, this.state.iteratorId, this.state.unitTestUuid);
+                                    let unitTest = cloneDeep(this.state.unitTest);
+                                    unitTest[unittest_clean_flg] = checked ? 1 : 0;
+                                    this.setState({unitTest});
+                                }} />
+                            </Form.Item>
                             {this.state.cleanLength > 0 &&
                             <>
                                 <Divider>
@@ -286,6 +342,19 @@ class UnittestStepContainer extends Component {
                                     <Space direction='vertical' size={"middle"}>
                                         <Input 
                                             placeholder={langTrans("unittest clean node tip1")}
+                                            addonBefore={
+                                                <Select
+                                                    showSearch={ true }
+                                                    value={this.state.cleanPrj[i]}
+                                                    style={{ width: 174 }}
+                                                    options={ this.props.projects.map(_prj => ({label: _prj.label, value: _prj.value + "$$" + _prj.label})) }
+                                                    onChange={newPrj => {
+                                                        let cleanPrj = cloneDeep(this.state.cleanPrj);
+                                                        cleanPrj[i] = newPrj.split("$$")[0];
+                                                        this.setState({cleanPrj});
+                                                    }}
+                                                />
+                                            }
                                             addonAfter={ this.state.cleanLength > 1 ? <Button onClick={() => this.minusIndex(i)} type='text' icon={<MinusOutlined />} /> : null }
                                             style={{width: 500}}
                                             value={this.state.cleanTitle[i]} onChange={event => {
@@ -318,7 +387,7 @@ class UnittestStepContainer extends Component {
                             }
                             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
                                 <Button type="primary" htmlType="submit">
-                                    {isStringEmpty(this.state.unitTestStepUuid) ? langTrans("unittest clean bread add") : langTrans("unittest clean bread edit")}
+                                    {isStringEmpty(this.state.unitTestCleanUuid) ? langTrans("unittest clean bread add") : langTrans("unittest clean bread edit")}
                                 </Button>
                             </Form.Item>
                         </Form>
@@ -335,6 +404,7 @@ class UnittestStepContainer extends Component {
 function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
+        projects: state.prj.list,
     }
 }
 

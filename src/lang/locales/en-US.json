@@ -361,6 +361,7 @@
     "unittest clean bread add": "Add Cleanup Node",
     "unittest clean bread edit": "Edit Cleanup Node",
     "unittest clean node title": "Cleanup Operation",
+    "unittest clean node switch": "Enable or not",
     "unittest clean node tip1": "Description of executing SQL statements",
     "unittest clean node sql": "SQL statement for executing data cleanup, example 'delete from teams where uuid = ?'",
     "step add title": "Iterative Unit Test Execution Step",

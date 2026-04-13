@@ -379,6 +379,7 @@
     "unittest clean title": "迭代单测数据清理",
     "unittest clean bread add": "添加清理节点",
     "unittest clean bread edit": "编辑清理节点",
+    "unittest clean node switch": "是否启用",
     "unittest clean node title": "清理操作",
     "unittest clean node tip1": "对执行sql语句的说明",
     "unittest clean node sql": "执行数据清理的sql语句，示例 'delete from teams where `uuid` = ?'",

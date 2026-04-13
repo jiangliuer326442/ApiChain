@@ -52,7 +52,9 @@ import {
     ChannelsMessageInfoStr,
     ChannelsDatabaseStr, 
     ChannelsDatabaseQuery, 
-    ChannelsDatabaseQueryResult
+    ChannelsDatabaseQueryResult,
+    ChannelsDatabaseExecute,
+    ChannelsDatabaseExecuteFinish,
 } from '@conf/channel';
 import {
     CLIENT_TYPE_TEAM,
@@ -111,6 +113,13 @@ export function sendTeamMessage(url : string, postData) {
     });
 }
 
+export async function executeDeleteSql(clientType : string, env : string, project : string, sql : string, params : Array<string>) {
+    let dbConfig = await getDbConfig(clientType, env, project);
+    if (dbConfig['db_run_mode'] == ENV_VALUE_RUN_MODE_CLIENT) {
+        return executeDeleteSqlByClient(dbConfig, sql, params);
+    }
+}
+
 export async function executeQuerySql(clientType : string, env : string, project : string, sql : string, params : Array<string>) {
     let dbConfig = await getDbConfig(clientType, env, project);
     if (dbConfig['db_run_mode'] == ENV_VALUE_RUN_MODE_CLIENT) {
@@ -133,6 +142,24 @@ export async function executeQuerySql(clientType : string, env : string, project
             }
         });
     }
+}
+
+function executeDeleteSqlByClient(dbConfig, sql : string, params : Array<string>) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsDatabaseStr, (action, isSuccess, errorMessage) => {
+            if (action === ChannelsDatabaseExecuteFinish) {
+                listener();
+                if (isSuccess) {
+                    resolve(null);
+                } else {
+                    reject({message: errorMessage});
+                }
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsDatabaseStr, ChannelsDatabaseExecute, dbConfig, sql, params);
+    });
 }
 
 function executeQuerySqlByClient(dbConfig, sql : string, params : Array<string>) {

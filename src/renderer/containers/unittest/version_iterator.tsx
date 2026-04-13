@@ -48,6 +48,7 @@ import {
 } from '@act/unittest';
 import {
     delUnitTestStep,
+    getUnittestCleanNodes,
 } from '@act/unittest_step';
 import {
     addUnittestTemplate,
@@ -68,6 +69,7 @@ let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
 let unittest_refer = TABLE_UNITTEST_FIELDS.FIELD_REFER_FROM;
 let unittest_clean = TABLE_UNITTEST_FIELDS.FIELD_CLEANNER;
+let unittest_clean_flg = TABLE_UNITTEST_FIELDS.FIELD_CLEANFLG;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
@@ -617,16 +619,12 @@ class UnittestListVersion extends Component {
                             <Form.Item>
                                 <Button 
                                     type="primary"  
-                                    disabled={!this.state.executeFlg || this.state.selectedUnittests.length === 0} 
-                                    onClick={() => {
+                                    disabled={isStringEmpty(this.props.env) || !this.state.executeFlg || this.state.selectedUnittests.length === 0} 
+                                    onClick={async () => {
                                         if (!this.props.device.vipFlg && !this.props.device.isUnitTest) {
                                             this.setState({
                                                 showPay: true,
                                             });
-                                            return;
-                                        }
-                                        if (isStringEmpty(this.props.env)) {
-                                            message.error(langTrans("unittest env check"));
                                             return;
                                         }
 
@@ -637,9 +635,16 @@ class UnittestListVersion extends Component {
                                                 batchUuid: "",
                                             });
                                             let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
+                                            let cleanNodes = [];
+                                            if (currentUnitTest[unittest_clean_flg] == 1) {
+                                                cleanNodes = await getUnittestCleanNodes(currentUnitTest[unittest_clean], this.state.iteratorId, unittestUuid);
+                                            }
                                             executeIteratorUnitTest(
                                                 this.props.clientType, this.props.teamId,
-                                                this.state.iteratorId, unittestUuid, currentUnitTest.children, this.props.env, 
+                                                this.state.iteratorId, unittestUuid, 
+                                                currentUnitTest.children, 
+                                                cleanNodes,
+                                                this.props.env, 
                                                 (batchUuid : string, stepUuid : string) => {
                                                     this.setState({ unittestUuid, batchUuid, stepUuid})
                                                 }

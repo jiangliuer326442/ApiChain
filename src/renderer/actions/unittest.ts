@@ -3,9 +3,12 @@ import { cloneDeep } from 'lodash';
 
 import {
     TABLE_UNITTEST_FIELDS,
+    TABLE_UNITTEST_CLEAN_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
-    TABLE_UNITTEST_EXECUTOR_NAME, TABLE_UNITTEST_EXECUTOR_FIELDS,
-    TABLE_UNITTEST_EXECUTOR_REPORT_NAME, TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
+    TABLE_UNITTEST_EXECUTOR_NAME, 
+    TABLE_UNITTEST_EXECUTOR_FIELDS,
+    TABLE_UNITTEST_EXECUTOR_REPORT_NAME, 
+    TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_UNITTEST_STEP_ASSERT_FIELDS,
     TABLE_REQUEST_HISTORY_FIELDS,
     UNAME,
@@ -56,6 +59,7 @@ import {
 
 import { 
     executeQuerySql,
+    executeDeleteSql,
     sendAjaxMessage,
     sendTeamMessage,
 } from '@act/message';
@@ -81,6 +85,10 @@ import JsonParamTips from '@clazz/JsonParamTips';
 let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let field_unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
+
+let field_clean_prj = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_PROJECTS;
+let field_clean_sql = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_SQL;
+let field_clean_sql_params = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_SQL_PARAMS;
 
 let field_unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
 let unittest_step_project = TABLE_UNITTEST_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
@@ -418,7 +426,8 @@ export async function executeProjectUnitTest(
 export async function executeIteratorUnitTest(
     clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, 
-    steps : Array<any>, env : string,
+    steps : Array<any>, cleanNodes : Array<any>, 
+    env : string,
     cb : Function
 )
     {
@@ -436,7 +445,10 @@ export async function executeIteratorUnitTest(
 
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+    let ret = await stepsExecutor(steps, cleanNodes, iteratorId, unitTestId, batch_uuid, env, 
+        async (project : string, sql : string, sqlParams : Array<string>) => {
+            await executeDeleteSql(clientType, env, project, sql, sqlParams)
+        },
         async (project : string, sql : string, sqlParams : Array<string>) => {
             return await executeQuerySql(clientType, env, project, sql, sqlParams)
         },
@@ -505,10 +517,12 @@ export async function executeIteratorUnitTest(
 
 async function stepsExecutor(
     steps : Array<any>, 
+    cleanNodes : Array<any>,
     iteratorId : string,
     unitTestId : string, 
     batch_uuid : string,
     env : string, 
+    dbExecuteFunc : Function,
     getDbRetFunc : Function,
     getEnvHostFunc : Function,
     getRunModeFunc : Function,
@@ -815,6 +829,28 @@ async function stepsExecutor(
             success = UNITTEST_RESULT_FAILURE;
             break;
         }
+    }
+
+    for (let cleanNode of cleanNodes) {
+        let project = cleanNode[field_clean_prj];
+        let sql = cleanNode[field_clean_sql];
+        let sqlParams = cleanNode[field_clean_sql_params];
+
+        jsonParamTips.setProject(project);
+        let envVarTips = getEnvVarTipsFunc(project);
+
+        let parsed_sql_params = [];
+        for (let _sql_param of sqlParams) {
+            jsonParamTips.setContent(_sql_param);
+            try {
+                let _parsed_value = await jsonParamTips.getValue(envVarTips, 
+                    {}, {}, {}, {}, {}, {}, {}, unitTestId, batch_uuid);
+                parsed_sql_params.push(_parsed_value);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        dbExecuteFunc(project, sql, parsed_sql_params);
     }
 
     return {

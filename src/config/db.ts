@@ -204,12 +204,26 @@ export const TABLE_UNITTEST_FIELDS = {
     FIELD_ITERATOR_UUID : "iterator_uuid",
     FIELD_UUID : "uuid",
     FIELD_REFER_FROM : "refer_from",
+    FIELD_CLEANFLG : "cleanFlg",
     FIELD_CLEANNER : "cleanner",
     FIELD_TITLE : "title",
     FIELD_FOLD_NAME : "fold",
     FIELD_CUID : "create_uid",
     FIELD_CTIME : "create_time",
     FIELD_DELFLG : "del_flg",
+}
+
+export const TABLE_UNITTEST_CLEAN_FIELDS = {
+    FIELD_CUID : "create_uid",
+    FIELD_CTIME : "create_time",
+    FIELD_DELFLG : "del_flg",
+    FIELD_ITERATOR_UUID : "iteratorId",
+    FIELD_PROJECTS : "microservices",
+    FIELD_SQL : "sql",
+    FIELD_SQL_PARAMS : "sql_params",
+    FIELD_UNITTEST : "unittestUuid",
+    FIELD_UUID : "uuid",
+    FIELD_TITLE : "title",
 }
 
 export const TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS = {

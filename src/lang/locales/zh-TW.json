@@ -360,6 +360,7 @@
     "unittest clean title": "迭代單測資料清理",
     "unittest clean bread add": "新增清理節點",
     "unittest clean bread edit": "編輯清理節點",
+    "unittest clean node switch": "是否啟用",
     "unittest clean node title": "清理操作",
     "unittest clean node tip1": "對執行 SQL 語句的說明",
     "unittest clean node sql": " 執行資料清理的 SQL 語句，範例 'delete from teams where uuid = ?'",
