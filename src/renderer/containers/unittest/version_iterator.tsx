@@ -337,12 +337,12 @@ class UnittestListVersion extends Component {
             if (isStringEmpty(record[unittest_clean])) {
                 items.push({
                     key: "6",
-                    label: <Button type='text' icon={<ClearOutlined />} href={`#/version_iterator_tests_clean_add/${this.state.iteratorId}/${record[unittest_uuid]}`}>{langTrans("version unittest act6")}</Button>
+                    label: <Button type='text' icon={<ClearOutlined />} href={`#/tests_clean_add/${this.state.iteratorId}/${record[unittest_uuid]}`}>{langTrans("version unittest act6")}</Button>
                 });
             } else {
                 items.push({
                     key: "6",
-                    label: <Button type='text' icon={<ClearOutlined />} href={`#/version_iterator_tests_clean_edit/${this.state.iteratorId}/${record[unittest_uuid]}/${record[unittest_clean]}`}>{langTrans("version unittest act6")}</Button>
+                    label: <Button type='text' icon={<ClearOutlined />} href={`#/tests_clean_edit/${EMPTY_STRING}/${record[unittest_clean]}`}>{langTrans("version unittest act6")}</Button>
                 });
             }
             return {'items': items};
@@ -637,7 +637,7 @@ class UnittestListVersion extends Component {
                                             let currentUnitTest = this.props.unittest[this.state.iteratorId].find(item => item[unittest_uuid] === unittestUuid);
                                             let cleanNodes = [];
                                             if (currentUnitTest[unittest_clean_flg] == 1) {
-                                                cleanNodes = await getUnittestCleanNodes(currentUnitTest[unittest_clean], this.state.iteratorId, unittestUuid);
+                                                cleanNodes = await getUnittestCleanNodes(currentUnitTest[unittest_clean]);
                                             }
                                             executeIteratorUnitTest(
                                                 this.props.clientType, this.props.teamId,

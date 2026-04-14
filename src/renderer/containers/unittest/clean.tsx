@@ -30,6 +30,7 @@ import {
     saveUnitTestCleanNode,
     addUnitTestCleanNode,
     getUnittestCleanNodes,
+    enableProjectCleanNodes,
     enableUnittestCleanNodes,
  } from '@act/unittest_step';
 
@@ -40,6 +41,8 @@ let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 let unittest_clean_flg = TABLE_UNITTEST_FIELDS.FIELD_CLEANFLG;
 
+let field_clean_iterator = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_ITERATOR_UUID;
+let field_clean_unittest = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_UNITTEST;
 let field_clean_prj = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_PROJECTS;
 let field_clean_sql = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_SQL;
 let field_clean_sql_params = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_SQL_PARAMS;
@@ -50,9 +53,7 @@ class UnittestStepContainer extends Component {
     constructor(props) {
         super(props);
 
-        let iteratorId = props.match.params.iteratorId ? props.match.params.iteratorId : "";
-        let unitTestUuid = props.match.params.unitTestUuid;
-        let unitTestCleanUuid = props.match.params.unitTestCleanUuid;
+        let operationType = props.match.path.split("/")[1] == "tests_clean_edit" ? "edit" : "create";
 
         let cleanLength = 1;
         let cleanTitle = [null];
@@ -60,17 +61,13 @@ class UnittestStepContainer extends Component {
         let cleanSql = [""];
         let cleanSqlParams = [[]];
 
-        let cUnitTest = {};
-        if (this.props.unittest[iteratorId]) {
-            cUnitTest = this.getCurrentUnitTest1(props.unittest, iteratorId, unitTestUuid);
-        }
-
         this.state = {
-            iteratorId,
-            unitTestUuid,
-            unitTestCleanUuid,
+            operationType,
+            iteratorId: "",
+            unitTestUuid: "",
+            unitTestCleanUuid: "",
             cleanLength,
-            unitTest: cUnitTest,
+            unitTest: {},
             cleanTitle,
             cleanPrj,
             cleanSql,
@@ -109,12 +106,33 @@ class UnittestStepContainer extends Component {
                     }
                 },
             ],
+            project: props.match.params.project,
+            loadingFlg: true,
         }
     }
 
     async componentDidMount() {
-        if (!isStringEmpty(this.state.unitTestCleanUuid)) {
-            let cleanNodes = await getUnittestCleanNodes(this.state.unitTestCleanUuid, this.state.iteratorId, this.state.unitTestUuid);
+        if (this.state.operationType == "create") {
+            let iteratorId = this.props.match.params.iteratorId;
+            let unitTestUuid = this.props.match.params.unitTestUuid;
+            let cUnitTest = this.getCurrentUnitTest1(this.props.unittest, iteratorId, unitTestUuid);
+            this.setState({
+                loadingFlg: false,
+                iteratorId,
+                unitTestUuid,
+                unitTest: cUnitTest,
+            });
+        } else {
+            let unitTestCleanUuid = this.props.match.params.unitTestCleanUuid;
+            let cleanNodes = await getUnittestCleanNodes(unitTestCleanUuid);
+            let iteratorId = cleanNodes[0][field_clean_iterator];
+            let unitTestUuid = cleanNodes[0][field_clean_unittest];
+            let cUnitTest = {};
+            if (isStringEmpty(this.state.project)) {
+                cUnitTest = this.getCurrentUnitTest1(this.props.unittest, iteratorId, unitTestUuid);
+            } else {
+                cUnitTest = this.getCurrentUnitTest2(this.props.unittest, this.state.project, unitTestUuid);
+            }
             let cleanLength = cleanNodes.length;
             let cleanTitle = [];
             let cleanPrj = [];
@@ -126,8 +144,14 @@ class UnittestStepContainer extends Component {
                 cleanSql.push(cleanNode[field_clean_sql]);
                 cleanSqlParams.push(cleanNode[field_clean_sql_params]);
             }
+
             this.setState({
+                loadingFlg: false,
+                iteratorId,
+                unitTestUuid,
+                unitTestCleanUuid,
                 cleanLength,
+                unitTest: cUnitTest,
                 cleanTitle,
                 cleanPrj,
                 cleanSql,
@@ -160,36 +184,30 @@ class UnittestStepContainer extends Component {
 
     minusIndex = (deleteIndex : number) => {
         // 深度克隆状态（保持你原有的写法）
-        let assertTitle = cloneDeep(this.state.assertTitle);
-        let assertPrev = cloneDeep(this.state.assertPrev);
-        let assertAfter = cloneDeep(this.state.assertAfter);
-        let assertLength = this.state.assertLength;
-        let assertType = cloneDeep(this.state.assertType);
-        let assertSql = cloneDeep(this.state.assertSql);
-        let assertSqlParams = cloneDeep(this.state.assertSqlParams);
+        let cleanTitle = cloneDeep(this.state.cleanTitle);
+        let cleanPrj = cloneDeep(this.state.cleanPrj);
+        let cleanLength = this.state.cleanLength;
+        let cleanSql = cloneDeep(this.state.cleanSql);
+        let cleanSqlParams = cloneDeep(this.state.cleanSqlParams);
 
         // 安全判断：索引有效 且 数组长度>1
-        if (assertLength > 1 && deleteIndex >= 0 && deleteIndex < assertLength) {
+        if (cleanLength > 1 && deleteIndex >= 0 && deleteIndex < cleanLength) {
             // ✅ 移除指定索引元素，生成新数组（核心替换代码）
-            assertTitle = assertTitle.filter((_, i) => i !== deleteIndex);
-            assertPrev = assertPrev.filter((_, i) => i !== deleteIndex);
-            assertAfter = assertAfter.filter((_, i) => i !== deleteIndex);
-            assertType = assertType.filter((_, i) => i !== deleteIndex);
-            assertSql = assertSql.filter((_, i) => i !== deleteIndex);
-            assertSqlParams = assertSqlParams.filter((_, i) => i !== deleteIndex);
+            cleanTitle = cleanTitle.filter((_, i) => i !== deleteIndex);
+            cleanPrj = cleanPrj.filter((_, i) => i !== deleteIndex);
+            cleanSql = cleanSql.filter((_, i) => i !== deleteIndex);
+            cleanSqlParams = cleanSqlParams.filter((_, i) => i !== deleteIndex);
 
             // 长度 -1
-            assertLength -= 1;
+            cleanLength -= 1;
 
             const newState = {
-                assertTitle,
-                assertLength,
-                assertType,
-                assertSql,
-                assertSqlParams,
-                assertSqlParamsTable: this.buildCleanSqlParamsTable(assertSqlParams),
-                assertPrev,
-                assertAfter
+                cleanTitle,
+                cleanLength,
+                cleanPrj,
+                cleanSql,
+                cleanSqlParams,
+                cleanSqlParamsTable: this.buildCleanSqlParamsTable(cleanSqlParams),
             };
 
             // 更新状态
@@ -273,9 +291,9 @@ class UnittestStepContainer extends Component {
             );
         } else {
             await saveUnitTestCleanNode(
-                this.state.unitTestCleanUuid,
-                this.state.iteratorId, this.state.unitTestUuid,
-                this.state.cleanTitle, this.state.cleanPrj, this.state.cleanSql, this.state.cleanSqlParams
+                this.state.unitTestCleanUuid, this.state.unitTestUuid,
+                this.state.cleanTitle, this.state.cleanPrj, 
+                this.state.cleanSql, this.state.cleanSqlParams
             );
         }
         this.props.history.goBack();
@@ -292,6 +310,28 @@ class UnittestStepContainer extends Component {
         return cUnitTest;
     }
 
+    getCurrentUnitTest2 = (unitTest, project, unitTestUuid) => {
+        let cUnitTest = null;
+        for (let _unitTest of unitTest[project]) {
+            if (_unitTest[unittest_uuid] === unitTestUuid) {
+                cUnitTest = _unitTest;
+                break;
+            }
+        }
+        return cUnitTest;
+    }
+
+    switchCleanFlg = async checked => {
+        if (isStringEmpty(this.state.project)) {
+            await enableUnittestCleanNodes(checked, this.state.iteratorId, this.state.unitTestUuid);
+        } else {
+            await enableProjectCleanNodes(checked, this.state.project, this.state.unitTestUuid);
+        }
+        let unitTest = cloneDeep(this.state.unitTest);
+        unitTest[unittest_clean_flg] = checked ? 1 : 0;
+        this.setState({unitTest});
+    }
+
     render() : ReactNode {
         return (
             <Layout>
@@ -301,10 +341,14 @@ class UnittestStepContainer extends Component {
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
                         { title: langTrans("unittest clean title") },
-                        { title: <a href={ '#/version_iterator_tests/' + this.state.iteratorId }>{ this.state.unitTest[unittest_title] }</a > }, 
+                        { title: (isStringEmpty(this.state.project) ? 
+                            <a href={ '#/version_iterator_tests/' + this.state.iteratorId }>{ this.state.unitTest[unittest_title] }</a >
+                             : 
+                            <a href={ `#/project_tests/${this.props.teamId}/${this.state.project}` }>{ this.state.unitTest[unittest_title] }</a > 
+                            )}, 
                         { title: isStringEmpty(this.state.unitTestCleanUuid) ? langTrans("unittest clean bread add") : langTrans("unittest clean bread edit") }
                     ]} />
-                    <div
+                    {!this.state.loadingFlg && <div
                         style={{
                             padding: 24,
                             minHeight: 360,
@@ -317,14 +361,10 @@ class UnittestStepContainer extends Component {
                             onFinish={this.onFinish}
                             autoComplete="off"
                         >
+                            {this.state.operationType == "edit" && 
                             <Form.Item label={langTrans("unittest clean node switch")}>
-                                <Switch checked={this.state.unitTest[unittest_clean_flg] == 1} onChange={async checked => {
-                                    await enableUnittestCleanNodes(checked, this.state.iteratorId, this.state.unitTestUuid);
-                                    let unitTest = cloneDeep(this.state.unitTest);
-                                    unitTest[unittest_clean_flg] = checked ? 1 : 0;
-                                    this.setState({unitTest});
-                                }} />
-                            </Form.Item>
+                                <Switch checked={this.state.unitTest[unittest_clean_flg] == 1} onChange={this.switchCleanFlg} />
+                            </Form.Item>}
                             {this.state.cleanLength > 0 &&
                             <>
                                 <Divider>
@@ -391,7 +431,7 @@ class UnittestStepContainer extends Component {
                                 </Button>
                             </Form.Item>
                         </Form>
-                    </div>
+                    </div>}
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                 ApiChain ©{new Date().getFullYear()} Created by Mustafa Fang
@@ -405,6 +445,7 @@ function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
         projects: state.prj.list,
+        teamId: state.device.teamId,
     }
 }
 

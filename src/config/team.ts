@@ -244,11 +244,15 @@ export const UNITTES_ITERATION_STEP_SAVE_URL = "/unittest/iteration/saveStep"
 
 export const UNITTES_ITERATION_STEP_DEL_URL = "/unittest/iteration/delStep"
 
+export const UNITTES_ITERATION_CLEAN_NODE_ADD_URL = "/unittest/iteration/addCleanNode"
+
 export const UNITTES_ITERATION_CLEAN_NODE_SAVE_URL = "/unittest/iteration/saveCleanNode"
 
 export const UNITTES_ITERATION_CLEAN_NODE_LIST_URL = "/unittest/iteration/getCleanNodes"
 
 export const UNITTES_ITERATION_CLEAN_NODE_ENABLE_URL = "/unittest/iteration/enableCleanNode"
+
+export const UNITTES_PROJECT_CLEAN_NODE_ENABLE_URL = "/unittest/project/enableCleanNode"
 
 export const UNITTES_TEMPLATE_ADD_URL = "/unittest/template/add"
 

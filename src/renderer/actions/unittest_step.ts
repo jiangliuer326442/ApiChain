@@ -12,8 +12,10 @@ import {
 import {
     UNITTES_ITERATION_STEP_SAVE_URL,
     UNITTES_ITERATION_CLEAN_NODE_SAVE_URL,
+    UNITTES_ITERATION_CLEAN_NODE_ADD_URL,
     UNITTES_ITERATION_CLEAN_NODE_LIST_URL,
     UNITTES_ITERATION_CLEAN_NODE_ENABLE_URL,
+    UNITTES_PROJECT_CLEAN_NODE_ENABLE_URL,
     UNITTES_ITERATION_STEP_DEL_URL,
 } from '@conf/team';
 import {
@@ -50,9 +52,9 @@ export async function editUnitTestStep(
     });
 }
 
-export async function getUnittestCleanNodes(cleanNodeId : string, versionIteratorId : string, unitTestUuid : string ) {
+export async function getUnittestCleanNodes(cleanNodeId : string ) {
     let nodes = await sendTeamMessage(UNITTES_ITERATION_CLEAN_NODE_LIST_URL, {
-        iterator: versionIteratorId, unitTest: unitTestUuid, cleanNode: cleanNodeId
+        cleanNode: cleanNodeId
     });
     return nodes
 }
@@ -64,11 +66,18 @@ export async function enableUnittestCleanNodes(enableFlg : boolean, versionItera
     return nodes
 }
 
+export async function enableProjectCleanNodes(enableFlg : boolean, prj : string, unitTestUuid : string ) {
+    let nodes = await sendTeamMessage(UNITTES_PROJECT_CLEAN_NODE_ENABLE_URL, {
+        project: prj, unitTest: unitTestUuid, cleanFlg: enableFlg ? 1 : 0
+    });
+    return nodes
+}
+
 export async function addUnitTestCleanNode(
     versionIteratorId : string, unitTestUuid : string, cleanNodeTitleArr: Array<string>, cleanNodeProjectArr: Array<string>, cleanNodeSqlArr: Array<string>, cleanNodeSqlParamArr: Array<any>) {
 
     let cleanNodeId = uuidv4() as string;
-    await sendTeamMessage(UNITTES_ITERATION_CLEAN_NODE_SAVE_URL, {
+    await sendTeamMessage(UNITTES_ITERATION_CLEAN_NODE_ADD_URL, {
         iterator: versionIteratorId, unitTest: unitTestUuid, cleanNode: cleanNodeId,
         cleanNodeTitles: cleanNodeTitleArr.join(','), 
         cleanNodePrjs: cleanNodeProjectArr.join(','), 
@@ -78,11 +87,13 @@ export async function addUnitTestCleanNode(
 }
 
 export async function saveUnitTestCleanNode(
-    cleanNodeId : string,
-    versionIteratorId : string, unitTestUuid : string, cleanNodeTitleArr: Array<string>, cleanNodeProjectArr: Array<string>, cleanNodeSqlArr: Array<string>, cleanNodeSqlParamArr: Array<any>) {
+    cleanNodeId : string, unitTestUuid : string, 
+    cleanNodeTitleArr: Array<string>, cleanNodeProjectArr: Array<string>, 
+    cleanNodeSqlArr: Array<string>, cleanNodeSqlParamArr: Array<any>
+) {
 
     await sendTeamMessage(UNITTES_ITERATION_CLEAN_NODE_SAVE_URL, {
-        iterator: versionIteratorId, unitTest: unitTestUuid, cleanNode: cleanNodeId,
+        unitTest: unitTestUuid, cleanNode: cleanNodeId,
         cleanNodeTitles: cleanNodeTitleArr.join(','), 
         cleanNodePrjs: cleanNodeProjectArr.join(','), 
         cleanNodeSqls: JSON.stringify(cleanNodeSqlArr), 

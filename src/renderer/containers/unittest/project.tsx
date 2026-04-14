@@ -14,7 +14,7 @@ import {
   message,
 } from 'antd';
 import type { MenuProps } from 'antd';
-import { EditOutlined, MoreOutlined } from '@ant-design/icons';
+import { EditOutlined, MoreOutlined, ClearOutlined } from '@ant-design/icons';
 
 import { langTrans } from '@lang/i18n';
 import { EMPTY_STRING } from '@conf/global_config';
@@ -42,6 +42,9 @@ import {
   executeProjectUnitTest,
   batchMoveUnittest,
 } from '@act/unittest';
+import {
+    getUnittestCleanNodes,
+} from '@act/unittest_step';
 import PayMemberModel from '@comp/topup/member';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
@@ -54,6 +57,8 @@ const unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 const unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 const unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 const unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
+let unittest_clean = TABLE_UNITTEST_FIELDS.FIELD_CLEANNER;
+let unittest_clean_flg = TABLE_UNITTEST_FIELDS.FIELD_CLEANFLG;
 
 const unittest_report_result = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_RESULT;
 const unittest_report_env = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_ENV;
@@ -232,21 +237,28 @@ class UnittestListVersion extends Component {
 
   getMore = (record: any): MenuProps => {
     if (record[unittest_folder] !== undefined) {
+      let items = [
+        {
+          key: '1',
+          label: (
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => this.editUnitTestClick(record)}
+            >
+              {langTrans("prj unittest act4")}
+            </Button>
+          ),
+        },
+      ];
+      if (!isStringEmpty(record[unittest_clean])) {
+        items.push({
+            key: "2",
+            label: <Button type='text' icon={<ClearOutlined />} href={`#/tests_clean_edit/${this.state.project}/${record[unittest_clean]}`}>{langTrans("version unittest act6")}</Button>
+        });
+      }
       return {
-        items: [
-          {
-            key: '1',
-            label: (
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                onClick={() => this.editUnitTestClick(record)}
-              >
-                {langTrans("prj unittest act4")}
-              </Button>
-            ),
-          },
-        ],
+        items,
       };
     } else {
       return { items: [] };
@@ -381,7 +393,7 @@ class UnittestListVersion extends Component {
                 <Button
                   type="primary"
                   disabled={!this.state.executeFlg || this.state.selectedUnittests.length === 0}
-                  onClick={() => {
+                  onClick={async () => {
                     if (!this.props.device.vipFlg && !this.props.device.isUnitTest) {
                         this.setState({
                             showPay: true,
@@ -402,11 +414,16 @@ class UnittestListVersion extends Component {
                       const currentUnitTest = this.props.unittest[
                         this.state.project
                       ].find((item) => item[unittest_uuid] === unittestUuid);
+                      let cleanNodes = [];
+                      if (currentUnitTest[unittest_clean_flg] == 1) {
+                          cleanNodes = await getUnittestCleanNodes(currentUnitTest[unittest_clean]);
+                      }
                       executeProjectUnitTest(
                         this.props.clientType,
                         this.state.teamId,
                         unittestUuid,
                         currentUnitTest.children,
+                        cleanNodes,
                         this.props.env,
                         (batchUuid: string, stepUuid: string) => {
                           this.setState({ unittestUuid, batchUuid, stepUuid });

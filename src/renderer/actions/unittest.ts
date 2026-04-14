@@ -342,8 +342,8 @@ export async function getIterationUnitTests(clientType : string, iteratorId : st
 }
 
 export async function executeProjectUnitTest(
-    clientType : string, teamId : string,
-    unitTestId : string, steps : Array<any>, 
+    clientType : string, teamId : string, unitTestId : string, 
+    steps : Array<any>,  cleanNodes : Array<any>, 
     env : string, cb : Function
 )
     {
@@ -359,7 +359,10 @@ export async function executeProjectUnitTest(
     unittest_result[unittest_report_ctime] = Date.now();
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
-    let ret = await stepsExecutor(steps, "", unitTestId, batch_uuid, env, 
+    let ret = await stepsExecutor(steps, cleanNodes, "", unitTestId, batch_uuid, env, 
+        async (project : string, sql : string, sqlParams : Array<string>) => {
+            await executeDeleteSql(clientType, env, project, sql, sqlParams)
+        },
         async (project : string, sql : string, sqlParams : Array<string>) => {
             return await executeQuerySql(clientType, env, project, sql, sqlParams)
         },
@@ -831,26 +834,30 @@ async function stepsExecutor(
         }
     }
 
-    for (let cleanNode of cleanNodes) {
-        let project = cleanNode[field_clean_prj];
-        let sql = cleanNode[field_clean_sql];
-        let sqlParams = cleanNode[field_clean_sql_params];
+    try {
+        for (let cleanNode of cleanNodes) {
+            let project = cleanNode[field_clean_prj];
+            let sql = cleanNode[field_clean_sql];
+            let sqlParams = cleanNode[field_clean_sql_params];
 
-        jsonParamTips.setProject(project);
-        let envVarTips = getEnvVarTipsFunc(project);
+            jsonParamTips.setProject(project);
+            let envVarTips = getEnvVarTipsFunc(project);
 
-        let parsed_sql_params = [];
-        for (let _sql_param of sqlParams) {
-            jsonParamTips.setContent(_sql_param);
-            try {
-                let _parsed_value = await jsonParamTips.getValue(envVarTips, 
-                    {}, {}, {}, {}, {}, {}, {}, unitTestId, batch_uuid);
-                parsed_sql_params.push(_parsed_value);
-            } catch (error) {
-                console.error(error);
+            let parsed_sql_params = [];
+            for (let _sql_param of sqlParams) {
+                jsonParamTips.setContent(_sql_param);
+                try {
+                    let _parsed_value = await jsonParamTips.getValue(envVarTips, 
+                        {}, {}, {}, {}, {}, {}, {}, unitTestId, batch_uuid);
+                    parsed_sql_params.push(_parsed_value);
+                } catch (error) {
+                    console.error(error);
+                }
             }
+            await dbExecuteFunc(project, sql, parsed_sql_params);
         }
-        dbExecuteFunc(project, sql, parsed_sql_params);
+    } catch (err) {
+        console.error("数据库执行失败", err);
     }
 
     return {

@@ -47,9 +47,9 @@ export const VIP_ITERATOR_LIST_ROUTE = "/version_iterator_vip/:id"
 //迭代单测执行列表
 export const UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE = "/unittest_executor_record/:env/:iteratorId/:unitTestId"
 //清理单测数据节点新增
-export const UNITTEST_CLEAN_DATA_ADD_ROUTE = "/version_iterator_tests_clean_add/:iteratorId/:unitTestUuid"
+export const UNITTEST_CLEAN_DATA_ADD_ROUTE = "/tests_clean_add/:iteratorId/:unitTestUuid"
 //清理单测数据节点编辑
-export const UNITTEST_CLEAN_DATA_EDIT_ROUTE = "/version_iterator_tests_clean_edit/:iteratorId/:unitTestUuid/:unitTestCleanUuid"
+export const UNITTEST_CLEAN_DATA_EDIT_ROUTE = "/tests_clean_edit/:project/:unitTestCleanUuid"
 //迭代单测步骤新增
 export const UNITTEST_STEP_ADD_ROUTE = "/version_iterator_tests_step_add/:iteratorId/:unitTestUuid"
 //迭代单测步骤编辑
