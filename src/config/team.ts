@@ -184,6 +184,8 @@ export const NETWORK_REQUEST_URL = "/network/request";
 
 export const NETWORK_DB_REQUEST_URL = "/network/dbQuery";
 
+export const NETWORK_DB_DELETE_URL = "/network/dbDelete";
+
 export const OPENAI_REQUEST_URL = "/network/question";
 
 export const VECTOR_MAKE_URL = "/network/vector";

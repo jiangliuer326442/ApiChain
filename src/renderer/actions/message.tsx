@@ -60,6 +60,7 @@ import {
     CLIENT_TYPE_TEAM,
     NETWORK_REQUEST_URL,
     DB_CONFIG_GET_URL,
+    NETWORK_DB_DELETE_URL,
     NETWORK_DB_REQUEST_URL,
 } from '@conf/team';
 import {
@@ -117,6 +118,17 @@ export async function executeDeleteSql(clientType : string, env : string, projec
     let dbConfig = await getDbConfig(clientType, env, project);
     if (dbConfig['db_run_mode'] == ENV_VALUE_RUN_MODE_CLIENT) {
         return executeDeleteSqlByClient(dbConfig, sql, params);
+    } else {
+        let teamRet = await sendTeamMessage(NETWORK_DB_DELETE_URL, {project, env, sql, params: JSON.stringify(params)});
+        return new Promise((resolve, reject) => {
+            let isSuccess = teamRet["isSuccess"];
+            let errorMessage = teamRet['errorMessage'];
+            if (isSuccess) {
+                resolve(null);
+            } else {
+                reject({message: errorMessage});
+            }
+        });
     }
 }
 
@@ -125,12 +137,7 @@ export async function executeQuerySql(clientType : string, env : string, project
     if (dbConfig['db_run_mode'] == ENV_VALUE_RUN_MODE_CLIENT) {
         return executeQuerySqlByClient(dbConfig, sql, params);
     } else {
-        let teamRet = await sendTeamMessage(NETWORK_DB_REQUEST_URL, {
-            project,
-            env,
-            sql,
-            params: JSON.stringify(params),
-        });
+        let teamRet = await sendTeamMessage(NETWORK_DB_REQUEST_URL, {project,env, sql,params: JSON.stringify(params)});
         return new Promise((resolve, reject) => {
             let isSuccess = teamRet["isSuccess"];
             let errorMessage = teamRet['errorMessage'];

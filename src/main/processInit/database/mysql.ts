@@ -81,7 +81,11 @@ export default function (privateKey : string, mainWindow : BrowserWindow, store 
             });
 
             // 2. 检查 SQL 语句是否为 SELECT 查询
-            if (!sql.trim().toUpperCase().startsWith('DELETE')) {
+            // 去除首尾空格并转大写
+            const sqlUpper = sql.trim().toUpperCase();
+
+            // 校验：必须以 DELETE 或 UPDATE 开头 + 必须包含 WHERE
+            if (!(sqlUpper.startsWith('DELETE') || sqlUpper.startsWith('UPDATE')) || !sqlUpper.includes('WHERE')) {
                 mainWindow.webContents.send(ChannelsDatabaseStr, ChannelsDatabaseExecuteFinish, false, langTrans("database query sql error"));
                 return;
             }
