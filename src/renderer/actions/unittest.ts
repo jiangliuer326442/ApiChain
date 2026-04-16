@@ -744,7 +744,9 @@ async function stepsExecutor(
                             if (assertLeft in dbRet) {
                                 assertLeftValue[keyNumber] = dbRet[assertLeft];
                             } else {
-                                assertLeftValue[keyNumber] = "";
+                                errorMessage = `查询语句返回空结果，sql:${sql}, 参数：${parsed_sql_params}`;
+                                breakFlg = true;
+                                break;
                             }
                         } catch (error) {
                             console.error(error);
@@ -767,6 +769,7 @@ async function stepsExecutor(
                         try {
                             assertLeftValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
                         } catch (error) {
+                            console.log(error);
                             errorMessage = error.message;
                             breakFlg = true;
                             break;
