@@ -18,6 +18,8 @@ import {
     REQUEST_METHOD_POST,
 } from '@conf/global_config';
 import { 
+    UNITTEST_STEP_BODY,
+    UNITTEST_STEP_PARAM,
     ASSERT_TYPE_API, ASSERT_TYPE_DB,
     UNITTEST_DATASOURCE_TYPE_ENV,
     UNITTEST_DATASOURCE_TYPE_REF,
@@ -323,6 +325,7 @@ class UnittestStepContainer extends Component {
                                 project={ this.state.prj}
                                 dataSourceType={ UNITTEST_DATASOURCE_TYPE_REF }
                                 selectedStep={ UNITTEST_STEP_CURRENT }
+                                selectedDataSource={ this.state.method === REQUEST_METHOD_POST ? UNITTEST_STEP_BODY : UNITTEST_STEP_PARAM }
                             />
                         );
                     }

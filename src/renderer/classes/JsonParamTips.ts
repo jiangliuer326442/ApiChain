@@ -137,8 +137,16 @@ export default class {
         this.dataSourceType = dataSourceType;
     }
 
+    setSelectedStep(selectedStep: string) {
+        this.selectedStep = selectedStep;
+    }
+
     getSelectedStep() : string {
         return this.selectedStep;
+    }
+
+    setSelectedDataSource(selectedDataSource: string) {
+        this.selectedDataSource = selectedDataSource;
     }
 
     getSelectedDataSource() : string {

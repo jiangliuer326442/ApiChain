@@ -85,19 +85,23 @@ class StepExpressionBuilderBox extends Component {
         }
         let dataSourceType;
         let selectedStep
+        let selectedDataSource;
         if (isStringEmpty(content)) {
             dataSourceType = isStringEmpty(props.dataSourceType) ? UNITTEST_DATASOURCE_TYPE_ENV : props.dataSourceType;
-            selectedStep = isStringEmpty(props.selectedStep) ? UNITTEST_DATASOURCE_TYPE_ENV : props.selectedStep;
+            selectedStep = isStringEmpty(props.selectedStep) ? UNITTEST_STEP_CURRENT : props.selectedStep;
             if (isStringEmpty(props.unitTestStepUuid)) {
                 selectedStep = UNITTEST_STEP_CURRENT;
             }
-
+            selectedDataSource = isStringEmpty(props.selectedDataSource) ? UNITTEST_STEP_RESPONSE : props.selectedDataSource;
+            this.paramTips.setDataSourceType(dataSourceType);
+            this.paramTips.setSelectedStep(selectedStep);
+            this.paramTips.setSelectedDataSource(selectedDataSource);
         } else {
             this.paramTips.setContent(content);
             dataSourceType = this.paramTips.getDataSourceType()
             selectedStep = this.paramTips.getSelectedStep();
+            selectedDataSource = this.paramTips.getSelectedDataSource()
         }
-        console.log("dataSourceType", dataSourceType, "content", content, "sourceId", props.sourceId)
 
         this.state = {
             loadeadFlg: false,
@@ -112,8 +116,8 @@ class StepExpressionBuilderBox extends Component {
             selectedStep,
             initializeSelectedStep: selectedStep,
             selectedProject: this.paramTips.getSelectedProject(),
-            selectedDataSource: this.paramTips.getSelectedDataSource(),
-            initializeSelectedDataSource: this.paramTips.getSelectedDataSource(),
+            selectedDataSource,
+            initializeSelectedDataSource: selectedDataSource,
             steps: [],
             dataSource: {},
             initializeValue: content,
