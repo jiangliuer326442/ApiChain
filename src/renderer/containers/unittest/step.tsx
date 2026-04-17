@@ -17,7 +17,12 @@ import { isStringEmpty } from '@rutil/index';
 import {
     REQUEST_METHOD_POST,
 } from '@conf/global_config';
-import { ASSERT_TYPE_API, ASSERT_TYPE_DB } from '@conf/unittest'
+import { 
+    ASSERT_TYPE_API, ASSERT_TYPE_DB,
+    UNITTEST_DATASOURCE_TYPE_ENV,
+    UNITTEST_DATASOURCE_TYPE_REF,
+    UNITTEST_STEP_CURRENT,
+} from '@conf/unittest'
 import {
     TABLE_UNITTEST_FIELDS,
     TABLE_UNITTEST_TEMPLATE_FIELDS,
@@ -41,6 +46,7 @@ import {
 import {
     addUnitTestStep,
     editUnitTestStep,
+    getLatestStep,
 } from '@act/unittest_step';
 import RequestPathVariableFormTable from "@comp/unittest_step/request_path_variable_form_table";
 import RequestParamFormTable from "@comp/unittest_step/request_param_form_table";
@@ -57,7 +63,6 @@ let unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 
 let unittest_template_uuid = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_UUID;
-let unittest_template_title = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_TITLE;
 
 let iteration_request_method = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_REQUEST_METHOD;
 let iteration_request_title = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_TITLE;
@@ -316,6 +321,8 @@ class UnittestStepContainer extends Component {
                                 unitTestUuid={ this.state.unitTestUuid}
                                 unitTestStepUuid={ this.state.unitTestStepUuid}
                                 project={ this.state.prj}
+                                dataSourceType={ UNITTEST_DATASOURCE_TYPE_REF }
+                                selectedStep={ UNITTEST_STEP_CURRENT }
                             />
                         );
                     }
@@ -407,8 +414,7 @@ class UnittestStepContainer extends Component {
             if (fakeIterator) {
                 request = await getVersionIteratorRequest(this.props.clientType, fakeIterator, prj, method, uri);
             }
-        }
-        
+        }        
         let formRequestHeadData = request[iteration_request_header];
         for (let _key in this.state.requestHead) {
             if (formRequestHeadData[_key] === undefined) return;
@@ -463,6 +469,7 @@ class UnittestStepContainer extends Component {
         if (request == null) {
             request = await getProjectRequest(this.props.clientType, prj, method, uri);
         }
+        let latestStep = await getLatestStep(this.state.iteratorId, this.state.unitTestUuid, this.state.prj, this.state.sort);
         let formRequestHeadData = request[iteration_request_header];
         let formRequestBodyData = request[iteration_request_body];
         let formRequestParamData = request[iteration_request_param];
@@ -475,20 +482,57 @@ class UnittestStepContainer extends Component {
 
         let requestHead : any = {};
         for (let _key in formRequestHeadData) {
-            requestHead[_key] = formRequestHeadData[_key][TABLE_FIELD_VALUE];
+            if (Object.keys(latestStep).length > 0 && _key in latestStep[unittest_step_request_head]) {
+                requestHead[_key] = latestStep[unittest_step_request_head][_key];
+            } else {
+                requestHead[_key] = formRequestHeadData[_key][TABLE_FIELD_VALUE];
+            }
+        }
+        for (let _key in requestHead) {
+            if (formRequestHeadData[_key] === undefined) return;
+            formRequestHeadData[_key][TABLE_FIELD_VALUE] = requestHead[_key];
+        }
+
+        let requestBody : any = {};
+        for (let _key in formRequestBodyData) {
+            if (Object.keys(latestStep).length > 0 && _key in latestStep[unittest_step_request_body]) {
+                requestBody[_key] = latestStep[unittest_step_request_body][_key];
+            } else {
+                requestBody[_key] = formRequestBodyData[_key][TABLE_FIELD_VALUE];
+            }
+        }
+        for (let _key in requestBody) {
+            if (formRequestBodyData[_key] === undefined) return;
+            formRequestBodyData[_key][TABLE_FIELD_VALUE] = requestBody[_key];
         }
 
         let buildJsonStringRet = await buildJsonString(formRequestBodyData);
-        let requestBody = buildJsonStringRet.returnObject;
+        requestBody = buildJsonStringRet.returnObject;
 
         let requestParam : any = {};
         for (let _key in formRequestParamData) {
-            requestParam[_key] = formRequestParamData[_key][TABLE_FIELD_VALUE];
+            if (Object.keys(latestStep).length > 0 && _key in latestStep[unittest_step_request_param]) {
+                requestParam[_key] = latestStep[unittest_step_request_param][_key];
+            } else {
+                requestParam[_key] = formRequestParamData[_key][TABLE_FIELD_VALUE];
+            }
+        }
+        for (let _key in requestParam) {
+            if (formRequestParamData[_key] === undefined) return;
+            formRequestParamData[_key][TABLE_FIELD_VALUE] = requestParam[_key];
         }
 
         let requestPathVariable : any = {};
         for (let _key in formRequestPathVariableData) {
-            requestPathVariable[_key] = formRequestPathVariableData[_key][TABLE_FIELD_VALUE];
+            if (Object.keys(latestStep).length > 0 && _key in latestStep[unittest_step_request_path_variable]) {
+                requestPathVariable[_key] = latestStep[unittest_step_request_path_variable][_key];
+            } else {
+                requestPathVariable[_key] = formRequestPathVariableData[_key][TABLE_FIELD_VALUE];
+            }
+        }
+        for (let _key in requestPathVariable) {
+            if (formRequestPathVariableData[_key] === undefined) return;
+            formRequestPathVariableData[_key][TABLE_FIELD_VALUE] = requestPathVariable[_key];
         }
 
         let responseContent = request[iteration_response_content];
@@ -1031,6 +1075,8 @@ class UnittestStepContainer extends Component {
                                                 unitTestUuid={this.state.unitTestUuid}
                                                 unitTestStepUuid={this.state.unitTestStepUuid}
                                                 project={this.state.prj}
+                                                dataSourceType={ UNITTEST_DATASOURCE_TYPE_REF }
+                                                selectedStep={ UNITTEST_STEP_CURRENT }
                                             />
                                             }
                                         </>
@@ -1061,6 +1107,8 @@ class UnittestStepContainer extends Component {
                                             unitTestUuid={this.state.unitTestUuid}
                                             unitTestStepUuid={this.state.unitTestStepUuid}
                                             project={this.state.prj}
+                                            dataSourceType={ UNITTEST_DATASOURCE_TYPE_REF }
+                                            selectedStep={ UNITTEST_STEP_CURRENT }
                                         />
                                         }
                                         <Select 
@@ -1097,6 +1145,8 @@ class UnittestStepContainer extends Component {
                                             unitTestUuid={this.state.unitTestUuid}
                                             unitTestStepUuid={this.state.unitTestStepUuid}
                                             project={this.state.prj}
+                                            dataSourceType={ UNITTEST_DATASOURCE_TYPE_ENV }
+                                            selectedStep={ "" }
                                         />
                                         }
                                     </> }

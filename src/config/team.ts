@@ -240,8 +240,6 @@ export const UNITTES_ITERATION_FETCH_SINGLE_URL = "/unittest/iteration/getSingle
 
 export const UNITTES_PROJECT_FETCH_SINGLE_URL = "/unittest/project/getSingle"
 
-export const UNITTES_ITERATION_STEP_SAVE_URL = "/unittest/iteration/saveStep"
-
 export const UNITTES_ITERATION_STEP_DEL_URL = "/unittest/iteration/delStep"
 
 export const UNITTES_ITERATION_CLEAN_NODE_ADD_URL = "/unittest/iteration/addCleanNode"
@@ -264,4 +262,8 @@ export const UNITTES_TEMPLATE_DEL_URL = "/unittest/template/del"
 
 export const UNITTES_TEMPLATE_ITERATOR_URL = "/unittest/template/getIterator"
 
-export const UNITTES_TEMPLATE_STEP_SAVE_URL = "/unittest/template/saveStep"
+export const UNITTES_ITERATION_STEP_SAVE_URL = "/unittest/step/saveIteratorStep"
+
+export const UNITTES_TEMPLATE_STEP_SAVE_URL = "/unittest/step/saveTemplateStep"
+
+export const UNITTES_STEP_LATEST_URL = "/unittest/step/getLastStepByPrj"

@@ -10,6 +10,7 @@ import {
     TABLE_VERSION_ITERATION_REQUEST_FIELDS,
 } from '@conf/db';
 import {
+    UNITTES_STEP_LATEST_URL,
     UNITTES_ITERATION_STEP_SAVE_URL,
     UNITTES_ITERATION_CLEAN_NODE_SAVE_URL,
     UNITTES_ITERATION_CLEAN_NODE_ADD_URL,
@@ -31,6 +32,16 @@ let iteration_request_json_flg = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_JS
 let iteration_response_header = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_HEAD;
 let iteration_response_cookie = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_COOKIE;
 let iteration_response_content = TABLE_VERSION_ITERATION_REQUEST_FIELDS.FIELD_RESPONSE_CONTENT;
+
+export async function getLatestStep(
+    versionIteratorId : string, unitTestUuid : string, 
+    project : string, sort : number
+) {
+    let latestStep = await sendTeamMessage(UNITTES_STEP_LATEST_URL, {
+        iterator: versionIteratorId, unitTest: unitTestUuid, prj: project, maxSort: sort
+    })
+    return latestStep;
+}
 
 export async function editUnitTestStep(
     versionIteratorId : string, unitTestUuid : string, unittest_step_uuid : string, 

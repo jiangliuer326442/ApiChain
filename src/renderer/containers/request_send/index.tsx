@@ -25,8 +25,7 @@ import {
 } from '@rutil/json';
 import { 
   ENV_VALUE_API_HOST, 
-  ENV_VALUE_RUN_MODE_CLIENT, 
-  ENV_VALUE_RUN_MODE_RUMMER 
+  ENV_VALUE_RUN_MODE_CLIENT,
 } from "@conf/envKeys";
 import { getWikiSendRequest } from '@conf/url';
 import { 

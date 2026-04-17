@@ -83,12 +83,21 @@ class StepExpressionBuilderBox extends Component {
         } else {
             this.paramTips.setProject("");
         }
-        this.paramTips.setContent(content);
+        let dataSourceType;
+        let selectedStep
+        if (isStringEmpty(content)) {
+            dataSourceType = isStringEmpty(props.dataSourceType) ? UNITTEST_DATASOURCE_TYPE_ENV : props.dataSourceType;
+            selectedStep = isStringEmpty(props.selectedStep) ? UNITTEST_DATASOURCE_TYPE_ENV : props.selectedStep;
+            if (isStringEmpty(props.unitTestStepUuid)) {
+                selectedStep = UNITTEST_STEP_CURRENT;
+            }
 
-        let selectedStep = this.paramTips.getSelectedStep();
-        if (isStringEmpty(props.unitTestStepUuid)) {
-            selectedStep = "";
+        } else {
+            this.paramTips.setContent(content);
+            dataSourceType = this.paramTips.getDataSourceType()
+            selectedStep = this.paramTips.getSelectedStep();
         }
+        console.log("dataSourceType", dataSourceType, "content", content, "sourceId", props.sourceId)
 
         this.state = {
             loadeadFlg: false,
@@ -98,7 +107,7 @@ class StepExpressionBuilderBox extends Component {
             loaded: false,
             stepsSelect: [],
             prjSelect:[],
-            dataSourceType: this.paramTips.getDataSourceType(),
+            dataSourceType,
             initializeDataSourceType: this.paramTips.getDataSourceType(),
             selectedStep,
             initializeSelectedStep: selectedStep,
