@@ -213,6 +213,7 @@ class AddEnvVarComponent extends Component {
 }
 
 function mapStateToProps (state) {
+    console.log("iteration", state.env_var.iterator ? state.env_var.iterator : "");
     return {
         teamId: state.device.teamId,
         clientType: state.device.clientType,

@@ -113,7 +113,7 @@ export default class {
             } else if (this.env_var_type === "iterator") {
                 this.envvars = await getIteratorEnvValues(this.iteration, this.prj, env, this.clientType);
             } else if (this.env_var_type === "unittest") {
-                this.envvars = await getUnittestEnvValues(this.unittest, this.prj, env, this.clientType);
+                this.envvars = await getUnittestEnvValues(this.unittest, this.iteration, this.prj, env, this.clientType);
             }
         }
 

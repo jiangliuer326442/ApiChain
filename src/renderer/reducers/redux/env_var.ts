@@ -51,11 +51,11 @@ export default function (state = {
               unittest: action.unittest,
             });
         case SHOW_ADD_PROPERTY_MODEL:
-          localStorage.setItem(ITERATOR, action.iteration);
+          localStorage.setItem(ITERATOR, action.iterator);
           return Object.assign({}, state, {
             showAddPropertyModelFlg : action.open,
             prj: isStringEmpty(action.prj) ? "" : action.prj,
-            iterator: isStringEmpty(action.iteration) ? "" : action.iteration,
+            iterator: isStringEmpty(action.iterator) ? "" : action.iterator,
             unittest: isStringEmpty(action.unittest) ? "" : action.unittest,
             source: "",
             pname: "",
@@ -64,6 +64,7 @@ export default function (state = {
             encryptFlg: 0,
         });
         case SHOW_EDIT_PROPERTY_MODEL:
+          localStorage.setItem(ITERATOR, action.iterator);
           return Object.assign({}, state, {
             showAddPropertyModelFlg : action.open,
             prj: isStringEmpty(action.prj) ? "" : action.prj,
