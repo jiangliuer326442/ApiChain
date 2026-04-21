@@ -83,11 +83,24 @@ class StepExpressionBuilderBox extends Component {
         } else {
             this.paramTips.setProject("");
         }
-        this.paramTips.setContent(content);
-
-        let selectedStep = this.paramTips.getSelectedStep();
-        if (isStringEmpty(props.unitTestStepUuid)) {
-            selectedStep = "";
+        let dataSourceType;
+        let selectedStep
+        let selectedDataSource;
+        if (isStringEmpty(content)) {
+            dataSourceType = isStringEmpty(props.dataSourceType) ? UNITTEST_DATASOURCE_TYPE_ENV : props.dataSourceType;
+            selectedStep = isStringEmpty(props.selectedStep) ? UNITTEST_STEP_CURRENT : props.selectedStep;
+            if (isStringEmpty(props.unitTestStepUuid)) {
+                selectedStep = UNITTEST_STEP_CURRENT;
+            }
+            selectedDataSource = isStringEmpty(props.selectedDataSource) ? UNITTEST_STEP_RESPONSE : props.selectedDataSource;
+            this.paramTips.setDataSourceType(dataSourceType);
+            this.paramTips.setSelectedStep(selectedStep);
+            this.paramTips.setSelectedDataSource(selectedDataSource);
+        } else {
+            this.paramTips.setContent(content);
+            dataSourceType = this.paramTips.getDataSourceType()
+            selectedStep = this.paramTips.getSelectedStep();
+            selectedDataSource = this.paramTips.getSelectedDataSource()
         }
 
         this.state = {
@@ -98,13 +111,13 @@ class StepExpressionBuilderBox extends Component {
             loaded: false,
             stepsSelect: [],
             prjSelect:[],
-            dataSourceType: this.paramTips.getDataSourceType(),
+            dataSourceType,
             initializeDataSourceType: this.paramTips.getDataSourceType(),
             selectedStep,
             initializeSelectedStep: selectedStep,
             selectedProject: this.paramTips.getSelectedProject(),
-            selectedDataSource: this.paramTips.getSelectedDataSource(),
-            initializeSelectedDataSource: this.paramTips.getSelectedDataSource(),
+            selectedDataSource,
+            initializeSelectedDataSource: selectedDataSource,
             steps: [],
             dataSource: {},
             initializeValue: content,
@@ -115,6 +128,10 @@ class StepExpressionBuilderBox extends Component {
     }
 
     async componentDidMount() {
+        this.loadData();
+    }
+
+    loadData = async () => {
         if (this.props.iteratorId && !this.props.unittest[this.props.iteratorId]) {
             await getIterationUnitTests(
                 this.props.clientType, 
@@ -123,7 +140,7 @@ class StepExpressionBuilderBox extends Component {
             );
             this.setState({loadeadFlg: true});
         } else if (!this.props.iteratorId && !this.props.unittest["__template__"]) {
-            await getUnitTests(this.props.clientType, null, this.props.dispatch);
+            await getUnitTests(this.props.clientType, this.props.dispatch);
             this.setState({loadeadFlg: true});
         } else {
             this.setState({loadeadFlg: true});
@@ -174,7 +191,48 @@ class StepExpressionBuilderBox extends Component {
         return { loaded : true }
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps, prevState) {
+        if (
+            prevState.initializeValue != this.props.value || 
+            prevProps.iteratorId != this.props.iteratorId || 
+            prevProps.unitTestUuid != this.props.unitTestUuid || 
+            prevProps.project != this.props.project
+        ) {
+            let content = this.props.value;
+            let iteration = this.props.iteratorId ? this.props.iteratorId : "";
+            this.paramTips  = new JsonParamTips(iteration, this.props.unitTestUuid, this.props.clientType);
+            if (this.props.project) {
+                this.paramTips.setProject(this.props.project);
+            } else {
+                this.paramTips.setProject("");
+            }
+            this.paramTips.setContent(content);
+            let selectedStep = this.paramTips.getSelectedStep();
+            if (isStringEmpty(this.props.unitTestStepUuid)) {
+                selectedStep = "";
+            }
+            this.setState({
+                loadeadFlg: false,
+                responseTips: this.props.options != undefined ? this.props.options : [],
+                assertPrev: this.paramTips.getAssertPrev()?.trim(),
+                initializeAssertPrev: this.paramTips.getAssertPrev()?.trim(),
+                loaded: false,
+                stepsSelect: [],
+                prjSelect:[],
+                dataSourceType: this.paramTips.getDataSourceType(),
+                initializeDataSourceType: this.paramTips.getDataSourceType(),
+                selectedStep,
+                initializeSelectedStep: selectedStep,
+                selectedProject: this.paramTips.getSelectedProject(),
+                selectedDataSource: this.paramTips.getSelectedDataSource(),
+                initializeSelectedDataSource: this.paramTips.getSelectedDataSource(),
+                steps: [],
+                dataSource: {},
+                initializeValue: content,
+                cbContent: content,
+                openFlg: false,
+            }, this.loadData );
+        }
         if (this.state.loaded && this.state.dataSourceType === UNITTEST_DATASOURCE_TYPE_REF && Object.keys(this.state.dataSource).length === 0) {
             if (this.state.selectedStep === UNITTEST_STEP_CURRENT) {
                 let selectedDataSource = this.state.selectedDataSource;
@@ -205,11 +263,11 @@ class StepExpressionBuilderBox extends Component {
                 let selectedStepId = this.state.selectedStep.replace(UNITTEST_STEP_POINTED, "");
                 let step = this.state.steps.find(row => row[unittest_step_uuid] === selectedStepId);
                 if (step === undefined) return;
-                console.log("props", this.props);
                 getUnitTestRequests(
                     this.props.clientType, 
+                    this.props.isAiSupport,
                     step[unittest_step_prj], 
-                    this.props.fakeIterator, 
+                    this.props.iteratorId ? this.props.iteratorId : this.props.fakeIterator, 
                     step[unittest_step_uri]
                 ).then(async requests => {
                     let request = requests.find(row => row[iteration_request_method] === step[unittest_step_method]);
@@ -447,10 +505,10 @@ class StepExpressionBuilderBox extends Component {
 function mapStateToProps (state) {
     return {
         unittest: state.unittest.list,
-        iteratorId: state.unittest.iteratorId,
         prjs: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        isAiSupport: state.device.isAiSupport
     }
 }
       

@@ -423,7 +423,10 @@ class RequestSaveContainer extends Component {
             requestHeadData, requestBodyData, requestFileData, requestParamData, requestPathVariableData, 
             historyRecord[request_history_jsonFlg] ? JSON.parse(historyRecord[request_history_response_content]) : {}
         );
-        this.props.clientType == CLIENT_TYPE_TEAM && getInterfaceTranslate(prj, uri, setToJson(allKeys), this.props.isAiSupport).then(dictory => {
+        this.props.clientType == CLIENT_TYPE_TEAM && getInterfaceTranslate(
+            prj, uri, setToJson(allKeys), 
+            this.props.isAiSupport
+        ).then(dictory => {
             let formRequestHeadData = {};
             parseJsonToTableWithDict(formRequestHeadData, requestHeadData, dictory);
     

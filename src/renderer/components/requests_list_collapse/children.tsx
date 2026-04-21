@@ -248,7 +248,9 @@ class RequestListCollapseChildren extends Component {
         if (this.props.type === "prj") {
             let folder  = this.props.folder.substring(FoldSourcePrj.length);
             let prj = this.props.metadata;
-            let datas = await getFolderProjectRequests(this.props.clientType, prj, folder, this.props.filterTitle, this.props.filterUri, pagination);
+            let datas = await getFolderProjectRequests(this.props.clientType, prj, folder, 
+                this.props.filterTitle, this.props.filterUri, 
+                this.props.isAiSupport, pagination);
             this.setState({listDatas: datas, pagination, prj});
         } else if (this.props.type === "iterator") {
             let folder  = this.props.folder.substring(FoldSourceIterator.length);
@@ -350,6 +352,7 @@ function mapStateToProps (state) {
       prjs: state.prj.list,
       iterators: state.version_iterator.list,
       device : state.device,
+      isAiSupport: state.device.isAiSupport,
     }
 }
 

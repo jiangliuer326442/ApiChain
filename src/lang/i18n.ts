@@ -26,6 +26,19 @@ export function setLang(userCountry : string, userLang : string) {
   }
 }
 
+export function setLang2(langParam) {
+  lang = langParam;
+  if (lang == 'zh-CN') {
+    data = zhCnLang;
+  } else if (lang == 'zh-TW') {
+    data = zhTwLang;
+  } else if (lang == 'en-US') {
+    data = enUsLang;
+  } else {
+    data = enUsLang;
+  }
+}
+
 export function getLang() : string {
   return lang;
 }

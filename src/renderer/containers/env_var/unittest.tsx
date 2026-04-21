@@ -153,9 +153,9 @@ class EnvVar extends Component {
     let unittest;
     if (!isStringEmpty(this.state.iteratorId)) {
       //拿迭代单侧
-      unittest = await getIteratorSingleUnittest(this.props.clientType, this.state.unittestId, this.state.iteratorId, this.props.env)
+      unittest = await getIteratorSingleUnittest(this.state.unittestId, this.state.iteratorId, this.props.env)
     } else {
-      unittest = await getProjectSingleUnittest(this.props.clientType, this.state.unittestId, this.props.teamId, this.state.prj, this.props.env)
+      unittest = await getProjectSingleUnittest(this.state.unittestId, this.props.teamId, this.state.prj, this.props.env)
     }
     this.setState({ unittest });
     this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, this.props.env, "");
@@ -186,7 +186,7 @@ class EnvVar extends Component {
         type: GET_ENV_VALS,
         prj: this.state.prj,
         env: value,
-        iterator: "",
+        iterator: this.state.iteratorId,
         unittest: this.state.unittestId
       });
       this.getEnvValueData(this.state.iteratorId, this.state.prj, this.state.unittestId, value, "");
@@ -200,7 +200,7 @@ class EnvVar extends Component {
       this.props.dispatch({
           type: SHOW_ADD_PROPERTY_MODEL,
           open: true,
-          iteration: this.state.iteratorId,
+          iterator: this.state.iteratorId,
           unittest: this.state.unittestId,
           prj: this.state.prj,
       });
@@ -210,7 +210,7 @@ class EnvVar extends Component {
       this.props.dispatch({
           type: SHOW_EDIT_PROPERTY_MODEL,
           open: true,
-          iteration: this.state.iteratorId,
+          iteriteratoration: this.state.iteratorId,
           unittest: this.state.unittestId,
           prj: this.state.prj,
           pname: record[pname],
@@ -245,15 +245,6 @@ class EnvVar extends Component {
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar unittest bread1") }, { title: langTrans("envvar unittest bread2") }]} />
             <Flex justify="space-between" align="center">
               <Form layout="inline">
-                  <Form.Item label={langTrans("envvar select tip4")}>
-                      <Select
-                          style={{ width: 180 }}
-                          options={this.state.unittest[unittest_projects] ? this.state.unittest[unittest_projects].map(item => {
-                              return {value: item, label: this.props.prjs.find(row => row.value === item) ? this.props.prjs.find(row => row.value === item).label : ""}
-                          }) : []}
-                          onChange={ value => this.getEnvValueData(this.state.iteratorId, value, this.state.unittestId, this.props.env, "")}
-                      />
-                  </Form.Item>  
                   <Form.Item label={langTrans("envvar select tip1")}>
                       {this.props.envs.length > 0 ?
                       <Select
@@ -312,7 +303,6 @@ class EnvVar extends Component {
 function mapStateToProps (state) {
   return {
       env: state.env_var.env,
-      prjs: state.prj.list,
       device : state.device,
       envs: state.env.list,
       teamId: state.device.teamId,

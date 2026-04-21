@@ -187,3 +187,10 @@ export const ChannelsDatabaseQueryResult = 'database_query_result';
 export const ChannelsDatabaseExecute = 'database_execute';
 
 export const ChannelsDatabaseExecuteFinish = 'database_execute_finish';
+
+//语言设置操作
+export type ChannelsLang = 'pipeline_langguage';
+
+export const ChannelsLangStr = 'pipeline_langguage';
+
+export const ChannelsLangSet = 'set_lang';

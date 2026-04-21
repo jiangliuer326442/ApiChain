@@ -4,6 +4,7 @@ import Store from 'electron-store';
 import { osLocale } from '../third_party/os-locale';
 import { doRequest, getPackageJson, md5 } from './util'
 import { isStringEmpty } from '../../renderer/util';
+import { setLangWraped } from '../processInit/langguage'
 import {
     CONTENT_TYPE_URLENCODE
 } from '../../config/contentType';
@@ -11,6 +12,7 @@ import {
     CONTENT_TYPE,
     SYS_CLIENT_VERSION,
     SYS_LANG,
+    USER_LANG,
     SYS_TEAM,
     SYS_COUNTRY,
     REQUEST_METHOD_POST,
@@ -59,9 +61,11 @@ async function postRequest2(uuid : string, clientHost : string, urlPrefix : stri
     let userLang = lang.split("-")[0];
     let userCountry = lang.split("-")[1];
     let packageJson = await getPackageJson();
+    let wrapedLang = setLangWraped(store);
     
     let headData : any = {}
     headData[CONTENT_TYPE] = CONTENT_TYPE_URLENCODE;
+    headData[USER_LANG] = wrapedLang;
     headData[SYS_LANG] = userLang;
     headData[SYS_COUNTRY] = userCountry;
     headData[SYS_CLIENT_VERSION] = packageJson.version;

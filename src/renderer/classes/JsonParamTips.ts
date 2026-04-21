@@ -26,6 +26,7 @@ import {
 
 import {
     UNITTEST_FUNCTION_ANY_EVAL,
+    UNITTEST_FUNCTION_LENGTH,
     UNITTEST_FUNCTION_ARRAY_RANDOM,
     UNITTEST_FUNCTION_ARRAY_FIRST,
     UNITTEST_FUNCTION_ARRAY_LAST,
@@ -136,8 +137,16 @@ export default class {
         this.dataSourceType = dataSourceType;
     }
 
+    setSelectedStep(selectedStep: string) {
+        this.selectedStep = selectedStep;
+    }
+
     getSelectedStep() : string {
         return this.selectedStep;
+    }
+
+    setSelectedDataSource(selectedDataSource: string) {
+        this.selectedDataSource = selectedDataSource;
     }
 
     getSelectedDataSource() : string {
@@ -217,7 +226,10 @@ export default class {
             if (isStringEmpty(structType)) {
                 structType = getType(jsonObject);
             }
-
+            let item : any = {};
+            item.label = UNITTEST_FUNCTION_LENGTH;
+            item.value = tipsBefore + UNITTEST_FUNCTION_LENGTH;
+            result.push(item);
             if (structType === "Array") {
                 let item : any = {};
                 item.label = UNITTEST_FUNCTION_ARRAY_FIRST;
@@ -400,6 +412,15 @@ export default class {
                     dataSource = dataSource[length - 1];
                 } else {
                     dataSource = "";
+                }
+            } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_LENGTH)) {
+                let type = getType(dataSource);
+                if (type === "Array") {
+                    return dataSource.length;
+                } else if (type === "Object") {
+                    return Object.keys(dataSource).length;
+                } else {
+                    return String(dataSource).length;
                 }
             } else if (currentFuncName === this.getFuncName(UNITTEST_FUNCTION_ARRAY_RANDOM)) {
                 if (dataSource.length > 0) {

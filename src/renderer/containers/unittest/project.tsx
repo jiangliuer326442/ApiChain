@@ -5,7 +5,6 @@ import {
   Layout,
   Flex,
   Dropdown,
-  Popconfirm,
   Table,
   Space,
   Button,
@@ -15,13 +14,13 @@ import {
   message,
 } from 'antd';
 import type { MenuProps } from 'antd';
-import { EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
+import { EditOutlined, MoreOutlined, ClearOutlined } from '@ant-design/icons';
 
 import { langTrans } from '@lang/i18n';
 import { EMPTY_STRING } from '@conf/global_config';
 import {
   TABLE_UNITTEST_FIELDS,
-  TABLE_UNITTEST_STEPS_FIELDS,
+  TABLE_VERSION_ITERATION_FIELDS,
   TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
   UNAME,
 } from '@conf/db';
@@ -41,9 +40,11 @@ import { getEnvs } from '@act/env';
 import {
   getProjectUnitTests,
   executeProjectUnitTest,
-  continueProjectExecuteUnitTest,
-  copyFromProjectToIterator,
+  batchMoveUnittest,
 } from '@act/unittest';
+import {
+    getUnittestCleanNodes,
+} from '@act/unittest_step';
 import PayMemberModel from '@comp/topup/member';
 import AddUnittestComponent from '@comp/unittest/add_unittest';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
@@ -56,18 +57,15 @@ const unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 const unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
 const unittest_folder = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
 const unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
-
-const unittest_step_unittest_uuid =
-  TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
-const unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
+let unittest_clean = TABLE_UNITTEST_FIELDS.FIELD_CLEANNER;
+let unittest_clean_flg = TABLE_UNITTEST_FIELDS.FIELD_CLEANFLG;
 
 const unittest_report_result = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_RESULT;
 const unittest_report_env = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_ENV;
-const unittest_report_step = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_STEP;
-const unittest_report_batch =
-  TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_BATCH_UUID;
-const unittest_report_cost_time =
-  TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST_TIME;
+const unittest_report_cost_time = TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS.FIELD_COST_TIME;
+
+let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
+let version_iterator_title = TABLE_VERSION_ITERATION_FIELDS.FIELD_NAME;
 
 class UnittestListVersion extends Component {
   constructor(props) {
@@ -170,48 +168,7 @@ class UnittestListVersion extends Component {
                 </Space>
               );
             } else {
-              //整体单测的 uuid
-              const valueUnittestStepUnittestUuid =
-                record[unittest_step_unittest_uuid];
-              //当前步骤的 uuid
-              const valueUnittestStepUuid = record[unittest_step_uuid];
-              //报告中的下一步
-              const valueUnittestReportStep = record[unittest_report_step];
-              return (
-                <Space>
-                  {valueUnittestStepUuid === valueUnittestReportStep ? (
-                    <Button
-                      type="link"
-                      onClick={async () => {
-                        this.setState({
-                          executeFlg: false,
-                          unittestUuid: '',
-                          batchUuid: '',
-                        });
-
-                        const batchUuid = await continueProjectExecuteUnitTest(
-                          this.props.clientType, this.state.teamId,
-                          iteratorId,
-                          valueUnittestStepUnittestUuid,
-                          record[unittest_report_batch],
-                          valueUnittestReportStep,
-                          record[unittest_report_env],
-                          (batchUuid: string, stepUuid: string) => {
-                            this.setState({ unittestUuid: valueUnittestStepUnittestUuid, batchUuid, stepUuid });
-                          },
-                        );
-
-                        this.setState({
-                          unittestUuid: valueUnittestStepUnittestUuid,
-                          batchUuid,
-                        });
-                      }}
-                    >
-                      {langTrans("prj unittest act3")}
-                    </Button>
-                  ) : null}
-                </Space>
-              );
+              return null;
             }
           },
         },
@@ -224,6 +181,7 @@ class UnittestListVersion extends Component {
       showPay: false,
       selectedUnittests: [],
       teamId,
+      movedIterator: "",
     };
     props.dispatch({
       type: GET_PRJ,
@@ -243,6 +201,7 @@ class UnittestListVersion extends Component {
         project: nextProject,
         unittestUuid: '',
         batchUuid: '',
+        movedIterator: "",
       };
     }
 
@@ -266,6 +225,8 @@ class UnittestListVersion extends Component {
   async componentDidUpdate(prevProps) {
     if (this.props.match.params.id !== prevProps.match.params.id) {
       await getProjectUnitTests(
+        this.props.clientType,
+        this.state.teamId,
         this.state.project,
         this.state.folder,
         this.props.env,
@@ -276,49 +237,28 @@ class UnittestListVersion extends Component {
 
   getMore = (record: any): MenuProps => {
     if (record[unittest_folder] !== undefined) {
+      let items = [
+        {
+          key: '1',
+          label: (
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => this.editUnitTestClick(record)}
+            >
+              {langTrans("prj unittest act4")}
+            </Button>
+          ),
+        },
+      ];
+      if (!isStringEmpty(record[unittest_clean])) {
+        items.push({
+            key: "2",
+            label: <Button type='text' icon={<ClearOutlined />} href={`#/tests_clean_edit/${this.state.project}/${record[unittest_clean]}`}>{langTrans("version unittest act6")}</Button>
+        });
+      }
       return {
-        items: [
-          {
-            key: '1',
-            label: (
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                onClick={() => this.editUnitTestClick(record)}
-              >
-                {langTrans("prj unittest act4")}
-              </Button>
-            ),
-          },
-          {
-            key: '2',
-            danger: true,
-            label: (
-              <Popconfirm
-                title={langTrans("prj unittest del title")}
-                description={langTrans("prj unittest del desc")}
-                onConfirm={(e) => {
-                  this.undoExportUnitTestClick(record, () => {
-                    getProjectUnitTests(
-                      this.props.clientType,
-                      this.state.teamId,
-                      this.state.project,
-                      this.state.folder,
-                      this.props.env,
-                      this.props.dispatch,
-                    );
-                  });
-                }}
-                okText={langTrans("prj unittest del sure")}
-                cancelText={langTrans("prj unittest del cancel")}
-              >
-                <Button danger type="link" icon={<DeleteOutlined />}>
-                {langTrans("prj unittest act5")}
-                </Button>
-              </Popconfirm>
-            ),
-          },
-        ],
+        items,
       };
     } else {
       return { items: [] };
@@ -353,11 +293,6 @@ class UnittestListVersion extends Component {
       getProjectUnitTests(this.props.clientType, this.state.teamId, this.state.project, selectedFolder, this.props.env, this.props.dispatch);
   }
 
-  undoExportUnitTestClick = (record, cb) => {
-    const unittestId = record[unittest_uuid];
-    copyFromProjectToIterator(unittestId, cb);
-  };
-
   editUnitTestClick = (record) => {
     this.props.dispatch({
       type: SHOW_EDIT_UNITTEST_MODEL,
@@ -375,6 +310,22 @@ class UnittestListVersion extends Component {
     );
     this.setState({ selectedUnittests: filteredUnittestKeys });
   };
+
+  moveUnitestIterator = async (newIterator) => { 
+      if (newIterator === undefined) {
+          this.setState({movedIterator: ""})
+          return;
+      }
+      if (this.state.selectedUnittests.length === 0) return;
+      await batchMoveUnittest(
+          this.props.clientType, 
+          this.state.selectedUnittests, 
+          newIterator, 
+          this.props.device
+      )
+      this.setState({movedIterator: newIterator})
+      message.success(langTrans("prj unittest status2"));
+  }
 
   render(): ReactNode {
     return (
@@ -425,11 +376,24 @@ class UnittestListVersion extends Component {
                       })}
                   />
               </Form.Item>
+              <Form.Item label={ langTrans("version doc operator3") }>
+                  <Select 
+                      showSearch
+                      allowClear
+                      value={this.state.movedIterator}
+                      style={{minWidth: 260}}
+                      options={this.props.iterators.map(item => ({
+                          value: item[version_iterator_uuid],
+                          label: item[version_iterator_title]
+                      })) }
+                      onChange={ this.moveUnitestIterator }
+                  />
+              </Form.Item>
               <Form.Item>
                 <Button
                   type="primary"
                   disabled={!this.state.executeFlg || this.state.selectedUnittests.length === 0}
-                  onClick={() => {
+                  onClick={async () => {
                     if (!this.props.device.vipFlg && !this.props.device.isUnitTest) {
                         this.setState({
                             showPay: true,
@@ -450,11 +414,16 @@ class UnittestListVersion extends Component {
                       const currentUnitTest = this.props.unittest[
                         this.state.project
                       ].find((item) => item[unittest_uuid] === unittestUuid);
+                      let cleanNodes = [];
+                      if (currentUnitTest[unittest_clean_flg] == 1) {
+                          cleanNodes = await getUnittestCleanNodes(currentUnitTest[unittest_clean]);
+                      }
                       executeProjectUnitTest(
                         this.props.clientType,
                         this.state.teamId,
                         unittestUuid,
                         currentUnitTest.children,
+                        cleanNodes,
                         this.props.env,
                         (batchUuid: string, stepUuid: string) => {
                           this.setState({ unittestUuid, batchUuid, stepUuid });
@@ -513,6 +482,7 @@ function mapStateToProps(state) {
     device : state.device,
     unittest: state.unittest.list,
     folders: state.unittest.folders,
+    iterators: state.version_iterator.list,
     env: state.env_var.env,
     envs: state.env.list,
     clientType: state.device.clientType,

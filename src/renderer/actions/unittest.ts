@@ -1,17 +1,16 @@
 import { v4 as uuidv4 } from 'uuid';
 import { cloneDeep } from 'lodash';
 
-import { 
-    TABLE_UNITTEST_FOLD_NAME, TABLE_UNITTEST_FOLD_FIELDS,
-    TABLE_UNITTEST_NAME, TABLE_UNITTEST_FIELDS,
-    TABLE_UNITTEST_STEPS_NAME,TABLE_UNITTEST_STEPS_FIELDS,
-    TABLE_UNITTEST_EXECUTOR_NAME, TABLE_UNITTEST_EXECUTOR_FIELDS,
-    TABLE_UNITTEST_EXECUTOR_REPORT_NAME, TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
-    TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
-    TABLE_REQUEST_HISTORY_FIELDS, 
-    TABLE_ENV_VAR_NAME, TABLE_ENV_VAR_FIELDS,
-    TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME, TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS,
-    TABLE_UNITTEST_TEMPLATE_STEPS_NAME, TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS,
+import {
+    TABLE_UNITTEST_FIELDS,
+    TABLE_UNITTEST_CLEAN_FIELDS,
+    TABLE_UNITTEST_STEPS_FIELDS,
+    TABLE_UNITTEST_EXECUTOR_NAME, 
+    TABLE_UNITTEST_EXECUTOR_FIELDS,
+    TABLE_UNITTEST_EXECUTOR_REPORT_NAME, 
+    TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
+    TABLE_UNITTEST_STEP_ASSERT_FIELDS,
+    TABLE_REQUEST_HISTORY_FIELDS,
     UNAME,
 } from '@conf/db';
 import {
@@ -39,7 +38,6 @@ import {
     UNITTEST_RESULT_SUCCESS,
     UNITTEST_RESULT_FAILURE,
     UNITTEST_RESULT_UNKNOWN,
-    ASSERT_TYPE_API,
     ASSERT_TYPE_DB,
 } from '@conf/unittest';
 import {
@@ -48,10 +46,11 @@ import {
 import { GET_ITERATOR_TESTS, GET_PROJECT_TESTS } from '@conf/redux';
 import {
     CLIENT_TYPE_TEAM, 
-    CLIENT_TYPE_SINGLE,
     UNITTES_PROJECT_SAVE_URL,
+    UNITTES_PROJECT_REMOVE_URL,
     UNITTES_ITERATION_SAVE_URL,
     UNITTES_ITERATION_DEL_URL,
+    UNITTEST_MOVE_ITERATOR_URL,
     UNITTES_ITERATION_ALL_URL,
     UNITTES_PROJECT_FETCH_SINGLE_URL,
     UNITTES_PROJECT_ALL_URL,
@@ -60,12 +59,12 @@ import {
 
 import { 
     executeQuerySql,
+    executeDeleteSql,
     sendAjaxMessage,
     sendTeamMessage,
 } from '@act/message';
 import { getUsers } from '@act/user';
 import { addRequestHistory, getRequestHistory } from '@act/request_history';
-import { addProjectUnitTestFolder } from '@act/unittest_folders';
 import { getVersionIteratorRequest } from '@act/version_iterator_requests';
 import { getProjectRequest } from '@act/project_request';
 import { getEnvHosts, getEnvRunModes } from '@act/env_value';
@@ -83,32 +82,15 @@ import { TABLE_FIELD_TYPE } from '@rutil/json';
 import RequestSendTips from '@clazz/RequestSendTips';
 import JsonParamTips from '@clazz/JsonParamTips';
 
-let version_iteration_test_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR;
-let version_iteration_test_folder_name = TABLE_UNITTEST_FOLD_FIELDS.FIELD_FOLD_NAME;
-
 let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let field_unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
-let unittest_delFlg = TABLE_UNITTEST_FIELDS.FIELD_DELFLG;
-let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
-let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
-let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
-let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
-let unittest_refer_from = TABLE_UNITTEST_FIELDS.FIELD_REFER_FROM;
 let unittest_cuid = TABLE_UNITTEST_FIELDS.FIELD_CUID;
-let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
 
-let env_var_env = TABLE_ENV_VAR_FIELDS.FIELD_ENV_LABEL;
-let env_var_micro_service = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
-let env_var_iteration = TABLE_ENV_VAR_FIELDS.FIELD_ITERATION;
-let env_var_unittest = TABLE_ENV_VAR_FIELDS.FIELD_UNITTEST;
-let env_var_delFlg = TABLE_ENV_VAR_FIELDS.FIELD_DELFLG;
-let env_var_pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
-let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
+let field_clean_prj = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_PROJECTS;
+let field_clean_sql = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_SQL;
+let field_clean_sql_params = TABLE_UNITTEST_CLEAN_FIELDS.FIELD_SQL_PARAMS;
 
 let field_unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
-let unittest_step_iterator_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_ITERATOR_UUID;
-let unittest_step_unittest_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_step_title = TABLE_UNITTEST_STEPS_FIELDS.FIELD_TITLE;
 let unittest_step_project = TABLE_UNITTEST_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 let unittest_step_method = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_METHOD;
 let unittest_step_uri = TABLE_UNITTEST_STEPS_FIELDS.FIELD_URI;
@@ -118,57 +100,13 @@ let unittest_step_path_variable = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_PATH
 let unittest_step_body = TABLE_UNITTEST_STEPS_FIELDS.FIELD_REQUEST_BODY;
 let unittest_step_continue = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CONTINUE;
 let unittest_step_wait_seconds = TABLE_UNITTEST_STEPS_FIELDS.FIELD_WAIT_SECONDS;
-let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
-let unittest_step_cuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CUID;
-let unittest_step_ctime = TABLE_UNITTEST_STEPS_FIELDS.FIELD_CTIME;
-let unittest_step_delFlg = TABLE_UNITTEST_STEPS_FIELDS.FIELD_DELFLG;
 
-let unittest_step_assert_iterator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ITERATOR_UUID;
-let unittest_step_assert_unittest = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_step_assert_step = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_STEP_UUID;
-let unittest_step_assert_uuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UUID;
-let unittest_step_assert_title = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TITLE;
 let unittest_step_assert_type = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_TYPE;
 let unittest_step_assert_sql = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL;
 let unittest_step_assert_sql_params = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_SQL_PARAMS;
 let unittest_step_assert_left = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
 let unittest_step_assert_operator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
 let unittest_step_assert_right = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
-let unittest_step_assert_cuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CUID;
-let unittest_step_assert_delFlg = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_DELFLG;
-let unittest_step_assert_ctime = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CTIME;
-
-
-let field_unittest_template_step_uuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_UUID;
-let unittest_template_step_unittest_uuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_template_step_title = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_TITLE;
-let unittest_template_step_project = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_MICRO_SERVICE_LABEL;
-let unittest_template_step_method = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_METHOD;
-let unittest_template_step_uri = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_URI;
-let unittest_template_step_header = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_HEADER;
-let unittest_template_step_param = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_PARAM;
-let unittest_template_step_path_variable = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
-let unittest_template_step_body = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_REQUEST_BODY;
-let unittest_template_step_continue = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_CONTINUE;
-let unittest_template_step_wait_seconds = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_WAIT_SECONDS;
-let unittest_template_step_sort = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_SORT;
-let unittest_template_step_cuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_CUID;
-let unittest_template_step_ctime = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_CTIME;
-let unittest_template_step_delFlg = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_DELFLG;
-
-let unittest_template_step_assert_unittest = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_template_step_assert_step = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_STEP_UUID;
-let unittest_template_step_assert_uuid = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_UUID;
-let unittest_template_step_assert_title = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_TITLE;
-let unittest_template_step_assert_type = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_TYPE;
-let unittest_template_step_assert_sql = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_SQL;
-let unittest_template_step_assert_sql_params = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_SQL_PARAMS;
-let unittest_template_step_assert_left = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_ASSERT_LEFT;
-let unittest_template_step_assert_operator = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_ASSERT_OPERATOR;
-let unittest_template_step_assert_right = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_ASSERT_RIGHT;
-let unittest_template_step_assert_cuid = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_CUID;
-let unittest_template_step_assert_delFlg = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_DELFLG;
-let unittest_template_step_assert_ctime = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_CTIME;
 
 let unittest_executor_batch = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_BATCH_UUID;
 let unittest_executor_iterator = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_ITERATOR_UUID;
@@ -203,188 +141,37 @@ let request_history_header = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_HEADER;
 let request_history_param = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PARAM;
 let request_history_path_variable = TABLE_REQUEST_HISTORY_FIELDS.FIELD_REQUEST_PATH_VARIABLE;
 
-export async function batchMoveIteratorUnittest(oldIterator : string, unittestArr : Array<string>, newIterator : string, cb : () => void) {
-    for (let _unittestRow of unittestArr) {
-        let version_iteration_unittest = await window.db[TABLE_UNITTEST_NAME]
-        .where(field_unittest_uuid)
-        .equals(_unittestRow)
-        .first();
-
-        if (version_iteration_unittest === undefined) {
-            continue;
-        }
-
-        let selectedFold = version_iteration_unittest[unittest_fold];
-        let iteration_unittest_fold = await window.db[TABLE_UNITTEST_FOLD_NAME]
-        .where([version_iteration_test_folder_iterator, version_iteration_test_folder_name])
-        .equals([oldIterator, selectedFold])
-        .first();
-
-        let iteration_unittest_steps = await window.db[TABLE_UNITTEST_STEPS_NAME]
-        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-        .equals([0, oldIterator, _unittestRow])
-        .toArray();
-
-        version_iteration_unittest[unittest_iterator_uuid] = newIterator;
-        await window.db[TABLE_UNITTEST_NAME].put(version_iteration_unittest);
-
-        if (iteration_unittest_fold !== undefined) {
-            iteration_unittest_fold[version_iteration_test_folder_iterator] = newIterator;
-            await window.db[TABLE_UNITTEST_FOLD_NAME].put(iteration_unittest_fold);
-        }
-
-        let cloneIterationUnittestSteps = cloneDeep(iteration_unittest_steps);
-        for (let iteration_unittest_step of cloneIterationUnittestSteps) {
-            iteration_unittest_step[unittest_step_iterator_uuid] = newIterator;
-            await window.db[TABLE_UNITTEST_STEPS_NAME].put(iteration_unittest_step);
-        }
-
-        cloneIterationUnittestSteps = cloneDeep(iteration_unittest_steps);
-        for (let iteration_unittest_step of cloneIterationUnittestSteps) {
-            let iteration_unittest_step_uuid = iteration_unittest_step[field_unittest_step_uuid];
-            let iteration_unittest_asserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-            .equals([0, oldIterator, _unittestRow, iteration_unittest_step_uuid])
-            .toArray();
-            for (let iteration_unittest_assert of iteration_unittest_asserts) {
-                iteration_unittest_assert[unittest_step_assert_iterator] = newIterator;
-                await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME].put(iteration_unittest_assert);
-            }
-        }
-    }
-    cb();
-}
-
-export async function addIteratorUnitTest(
-    clientType : string, 
+export async function addIteratorUnitTest( 
     versionIteratorId : string, 
     title : string, 
     folder : string, 
-    referFrom : string,
-    device : object
+    referFrom : string
 ) {
 
     const unittest_uuid = uuidv4() as string;
-    if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {
-            iterator: versionIteratorId, 
-            uuid: unittest_uuid, 
-            title, 
-            fold: folder,
-            referFrom
-        });
-    }
-
-    let unit_test : any = {};
-    unit_test[unittest_iterator_uuid] = versionIteratorId;
-    unit_test[field_unittest_uuid] = unittest_uuid;
-    unit_test[unittest_title] = title;
-    unit_test[unittest_fold] = folder;
-    unit_test[unittest_refer_from] = referFrom;
-    unit_test[unittest_cuid] = device.uuid;
-    unit_test[unittest_ctime] = Date.now();
-    unit_test[unittest_delFlg] = 0;
-    await window.db[TABLE_UNITTEST_NAME].put(unit_test);
+    await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {
+        iterator: versionIteratorId, 
+        uuid: unittest_uuid, 
+        title, 
+        fold: folder,
+        referFrom
+    });
 }
 
-export async function editIteratorUnitTest(clientType : string, versionIteratorId : string, unitTestUuid : string, title : string, folder : string, ) {
-    if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {iterator: versionIteratorId, uuid: unitTestUuid, title, fold: folder});
-    }
-    let unitTest = await window.db[TABLE_UNITTEST_NAME]
-    .where(field_unittest_uuid).equals(unitTestUuid)
-    .first();
-
-    if (unitTest === undefined) return;
-
-    unitTest[unittest_title] = title;
-    unitTest[unittest_fold] = folder;
-    await window.db[TABLE_UNITTEST_NAME].put(unitTest);
+export async function editIteratorUnitTest(versionIteratorId : string, unitTestUuid : string, title : string, folder : string, ) {
+    await sendTeamMessage(UNITTES_ITERATION_SAVE_URL, {iterator: versionIteratorId, uuid: unitTestUuid, title, fold: folder});
 }
 
-export async function delUnitTest(clientType, row) {
+export async function delUnitTest(row) {
     let uuid = row[field_unittest_uuid];
     let iteratorId = row[unittest_iterator_uuid];
-
-    if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTES_ITERATION_DEL_URL, {iterator: iteratorId, uuid});
-    }
-
-    let unitTest = await window.db[TABLE_UNITTEST_NAME]
-    .where(field_unittest_uuid).equals(uuid)
-    .first();
-
-    if (unitTest !== undefined) {
-        unitTest[field_unittest_uuid] = uuid;
-        unitTest[unittest_delFlg] = 1;
-        await window.db[TABLE_UNITTEST_NAME].put(unitTest);
-    }
+    await sendTeamMessage(UNITTES_ITERATION_DEL_URL, {iterator: iteratorId, uuid});
 }
 
-export async function getIteratorSingleUnittest(clientType : string, unittest_uuid : string, iteratorId : string, env : string | null) {
-
-    let unitTest;
-    let unitTestSteps;
-
-    if (clientType === CLIENT_TYPE_TEAM) {
-        let ret = await sendTeamMessage(UNITTES_ITERATION_FETCH_SINGLE_URL, {iterator: iteratorId, unittest: unittest_uuid});
-        unitTest = ret.ret;
-        unitTestSteps = ret.list
-    } else {
-
-        unitTest = await window.db[TABLE_UNITTEST_NAME]
-        .where(field_unittest_uuid)
-        .equals(unittest_uuid)
-        .first();
-
-        let unitTestStepsTemplate = [];
-
-        let referFrom = unitTest[unittest_refer_from];
-        if (!isStringEmpty(referFrom)) {
-            unitTestStepsTemplate = await window.db[TABLE_UNITTEST_TEMPLATE_STEPS_NAME]
-            .where([unittest_template_step_delFlg, unittest_template_step_unittest_uuid])
-            .equals([0, referFrom])
-            .toArray();
-            for (let _unittest_step of unitTestStepsTemplate) {
-                let _step_uuid = _unittest_step[field_unittest_template_step_uuid]
-                let unitTestAsserts = await window.db[TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME]
-                .where([unittest_template_step_assert_delFlg, unittest_template_step_assert_unittest, unittest_template_step_assert_step])
-                .equals([0, referFrom, _step_uuid])
-                .reverse()
-                .toArray();
-                for (let _unitTestAssert of unitTestAsserts) {
-                    if (isStringEmpty(_unitTestAssert[unittest_template_step_assert_type])) {
-                        _unitTestAssert[unittest_template_step_assert_type] = ASSERT_TYPE_API;
-                    }
-                }
-                _unittest_step["source"] = "template";
-                _unittest_step.asserts = unitTestAsserts;
-            }
-        }
-
-        let unitTestStepsDb = [];
-        unitTestStepsDb = await window.db[TABLE_UNITTEST_STEPS_NAME]
-        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-        .equals([0, iteratorId, unittest_uuid])
-        .toArray();
-
-        for (let _unittest_step of unitTestStepsDb) {
-            let _step_uuid = _unittest_step[field_unittest_step_uuid]
-            let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-            .equals([0, iteratorId, unittest_uuid, _step_uuid])
-            .reverse()
-            .toArray();
-            for (let _unitTestAssert of unitTestAsserts) {
-                if (isStringEmpty(_unitTestAssert[unittest_step_assert_type])) {
-                    _unitTestAssert[unittest_step_assert_type] = ASSERT_TYPE_API;
-                }
-            }
-            _unittest_step["source"] = "db";
-            _unittest_step.asserts = unitTestAsserts;
-        }
-        unitTestSteps = [...unitTestStepsTemplate, ...unitTestStepsDb];
-    }
+export async function getIteratorSingleUnittest(unittest_uuid : string, iteratorId : string, env : string | null) {
+    let ret = await sendTeamMessage(UNITTES_ITERATION_FETCH_SINGLE_URL, {iterator: iteratorId, unittest: unittest_uuid});
+    let unitTest = ret.ret;
+    let unitTestSteps = ret.list
 
     return genUnitTest(unitTest, unitTestSteps, unittest_uuid, iteratorId, env);
 }
@@ -466,106 +253,52 @@ async function genUnitTest(unitTest, unitTestSteps, unittest_uuid : string, iter
     return unitTest;
 }
 
-export async function getProjectSingleUnittest(clientType : string, unittest_uuid : string, teamId : string, project : string, env : string | null) {
-    let unitTest;
-    let unitTestSteps;
-
+export async function batchMoveUnittest(clientType : string, unittestArr : Array<string>, newIterator : string, device : object) {
+    const newUnittestArr = unittestArr.map(item => {
+        // 对每个 item 做处理，返回新值
+        return uuidv4() as string;
+    });
     if (clientType === CLIENT_TYPE_TEAM) {
-        let ret = await sendTeamMessage(UNITTES_PROJECT_FETCH_SINGLE_URL, {teamId, project, unittest: unittest_uuid});
-        unitTest = ret.ret;
-        unitTestSteps = ret.list
-    } else {
-        //单测列表
-        unitTest = await window.db[TABLE_UNITTEST_NAME]
-        .where(field_unittest_uuid)
-        .equals(unittest_uuid)
-        .first();
-
-        let fakeIteratorId = unitTest[unittest_iterator_uuid];
-
-        unitTestSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
-        .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-        .equals([0, fakeIteratorId, unittest_uuid])
-        .toArray();
-
-        for (let _unittest_step of unitTestSteps) {
-            let _step_uuid = _unittest_step[field_unittest_step_uuid]
-            let unitTestAsserts = await window.db[TABLE_UNITTEST_STEP_ASSERTS_NAME]
-            .where([unittest_step_assert_delFlg, unittest_step_assert_iterator, unittest_step_assert_unittest, unittest_step_assert_step])
-            .equals([0, fakeIteratorId, unittest_uuid, _step_uuid])
-            .reverse()
-            .toArray();
-            _unittest_step.asserts = unitTestAsserts;
-        }
+        await sendTeamMessage(UNITTEST_MOVE_ITERATOR_URL, {
+            new_iterator: newIterator, 
+            old_uuids: unittestArr.join(','),
+            new_uuids: newUnittestArr.join(','),
+        })
     }
+}
+
+export async function getProjectSingleUnittest(unittest_uuid : string, teamId : string, project : string, env : string | null) {
+    let ret = await sendTeamMessage(UNITTES_PROJECT_FETCH_SINGLE_URL, {teamId, project, unittest: unittest_uuid});
+    let unitTest = ret.ret;
+    let unitTestSteps = ret.list
 
     return genUnitTest(unitTest, unitTestSteps, unittest_uuid, "", env);
 }
 
 export async function getProjectUnitTests(clientType : string, teamId : string, project : string, folder : string | null, env : string|null, dispatch : any) {
 
-    let unitTests;
     let folders;
 
     let users = await getUsers(clientType);
 
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        //单测列表
-        if (folder === null) {
-            folders = new Set();
-        } else {
-            folders = null;
-        }
-
-        //单测列表
-        unitTests = await window.db[TABLE_UNITTEST_NAME]
-        .where(unittest_projects)
-        .equals(project)
-        .filter(row => {
-            if (!row[unittest_collectFlg]) {
-                return false;
-            }
-            if (row[unittest_delFlg]) {
-                return false;
-            }
-            if (folder !== null && row[unittest_fold] !== folder) {
-                return false;
-            }
-            return true;
-        })
-        .reverse()
-        .toArray();
-
-        for (let i = 0; i < unitTests.length; i++) {
-            let unitTest = unitTests[i];
-            let unittest_uuid = unitTest[field_unittest_uuid];
-            let newUnitTest = await getProjectSingleUnittest(clientType, unittest_uuid, teamId, project, env);
-            newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
-            unitTests[i] = newUnitTest;
-            if (folder === null) {
-                folders.add(newUnitTest[unittest_fold]);
-            }
+    let ret = await sendTeamMessage(UNITTES_PROJECT_ALL_URL, {project, teamId, fold: folder});
+    let unitTests = ret.list;
+    for (let i = 0; i < unitTests.length; i++) {
+        let unitTest = unitTests[i].unitTest;
+        let unitTestSteps = unitTests[i].unitTestSteps;
+        let unittest_uuid = unitTest[field_unittest_uuid];
+        let newUnitTest = await genUnitTest(unitTest, unitTestSteps, unittest_uuid, "", env)
+        newUnitTest[UNAME] = users.get(unitTest[unittest_cuid]);
+        unitTests[i] = newUnitTest;
+    }
+    let retFolders = ret.folders;
+    if (retFolders.length > 0) {
+        folders = new Set();
+        for (let _ret_fold of retFolders) {
+            folders.add(_ret_fold['name'])
         }
     } else {
-        let ret = await sendTeamMessage(UNITTES_PROJECT_ALL_URL, {project, teamId, fold: folder});
-        unitTests = ret.list;
-        for (let i = 0; i < unitTests.length; i++) {
-            let unitTest = unitTests[i].unitTest;
-            let unitTestSteps = unitTests[i].unitTestSteps;
-            let unittest_uuid = unitTest[field_unittest_uuid];
-            let newUnitTest = await genUnitTest(unitTest, unitTestSteps, unittest_uuid, "", env)
-            newUnitTest[UNAME] = users.get(unitTest[unittest_cuid]);
-            unitTests[i] = newUnitTest;
-        }
-        let retFolders = ret.folders;
-        if (retFolders.length > 0) {
-            folders = new Set();
-            for (let _ret_fold of retFolders) {
-                folders.add(_ret_fold['name'])
-            }
-        } else {
-            folders = null
-        }
+        folders = null
     }
 
     dispatch({
@@ -577,60 +310,27 @@ export async function getProjectUnitTests(clientType : string, teamId : string, 
 }
 
 export async function getIterationUnitTests(clientType : string, iteratorId : string, folder : string | null, env : string|null, dispatch : any) {
-
-    let unitTests;
     let folders;
 
     let users = await getUsers(clientType);
-
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        //单测列表
-        if (folder === null) {
-            folders = new Set();
-            unitTests = await window.db[TABLE_UNITTEST_NAME]
-            .where([unittest_delFlg, unittest_iterator_uuid])
-            .equals([0, iteratorId])
-            .reverse()
-            .toArray();
-        } else {
-            folders = null;
-            unitTests = await window.db[TABLE_UNITTEST_NAME]
-            .where([unittest_delFlg, unittest_iterator_uuid, unittest_fold])
-            .equals([0, iteratorId, folder])
-            .reverse()
-            .toArray();
-        }
-
-        for (let i = 0; i < unitTests.length; i++) {
-            let unitTest = unitTests[i];
-            let unittest_uuid = unitTest[field_unittest_uuid];
-            let newUnitTest = await getIteratorSingleUnittest(clientType, unittest_uuid, iteratorId, env);
-            newUnitTest[UNAME] = users.get(newUnitTest[unittest_cuid]);
-            unitTests[i] = newUnitTest;
-            if (folder === null) {
-                folders.add(newUnitTest[unittest_fold]);
-            }
+    let ret = await sendTeamMessage(UNITTES_ITERATION_ALL_URL, {iterator: iteratorId, fold: folder});
+    let unitTests = ret.list;
+    for (let i = 0; i < unitTests.length; i++) {
+        let unitTest = unitTests[i].unitTest;
+        let unitTestSteps = unitTests[i].unitTestSteps;
+        let unittest_uuid = unitTest[field_unittest_uuid];
+        let newUnitTest = await genUnitTest(unitTest, unitTestSteps, unittest_uuid, iteratorId, env)
+        newUnitTest[UNAME] = users.get(unitTest[unittest_cuid]);
+        unitTests[i] = newUnitTest;
+    }
+    let retFolders = ret.folders;
+    if (retFolders.length > 0) {
+        folders = new Set();
+        for (let _ret_fold of retFolders) {
+            folders.add(_ret_fold['name'])
         }
     } else {
-        let ret = await sendTeamMessage(UNITTES_ITERATION_ALL_URL, {iterator: iteratorId, fold: folder});
-        unitTests = ret.list;
-        for (let i = 0; i < unitTests.length; i++) {
-            let unitTest = unitTests[i].unitTest;
-            let unitTestSteps = unitTests[i].unitTestSteps;
-            let unittest_uuid = unitTest[field_unittest_uuid];
-            let newUnitTest = await genUnitTest(unitTest, unitTestSteps, unittest_uuid, iteratorId, env)
-            newUnitTest[UNAME] = users.get(unitTest[unittest_cuid]);
-            unitTests[i] = newUnitTest;
-        }
-        let retFolders = ret.folders;
-        if (retFolders.length > 0) {
-            folders = new Set();
-            for (let _ret_fold of retFolders) {
-                folders.add(_ret_fold['name'])
-            }
-        } else {
-            folders = null
-        }
+        folders = null
     }
 
     dispatch({
@@ -641,172 +341,9 @@ export async function getIterationUnitTests(clientType : string, iteratorId : st
     });
 }
 
-export async function continueIteratorExecuteUnitTest(
-    clientType : string, teamId : string,
-    iteratorId : string, unitTestId : string, batchId : string, stepId : string,
-    env : string, cb) {
-
-    let progressCb = cb;
-    let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-    .equals([0, iteratorId, unitTestId])
-    .toArray();
-
-    let executeFlg = false;
-    let steps = [];
-    for (let _unit_test_step of allSteps) {  
-        let stepUuid = _unit_test_step[field_unittest_step_uuid];
-        if (stepUuid === stepId) {
-            executeFlg = true;
-        }
-        if (!executeFlg) {
-            continue;
-        }
-        steps.push(_unit_test_step);
-    }
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
-        async (project : string) => {
-            let datas = await getEnvHosts(clientType, teamId, project, env);
-            return datas.get(env);
-        },
-        async (project : string) => {
-            let datas = await getEnvRunModes(clientType, teamId, project, env);
-            let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
-            return runMode;
-        },
-        (project : string) => {
-            let envVarTips = new RequestSendTips();
-            envVarTips.init('iterator', project, iteratorId, "", clientType);
-            return envVarTips;
-        },
-        () => {
-            let jsonParamTips = new JsonParamTips(iteratorId, "", clientType);
-            jsonParamTips.setEnv(env);
-            return jsonParamTips;
-        }, 
-        async (stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg) => {
-            let unit_test_executor : any = {};
-            unit_test_executor[unittest_executor_batch] = batchId;
-            unit_test_executor[unittest_executor_iterator] = iteratorId;
-            unit_test_executor[unittest_executor_unittest] = unitTestId;
-            unit_test_executor[unittest_executor_step] = stepUuid;
-            unit_test_executor[unittest_executor_history_id] = requestHistoryId;
-            unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
-            unit_test_executor[unittest_executor_assert_right] = assertRightValue;
-            unit_test_executor[unittest_executor_result] = !breakFlg;
-            unit_test_executor[unittest_executor_cost_time] = singleCostTime;
-            unit_test_executor[unittest_executor_delFlg] = 0;
-            unit_test_executor[unittest_executor_ctime] = Date.now();
-            await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
-        },
-        async (project, method, requestUri) => {
-            let request = await getVersionIteratorRequest(clientType, iteratorId, project, method, requestUri);
-            if (request === null) {
-                request = await getProjectRequest(clientType, project, method, requestUri);
-            }
-            return request;
-        },
-        progressCb
-    );
-    let success = ret.success;
-    let recentStepUuid = ret.recentStepUuid;
-    let errorMessage = ret.errorMessage;
-    let btime = ret.btime;
-    let unitTestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
-    .where([unittest_report_iterator, unittest_report_unittest, unittest_report_batch])
-    .equals([iteratorId, unitTestId, batchId])
-    .first();
-    unitTestReport[unittest_report_result] = success;
-    unitTestReport[unittest_report_step] = recentStepUuid;
-    unitTestReport[unittest_report_failure_reason] = errorMessage;
-    unitTestReport[unittest_report_cost_time] = Date.now() - btime;
-    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unitTestReport);
-    return batchId;
-}
-
-export async function continueProjectExecuteUnitTest(
-    clientType : string, teamId : string,
-    iteratorId : string, unitTestId : string, batchId : string, stepId : string,
-    env : string, cb : Function) {
-    let progressCb = cb;
-    let allSteps = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-    .equals([0, iteratorId, unitTestId])
-    .toArray();
-
-    let executeFlg = false;
-    let steps = [];
-    for (let _unit_test_step of allSteps) {  
-        let stepUuid = _unit_test_step[field_unittest_step_uuid];
-        if (stepUuid === stepId) {
-            executeFlg = true;
-        }
-        if (!executeFlg) {
-            continue;
-        }
-        steps.push(_unit_test_step);
-    }
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batchId, env, 
-        async (project : string) => {
-            let datas = await getEnvHosts(clientType, teamId, project, env);
-            return datas.get(env);
-        },
-        async (project : string) => {
-            let datas = await getEnvRunModes(clientType, teamId, project, env);
-            let runMode = getMapValueOrDefault(datas, env, ENV_VALUE_RUN_MODE_CLIENT);
-            return runMode;
-        },
-        (project : string) => {
-            let envVarTips = new RequestSendTips();
-            envVarTips.init("unittest", project, "", unitTestId, clientType);
-            return envVarTips;
-        },
-        () => {
-            let jsonParamTips = new JsonParamTips("", unitTestId, clientType);
-            jsonParamTips.setEnv(env);
-            return jsonParamTips;
-        }, 
-        async (stepUuid, requestHistoryId, singleCostTime, assertLeftValue, assertRightValue, breakFlg) => {
-            let unit_test_executor : any = {};
-            unit_test_executor[unittest_executor_batch] = batchId;
-            unit_test_executor[unittest_executor_iterator] = "";
-            unit_test_executor[unittest_executor_unittest] = unitTestId;
-            unit_test_executor[unittest_executor_step] = stepUuid;
-            unit_test_executor[unittest_executor_history_id] = requestHistoryId;
-            unit_test_executor[unittest_executor_assert_left] = assertLeftValue;
-            unit_test_executor[unittest_executor_assert_right] = assertRightValue;
-            unit_test_executor[unittest_executor_result] = !breakFlg;
-            unit_test_executor[unittest_executor_cost_time] = singleCostTime;
-            
-            unit_test_executor[unittest_executor_delFlg] = 0;
-            unit_test_executor[unittest_executor_ctime] = Date.now();
-            await window.db[TABLE_UNITTEST_EXECUTOR_NAME].put(unit_test_executor);
-        }, 
-        async (project, method, requestUri) => {
-            let request = await getProjectRequest(clientType, project, method, requestUri);
-            return request;
-        },
-        progressCb
-    );
-    let success = ret.success;
-    let recentStepUuid = ret.recentStepUuid;
-    let errorMessage = ret.errorMessage;
-    let btime = ret.btime;
-    let unitTestReport = await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME]
-    .where([unittest_report_iterator, unittest_report_unittest, unittest_report_batch])
-    .equals([iteratorId, unitTestId, batchId])
-    .first();
-    unitTestReport[unittest_report_result] = success;
-    unitTestReport[unittest_report_step] = recentStepUuid;
-    unitTestReport[unittest_report_failure_reason] = errorMessage;
-    unitTestReport[unittest_report_cost_time] = Date.now() - btime;
-    await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unitTestReport);
-    return batchId;
-}
-
 export async function executeProjectUnitTest(
-    clientType : string, teamId : string,
-    unitTestId : string, steps : Array<any>, 
+    clientType : string, teamId : string, unitTestId : string, 
+    steps : Array<any>,  cleanNodes : Array<any>, 
     env : string, cb : Function
 )
     {
@@ -822,7 +359,10 @@ export async function executeProjectUnitTest(
     unittest_result[unittest_report_ctime] = Date.now();
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
-    let ret = await stepsExecutor(steps, "", unitTestId, batch_uuid, env, 
+    let ret = await stepsExecutor(steps, cleanNodes, "", unitTestId, batch_uuid, env, 
+        async (project : string, sql : string, sqlParams : Array<string>) => {
+            await executeDeleteSql(clientType, env, project, sql, sqlParams)
+        },
         async (project : string, sql : string, sqlParams : Array<string>) => {
             return await executeQuerySql(clientType, env, project, sql, sqlParams)
         },
@@ -889,7 +429,8 @@ export async function executeProjectUnitTest(
 export async function executeIteratorUnitTest(
     clientType : string, teamId : string,
     iteratorId : string, unitTestId : string, 
-    steps : Array<any>, env : string,
+    steps : Array<any>, cleanNodes : Array<any>, 
+    env : string,
     cb : Function
 )
     {
@@ -907,7 +448,10 @@ export async function executeIteratorUnitTest(
 
     await window.db[TABLE_UNITTEST_EXECUTOR_REPORT_NAME].put(unittest_result);
 
-    let ret = await stepsExecutor(steps, iteratorId, unitTestId, batch_uuid, env, 
+    let ret = await stepsExecutor(steps, cleanNodes, iteratorId, unitTestId, batch_uuid, env, 
+        async (project : string, sql : string, sqlParams : Array<string>) => {
+            await executeDeleteSql(clientType, env, project, sql, sqlParams)
+        },
         async (project : string, sql : string, sqlParams : Array<string>) => {
             return await executeQuerySql(clientType, env, project, sql, sqlParams)
         },
@@ -976,10 +520,12 @@ export async function executeIteratorUnitTest(
 
 async function stepsExecutor(
     steps : Array<any>, 
+    cleanNodes : Array<any>,
     iteratorId : string,
     unitTestId : string, 
     batch_uuid : string,
     env : string, 
+    dbExecuteFunc : Function,
     getDbRetFunc : Function,
     getEnvHostFunc : Function,
     getRunModeFunc : Function,
@@ -1198,7 +744,9 @@ async function stepsExecutor(
                             if (assertLeft in dbRet) {
                                 assertLeftValue[keyNumber] = dbRet[assertLeft];
                             } else {
-                                assertLeftValue[keyNumber] = "";
+                                errorMessage = `查询语句返回空结果，sql:${sql}, 参数：${parsed_sql_params}`;
+                                breakFlg = true;
+                                break;
                             }
                         } catch (error) {
                             console.error(error);
@@ -1221,6 +769,7 @@ async function stepsExecutor(
                         try {
                             assertLeftValue[keyNumber] = await jsonParamTips.getValue(envVarTips, param, pathVariable, header, body, response.headers, response.cookieObj, response.data, unitTestId, batch_uuid);
                         } catch (error) {
+                            console.log(error);
                             errorMessage = error.message;
                             breakFlg = true;
                             break;
@@ -1239,11 +788,16 @@ async function stepsExecutor(
 
                     if (typeof assertLeftValue[keyNumber] === "number") {
                         assertLeftValue[keyNumber] = assertLeftValue[keyNumber].toString();
+                    } else if (typeof assertLeftValue[keyNumber] === "boolean") {
+                        assertLeftValue[keyNumber] = assertLeftValue[keyNumber] ? "true" : "false";
                     }
 
                     if (typeof assertRightValue[keyNumber] === "number") {
                         assertRightValue[keyNumber] = assertRightValue[keyNumber].toString();
+                    } else if (typeof assertRightValue[keyNumber] === "boolean") {
+                        assertRightValue[keyNumber] = assertRightValue[keyNumber] ? "true" : "false";
                     }
+
                     if (assertOperator.trim() === "==") {
                         if (assertLeftValue[keyNumber] === assertRightValue[keyNumber]) {
                             breakFlg = false;
@@ -1281,6 +835,32 @@ async function stepsExecutor(
             success = UNITTEST_RESULT_FAILURE;
             break;
         }
+    }
+
+    try {
+        for (let cleanNode of cleanNodes) {
+            let project = cleanNode[field_clean_prj];
+            let sql = cleanNode[field_clean_sql];
+            let sqlParams = cleanNode[field_clean_sql_params];
+
+            jsonParamTips.setProject(project);
+            let envVarTips = getEnvVarTipsFunc(project);
+
+            let parsed_sql_params = [];
+            for (let _sql_param of sqlParams) {
+                jsonParamTips.setContent(_sql_param);
+                try {
+                    let _parsed_value = await jsonParamTips.getValue(envVarTips, 
+                        {}, {}, {}, {}, {}, {}, {}, unitTestId, batch_uuid);
+                    parsed_sql_params.push(_parsed_value);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+            await dbExecuteFunc(project, sql, parsed_sql_params);
+        }
+    } catch (err) {
+        console.error("数据库执行失败", err);
     }
 
     return {
@@ -1353,57 +933,8 @@ export async function getRecentExecutorReport(iteratorId : string) {
     return unitTestReport;
 }
 
-export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
-    let unitTest = await window.db[TABLE_UNITTEST_NAME]
-    .where(field_unittest_uuid).equals(unittest_uuid)
-    .first();
-
-    if (unitTest === undefined) {
-        return;
-    }
-
-    let envVarKeys : any[] = [];
-
-    let unitTestEnvVars = await db[TABLE_ENV_VAR_NAME]
-    .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
-    .equals(["", "", unittest_uuid])
-    .filter(row => {
-        if (row[env_var_delFlg]) {
-            return false;
-        }
-        return true;
-    })
-    .toArray();
-    if (unitTestEnvVars.length > 0) {
-        envVarKeys = envVarKeys.concat(unitTestEnvVars);
-    }
-
-    let prjs = unitTest[unittest_projects];
-    for (let prj of prjs) {
-        let prjEnvVars = await db[TABLE_ENV_VAR_NAME]
-        .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
-        .equals([prj, "", unittest_uuid])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return true;
-        })
-        .toArray();
-        if (prjEnvVars.length > 0) {
-            envVarKeys = envVarKeys.concat(prjEnvVars);
-        }
-    }
-
-    let newEnvVarKeys = envVarKeys.map(obj => ({...obj, del_flg: 1}));
-    await window.db[TABLE_ENV_VAR_NAME].bulkPut(newEnvVarKeys);
-
-    unitTest[unittest_projects] = [];
-    unitTest[unittest_collectFlg] = 0;
-    
-    await window.db[TABLE_UNITTEST_NAME].put(unitTest);
-
-    cb();
+export async function copyFromProjectToIterator(iteratorId : string, unittest_uuid : string) {
+    await sendTeamMessage(UNITTES_PROJECT_REMOVE_URL, {iteratorId, unittestId: unittest_uuid});
 }
 
 /**
@@ -1413,80 +944,8 @@ export async function copyFromProjectToIterator(unittest_uuid : string, cb) {
  * @param device 
  * @returns 
  */
-export async function copyFromIteratorToProject(clientType : string, teamId : string, iteratorId : string, unittest_uuid : string, device) {
-    if (clientType === CLIENT_TYPE_TEAM) {
-        await sendTeamMessage(UNITTES_PROJECT_SAVE_URL, {iteratorId, unittestId: unittest_uuid});
-    }
-
-    let unitTest = await window.db[TABLE_UNITTEST_NAME]
-    .where(field_unittest_uuid).equals(unittest_uuid)
-    .first();
-
-    if (unitTest === undefined) {
-        return;
-    }
-
-    let folderName = unitTest[unittest_fold];
-
-    let unitTestSteps : any[] = await window.db[TABLE_UNITTEST_STEPS_NAME]
-    .where([unittest_step_delFlg, unittest_step_iterator_uuid, unittest_step_unittest_uuid])
-    .equals([0, iteratorId, unittest_uuid])
-    .toArray();
-
-    let prjs = new Set<string>();
-    for (let unitTestStep of unitTestSteps) {
-        prjs.add(unitTestStep[unittest_step_project]);
-    }
-
-    let envVarKeys : any[] = [];
-
-    let iteratorArrays = await db[TABLE_ENV_VAR_NAME]
-    .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
-    .equals(["", iteratorId, ""])
-    .filter(row => {
-        if (row[env_var_delFlg]) {
-            return false;
-        }
-        return true;
-    })
-    .toArray();
-    if (iteratorArrays.length > 0) {
-        envVarKeys = envVarKeys.concat(iteratorArrays);
-    }
-
-    for (let prj of prjs) {
-        let iteratorPlusPrjArrays = await db[TABLE_ENV_VAR_NAME]
-        .where("[" + env_var_micro_service + "+" + env_var_iteration + "+" + env_var_unittest + "]")
-        .equals([prj, iteratorId, ""])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            return true;
-        })
-        .toArray();
-        if (iteratorPlusPrjArrays.length > 0) {
-            envVarKeys = envVarKeys.concat(iteratorPlusPrjArrays);
-        }
-    }
-
-    let newEnvVarKeys = envVarKeys.map(obj => ({...obj, iteration: "", unittest: unittest_uuid, del_flg: 0}));
-
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        newEnvVarKeys = newEnvVarKeys.map(obj => ({...obj, upload_flg: 0, team_id: ""}));
-    } else {
-        newEnvVarKeys = newEnvVarKeys.map(obj => ({...obj, upload_flg: 1, team_id: teamId}));
-    }
-    await window.db[TABLE_ENV_VAR_NAME].bulkPut(newEnvVarKeys);
-
-    unitTest[unittest_projects] = [...prjs];
-    unitTest[unittest_collectFlg] = 1;
-
-    await window.db[TABLE_UNITTEST_NAME].put(unitTest);
-
-    for (let prj of prjs) {
-        await addProjectUnitTestFolder(prj, folderName, device);
-    }
+export async function copyFromIteratorToProject(iteratorId : string, unittest_uuid : string) {
+    await sendTeamMessage(UNITTES_PROJECT_SAVE_URL, {iteratorId, unittestId: unittest_uuid});
 }
 
 async function iteratorBodyObject(

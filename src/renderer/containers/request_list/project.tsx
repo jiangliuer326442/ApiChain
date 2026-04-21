@@ -182,6 +182,7 @@ function mapStateToProps (state) {
         prjs: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        isAiSupport: state.device.isAiSupport
     }
 }
       

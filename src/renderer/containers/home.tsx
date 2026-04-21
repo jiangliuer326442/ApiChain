@@ -12,7 +12,8 @@ import {
   Typography, 
   Layout, 
   Card,
-  Space, 
+  Space,
+  Dropdown,
   Row,
   Col,
   Button
@@ -20,6 +21,7 @@ import {
 import { 
   EyeOutlined, 
   SendOutlined, 
+  GlobalOutlined,
 } from '@ant-design/icons';
 
 import { LAST_SHOWTEAM_TIME } from '@conf/storage';
@@ -30,6 +32,8 @@ import {
   ChannelsVipStr,
   ChannelsVipCkCodeStr,
   ChannelsVipCloseCkCodeStr,
+  ChannelsLangStr,
+  ChannelsLangSet,
 } from '@conf/channel';
 import { getProjectUrl } from '@conf/url';
 import {
@@ -42,9 +46,7 @@ import {
 } from '@conf/db';
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
 import { SET_DEVICE_INFO } from '@conf/redux';
-import {
-  SYNC_TABLES
-} from '@conf/global_config';
+import { getLang } from '@lang/i18n';
 import { 
   getdayjs,
   isStringEmpty,
@@ -150,6 +152,7 @@ class Home extends Component {
         }
       ],
       closeShowPay: false,
+      lang: getLang(),
     }
   }
 
@@ -166,17 +169,17 @@ class Home extends Component {
       let uname = argsObject.uname;
       let ip = argsObject.ip;
       let userCountry = argsObject.userCountry;
-      let userLang = argsObject.userLang;
+      let preferLang = argsObject.preferLang;
 
       let user = null;
       if (!isStringEmpty(uuid)) {
           user = await getUser(this.props.clientType, uuid);
       }
       if (user === null) {
-          await addUser(uuid, uname, ip, userCountry, userLang);
+          await addUser(uuid, uname, ip, userCountry, preferLang);
           user = await getUser(this.props.clientType, uuid);
       } else {
-          await setUserCountryLangIp(this.props.clientType, this.props.teamId, uuid, userCountry, userLang, ip);
+          await setUserCountryLangIp(this.props.clientType, this.props.teamId, uuid, userCountry, preferLang, ip);
       }
       this.setState({user, showTeam})
   }
@@ -314,21 +317,67 @@ class Home extends Component {
   render() : ReactNode {
     return (
       <Layout>
-          <Header style={{ padding: 0 }}>
+          <Header 
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between', // 左右分开
+              alignItems: 'center',
+              padding: '0 24px',
+            }}
+          >
             {this.props.vipFlg ? 
-            <>
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }}>
               {langTrans("member welcome")}
               <Text editable={{onChange: this.setUserName}}>{substr(this.state.user[db_field_uname], 15)}</Text>
               {langTrans("welcome") + langFormat("member expired", {"date": getdayjs(this.props.expireTime).format("YYYY-MM-DD")})}
               <Button type='link' onClick={() => this.setState({showPay: true})}>{langTrans("member renew")}</Button>
-            </> 
+            </div> 
             :
-            <>
+            <div style={{
+              display: "flex",
+              alignItems: "center"
+            }}>
               <Text editable={{onChange: this.setUserName}}>{this.state.user[db_field_uname]}</Text>
               {langTrans("welcome")}
               <Button type='link' onClick={() => this.setState({showPay: true})}>{langTrans("member buy")}</Button>
-            </>
+            </div>
             } 
+            <Dropdown 
+              menu={
+                {
+                  "items": [
+                    {"label": "简体中文", "key":"zh-CN"},
+                    {"label": "繁體中文", "key":"zh-TW"},
+                    {"label": "English", "key":"en-US"},
+                  ],
+                  "onClick": (event) => {
+                    let newLang = event.key;
+                    this.setState({lang: newLang});
+                    window.electron.ipcRenderer.sendMessage(ChannelsLangStr, ChannelsLangSet, newLang);
+                  },
+                }
+              } 
+              trigger={['click']}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <GlobalOutlined style={{ marginRight: 6 }} />
+                {
+                  {
+                    'zh-CN': '简体中文',
+                    'zh-TW': '繁體中文',
+                    'en-US': 'English',
+                  }[this.state.lang]
+                }
+              </div>
+            </Dropdown>
           </Header>
           <Content style={{ padding: '0 16px'}}>
 

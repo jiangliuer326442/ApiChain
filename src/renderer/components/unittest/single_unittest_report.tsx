@@ -13,15 +13,12 @@ import {
 } from '@conf/global_config';
 import {
     TABLE_UNITTEST_FIELDS,
-    TABLE_ENV_FIELDS,
     TABLE_UNITTEST_STEPS_FIELDS,
     TABLE_UNITTEST_STEP_ASSERT_FIELDS,
     TABLE_UNITTEST_EXECUTOR_FIELDS,
     TABLE_REQUEST_HISTORY_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_VERSION_ITERATION_FIELDS,
-    TABLE_MICRO_SERVICE_FIELDS,
-    TABLE_ENV_VAR_FIELDS,
 } from '@conf/db';
 
 import {
@@ -39,16 +36,8 @@ const { Text } = Typography;
 
 let version_iterator_uuid = TABLE_VERSION_ITERATION_FIELDS.FIELD_UUID;
 let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
-let env_var_pvalue = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
-let env_var_prj = TABLE_ENV_VAR_FIELDS.FIELD_MICRO_SERVICE_LABEL;
 
-let unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
 let unittest_title = TABLE_UNITTEST_FIELDS.FIELD_TITLE;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
-
-let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
-let env_remark = TABLE_ENV_FIELDS.FIELD_REMARK;
 
 let request_history_uri = TABLE_REQUEST_HISTORY_FIELDS.FIELD_URI;
 let request_history_json_flg = TABLE_REQUEST_HISTORY_FIELDS.FIELD_JSONFLG;
@@ -153,7 +142,13 @@ class SingleUnitTestReport extends Component {
             {
                 key: '3',
                 label: langTrans("unittest report desc3"),
-                children: this.state.recentUnitTestReport[unittest_report_result] === "success" ? <span style={{color:"green"}}>{langTrans("unittest report success")}</span> : (this.state.recentUnitTestReport[unittest_report_result] === "failure" ? <span style={{color:"red"}}>{langTrans("unittest report fail")}</span> : <span style={{color:"yellow"}}>{langTrans("prj unittest status4")}</span>),
+                children: this.state.recentUnitTestReport[unittest_report_result] === "success" ? 
+                <span style={{color:"green"}}>{langTrans("unittest report success")}</span> : 
+                (
+                    this.state.recentUnitTestReport[unittest_report_result] === "failure" ? 
+                    <span style={{color:"red"}}>{langTrans("unittest report fail")}</span> : 
+                    <span style={{color:"yellow"}}>{langTrans("prj unittest status4")}</span>
+                ),
             },
             {
                 key: '4',
@@ -163,7 +158,7 @@ class SingleUnitTestReport extends Component {
             {
                 key: '5',
                 label: langTrans("unittest report desc5"),
-                children: this.state.recentUnitTestReport[unittest_report_result] ? "--" : this.state.recentUnitTestReport[unittest_report_failure_reason],
+                children: (!this.state.recentUnitTestReport[unittest_report_result] || this.state.recentUnitTestReport[unittest_report_result] === "success") ? "--" : this.state.recentUnitTestReport[unittest_report_failure_reason],
             },
             {
                 key: '6',
@@ -176,9 +171,9 @@ class SingleUnitTestReport extends Component {
     buildRecentExecutorResult = async (unittestUuid : string, batchUuid : string, hosts : any) => {
         let selectedUnitTest;
         if (this.state.type === "iterator") {
-            selectedUnitTest = await getIteratorSingleUnittest(this.props.clientType, unittestUuid, this.props.iteratorId, this.props.env);
+            selectedUnitTest = await getIteratorSingleUnittest(unittestUuid, this.props.iteratorId, this.props.env);
         } else {
-            selectedUnitTest = await getProjectSingleUnittest(this.props.clientType, unittestUuid, this.props.teamId, this.props.projectId, this.props.env);
+            selectedUnitTest = await getProjectSingleUnittest(unittestUuid, this.props.teamId, this.props.projectId, this.props.env);
         }
         //单测报告
         let unitTestReport = await getSingleExecutorReport(this.state.type === "iterator" ? this.props.iteratorId : "", unittestUuid, batchUuid);

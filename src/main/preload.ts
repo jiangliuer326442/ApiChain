@@ -19,6 +19,7 @@ import {
   ChannelsMessage,
   ChannelsEncrypt,
   ChannelsDatabase,
+  ChannelsLang,
 } from '../config/channel';
 
 const electronHandler = {
@@ -31,7 +32,7 @@ const electronHandler = {
       ChannelsAxioBreidge | ChannelsTeam |
       ChannelsRestartApp | ChannelsMessage |
       ChannelsLoadApp | ChannelsEncrypt | 
-      ChannelsDatabase, ...args: unknown[]) {
+      ChannelsDatabase | ChannelsLang, ...args: unknown[]) {
       ipcRenderer.send(channel, ...args);
     },
     on(channel: ChannelsUserInfo | ChannelsOpenWindow | 
@@ -42,7 +43,7 @@ const electronHandler = {
       ChannelsAxioBreidge | ChannelsTeam |
       ChannelsRestartApp | ChannelsMessage |
       ChannelsLoadApp | ChannelsEncrypt |
-      ChannelsDatabase, func: (...args: unknown[]) => void) {
+      ChannelsDatabase | ChannelsLang, func: (...args: unknown[]) => void) {
       const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
         func(...args);
       ipcRenderer.on(channel, subscription);
@@ -59,7 +60,7 @@ const electronHandler = {
       ChannelsAxioBreidge | ChannelsTeam |
       ChannelsRestartApp | ChannelsMessage |
       ChannelsLoadApp | ChannelsEncrypt |
-      ChannelsDatabase, func: (...args: unknown[]) => void) {
+      ChannelsDatabase | ChannelsLang, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
   },

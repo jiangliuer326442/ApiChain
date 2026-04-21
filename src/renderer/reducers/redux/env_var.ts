@@ -51,18 +51,20 @@ export default function (state = {
               unittest: action.unittest,
             });
         case SHOW_ADD_PROPERTY_MODEL:
-            return Object.assign({}, state, {
-              showAddPropertyModelFlg : action.open,
-              prj: isStringEmpty(action.prj) ? "" : action.prj,
-              iterator: isStringEmpty(action.iterator) ? "" : action.iterator,
-              unittest: isStringEmpty(action.unittest) ? "" : action.unittest,
-              source: "",
-              pname: "",
-              pvalue: "",
-              premark: "",
-              encryptFlg: 0,
+          localStorage.setItem(ITERATOR, action.iterator);
+          return Object.assign({}, state, {
+            showAddPropertyModelFlg : action.open,
+            prj: isStringEmpty(action.prj) ? "" : action.prj,
+            iterator: isStringEmpty(action.iterator) ? "" : action.iterator,
+            unittest: isStringEmpty(action.unittest) ? "" : action.unittest,
+            source: "",
+            pname: "",
+            pvalue: "",
+            premark: "",
+            encryptFlg: 0,
         });
         case SHOW_EDIT_PROPERTY_MODEL:
+          localStorage.setItem(ITERATOR, action.iterator);
           return Object.assign({}, state, {
             showAddPropertyModelFlg : action.open,
             prj: isStringEmpty(action.prj) ? "" : action.prj,

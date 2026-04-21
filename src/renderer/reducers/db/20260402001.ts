@@ -11,13 +11,6 @@ import {
     TABLE_VERSION_ITERATION_FOLD_NAME, TABLE_VERSION_ITERATION_FOLD_FIELDS,
     TABLE_VERSION_ITERATION_REQUEST_NAME, TABLE_VERSION_ITERATION_REQUEST_FIELDS,
     TABLE_PROJECT_REQUEST_NAME, TABLE_PROJECT_REQUEST_FIELDS,
-    TABLE_UNITTEST_FOLD_NAME, TABLE_UNITTEST_FOLD_FIELDS,
-    TABLE_UNITTEST_NAME, TABLE_UNITTEST_FIELDS,
-    TABLE_UNITTEST_TEMPLATE_NAME, TABLE_UNITTEST_TEMPLATE_FIELDS,
-    TABLE_UNITTEST_STEPS_NAME, TABLE_UNITTEST_STEPS_FIELDS,
-    TABLE_UNITTEST_TEMPLATE_STEPS_NAME, TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS,
-    TABLE_UNITTEST_STEP_ASSERTS_NAME, TABLE_UNITTEST_STEP_ASSERT_FIELDS,
-    TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME, TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS,
     TABLE_UNITTEST_EXECUTOR_NAME, TABLE_UNITTEST_EXECUTOR_FIELDS,
     TABLE_UNITTEST_EXECUTOR_REPORT_NAME, TABLE_UNITTEST_EXECUTOR_REPORT_FIELDS,
     TABLE_PROJECT_REQUEST_PARAMS_NAME, TABLE_PROJECT_REQUEST_PARAMS_FIELDS,
@@ -82,50 +75,6 @@ let project_request_fold = TABLE_PROJECT_REQUEST_FIELDS.FIELD_FOLD;
 let project_request_delFlg = TABLE_PROJECT_REQUEST_FIELDS.FIELD_DELFLG;
 let project_request_ctime = TABLE_PROJECT_REQUEST_FIELDS.FIELD_CTIME;
 
-let unittest_folder_iterator = TABLE_UNITTEST_FOLD_FIELDS.FIELD_ITERATOR;
-let unittest_folder_project = TABLE_UNITTEST_FOLD_FIELDS.FIELD_PROJECT;
-let unittest_folder_name = TABLE_UNITTEST_FOLD_FIELDS.FIELD_FOLD_NAME;
-let unittest_folder_delFlg = TABLE_UNITTEST_FOLD_FIELDS.FIELD_DELFLG;
-let unittest_folder_ctime = TABLE_UNITTEST_FOLD_FIELDS.FIELD_CTIME;
-
-let field_unittest_template_uuid = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_UUID;
-let unittest_template_fold = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_FOLD_NAME;
-let unittest_template_delFlg = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_DELFLG;
-let unittest_template_ctime = TABLE_UNITTEST_TEMPLATE_FIELDS.FIELD_CTIME;
-
-let field_unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
-let unittest_iterator_uuid = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
-let unittest_refer_from = TABLE_UNITTEST_FIELDS.FIELD_REFER_FROM;
-let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
-let unittest_collectFlg = TABLE_UNITTEST_FIELDS.FIELD_COLLECT;
-let unittest_fold = TABLE_UNITTEST_FIELDS.FIELD_FOLD_NAME;
-let unittest_delFlg = TABLE_UNITTEST_FIELDS.FIELD_DELFLG;
-let unittest_ctime = TABLE_UNITTEST_FIELDS.FIELD_CTIME;
-
-let unittest_template_step_uuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_UUID;
-let unittest_template_step_unittest_uuid = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_template_step_delFlg = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_DELFLG;
-let unittest_template_step_sort = TABLE_UNITTEST_TEMPLATE_STEPS_FIELDS.FIELD_SORT;
-
-let unittest_step_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UUID;
-let unittest_step_iterator_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_ITERATOR_UUID;
-let unittest_step_unittest_uuid = TABLE_UNITTEST_STEPS_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_step_delFlg = TABLE_UNITTEST_STEPS_FIELDS.FIELD_DELFLG;
-let unittest_step_sort = TABLE_UNITTEST_STEPS_FIELDS.FIELD_SORT;
-
-let unittest_template_step_assert_unittest = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_template_step_assert_step = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_STEP_UUID;
-let unittest_template_step_assert_uuid = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_UUID;
-let unittest_template_step_assert_delFlg = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_DELFLG;
-let unittest_template_step_assert_ctime = TABLE_UNITTEST_TEMPLATE_STEP_ASSERT_FIELDS.FIELD_CTIME;
-
-let unittest_step_assert_iterator = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_ITERATOR_UUID;
-let unittest_step_assert_unittest = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UNITTEST_UUID;
-let unittest_step_assert_step = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_STEP_UUID;
-let unittest_step_assert_uuid = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_UUID;
-let unittest_step_assert_delFlg = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_DELFLG;
-let unittest_step_assert_ctime = TABLE_UNITTEST_STEP_ASSERT_FIELDS.FIELD_CTIME;
-
 let unittest_executor_batch = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_BATCH_UUID;
 let unittest_executor_iterator = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_ITERATOR_UUID;
 let unittest_executor_unittest = TABLE_UNITTEST_EXECUTOR_FIELDS.FIELD_UNITTEST_UUID;
@@ -160,28 +109,6 @@ tables[TABLE_JSON_FRAGEMENT_NAME] = "&[" + json_fragement_name + "+" + json_frag
 tables[TABLE_VERSION_ITERATION_FOLD_NAME] = "&[" + version_iteration_folder_uuid + "+" + version_iteration_folder_project + "+" + version_iteration_folder_name + "], [" + version_iteration_folder_delFlg + "+" + version_iteration_folder_uuid + "+" + version_iteration_folder_project + "+" + version_iteration_folder_ctime + "]";
 tables[TABLE_VERSION_ITERATION_REQUEST_NAME] = "&[" + iteration_request_iteration_uuid + "+" + iteration_request_project + "+" + iteration_request_method + "+" + iteration_request_uri + "], [" + iteration_request_delFlg + "+" + iteration_request_iteration_uuid + "+" + iteration_request_fold + "+" + iteration_request_ctime + "], [" + iteration_request_delFlg + "+" + iteration_request_project + "+" + iteration_request_method + "+" + iteration_request_uri + "+" + iteration_request_ctime + "]";
 tables[TABLE_PROJECT_REQUEST_NAME] = "&[" + project_request_project + "+" + project_request_method + "+" + project_request_uri + "], [" + project_request_delFlg + "+" + project_request_project + "+" + project_request_fold + "+" + project_request_ctime + "]";
-tables[TABLE_UNITTEST_FOLD_NAME] = "&[" + unittest_folder_iterator + "+" + unittest_folder_name + "], [" + unittest_folder_delFlg + "+" + unittest_folder_iterator + "+" + unittest_folder_ctime + "], " +
-"&[" + unittest_folder_project + "+" + unittest_folder_name + "], [" + unittest_folder_delFlg + "+" + unittest_folder_project + "+" + unittest_folder_ctime + "]" + "";
-tables[TABLE_UNITTEST_NAME] = "&" + field_unittest_uuid 
-+ ", *" + unittest_projects
-+ ", [" + unittest_delFlg + "+" + unittest_iterator_uuid + "+" + unittest_ctime + "]" 
-+ ", [" + unittest_delFlg + "+" + unittest_refer_from + "+" + unittest_ctime + "]" 
-+ ", [" + unittest_delFlg + "+" + unittest_iterator_uuid + "+" + unittest_fold + "+" + unittest_ctime + "], [" 
-+ unittest_projects + "+" + unittest_collectFlg + "+" + unittest_delFlg + "+" + unittest_ctime + "]" 
-+ ", [" + unittest_projects + "+" + unittest_collectFlg + "+" + unittest_delFlg + "+" + unittest_fold + "+" + unittest_ctime + "]";
-tables[TABLE_UNITTEST_TEMPLATE_NAME] = "&" + field_unittest_template_uuid 
-+ ", [" + unittest_template_delFlg + "+" + unittest_template_ctime + "]" 
-+ ", [" + unittest_template_delFlg + "+" + unittest_template_fold + "+" + unittest_template_ctime + "], [" 
-+ unittest_projects + "+" + unittest_collectFlg + "+" + unittest_delFlg + "+" + unittest_ctime + "]" 
-+ ", [" + unittest_projects + "+" + unittest_collectFlg + "+" + unittest_delFlg + "+" + unittest_fold + "+" + unittest_ctime + "]";
-tables[TABLE_UNITTEST_STEPS_NAME] = "&" + unittest_step_uuid + ", "
-+ "[" + unittest_step_delFlg + "+" + unittest_step_iterator_uuid + "+" + unittest_step_unittest_uuid + "+" + unittest_step_sort + "]";
-tables[TABLE_UNITTEST_TEMPLATE_STEPS_NAME] = "&" + unittest_template_step_uuid + ", "
-+ "[" + unittest_template_step_delFlg + "+" + unittest_template_step_unittest_uuid + "+" + unittest_template_step_sort + "]";
-tables[TABLE_UNITTEST_STEP_ASSERTS_NAME] = "&" + unittest_step_assert_uuid + ", "
-+ "[" + unittest_step_assert_delFlg + "+" + unittest_step_assert_iterator + "+" + unittest_step_assert_unittest + "+" + unittest_step_assert_step + "+" + unittest_step_assert_ctime + "]";
-tables[TABLE_UNITTEST_TEMPLATE_STEP_ASSERTS_NAME] = "&" + unittest_template_step_assert_uuid + ", "
-+ "[" + unittest_template_step_assert_delFlg + "+" + unittest_template_step_assert_unittest + "+" + unittest_template_step_assert_step + "+" + unittest_template_step_assert_ctime + "]";
 tables[TABLE_UNITTEST_EXECUTOR_NAME] = "&[" + unittest_executor_iterator + "+" + unittest_executor_unittest + "+" + unittest_executor_batch + "+" + unittest_executor_step + "], " 
 + "[" + unittest_executor_delFlg + "+" + unittest_executor_iterator + "+" + unittest_executor_unittest + "+" + unittest_executor_ctime + "]";
 tables[TABLE_UNITTEST_EXECUTOR_REPORT_NAME] = "&[" + unittest_report_iterator + "+" + unittest_report_unittest + "+" + unittest_report_batch + "], " 
@@ -190,6 +117,6 @@ tables[TABLE_PROJECT_REQUEST_PARAMS_NAME] = "&" + project_request_common_project
 
 console.log(tables);
 
-window.db.version(230).stores(tables).upgrade (async trans => {
+window.db.version(10).stores(tables).upgrade (async trans => {
 
 });

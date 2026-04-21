@@ -132,6 +132,8 @@ export const REQUEST_VERSION_ITERATION_SET_SORT_URL = "/requests/iteration/set_s
 
 export const REQUEST_ITERATOR_MOVE_ITERATOR_URL = "/requests/iteration/set_requests_iterator";
 
+export const UNITTEST_MOVE_ITERATOR_URL = "/unittest/iteration/move";
+
 export const REQUEST_VERSION_ITERATION_FIND_URL = "/requests/iteration/find";
 
 export const REQUEST_VERSION_ITERATION_PAGE_FOLD_URL = "/requests/iteration/pageByFold";
@@ -182,6 +184,8 @@ export const NETWORK_REQUEST_URL = "/network/request";
 
 export const NETWORK_DB_REQUEST_URL = "/network/dbQuery";
 
+export const NETWORK_DB_DELETE_URL = "/network/dbDelete";
+
 export const OPENAI_REQUEST_URL = "/network/question";
 
 export const VECTOR_MAKE_URL = "/network/vector";
@@ -214,9 +218,13 @@ export const AI_GET_INTERFACE_TRANSLATE = "/ai/getInterfaceTranslate";
 
 export const UNITTES_ITERATION_SAVE_URL = "/unittest/iteration/save"
 
+export const UNITTES_ITERATION_MOVE_URL = "/unittest/iteration/move"
+
 export const UNITTES_TEMPLATE_SAVE_URL = "/unittest/template/save"
 
 export const UNITTES_PROJECT_SAVE_URL = "/unittest/project/save";
+
+export const UNITTES_PROJECT_REMOVE_URL = "/unittest/project/remove";
 
 export const UNITTES_ITERATION_DEL_URL = "/unittest/iteration/del"
 
@@ -232,9 +240,17 @@ export const UNITTES_ITERATION_FETCH_SINGLE_URL = "/unittest/iteration/getSingle
 
 export const UNITTES_PROJECT_FETCH_SINGLE_URL = "/unittest/project/getSingle"
 
-export const UNITTES_ITERATION_STEP_SAVE_URL = "/unittest/iteration/saveStep"
-
 export const UNITTES_ITERATION_STEP_DEL_URL = "/unittest/iteration/delStep"
+
+export const UNITTES_ITERATION_CLEAN_NODE_ADD_URL = "/unittest/iteration/addCleanNode"
+
+export const UNITTES_ITERATION_CLEAN_NODE_SAVE_URL = "/unittest/iteration/saveCleanNode"
+
+export const UNITTES_ITERATION_CLEAN_NODE_LIST_URL = "/unittest/iteration/getCleanNodes"
+
+export const UNITTES_ITERATION_CLEAN_NODE_ENABLE_URL = "/unittest/iteration/enableCleanNode"
+
+export const UNITTES_PROJECT_CLEAN_NODE_ENABLE_URL = "/unittest/project/enableCleanNode"
 
 export const UNITTES_TEMPLATE_ADD_URL = "/unittest/template/add"
 
@@ -246,4 +262,8 @@ export const UNITTES_TEMPLATE_DEL_URL = "/unittest/template/del"
 
 export const UNITTES_TEMPLATE_ITERATOR_URL = "/unittest/template/getIterator"
 
-export const UNITTES_TEMPLATE_STEP_SAVE_URL = "/unittest/template/saveStep"
+export const UNITTES_ITERATION_STEP_SAVE_URL = "/unittest/step/saveIteratorStep"
+
+export const UNITTES_TEMPLATE_STEP_SAVE_URL = "/unittest/step/saveTemplateStep"
+
+export const UNITTES_STEP_LATEST_URL = "/unittest/step/getLastStepByPrj"

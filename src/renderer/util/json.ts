@@ -232,7 +232,9 @@ export async function parseJsonToChildren(parentKeys, parentKey, result, content
 
     if (content[TABLE_FIELD_TYPE] === "Array" && content[TABLE_FIELD_VALUE] !== undefined) {
         let _obj = content[TABLE_FIELD_VALUE];
-        if (_obj.length > 0) {
+        if (_obj.length === undefined) {
+            await innerParseJsonToChildrend(_obj, json_fragment, "0", parentKeys, parentKey, result, cb);
+        } else if (_obj.length > 0) {
             await innerParseJsonToChildrend(_obj, json_fragment, "0", parentKeys, parentKey, result, cb);
         }
     } else {
@@ -349,13 +351,12 @@ export async function buildJsonString(formObjectDefine : any) {
                 formRequestBodyJsonStringObject = _val[TABLE_FIELD_VALUE];
             }
             _val[TABLE_FIELD_TYPE] =  getType(formRequestBodyJsonStringObject);
-            _val[TABLE_FIELD_VALUE] = "";
             let formRequestBodyJsonStringParsedData : any = {};
             let wrappedObject : any = {};
             wrappedObject[_key] = formRequestBodyJsonStringObject;
             parseJsonToFilledTable(formRequestBodyJsonStringParsedData, wrappedObject, null);
             _val = formRequestBodyJsonStringParsedData[_key];
-            formObjectDefine[_key] = _val;
+            formObjectDefine[_key][TABLE_FIELD_VALUE] = _val[TABLE_FIELD_VALUE];
         }
     }
     let parseJsonToChildrenResult : Array<any> = [];

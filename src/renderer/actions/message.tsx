@@ -52,12 +52,15 @@ import {
     ChannelsMessageInfoStr,
     ChannelsDatabaseStr, 
     ChannelsDatabaseQuery, 
-    ChannelsDatabaseQueryResult
+    ChannelsDatabaseQueryResult,
+    ChannelsDatabaseExecute,
+    ChannelsDatabaseExecuteFinish,
 } from '@conf/channel';
 import {
     CLIENT_TYPE_TEAM,
     NETWORK_REQUEST_URL,
     DB_CONFIG_GET_URL,
+    NETWORK_DB_DELETE_URL,
     NETWORK_DB_REQUEST_URL,
 } from '@conf/team';
 import {
@@ -101,6 +104,7 @@ export function sendTeamMessage(url : string, postData) {
                 if (isStringEmpty(errorMessage)) {
                     resolve(data);
                 } else {
+                    console.error("url", url, "errorMessage", errorMessage);
                     reject({errorMessage});
                 }
             }
@@ -110,17 +114,30 @@ export function sendTeamMessage(url : string, postData) {
     });
 }
 
+export async function executeDeleteSql(clientType : string, env : string, project : string, sql : string, params : Array<string>) {
+    let dbConfig = await getDbConfig(clientType, env, project);
+    if (dbConfig['db_run_mode'] == ENV_VALUE_RUN_MODE_CLIENT) {
+        return executeDeleteSqlByClient(dbConfig, sql, params);
+    } else {
+        let teamRet = await sendTeamMessage(NETWORK_DB_DELETE_URL, {project, env, sql, params: JSON.stringify(params)});
+        return new Promise((resolve, reject) => {
+            let isSuccess = teamRet["isSuccess"];
+            let errorMessage = teamRet['errorMessage'];
+            if (isSuccess) {
+                resolve(null);
+            } else {
+                reject({message: errorMessage});
+            }
+        });
+    }
+}
+
 export async function executeQuerySql(clientType : string, env : string, project : string, sql : string, params : Array<string>) {
     let dbConfig = await getDbConfig(clientType, env, project);
     if (dbConfig['db_run_mode'] == ENV_VALUE_RUN_MODE_CLIENT) {
         return executeQuerySqlByClient(dbConfig, sql, params);
     } else {
-        let teamRet = await sendTeamMessage(NETWORK_DB_REQUEST_URL, {
-            project,
-            env,
-            sql,
-            params: JSON.stringify(params),
-        });
+        let teamRet = await sendTeamMessage(NETWORK_DB_REQUEST_URL, {project,env, sql,params: JSON.stringify(params)});
         return new Promise((resolve, reject) => {
             let isSuccess = teamRet["isSuccess"];
             let errorMessage = teamRet['errorMessage'];
@@ -132,6 +149,24 @@ export async function executeQuerySql(clientType : string, env : string, project
             }
         });
     }
+}
+
+function executeDeleteSqlByClient(dbConfig, sql : string, params : Array<string>) {
+    return new Promise((resolve, reject) => {
+
+        let listener = window.electron.ipcRenderer.on(ChannelsDatabaseStr, (action, isSuccess, errorMessage) => {
+            if (action === ChannelsDatabaseExecuteFinish) {
+                listener();
+                if (isSuccess) {
+                    resolve(null);
+                } else {
+                    reject({message: errorMessage});
+                }
+            }
+        });
+
+        window.electron.ipcRenderer.sendMessage(ChannelsDatabaseStr, ChannelsDatabaseExecute, dbConfig, sql, params);
+    });
 }
 
 function executeQuerySqlByClient(dbConfig, sql : string, params : Array<string>) {

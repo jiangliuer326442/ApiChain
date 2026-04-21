@@ -53,3 +53,5 @@ export const ENV = "env_vars_env";
 export const ITERATOR = "storage_iterator";
 
 export const UNITTEST_ENV = "unittest_env";
+
+export const PREFFER_LANGUAGE = "prefer_langguage";

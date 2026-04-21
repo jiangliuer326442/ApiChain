@@ -131,14 +131,6 @@ class Nav extends Component {
                 )
               },
               {
-                key: UNITTEST_TEMPLATE_LIST_ROUTE,
-                label: (
-                  <a href={ "#" + UNITTEST_TEMPLATE_LIST_ROUTE } rel="noopener noreferrer">
-                    {langTrans("nav setting unittest template")}
-                  </a >
-                )
-              },
-              {
                 key: ENVVAR_GLOBAL_LIST_ROUTE,
                 label: (
                   <a href={ "#" + ENVVAR_GLOBAL_LIST_ROUTE } rel="noopener noreferrer">
@@ -175,6 +167,14 @@ class Nav extends Component {
               </a >
             )
           }) 
+          basicNavs[3].children.push({
+            key: UNITTEST_TEMPLATE_LIST_ROUTE,
+            label: (
+              <a href={ "#" + UNITTEST_TEMPLATE_LIST_ROUTE } rel="noopener noreferrer">
+                {langTrans("nav setting unittest template")}
+              </a >
+            )
+          }) 
           basicNavs[3].children.push(              {
             key: BASIC_SETTING_ROUTE,
             label: (
@@ -195,20 +195,6 @@ class Nav extends Component {
             }
         });
 
-        require('../reducers/db/20240501001');
-        require('../reducers/db/20240601001');
-        require('../reducers/db/20240604001');
-        require('../reducers/db/20240613001');
-        require('../reducers/db/20241028001');
-        require('../reducers/db/20241111001');
-        require('../reducers/db/20241112001');
-        require('../reducers/db/20241114001');
-        require('../reducers/db/20241216001');
-        require('../reducers/db/20250102001');
-        require('../reducers/db/20250614001');
-        require('../reducers/db/20250614002');
-        require('../reducers/db/20250706001');
-        require('../reducers/db/20260329001');
         require('../reducers/db/20260402001');
 
         this.state = {
@@ -266,6 +252,8 @@ class Nav extends Component {
               key: prj[prj_label] + "_setting",
               label: <a href={`#/prj_setting/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav setting")}</a >
             });
+          }
+          if (clientType === CLIENT_TYPE_TEAM && prjTeamId === teamId) {
             children.push({
               key: prj[prj_label] + "_unittest",
               label: <a href={`#/project_tests/${prjTeamId}/${prj[prj_label]}` } rel="noopener noreferrer">{langTrans("nav project unittest")}</a >
@@ -280,27 +268,30 @@ class Nav extends Component {
 
         const iterations = await getOpenVersionIterators(clientType, this.props.dispatch);
         navs[1].children = iterations.map((iteration:any) => {
+          let children = [
+            {
+              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_envvar",
+              label: <a href={"#/iterator_envvars/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator envvar")}</a >
+            },
+            {
+              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_doc",
+              label: <a href={"#/version_iterator_requests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator doc")}</a >
+            },
+            {
+              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_vip",
+              label: <a href={"#/version_iterator_vip/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator member")}</a >
+            }
+          ];
+          if (clientType === CLIENT_TYPE_TEAM) {
+            children.push({
+              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_unittest",
+              label: <a href={"#/version_iterator_tests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator unittest")}</a >
+            });
+          }
           return {
             key: ITERATOR + "_" + iteration[version_iterator_uuid],
             label: iteration[version_iterator_title],
-            children: [
-              {
-                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_envvar",
-                label: <a href={"#/iterator_envvars/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator envvar")}</a >
-              },
-              {
-                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_doc",
-                label: <a href={"#/version_iterator_requests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator doc")}</a >
-              },
-              {
-                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_unittest",
-                label: <a href={"#/version_iterator_tests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator unittest")}</a >
-              },
-              {
-                key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_vip",
-                label: <a href={"#/version_iterator_vip/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator member")}</a >
-              }
-            ],
+            children,
           }
         });
 

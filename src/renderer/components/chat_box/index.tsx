@@ -41,10 +41,6 @@ class AiChatBox extends Component {
           messageLength: messages.length,
           linkOperators: [
             {
-              value: "searchInterfaces",
-              label: langTrans("chatbox link action1"),
-            },
-            {
               value: "retrieveiterationDocuments",
               label: langTrans("chatbox link action2"),
             }
@@ -66,7 +62,6 @@ class AiChatBox extends Component {
       this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/ai/ws/" + this.props.teamId + "/" + this.props.uid);
 
       this.ws.onopen = (event) => {
-          console.log("WebSocket opened:", event);
       };
 
       this.ws.onmessage = async (event) => {
@@ -101,14 +96,12 @@ class AiChatBox extends Component {
         if (tmpMessage.hasFinish) {
           this.scrollToBottom();
           localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
-          console.log("tmpMessage", tmpMessage);
           if (tmpMessage.success) {
             this.props.dispatch({
               type: SET_AI_SUPPORT_INFO,
               isAiSupport: true
             });
           } else {
-            console.log("tmpMessage", tmpMessage);
             this.setState({
               loadingWaitMessage: false,
             });
@@ -158,8 +151,6 @@ class AiChatBox extends Component {
     handleLinkOperator = oroginOperator => {
       if (isStringEmpty(oroginOperator)) {
         this.setState( {input : ""} );
-      } else if (oroginOperator === "searchInterfaces") {
-        this.setState( {input : "【" + langTrans("chatbox link action1") + "】" + this.state.input} );
       } else if (oroginOperator === "retrieveiterationDocuments") {
         this.setState( {input : "【" + langTrans("chatbox link action2") + "】" + this.state.input} );
       }
@@ -215,7 +206,7 @@ class AiChatBox extends Component {
           id: messageLength, 
           content:sendContent,
           header: {
-            'Sys_Lang': this.props.userLang,
+            'Sys_Lang': this.props.preferLang,
             'Sys_Country': this.props.userCountry,
             'Sys_Uid': this.props.uid,
             'Sys_Team': this.props.teamId,
@@ -375,7 +366,7 @@ function mapStateToProps (state) {
       teamId: state.device.teamId,
       clientHost: state.device.clientHost,
       projects: state.prj.list,
-      userLang: state.device.userLang,
+      preferLang: state.device.preferLang,
       userCountry: state.device.userCountry,
       uid: state.device.uuid,
       appVersion: state.device.appVersion,

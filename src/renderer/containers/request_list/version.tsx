@@ -22,8 +22,7 @@ import { TinyColor } from '@ctrl/tinycolor';
 
 import RequestListCollapse from '@comp/requests_list_collapse';
 import MarkdownView from '@comp/markdown/show';
-import { 
-    TABLE_MICRO_SERVICE_FIELDS,
+import {
     TABLE_VERSION_ITERATION_FIELDS,
     UNAME,
 } from '@conf/db';
@@ -40,10 +39,6 @@ import {
     isStringEmpty, 
 } from '@rutil/index';
 import { getRemoteVersionIterator } from '@act/version_iterator';
-import { getEnvs } from '@act/env';
-import { getPrjs } from '@act/project';
-import { getExportVersionIteratorRequests } from '@act/version_iterator_requests';
-import { getEnvHosts } from '@act/env_value';
 import { 
     allFolders,
     getIteratorFolders, 
@@ -71,9 +66,6 @@ let version_iterator_prjs = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
 let version_iterator_content = TABLE_VERSION_ITERATION_FIELDS.FIELD_CONTENT;
 let version_iterator_openflg = TABLE_VERSION_ITERATION_FIELDS.FIELD_OPENFLG;
 let version_iterator_ctime = TABLE_VERSION_ITERATION_FIELDS.FIELD_CTIME;
-let version_iterator_projects = TABLE_VERSION_ITERATION_FIELDS.FIELD_PROJECTS;
-
-let prj_label = TABLE_MICRO_SERVICE_FIELDS.FIELD_LABEL;
 
 class RequestListVersion extends Component {
 
@@ -106,7 +98,6 @@ class RequestListVersion extends Component {
             this.state.iteratorId = newIteratorId;
             let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
             this.state.versionIteration = versionIteration;
-            this.loadMarkDownFromElectron(this.state.iteratorId);
             this.props.dispatch({
                 type: GET_ITERATOR,
                 iterator: newIteratorId,
@@ -119,7 +110,6 @@ class RequestListVersion extends Component {
     async componentDidMount() {
         let versionIteration = await getRemoteVersionIterator(this.props.clientType, this.state.iteratorId);
         this.state.versionIteration = versionIteration;
-        this.loadMarkDownFromElectron(this.state.iteratorId);
         this.setState( {  formReadyFlg : true } )
         this.props.dispatch({
             type: GET_ITERATOR,
@@ -168,22 +158,6 @@ class RequestListVersion extends Component {
             filterPrj: prj,
             filterFold: folder,
         })
-    }
-
-    loadMarkDownFromElectron = async (iteratorId : string) => {
-        let envs = await getEnvs(this.props.clientType, null);
-        let prjs = await getPrjs(this.props.clientType, null);
-        let versionIterationPrjs = this.state.versionIteration[version_iterator_projects];
-        let requests = await getExportVersionIteratorRequests(this.props.clientType, iteratorId);
-        prjs = prjs.filter(_prj => versionIterationPrjs.includes(_prj[prj_label]));
-        let envVars : any = {};
-        for (let _prj of prjs) {
-            let projectLabel = _prj[prj_label];
-            const envVarItems = await getEnvHosts(this.props.clientType, _prj["team_id"], projectLabel, null);
-            envVars[projectLabel] = Object.fromEntries(envVarItems);
-        }
-
-        this.setState({prjs, envs, envVars, requests});
     }
 
     render() : ReactNode {

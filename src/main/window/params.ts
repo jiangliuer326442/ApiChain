@@ -1,9 +1,9 @@
 import { app } from 'electron';
 import Store from 'electron-store';
-import log from 'electron-log';
 import crypto from 'crypto';
 import fs from 'fs-extra';
 import path from 'path';
+import { setLangWraped } from '../processInit/langguage';
 import { 
     setLang,
     getLang,
@@ -71,14 +71,7 @@ export function systemInit() {
 
 export async function getInitParams(privateKey : string, startupParams : object, store : Store) : Promise<string[]> {
     let packageJson = await getPackageJson();
-    const lang = osLocaleSync();
-    logInfo(`lang:${lang}`)
-    // if (process.env.NODE_ENV === 'development') {
-        // lang = 'en-US';
-    // }
-    let userLang = lang.split("-")[0];
-    let userCountry = lang.split("-")[1];
-    setLang(userCountry, userLang);
+    const [_, userCountry] = osLocaleSync().split("-");
 
     let teamServerErrorMessage = await pingHost(privateKey, null, store);
     let teamName = "";
@@ -89,7 +82,6 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let isAiSupport = false;
     if (isStringEmpty(teamServerErrorMessage)) {
         let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store);
-        logInfo('get team name ret:', ret);
         if (isStringEmpty(ret[1].teamId)) {
             setClientInfo(CLIENT_TYPE_SINGLE, null, store)
         } else {
@@ -114,10 +106,12 @@ export async function getInitParams(privateKey : string, startupParams : object,
 
     let uid = md5(privateKey);
 
-    let syslang = getLang();
-    let defaultRunner = getDefaultRunner(syslang);
+    let preferLang = setLangWraped(store);
 
-    return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, userLang, userCountry, teamName, firstLauch, 
+    let defaultRunner = getDefaultRunner();
+
+    return doGetInitParams(uid, packageJson, defaultRunner, showCkCodeRet, 
+        preferLang, userCountry, teamName, firstLauch, 
         teamId, clientHost, clientType, isSuperAdmin, isAdmin, isAiSupport,
         startupParams, store);
 }
@@ -125,7 +119,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
 function doGetInitParams(
     uid : string, packageJson : any, 
     defaultRunner : string,
-    showCkCodeRet : any, userLang : string, userCountry : string, teamName : string, 
+    showCkCodeRet : any, preferLang : string, userCountry : string, teamName : string, 
     firstLauch : boolean, 
     teamId : string, clientHost : string, clientType : string, isSuperAdmin : boolean, isAdmin : boolean, isAiSupport : boolean,
     startupParams : object, store : Store) : string[] {
@@ -152,7 +146,7 @@ function doGetInitParams(
         "appName=" + appName,
         "defaultRunnerUrl=" + defaultRunner,
         "minServerVersion=" + minServerVersion,
-        "userLang=" + userLang,
+        "preferLang=" + preferLang,
         "userCountry=" + userCountry,
         "firstLauch=" + firstLauch,
         "clientType=" + clientType,

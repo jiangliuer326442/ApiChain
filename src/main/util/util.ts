@@ -138,7 +138,7 @@ export function md5(str : string) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
-export function getDefaultRunner(lang : string) : string {
+export function getDefaultRunner() : string {
   if (process.env.NODE_ENV === 'development') {
     return "http://127.0.0.1:6588";
   } else {
