@@ -200,7 +200,7 @@ class EnvVar extends Component {
       this.props.dispatch({
           type: SHOW_ADD_PROPERTY_MODEL,
           open: true,
-          iteration: this.state.iteratorId,
+          iterator: this.state.iteratorId,
           unittest: this.state.unittestId,
           prj: this.state.prj,
       });
@@ -210,7 +210,7 @@ class EnvVar extends Component {
       this.props.dispatch({
           type: SHOW_EDIT_PROPERTY_MODEL,
           open: true,
-          iteration: this.state.iteratorId,
+          iteriteratoration: this.state.iteratorId,
           unittest: this.state.unittestId,
           prj: this.state.prj,
           pname: record[pname],
