@@ -634,6 +634,7 @@
     "link team version": "團隊版如何使用？",
     "link robot chat": "如何使用AI助手？",
     "db export error": "資料庫匯出失敗",
+    "guide article btn": "我已閱讀並瞭解，不再顯示此新手指引",
     "welcome": "你好，ApiChain 陪你度過嶄新的一天。",
     "greeting": "你好，{{name}}！"
 }

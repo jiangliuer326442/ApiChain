@@ -176,8 +176,7 @@ class TeamModel extends Component {
 -e DEPLOY_COUNTRY=${this.props.userCountry}
 -e APICHAIN_SUPER_UID=${this.props.uid}
 -v [/path/to/local/dir]:/opt/cache
---name apichain-runner
-${(IS_CHINA_BUILD || this.props.userCountry === 'CN') ? "registry.cn-shanghai.aliyuncs.com/apichain/runner" : "jiangliuer326442/apichain-runner"}:${this.props.defaultRunnerVersion}`}
+--name apichain-runner`}
                                         </SyntaxHighlighter>
                                     </Paragraph>}
                                     overlayStyle={{ maxWidth: 500 }}>
