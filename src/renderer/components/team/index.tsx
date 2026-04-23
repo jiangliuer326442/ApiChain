@@ -23,7 +23,6 @@ import {
     ChannelsTeamSetInfoStr,
 } from '@conf/channel';
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
-import { getWikiTeamVersion } from '@conf/url';
 import { isStringEmpty } from '@rutil/index';
 import { langTrans } from '@lang/i18n';
 
@@ -127,7 +126,7 @@ class TeamModel extends Component {
         return (          
             <Modal
                 title={<>
-                {langTrans("team topup title")} <Text type="secondary"><Link href={ getWikiTeamVersion() }>{langTrans("link team version")}</Link></Text>
+                {langTrans("team topup title")}
                 </>}
                 open={this.props.showTeam}
                 onOk={this.commitTeam}

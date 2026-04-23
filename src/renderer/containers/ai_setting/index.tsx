@@ -345,11 +345,11 @@ class BasicSetting extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                {langTrans("nav setting basic")}
+                {langTrans("nav setting ai")}
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <Flex justify="space-between" align="center">
-                        <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting basic") }]} />
+                        <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting ai") }]} />
                     </Flex>
                 {(this.props.showCkCode && this.props.ckCodeType === "chat_token") ? 
                     <Alert 

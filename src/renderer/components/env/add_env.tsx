@@ -101,12 +101,14 @@ class AddEnvComponent extends Component {
                             value={this.state.envValue} 
                             onChange={ event=>this.setState({envValue : event.target.value}) } 
                             readOnly={ this.state.actionType === "edit" } 
+                            placeholder={ langTrans("env add tip1") }
                             />
                     </Form.Item>
                     <Form.Item label={langTrans("env add form2")}>
                         <Input
                             value={this.state.remarkValue} 
                             onChange={ event=>this.setState({remarkValue : event.target.value}) } 
+                            placeholder={ langTrans("env add tip2") }
                             />
                     </Form.Item>
                 </Form>

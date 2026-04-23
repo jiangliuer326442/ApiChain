@@ -16,14 +16,6 @@ export function getDbDownloadUrl() {
     }
 }
 
-export function getWikiTeamVersion() {
-    if (getLang() === 'zh-CN' || getLang() === 'zh-TW') {
-        return getWikiUrl() + "?sort_id=14607635&doc_id=6200813";
-    } else {
-        return getWikiUrl() + "/2.Team-Edition";
-    }
-}
-
 export function getWikiAiAssistant() {
     if (getLang() === 'zh-CN' || getLang() === 'zh-TW') {
         return getWikiUrl() + "?sort_id=14607636&doc_id=6200813";

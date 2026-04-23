@@ -890,6 +890,7 @@ The above is just the tip of the ApiChain iceberg! Now, you can freely click oth
               : null}
               </>
               : 
+              (this.state.startupGuide == 0 && 
               <>
                 <MarkdownView 
                   content={ markdownContent } 
@@ -907,6 +908,7 @@ The above is just the tip of the ApiChain iceberg! Now, you can freely click oth
                   </Button>
                 </div>
               </>
+              )
               )
             }
             </Flex>
