@@ -7,13 +7,15 @@ import {
     message,
     Space,
     Breadcrumb,
-    Layout 
+    Layout, 
+    Divider
 } from 'antd';
 import { Component, ReactNode } from 'react';
 import { connect } from 'react-redux';
 
 import { langTrans } from '@lang/i18n';
 import { isStringEmpty } from '@rutil/index';
+import { TABLE_ENV_FIELDS } from '@conf/db';
 import { 
     ENV_VALUE_RUN_MODE_CLIENT, ENV_VALUE_RUN_MODE_RUMMER 
 } from '@conf/envKeys';
@@ -25,6 +27,8 @@ import { encryptPromise } from '@act/env_value';
 import { getPrjConfig, savePrjConfig } from '@act/project';
 
 const { Header, Content, Footer } = Layout;
+
+let env_label = TABLE_ENV_FIELDS.FIELD_LABEL;
 
 class ProjectSetting extends Component {
 
@@ -48,12 +52,23 @@ class ProjectSetting extends Component {
 
     async componentDidMount() {
         if(this.props.envs.length === 0) {
-          getEnvs(this.props.clientType, this.props.dispatch);
+          let envs = await getEnvs(this.props.clientType, this.props.dispatch);
+          if (isStringEmpty(this.props.env)) {
+            this.setEnvironmentChange(envs[0][env_label])
+          } else {
+            console.log("222222222");
+            this.getData();
+          }
+        } else {
+            let envs = this.props.envs;
+            if (isStringEmpty(this.props.env)) {
+                console.log("33333333");
+                this.setEnvironmentChange(envs[0]["value"])
+            } else {
+                console.log("444444444");
+                this.getData();
+            }
         }
-        if (isStringEmpty(this.props.env)) {
-            return;
-        }
-        this.getData();
     }
 
     getData = async () => {
@@ -133,7 +148,24 @@ class ProjectSetting extends Component {
             unittest: ""
         });
 
-        this.getData();
+        this.setState({
+            loading: true,
+        })
+        let ret = await getPrjConfig(this.props.clientType, this.props.match.params.prj, value);
+        this.setState({
+            loading: false,
+            apiHost: ret["api_host"],
+            apiPrefix: ret["api_prefix"],
+            runMode: ret["run_mode"],
+            dbHost: ret["db_host"],
+            dbPort: ret["db_port"],
+            dbUsername: ret["db_username"],
+            dbPassword: ret["db_password"],
+            oldDbPassword: ret["db_password"],
+            dbName: ret["db_name"],
+            dbRunMode: ret["db_run_mode"],
+            projectDesc: isStringEmpty(ret["projectDesc"]) ? langTrans("prj add form3 placeholder") : ret["projectDesc"]
+        });
     }
 
     render(): ReactNode {
@@ -163,12 +195,18 @@ class ProjectSetting extends Component {
                         <Form.Item
                             label={langTrans("project setting form2")}
                         >
-                            <Input value={this.state.apiHost} onChange={(e) => this.setState({apiHost: e.target.value})} />
+                            <Input 
+                                value={this.state.apiHost} 
+                                placeholder={ langTrans("project setting tip2") }
+                                onChange={(e) => this.setState({apiHost: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form3")}
                         >
-                            <Input value={this.state.apiPrefix} onChange={(e) => this.setState({apiPrefix: e.target.value})} />
+                            <Input 
+                                value={this.state.apiPrefix} 
+                                placeholder={ langTrans("project setting tip3") }
+                                onChange={(e) => this.setState({apiPrefix: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form4")}
@@ -182,30 +220,46 @@ class ProjectSetting extends Component {
                                     {label:langTrans("runmodel runner"), value: ENV_VALUE_RUN_MODE_RUMMER}
                                 ]} />
                         </Form.Item>
+                        <Divider>{ langTrans("project setting db divider") }</Divider>
                         <Form.Item
                             label={langTrans("project setting form6")}
                         >
-                            <Input value={this.state.dbHost} onChange={(e) => this.setState({dbHost: e.target.value})} />
+                            <Input 
+                                value={this.state.dbHost} 
+                                placeholder={langTrans("project setting tip6")}
+                                onChange={(e) => this.setState({dbHost: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form7")}
                         >
-                            <Input value={this.state.dbPort} onChange={(e) => this.setState({dbPort: e.target.value})} />
+                            <Input 
+                                value={this.state.dbPort} 
+                                placeholder={langTrans("project setting tip7")}
+                                onChange={(e) => this.setState({dbPort: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form8")}
                         >
-                            <Input value={this.state.dbUsername} onChange={(e) => this.setState({dbUsername: e.target.value})} />
+                            <Input 
+                                value={this.state.dbUsername} 
+                                placeholder={langTrans("project setting tip8")}
+                                onChange={(e) => this.setState({dbUsername: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form9")}
                         >
-                            <Input.Password value={this.state.dbPassword} onChange={(e) => this.setState({dbPassword: e.target.value})} />
+                            <Input.Password 
+                                value={this.state.dbPassword} 
+                                placeholder={langTrans("project setting tip9")}
+                                onChange={(e) => this.setState({dbPassword: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form10")}
                         >
-                            <Input value={this.state.dbName} onChange={(e) => this.setState({dbName: e.target.value})} />
+                            <Input 
+                                value={this.state.dbName} 
+                                placeholder={langTrans("project setting tip10")}
+                                onChange={(e) => this.setState({dbName: e.target.value})} />
                         </Form.Item>
                         <Form.Item
                             label={langTrans("project setting form11")}
@@ -219,6 +273,7 @@ class ProjectSetting extends Component {
                                     {label:langTrans("runmodel runner"), value: ENV_VALUE_RUN_MODE_RUMMER}
                                 ]} />
                         </Form.Item>
+                        <Divider />
                         {!this.state.loading && <Form.Item
                             label={langTrans("project setting form5")}
                         >

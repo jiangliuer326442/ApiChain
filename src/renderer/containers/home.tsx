@@ -57,7 +57,7 @@ import {
 import { CLIENT_TYPE_SINGLE, CLIENT_TYPE_TEAM } from '@conf/team';
 import { SET_DEVICE_INFO } from '@conf/redux';
 import { langSupport } from '@conf/global_config'
-import { getLang } from '@lang/i18n';
+import { getLang, langFormat, langTrans } from '@lang/i18n';
 import MarkdownView from '@comp/markdown/show';
 import { 
   getdayjs,
@@ -72,7 +72,6 @@ import { getOpenVersionIteratorsByPrj } from '@act/version_iterator';
 import ChatBox from '@comp/chat_box/index'
 import PayMemberModel from '@comp/topup/member';
 import TeamModel from '@comp/team';
-import { langFormat, langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Text, Link } = Typography;
