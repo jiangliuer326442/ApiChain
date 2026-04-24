@@ -9,12 +9,10 @@ import { EditOutlined, DeleteOutlined, CloseSquareFilled } from '@ant-design/ico
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
 
-import { 
-  TABLE_UNITTEST_FIELDS,
+import {
   TABLE_ENV_VAR_FIELDS,
   UNAME,
 } from '@conf/db';
-import { getWikiEnv } from '@conf/url';
 import { ENV_LIST_ROUTE } from '@conf/routers';
 import { 
   SHOW_ADD_PROPERTY_MODEL, 
@@ -35,9 +33,7 @@ import { langTrans } from '@lang/i18n';
 import { cloneDeep } from 'lodash';
 
 const { Header, Content, Footer } = Layout;
-const { Text, Link } = Typography;
-
-let unittest_projects = TABLE_UNITTEST_FIELDS.FIELD_PROJECTS;
+const { Text } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -239,7 +235,7 @@ class EnvVar extends Component {
       return (
         <>
           <Header style={{ padding: 0 }}>
-            {langTrans("envvar unittest title")} <Text type="secondary"><Link href={getWikiEnv()}>{langTrans("envvar unittest link")}</Link></Text>
+            {langTrans("envvar unittest title")}
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar unittest bread1") }, { title: langTrans("envvar unittest bread2") }]} />

@@ -10,10 +10,11 @@ import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import { GET_ENV_VALS } from '@conf/redux';
+import MarkdownView from '@comp/markdown/show';
 import AddEnvVarComponent from '@comp/env_var/add_env_var';
+import { getEnvVarDoc } from '@conf/doc';
 import { TABLE_ENV_VAR_FIELDS, UNAME } from '@conf/db';
 import { ENV_LIST_ROUTE } from '@conf/routers';
-import { getWikiEnv } from '@conf/url';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 
 import { getEnvs } from '@act/env';
@@ -27,7 +28,7 @@ import { getGlobalKeys } from '@act/keys';
 import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
-const { Text, Link } = Typography;
+const { Text } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -186,7 +187,7 @@ class EnvVar extends Component {
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
-            {langTrans("envvar global title")} <Text type="secondary"><Link href={getWikiEnv()}>{langTrans("envvar global doc")}</Link></Text>
+            {langTrans("envvar global title")}
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[
@@ -261,6 +262,7 @@ class EnvVar extends Component {
                 }} 
                 />
             </Flex>
+          {this.state.listDatas.length > 0 ? 
             <Table style={{marginTop: 25}} 
               rowSelection={{selectedRowKeys: this.state.copiedKeys, onChange: this.setCopiedKeys}}
               dataSource={this.state.listDatas} 
@@ -271,6 +273,11 @@ class EnvVar extends Component {
                 this.state.pagination = pagination;
                 this.getEnvValueData(this.props.env, "", "");
               }} />
+          : 
+            <MarkdownView 
+              content={ getEnvVarDoc() } 
+            />
+          }
           </Content>
           <Footer style={{ textAlign: 'center' }}>
           ApiChain ©{new Date().getFullYear()} Created by Mustafa Fang
