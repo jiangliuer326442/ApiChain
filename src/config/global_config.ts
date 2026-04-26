@@ -62,6 +62,12 @@ export const dataTypeSelect = [
     DataTypeSelectValues
 ];
 
+export const langSupport = {
+    'zh-CN': '简体中文',
+    'zh-TW': '繁體中文',
+    'en-US': 'English',
+};
+
 export const SYNC_TABLES = [
     'env',
     'env_vars_241112001',

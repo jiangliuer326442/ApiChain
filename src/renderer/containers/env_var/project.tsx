@@ -15,7 +15,6 @@ import {
 } from '@conf/team';
 import { ENV_LIST_ROUTE } from '@conf/routers';
 import { GET_ENV_VALS, GET_PRJ } from '@conf/redux';
-import { getWikiEnv } from '@conf/url';
 import { SHOW_ADD_PROPERTY_MODEL, SHOW_EDIT_PROPERTY_MODEL } from '@conf/redux';
 import { getEnvs } from '@act/env';
 import { 
@@ -30,7 +29,7 @@ import AddEnvVarComponent from '@comp/env_var/add_env_var';
 import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
-const { Link, Text } = Typography;
+const { Text } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -230,7 +229,7 @@ class EnvVar extends Component {
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
-            {langTrans("envvar prj title")} <Text type="secondary"><Link href={getWikiEnv()}>{langTrans("envvar prj doc")}</Link></Text>
+            {langTrans("envvar prj title")}
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[

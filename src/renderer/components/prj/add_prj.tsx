@@ -91,14 +91,21 @@ class AddPrjComponent extends Component {
                 onCancel={this.handleCancel}
                 width={270}
             >
-                <Form
-                layout="vertical"
-                >
-                    <Form.Item>
-                        <Input placeholder={langTrans("prj add form1")} value={this.state.prjValue} onChange={ event=>this.setState({prjValue : event.target.value}) } readOnly={ this.state.actionType === "edit" } />
+                <Form labelCol={{ span: 9 }} wrapperCol={{ span: 15 }}>
+                    <Form.Item label={langTrans("prj add form1")}>
+                        <Input 
+                            placeholder={langTrans("prj add tip1")}
+                            value={this.state.prjValue} 
+                            onChange={ event=>this.setState({prjValue : event.target.value}) } 
+                            readOnly={ this.state.actionType === "edit" } 
+                            />
                     </Form.Item>
-                    <Form.Item>
-                        <Input placeholder={langTrans("prj add form2")} value={this.state.remarkValue} onChange={ event=>this.setState({remarkValue : event.target.value}) } />
+                    <Form.Item label={langTrans("prj add form2")}>
+                        <Input 
+                            placeholder={langTrans("prj add tip2")}
+                            value={this.state.remarkValue} 
+                            onChange={ event=>this.setState({remarkValue : event.target.value}) } 
+                            />
                     </Form.Item>
                 </Form>
             </Modal>

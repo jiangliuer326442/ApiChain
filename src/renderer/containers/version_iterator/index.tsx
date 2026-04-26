@@ -13,14 +13,16 @@ import {
 import { cloneDeep } from 'lodash';
 
 import VersionIteratorSwitch from '@comp/version_iterator/switch';
+import MarkdownView from '@comp/markdown/show';
 import { ChannelsLoadAppStr } from '@conf/channel';
 import { VERSION_ITERATOR_ADD_ROUTE } from "@conf/routers";
 import { TABLE_VERSION_ITERATION_FIELDS } from '@conf/db';
+import { getVersionIterationDoc } from '@conf/doc';
 import { 
   getVersionIteratorsByPage, 
   delVersionIterator 
 } from "@act/version_iterator";
-import { langTrans } from '@lang/i18n';
+import { langTrans, getLang } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
 
@@ -96,6 +98,7 @@ class VersionIterator extends Component {
           current: 1,
           pageSize: 10,
         },
+        lang: getLang()
       }
     }
 
@@ -106,6 +109,7 @@ class VersionIterator extends Component {
     }
 
     render() : ReactNode {
+
         return (
           <Layout>
             <Header style={{ padding: 0 }}>
@@ -116,6 +120,7 @@ class VersionIterator extends Component {
                     <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("iterator bread1") }, { title: langTrans("iterator bread2") }]} />
                     <Button  style={{ margin: '16px 0' }} type="primary" href={"#" + VERSION_ITERATOR_ADD_ROUTE}>{langTrans("iterator add")}</Button>
                 </Flex>
+              {this.state.listDatas.length > 0 ? 
                 <Table 
                   dataSource={this.state.listDatas} 
                   rowKey={(record) => record.uuid}
@@ -125,6 +130,11 @@ class VersionIterator extends Component {
                     let listDatas = await getVersionIteratorsByPage(this.props.clientType, pagination)
                     this.setState({listDatas, pagination});
                   }} />
+              : 
+                <MarkdownView 
+                  content={ getVersionIterationDoc() } 
+                />
+              }
             </Content>
             <Footer style={{ textAlign: 'center' }}>
             ApiChain ©{new Date().getFullYear()} Created by Mustafa Fang

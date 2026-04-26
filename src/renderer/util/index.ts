@@ -28,6 +28,12 @@ export function paramToString(obj) {
   return ret;
 }
 
+export function getDevRandomPort() {
+  const min = 3000;
+  const max = 65535;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 export function substr(str : any, length : number) {
   if (str != null && str.length > length) {
     return str.substring(0, length) + "...";

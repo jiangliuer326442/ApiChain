@@ -41,7 +41,7 @@ import {
   INTERNET_REQUEST,
   REQUEST_HISTORY,
   ENVVAR_GLOBAL_LIST_ROUTE,
-  BASIC_SETTING_ROUTE,
+  AI_SETTING_ROUTE,
   UNITTEST_TEMPLATE_LIST_ROUTE,
   TEAM_MEMBER_ROUTE,
 } from '@conf/routers';
@@ -176,10 +176,10 @@ class Nav extends Component {
             )
           }) 
           basicNavs[3].children.push(              {
-            key: BASIC_SETTING_ROUTE,
+            key: AI_SETTING_ROUTE,
             label: (
-              <a href={ "#" + BASIC_SETTING_ROUTE } rel="noopener noreferrer">
-                {langTrans("nav setting basic")}
+              <a href={ "#" + AI_SETTING_ROUTE } rel="noopener noreferrer">
+                {langTrans("nav setting ai")}
               </a >
             )
           });

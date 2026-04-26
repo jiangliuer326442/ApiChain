@@ -10,7 +10,6 @@ import { cloneDeep } from 'lodash';
 
 import { isStringEmpty, getdayjs } from '@rutil/index';
 import AddEnvVarComponent from '@comp/env_var/add_env_var';
-import { getWikiEnv } from '@conf/url';
 import { 
   TABLE_ENV_VAR_FIELDS, 
   TABLE_VERSION_ITERATION_FIELDS,
@@ -36,7 +35,7 @@ import {
 import { langTrans } from '@lang/i18n';
 
 const { Header, Content, Footer } = Layout;
-const { Text, Link } = Typography;
+const { Text } = Typography;
 
 let pname = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_NAME;
 let pvar = TABLE_ENV_VAR_FIELDS.FIELD_PARAM_VAR;
@@ -248,7 +247,7 @@ class EnvVar extends Component {
       return (
         <Layout>
           <Header style={{ padding: 0 }}>
-            {langTrans("envvar iterator title")} <Text type="secondary"><Link href={getWikiEnv()}>{langTrans("envvar iterator link")}</Link></Text>
+            {langTrans("envvar iterator title")}
           </Header>
           <Content style={{ padding: '0 16px' }}>
             <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("envvar iterator bread1") }, { title: langTrans("envvar iterator bread2") }]} />

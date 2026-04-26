@@ -7,6 +7,7 @@ import {
     ConfigProvider, 
     FloatButton, 
     Descriptions, 
+    Tooltip,
     Form, 
     Select, 
     Divider, 
@@ -252,9 +253,11 @@ class RequestListVersion extends Component {
                                     },
                                 }}
                                 >
-                                <Button type="primary" href={'#/internet_request_send_by_iterator/' + this.state.iteratorId} size="large">
-                                    {langTrans("version doc btn1")}
-                                </Button>
+                                    <Tooltip placement="bottom" title={langTrans("version doc tooltip1")}>
+                                        <Button type="primary" href={'#/internet_request_send_by_iterator/' + this.state.iteratorId} size="large">
+                                            {langTrans("version doc btn1")}
+                                        </Button>
+                                    </Tooltip>
                             </ConfigProvider>
 
                         </Flex>

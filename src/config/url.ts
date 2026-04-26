@@ -8,11 +8,11 @@ export function getProjectUrl() {
     }
 }
 
-export function getWikiTeamVersion() {
+export function getDbDownloadUrl() {
     if (getLang() === 'zh-CN' || getLang() === 'zh-TW') {
-        return getWikiUrl() + "?sort_id=14607635&doc_id=6200813";
+        return "https://gitee.com/onlinetool/apichain/raw/main/db/dump-apichain-zh.sql";
     } else {
-        return getWikiUrl() + "/2.Team-Edition";
+        return "https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/db/dump-apichain-zh.sql";
     }
 }
 
@@ -21,14 +21,6 @@ export function getWikiAiAssistant() {
         return getWikiUrl() + "?sort_id=14607636&doc_id=6200813";
     } else {
         return getWikiUrl() + "/3.AI-Assistant";
-    }
-}
-
-export function getWikiEnv() {
-    if (getLang() === 'zh-CN' || getLang() === 'zh-TW') {
-        return getWikiUrl() + "?sort_id=12874443&doc_id=6200813";
-    } else {
-        return getWikiUrl() + "/6.-Environment-variables";
     }
 }
 

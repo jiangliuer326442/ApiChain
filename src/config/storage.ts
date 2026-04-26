@@ -8,6 +8,12 @@ export const AI_RECORD = "storage.chatBox.record";
 
 export const DOC_ITERATOR = "iterator_doc_iteratorId";
 
+export const GUIDE_SHOW_FLG = "storage.guide.show";
+
+export const GUIDE_DB_PWD = "storage.guide.dbpassword3";
+
+export const GUIDE_DB_PORT = "storage.guide.dbport";
+
 export const UUID = "device.uuid";
 
 export const BUY_TIMES = "device.buytimes";

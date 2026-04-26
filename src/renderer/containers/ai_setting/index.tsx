@@ -24,10 +24,10 @@ import {
     ChannelsVipCloseCkCodeStr,
     ChannelsVipCkCodeStr,
 } from '@conf/channel';
-import { SET_DEVICE_INFO } from '@conf/redux';
 import {
-    CLIENT_TYPE_TEAM 
-} from '@conf/team';
+    getAiUseDoc
+} from '@conf/doc';
+import { SET_DEVICE_INFO } from '@conf/redux';
 import { getStartParams, getdayjs } from '@rutil/index';
 import { 
     setBaseUrl, 
@@ -44,6 +44,7 @@ import {
     queryRemainGas
 } from '@act/ai';
 import PayAiTokenModel from '@comp/topup/aitoken';
+import MarkdownView from '@comp/markdown/show';
 
 const { Header, Content, Footer } = Layout;
 const { Link, Text } = Typography;
@@ -138,63 +139,59 @@ class BasicSetting extends Component {
     }
 
     async componentDidMount() {
-        if (this.props.clientType === CLIENT_TYPE_TEAM) {
-            const ret = await getTeamSetting();
-            let selectedProvider = ret.currentProvider;
-            let bigModelProviders = ret.providers;
-            let providers = [];
-            for (let bigModelProvider of bigModelProviders) {
-                let providerRow = bigModelProvider.provider;
-                let providerArr = providerRow.split(":");
-                providers.push({label:providerArr[0], value:providerArr[1]})
-            }
-            this.setProvider(selectedProvider);
-            let baseUrlArr = this.getBaseUrl(bigModelProviders, selectedProvider);
-            if (baseUrlArr.length > 1) {
-                this.setBaseUrl2(baseUrlArr[0].value);
-            } else {
-                this.setBaseUrl2(baseUrlArr[0]);
-            }
-            let langguageModelArr = this.getLanguageModels(bigModelProviders, selectedProvider);
-            if (langguageModelArr.length > 1) {
-                this.setLanguageModel2(langguageModelArr[0].value);
-            } else {
-                this.setLanguageModel2(langguageModelArr[0]);
-            }
-            let apiKey = this.getApiKey(bigModelProviders, selectedProvider);
-            const tokenList = await getTokens();
-            let hasUsed = false;
-            for (let _token of tokenList) {
-                if (_token['use_flg']) {
-                    hasUsed = true;
-                    break;
-                }
-            }
-            if (!hasUsed && tokenList.length > 0) {
-                const record = tokenList[0];
-                let tokenName = record["token_name"];
-                await enableToken(tokenName).then(async () => {
-                    let selectedProvider = "YUNWU";
-                    this.setState({
-                        selectedProvider,
-                        tokens: await getTokens(),
-                    });
-                })
-            }
-            this.setState({
-                selectedProvider,
-                bigModelProviders,
-                providers,
-                baseUrls : baseUrlArr,
-                apiKey,
-                initApiKey: apiKey,
-                languageModels: langguageModelArr,
-                tokens: tokenList,
-                loaded: true
-            })
-        } else {
-            this.setState({loaded: true})
+        const ret = await getTeamSetting();
+        let selectedProvider = ret.currentProvider;
+        let bigModelProviders = ret.providers;
+        let providers = [];
+        for (let bigModelProvider of bigModelProviders) {
+            let providerRow = bigModelProvider.provider;
+            let providerArr = providerRow.split(":");
+            providers.push({label:providerArr[0], value:providerArr[1]})
         }
+        this.setProvider(selectedProvider);
+        let baseUrlArr = this.getBaseUrl(bigModelProviders, selectedProvider);
+        if (baseUrlArr.length > 1) {
+            this.setBaseUrl2(baseUrlArr[0].value);
+        } else {
+            this.setBaseUrl2(baseUrlArr[0]);
+        }
+        let langguageModelArr = this.getLanguageModels(bigModelProviders, selectedProvider);
+        if (langguageModelArr.length > 1) {
+            this.setLanguageModel2(langguageModelArr[0].value);
+        } else {
+            this.setLanguageModel2(langguageModelArr[0]);
+        }
+        let apiKey = this.getApiKey(bigModelProviders, selectedProvider);
+        const tokenList = await getTokens();
+        let hasUsed = false;
+        for (let _token of tokenList) {
+            if (_token['use_flg']) {
+                hasUsed = true;
+                break;
+            }
+        }
+        if (!hasUsed && tokenList.length > 0) {
+            const record = tokenList[0];
+            let tokenName = record["token_name"];
+            await enableToken(tokenName).then(async () => {
+                let selectedProvider = "YUNWU";
+                this.setState({
+                    selectedProvider,
+                    tokens: await getTokens(),
+                });
+            })
+        }
+        this.setState({
+            selectedProvider,
+            bigModelProviders,
+            providers,
+            baseUrls : baseUrlArr,
+            apiKey,
+            initApiKey: apiKey,
+            languageModels: langguageModelArr,
+            tokens: tokenList,
+            loaded: true
+        })
     }
 
     getApiKey = (bigModelProviders, selectedProvider) => {
@@ -345,11 +342,11 @@ class BasicSetting extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                {langTrans("nav setting basic")}
+                {langTrans("nav setting ai")}
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <Flex justify="space-between" align="center">
-                        <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting basic") }]} />
+                        <Breadcrumb style={{ margin: '16px 0' }} items={[{ title: langTrans("env bread1")}, { title: langTrans("nav setting ai") }]} />
                     </Flex>
                 {(this.props.showCkCode && this.props.ckCodeType === "chat_token") ? 
                     <Alert 
@@ -379,8 +376,6 @@ class BasicSetting extends Component {
                         wrapperCol={{ span: 14 }}
                         style={{width: 800}}
                     >
-                        {this.props.clientType === CLIENT_TYPE_TEAM ? 
-                    <>
                         <Form.Item
                             label={langTrans("setting basic provider label")}
                         >
@@ -451,6 +446,7 @@ class BasicSetting extends Component {
                                 placeholder={langTrans("setting basic key placeholder")} 
                             />
                         </Form.Item>
+                        {this.state.tokens.length > 0 &&
                         <Form.Item
                             label={langTrans("knowledge management")}
                             style={{ borderTop: '1px dashed rgba(255, 255, 255, 0.85)', paddingTop: '12px' }}
@@ -484,15 +480,24 @@ class BasicSetting extends Component {
                                 </Popconfirm>
                             : null}
                             </Space>
-                        </Form.Item>
-                    </>
-                        : null}
+                        </Form.Item> }
                     </Form>
                 : null}
+                {this.state.tokens.length > 0 ?  
+                <>  
                     <Divider>{langTrans("setting basic table title")}</Divider>
-                    {this.props.clientType === CLIENT_TYPE_TEAM ? 
-                    <Table rowKey={"token_name"} columns={this.state.columns} dataSource={ this.state.tokens } pagination={ false } />
-                    : null}
+                    <Table 
+                        rowKey={"token_name"} 
+                        columns={this.state.columns} 
+                        dataSource={ this.state.tokens } 
+                        pagination={ false } 
+                        />
+                </>
+                :
+                    <MarkdownView 
+                        content={ getAiUseDoc() } 
+                    />
+                }
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
                 ApiChain ©{new Date().getFullYear()} Created by Mustafa Fang

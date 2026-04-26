@@ -15,7 +15,7 @@ import {
 } from '@conf/storage';
 import { SET_DEVICE_INFO, SET_AI_COLLAPSED } from '@conf/redux';
 import { 
-    BASIC_SETTING_ROUTE,
+    AI_SETTING_ROUTE,
     TEAM_MEMBER_ROUTE,
     ENV_LIST_ROUTE, 
     PROJECT_LIST_ROUTE,
@@ -71,7 +71,7 @@ setLang2(preferLang);
 import Nav from '@comp/nav';
 import ChatBox from '@comp/chat_box/index'
 import HomePage from "@contain/home";
-import BasicSettingPage from "@contain/basic_setting";
+import AiSettingPage from "@contain/ai_setting";
 import TeamMemberPage from "@contain/team_member";
 import EnvListPage from "@contain/env";
 import ProjectListPage from "@contain/prj";
@@ -179,7 +179,7 @@ class MyRouter extends Component {
                 </> : null}
                     <Layout>
                         <Switch>
-                            <Route path={ BASIC_SETTING_ROUTE } component={BasicSettingPage} />
+                            <Route path={ AI_SETTING_ROUTE } component={AiSettingPage} />
                             <Route path={ TEAM_MEMBER_ROUTE } component={TeamMemberPage} />
                             <Route path={ ENV_LIST_ROUTE } component={EnvListPage} />
                             <Route path={ PROJECT_LIST_ROUTE } component={ProjectListPage} />
