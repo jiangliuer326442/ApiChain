@@ -140,6 +140,7 @@
     "version doc operator3": "移動到迭代",
     "version doc operator4": "移動到資料夾",
     "version doc btn1": "發起請求",
+    "version doc tooltip1": "關聯迭代並可使用迭代環境變數",
     "version doc btn2": "新增接口",
     "version doc md title": "迭代說明",
     "version doc status1": "進行中",

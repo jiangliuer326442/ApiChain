@@ -167,6 +167,7 @@
     "version doc operator3": "移动到迭代",
     "version doc operator4": "移动到文件夹",
     "version doc btn1": "发起请求",
+    "version doc tooltip1": "关联迭代并可使用迭代环境变量",
     "version doc btn2": "新增接口",
     "version doc md title": "迭代说明",
     "version doc status1": "进行中",

@@ -167,6 +167,7 @@
     "version doc operator3": "Move to Iteration",
     "version doc operator4": "Move to Folder",
     "version doc btn1": "Send Request",
+    "version doc tooltip1": "Link to an iteration and use its environment variables",
     "version doc btn2": "Add API",
     "version doc md title": "Iteration Description",
     "version doc status1": "In Progress",
