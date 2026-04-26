@@ -10,7 +10,6 @@ import {
   Button,
   Select,
   Form,
-  Typography,
   message,
 } from 'antd';
 import type { MenuProps } from 'antd';
@@ -34,7 +33,6 @@ import {
   GET_ENV,
   GET_PROJECT_TESTS,
 } from '@conf/redux';
-import { getWikiProject } from '@conf/url';
 import { getdayjs, isStringEmpty } from '@rutil/index';
 import { getEnvs } from '@act/env';
 import {
@@ -50,7 +48,6 @@ import AddUnittestComponent from '@comp/unittest/add_unittest';
 import SingleUnitTestReport from '@comp/unittest/single_unittest_report';
 
 const { Header, Content, Footer } = Layout;
-const { Text, Link } = Typography;
 
 const unittest_uuid = TABLE_UNITTEST_FIELDS.FIELD_UUID;
 const unittest_iterator = TABLE_UNITTEST_FIELDS.FIELD_ITERATOR_UUID;
@@ -330,7 +327,7 @@ class UnittestListVersion extends Component {
   render(): ReactNode {
     return (
       <Layout>
-        <Header style={{ padding: 0 }}>{langTrans("prj unittest title")} <Text type="secondary"><Link href={getWikiProject()}>{langTrans("prj unittest link")}</Link></Text></Header>
+        <Header style={{ padding: 0 }}>{langTrans("prj unittest title")}</Header>
         <Content style={{ padding: '0 16px' }}>
           <AddUnittestComponent
             refreshCb={() =>

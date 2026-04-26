@@ -3,8 +3,7 @@ import { connect } from 'react-redux';
 import { 
     Breadcrumb, 
     Layout, 
-    Flex, 
-    Typography,
+    Flex,
     Form, 
     Input,
     Button,
@@ -14,14 +13,12 @@ import {
 } from '@ant-design/icons'
 
 import { langTrans } from '@lang/i18n';
-import { getWikiProject } from '@conf/url';
 import { GET_PRJ } from '@conf/redux';
 import RequestListCollapse from '@comp/requests_list_collapse';
 import { getProjectFolders } from '@act/project_folders';
 import { isStringEmpty } from '@rutil/index';
 
 const { Header, Content, Footer } = Layout;
-const { Text, Link } = Typography;
 
 type FieldType = {
     title?: string;
@@ -111,7 +108,7 @@ class RequestListProject extends Component {
         return (
             <Layout>
                 <Header style={{ padding: 0 }}>
-                    {langTrans("prj doc title")} <Text type="secondary"><Link href={getWikiProject()}>{langTrans("prj doc link")}</Link></Text>
+                    {langTrans("prj doc title")}
                 </Header>
                 <Content style={{ padding: '0 16px' }}>
                     <Breadcrumb style={{ margin: '16px 0' }} items={[
