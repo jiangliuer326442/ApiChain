@@ -8,12 +8,16 @@ export function getProjectUrl() {
     }
 }
 
-export function getDbDownloadUrl() {
+export function getRawUrl() {
     if (getLang() === 'zh-CN' || getLang() === 'zh-TW') {
-        return "https://gitee.com/onlinetool/apichain/raw/main/db/dump-apichain-zh.sql";
+        return "https://gitee.com/onlinetool/apichain/raw/main/";
     } else {
-        return "https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/db/dump-apichain-zh.sql";
+        return "https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/";
     }
+}
+
+export function getDbDownloadUrl() {
+    return getRawUrl() + "db/dump-apichain-zh.sql";
 }
 
 export function getWikiAiAssistant() {
