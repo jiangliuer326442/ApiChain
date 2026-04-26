@@ -6,7 +6,7 @@ import fs from 'fs';
 import { spawn } from 'child_process';
 import { getLang } from '../../../lang/i18n';
 import { compareVersions } from '../../util/util';
-import { getProjectUrl } from '../../../config/url';
+import { getProjectUrl, getRawUrl } from '../../../config/url';
 
 import { 
     ChannelsAutoUpgradeStr, 
@@ -15,12 +15,7 @@ import {
 } from '../../../config/channel';
 
 function getUpdateUrl() {
-    let lang = getLang();
-    let checkUpdateUrl = "https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/package.json";
-    if (IS_CHINA_BUILD || lang == "zh-CN" || lang == "zh-TW") {
-        checkUpdateUrl = "https://gitee.com/onlinetool/apichain/raw/main/package.json";
-    }
-
+    let checkUpdateUrl = getRawUrl() + "package.json";
     return checkUpdateUrl;
 }
 

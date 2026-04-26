@@ -14,15 +14,15 @@
     "type": "git",
     "url": "git+https://github.com/jiangliuer326442/ApiChain.git"
   },
-  "license": "MIT",
+  "license": "UNLICENSED",
   "author": {
-    "name": "方海亮",
+    "name": "Mustafa Fang",
     "email": "fanghailiang2016@gmail.com",
     "url": "https://blog.csdn.net/fanghailiang2016"
   },
   "contributors": [
     {
-      "name": "方海亮",
+      "name": "Mustafa Fang",
       "email": "fanghailiang2016@gmail.com",
       "url": "https://blog.csdn.net/fanghailiang2016"
     }
