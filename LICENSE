@@ -1,21 +1,15 @@
-The MIT License (MIT)
-
-Copyright (c) 2015-present Electron React Boilerplate
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+ApiChain Custom Software License
+Copyright (c) 2026 Mustafa Fang. All rights reserved.
+This software and associated documentation files (the "Software") are provided under the following conditions:
+1. Permitted Use: 
+You are granted a non-exclusive, worldwide, non-transferable, royalty-free license to:
+   a) View, read, and study the source code of the Software for personal, academic, or non-commercial research purposes.
+   b) Modify the source code solely for the purposes of personal learning and research.
+2. Restrictions:
+You are NOT allowed to:
+   a) Use the Software or any modified version of it for any commercial purpose, including but not limited to selling, licensing, distributing, or incorporating it into a commercial product or service.
+   b) Reverse engineer, decompile, disassemble, bypass, or crack any security measures, authentication mechanisms, or technological measures that control access to the Software.
+   c) Teach, instruct, guide, or provide tools to others on how to crack, bypass, or circumvent the security or licensing mechanisms of the Software.
+   d) Distribute or publish modified versions of the Software without explicit prior written permission from the copyright holder.
+3. Disclaimer:
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULARPURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
