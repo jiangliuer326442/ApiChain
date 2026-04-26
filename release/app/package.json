@@ -2,7 +2,7 @@
   "name": "ApiChain",
   "version": "1.2.4",
   "minServerVersion": "1.2.4",
-  "description": "tool for API documents and unit testing",
+  "description": "The iteration-centric microservice API management and full-link deep testing tool, integrating smart document merging, database-level assertions, and AI-powered retrieval in one stop",
   "license": "MIT",
   "author": {
     "name": "Mustafa Fang",
