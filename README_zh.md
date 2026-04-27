@@ -32,7 +32,7 @@ docker run --name mysql-container -p 33088:3306 -e MYSQL_ROOT_PASSWORD=112233 -d
 启动后，创建数据库并导入测试数据：
 
 1. 执行 SQL：`create database apichain;`
-2. 下载并导入测试数据脚本：[点此下载 SQL 文件](https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/db/dump-apichain.sql)
+2. 下载并导入测试数据脚本：[点此下载 SQL 文件](https://raw.giteeusercontent.com/onlinetool/apichain/raw/main/db/dump-apichain-zh.sql)
 
 > 💡 提示：如遇连接报错 `Public Key Retrieval is not allowed`，请将驱动属性中的 `allowPublicKeyRetrieval` 修改为 `true`。
 
