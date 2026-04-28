@@ -114,7 +114,10 @@ class PrjEnvSelect extends Component {
         }
         const teamId = this.getTeamIdByPrj(rawValue);
         let prj = rawValue.split("$$")[0];
-        this.setState({prj: rawValue});
+        this.setState({
+            teamId,
+            prj: rawValue
+        });
         this.props.dispatch({
             type: GET_PRJ,
             prj,

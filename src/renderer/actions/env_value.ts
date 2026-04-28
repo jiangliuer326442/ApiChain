@@ -184,49 +184,57 @@ export async function getEnvRunModes(clientType : string, teamId : string, prj :
 }
 
 export async function getEnvHosts(clientType : string, teamId : string, prj : string, env : string|null) : Promise<Map<string, string>> {
-    let datas : any = {};
-
-    if (clientType === CLIENT_TYPE_SINGLE) {
-        let envVarItems = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-        .equals([prj, "", "", ENV_VALUE_API_HOST])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            if (env && row[env_var_env] !== env) {
-                return false
-            }
-            return true;
-        })
-        .toArray();
-        for (let globalRow of envVarItems) {
-            datas[globalRow[env_var_env]] = globalRow[env_var_pvalue];
-        }
-        envVarItems = await db[TABLE_ENV_VAR_NAME]
-        .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
-        .equals([prj, "", "", ENV_VALUE_API_PREFIX])
-        .filter(row => {
-            if (row[env_var_delFlg]) {
-                return false;
-            }
-            if (env && row[env_var_env] !== env) {
-                return false
-            }
-            return true;
-        })
-        .toArray();
-        for (let globalRow of envVarItems) {
-            if (!isStringEmpty(globalRow[env_var_pvalue])) {
-                datas[globalRow[env_var_env]] = datas[globalRow[env_var_env]] + (globalRow[env_var_pvalue].substr(1));
-            }
-        }
-
+    let env_hosts_cache_key = "env_hosts_prj_" + prj + "_env4_" + env;
+    let cache_data = sessionStorage.getItem(env_hosts_cache_key);
+    if (cache_data != null) {
+        let datas = JSON.parse(cache_data);
+        return new Map(Object.entries(datas));
     } else {
-        datas = await sendTeamMessage(PRJ_HOST_URL, {teamId, prj, env});
-    }
+        let datas : any = {};
 
-    return new Map(Object.entries(datas));
+        if (clientType === CLIENT_TYPE_SINGLE) {
+            let envVarItems = await db[TABLE_ENV_VAR_NAME]
+            .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+            .equals([prj, "", "", ENV_VALUE_API_HOST])
+            .filter(row => {
+                if (row[env_var_delFlg]) {
+                    return false;
+                }
+                if (env && row[env_var_env] !== env) {
+                    return false
+                }
+                return true;
+            })
+            .toArray();
+            for (let globalRow of envVarItems) {
+                datas[globalRow[env_var_env]] = globalRow[env_var_pvalue];
+            }
+            envVarItems = await db[TABLE_ENV_VAR_NAME]
+            .where('[' + env_var_micro_service + '+' + env_var_iteration + '+' + env_var_unittest + '+' + env_var_pname + ']')
+            .equals([prj, "", "", ENV_VALUE_API_PREFIX])
+            .filter(row => {
+                if (row[env_var_delFlg]) {
+                    return false;
+                }
+                if (env && row[env_var_env] !== env) {
+                    return false
+                }
+                return true;
+            })
+            .toArray();
+            for (let globalRow of envVarItems) {
+                if (!isStringEmpty(globalRow[env_var_pvalue])) {
+                    datas[globalRow[env_var_env]] = datas[globalRow[env_var_env]] + (globalRow[env_var_pvalue].substr(1));
+                }
+            }
+    
+        } else {
+            datas = await sendTeamMessage(PRJ_HOST_URL, {teamId, prj, env});
+        }
+        sessionStorage.setItem(env_hosts_cache_key, JSON.stringify(datas));
+    
+        return new Map(Object.entries(datas));
+    }
 }
 
 export async function batchCopyGlobalEnvValues(clientType : string, teamId : string, oldEnv : string, newEnv : string, pnameArr : Array<string>) {
