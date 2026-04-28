@@ -146,7 +146,7 @@ yarn package
 
 If you have any suggestions or encounter issues with the software, feel free to join our **Telegram** group:
 
-![teleram group](https://sdfdsfds)
+<img src="https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/telegram_group.jpg" width="200" />
 
 
 ------
