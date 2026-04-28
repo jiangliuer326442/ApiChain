@@ -124,8 +124,6 @@ Say goodbye to hardcoded data with built-in rich random functions:
 
 ```
 npm install -g yarn
-yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
-yarn config set registry https://registry.npmmirror.com/
 ```
 
 1. Install dependencies:
