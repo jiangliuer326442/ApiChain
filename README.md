@@ -108,3 +108,50 @@ Say goodbye to hardcoded data with built-in rich random functions:
 3. **Assisted Generation & Conversion**: AI assists in generating API meanings and field descriptions; JSON is instantly converted into model code perfectly adapted to your current project.
 4. **Semantic RAG Retrieval**: Based on vector databases, it enables semantic API search and precise Q&A on the iteration knowledge base, empowering current development with historical experience.
 5. **Security & Sharing**: AI tokens are shared across the team with transparent usage; API addresses are optimized for network acceleration in mainland China and overseas; token data is encrypted at rest and desensitized on display.
+
+
+
+## 🛠️ Compile from Source Code
+
+### Dependencies
+
+- Node.js: v20.12.2
+- Electron: v26.2.4
+
+### Compilation Steps
+
+1. Install and configure Yarn:
+
+```
+npm install -g yarn
+yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
+yarn config set registry https://registry.npmmirror.com/
+```
+
+1. Install dependencies:
+
+```
+yarn
+```
+
+1. Generate executable files:
+
+```
+yarn package
+```
+
+------
+
+## 📬 Feedback and Suggestions
+
+If you have any suggestions or encounter issues with the software, feel free to join our **Telegram** group:
+
+<img src="https://raw.githubusercontent.com/jiangliuer326442/ApiChain/refs/heads/main/telegram_group.jpg" width="200" />
+
+
+------
+
+## 🌟 Support Us
+
+If you like this project, please support us by giving it a [Star](https://github.com/jiangliuer326442/apichain)! Your support motivates us to keep improving the project 💖
+

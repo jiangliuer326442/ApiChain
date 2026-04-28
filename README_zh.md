@@ -144,7 +144,7 @@ registry.cn-shanghai.aliyuncs.com/apichain/runner:1.2.4
 
 如果您对软件有任何建议或问题，欢迎加入**微信**群组：
 
-![微信二维码](https://gitee.com/onlinetool/apichain/raw/main/wechat_group.png)
+<img src="https://gitee.com/onlinetool/apichain/raw/main/wechat_group.png" width="200" />
 
 ---
 
