@@ -108,3 +108,46 @@ registry.cn-shanghai.aliyuncs.com/apichain/runner:1.2.4
 3. **辅助生成与转换**：AI 辅助生成接口含义与字段说明；JSON 一键生成适配当前项目的模型代码。
 4. **语义级 RAG 检索**：基于向量数据库，实现接口语义搜索与迭代知识库精准问答，历史经验随时赋能。
 5. **安全与共享**：AI 令牌团队共享，用量透明；API 地址适配海内外网络加速，令牌数据加密存储与脱敏展示。
+
+## 🛠️ 从源码编译
+
+### 依赖
+
+- Node.js：v20.12.2
+- Electron：v26.2.4
+
+### 编译步骤
+
+1. 安装并配置 Yarn：
+
+   ```bash
+   npm install -g yarn
+   yarn config set ELECTRON_MIRROR https://registry.npmmirror.com/-/binary/electron/
+   yarn config set registry https://registry.npmmirror.com/
+   ```
+
+2. 安装依赖：
+
+   ```bash
+   yarn
+   ```
+
+3. 生成可执行文件：
+
+   ```bash
+   yarn package
+   ```
+
+---
+
+## 📬 反馈与建议
+
+如果您对软件有任何建议或问题，欢迎加入**微信**群组：
+
+![微信二维码](https://gitee.com/onlinetool/apichain/raw/main/wechat_group.png)
+
+---
+
+## 🌟 支持我们
+
+如果你喜欢这个项目，请点击 [给个 Star](https://gitee.com/onlinetool/apichain) 支持我们！你的支持是我们持续改进的动力 💖
