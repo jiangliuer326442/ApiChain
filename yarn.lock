@@ -8630,6 +8630,11 @@ open@^8.0.9:
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
 
+openai@^6.36.0:
+  version "6.36.0"
+  resolved "https://registry.npmmirror.com/openai/-/openai-6.36.0.tgz#9b74deae27628ef2059d8c01c3ef0f9f7d5ac0f8"
+  integrity sha512-Has2YbIusMq9wQEierFsgf9c783dy1y9arX459LmphNacEkkM5yxi2RIyXP0LmkOroQyW19iTwALHL8Yf26UKA==
+
 opener@^1.5.2:
   version "1.5.2"
   resolved "https://registry.npmjs.org/opener/-/opener-1.5.2.tgz"

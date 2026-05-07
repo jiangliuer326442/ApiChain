@@ -194,3 +194,12 @@ export type ChannelsLang = 'pipeline_langguage';
 export const ChannelsLangStr = 'pipeline_langguage';
 
 export const ChannelsLangSet = 'set_lang';
+
+//AI 交互
+export type ChannelsAiBreidge = "ai_bridge";
+
+export const ChannelsAiBreidgeStr = "ai_bridge";
+
+export const ChannelsAiBreidgeSendStr = 'ai_bridge_send';
+
+export const ChannelsAiBreidgeReplyStr = 'ai_bridge_reply';
