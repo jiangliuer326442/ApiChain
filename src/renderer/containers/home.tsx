@@ -242,7 +242,9 @@ class Home extends Component {
   }
 
   checkForUpgrade = () => {
-    window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
+    if('electron' in window) {
+      window.electron.ipcRenderer.sendMessage(ChannelsAutoUpgradeStr, ChannelsAutoUpgradeCheckStr);
+    }
   }
 
   handleSearchProject = originPrj => {

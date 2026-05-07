@@ -6,13 +6,18 @@ import { SendOutlined, } from '@ant-design/icons';
 
 import './index.less';
 
-import { AI_RECORD } from '@conf/storage';
-import { GET_PRJ, SET_AI_SUPPORT_INFO, } from '@conf/redux';
-import { ChannelsLoadAppStr } from '@conf/channel';
+import { 
+  CLEAR_CHAT_RECORD,
+  GET_PRJ, 
+  SET_AI_SUPPORT_INFO, 
+  CACHE_CHAT_RECORD,
+  SET_CHAT_RECORD, 
+} from '@conf/redux';
+import { ChannelsAiBreidgeStr, ChannelsAiBreidgeSendStr, ChannelsAiBreidgeReplyStr } from '@conf/channel';
 import { getBigModels } from '@act/ai';
 import { setChatModel2 } from '@act/team';
 import { langTrans } from '@lang/i18n';
-import { replaceHttpWithWs, isStringEmpty, } from '@rutil/index';
+import { isStringEmpty, } from '@rutil/index';
 import { addNewlineBeforeTripleBackticks, addCodeMarkdown } from '@rutil/markdown';
 import MarkdownView from '@comp/markdown/show';
 
@@ -23,29 +28,13 @@ class AiChatBox extends Component {
 
     constructor(props) {
         super(props);
-        let messages
-        let chatRecord = localStorage.getItem(AI_RECORD);
-        if (isStringEmpty(chatRecord)) {
-          messages = [];
-        } else {
-          messages = JSON.parse(chatRecord);
-        }
         this.state = {
-          messages,
           input: "",
           codeBlock: "",
           loadingTimeout: false,
           loadingWaitMessage: false,
           aiModels: [],
           tmpResponse: {},
-          messageLength: messages.length,
-          linkOperators: [
-            {
-              value: "retrieveiterationDocuments",
-              label: langTrans("chatbox link action2"),
-            }
-          ],
-          linkOperator: "",
           aiModel: "",
         }
 
@@ -59,67 +48,58 @@ class AiChatBox extends Component {
           aiModels: response.chatModels 
         })
       });
-      this.ws = new WebSocket(replaceHttpWithWs(this.props.clientHost) + "/ai/ws/" + this.props.teamId + "/" + this.props.uid);
 
-      this.ws.onopen = (event) => {
-      };
-
-      this.ws.onmessage = async (event) => {
-        let message = JSON.parse(JSON.parse(event.data));
-        let tmpMessage;
-        if (message.id >= this.state.messages.length) {
-          tmpMessage = { 
-            role: 'assistant', 
-            content: message.content,
-            hasFinish: message.hasFinish,
-            success: message.success,
+      window.electron.ipcRenderer.on(ChannelsAiBreidgeStr, (action, msgType, msgId : number, msgContent : string, finishFlg : boolean, successFlg : boolean) => {
+          if (action === ChannelsAiBreidgeReplyStr) {
+              let tmpMessage;
+              let messages = this.props.messages;
+              if (msgId >= messages.length) {
+                tmpMessage = { 
+                  role: 'assistant', 
+                  content: msgContent,
+                  hasFinish: finishFlg,
+                  success: successFlg,
+                }
+                messages.push(tmpMessage);
+                setTimeout(() => {
+                  this.setState({ loadingWaitMessage: false });
+                  this.scrollToBottom()
+                }, 1000);
+              } else {
+                tmpMessage = messages[msgId];
+                tmpMessage.content += msgContent;
+                tmpMessage.hasFinish = finishFlg;
+                tmpMessage.success = successFlg;
+                messages[msgId] = tmpMessage;
+              }
+              if (tmpMessage.hasFinish) {
+                this.scrollToBottom();
+                this.props.dispatch({
+                  type: SET_CHAT_RECORD,
+                  messages,
+                });
+                if (tmpMessage.success) {
+                  this.props.dispatch({
+                    type: SET_AI_SUPPORT_INFO,
+                    isAiSupport: true
+                  });
+                } else {
+                  this.setState({
+                    loadingWaitMessage: false,
+                  });
+                  this.props.dispatch({
+                    type: SET_AI_SUPPORT_INFO,
+                    isAiSupport: false
+                  });
+                }
+              } else {
+                this.props.dispatch({
+                  type: CACHE_CHAT_RECORD,
+                  messages,
+                });
+              }
           }
-          this.state.messages.push(tmpMessage);
-          this.setState({ 
-            messages: cloneDeep(this.state.messages),
-            messageLength: this.state.messageLength + 1,
-          });
-          setTimeout(() => {
-            this.setState({ loadingWaitMessage: false });
-            this.scrollToBottom()
-          }, 1000);
-        } else {
-          tmpMessage = this.state.messages[message.id];
-          tmpMessage.content += message.content;
-          tmpMessage.hasFinish = message.hasFinish;
-          tmpMessage.success = message.success;
-          this.state.messages[message.id] = tmpMessage;
-          this.setState({ 
-            messages: cloneDeep(this.state.messages),
-          });
-        }
-        if (tmpMessage.hasFinish) {
-          this.scrollToBottom();
-          localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
-          if (tmpMessage.success) {
-            this.props.dispatch({
-              type: SET_AI_SUPPORT_INFO,
-              isAiSupport: true
-            });
-          } else {
-            this.setState({
-              loadingWaitMessage: false,
-            });
-            this.props.dispatch({
-              type: SET_AI_SUPPORT_INFO,
-              isAiSupport: false
-            });
-          }
-        }
-      };
-
-      this.ws.onclose = (event) => {
-          console.log("WebSocket closed:", event);
-      };
-
-      this.ws.onerror = (event) => {
-          console.error("WebSocket error:", event);
-      };
+      });
 
     }
 
@@ -148,34 +128,26 @@ class AiChatBox extends Component {
       }
     }
 
-    handleLinkOperator = oroginOperator => {
-      if (isStringEmpty(oroginOperator)) {
-        this.setState( {input : ""} );
-      } else if (oroginOperator === "retrieveiterationDocuments") {
-        this.setState( {input : "【" + langTrans("chatbox link action2") + "】" + this.state.input} );
-      }
-    }
-
     handleSetAiModel = async (aiModel) => {
       await setChatModel2(aiModel);
       this.setState( {aiModel} );
     }
 
     clearRecord = () => {
-      localStorage.removeItem(AI_RECORD);
-      this.setState({
-        messages: [], 
-        codeBlock: "", 
-        messageLength: 0
+      this.props.dispatch({
+        type: CLEAR_CHAT_RECORD,
       });
-      window.electron.ipcRenderer.sendMessage(ChannelsLoadAppStr);
+
+      this.setState({
+        codeBlock: "",
+      });
     }
 
     handleSend = async () => {
         if (!this.state.input.trim()) return;
-        let messageLength = this.state.messageLength;
+        let messageLength = this.props.messageLength;
 
-        let historyMessage = this.state.messages.length > 10 ? cloneDeep(this.state.messages.slice(-10)) : cloneDeep(this.state.messages)
+        let historyMessage = this.props.messages.length > 10 ? cloneDeep(this.props.messages.slice(-10)) : cloneDeep(this.props.messages)
 
         let sendContent = this.state.input.trim();
         if (!isStringEmpty(this.state.codeBlock)) {
@@ -187,37 +159,32 @@ class AiChatBox extends Component {
           content: this.state.input,
           codeBlock: this.state.codeBlock
         };
-        this.state.messages.push(userMessage);
-        localStorage.setItem(AI_RECORD, JSON.stringify(this.state.messages));
+        this.props.messages.push(userMessage);
+        this.props.dispatch({
+          type: SET_CHAT_RECORD,
+          messages: this.props.messages,
+        });
+
         messageLength++;
         this.setState(
           {
-            messages: cloneDeep( this.state.messages),
             input: "",
             codeBlock: "",
             loadingTimeout: true,
             loadingWaitMessage: true,
-            messageLength,
           }
         );
 
-        this.ws.send(JSON.stringify({
-          type: "text", 
-          id: messageLength, 
-          content:sendContent,
-          header: {
-            'Sys_Lang': this.props.preferLang,
-            'Sys_Country': this.props.userCountry,
-            'Sys_Uid': this.props.uid,
-            'Sys_Team': this.props.teamId,
-            'Client_Version': this.props.appVersion,
-          },
-          payload: {
+        window.electron.ipcRenderer.sendMessage(ChannelsAiBreidgeStr, ChannelsAiBreidgeSendStr, 
+          "text", 
+          messageLength, 
+          sendContent, 
+          {
             project: this.props.prj,
-            operator: this.state.linkOperator,
             history: historyMessage,
+            aiModel: this.state.aiModel,
           }
-        }));
+        );
 
         setTimeout(() => {
           this.setState({ loadingTimeout: false });
@@ -241,7 +208,7 @@ class AiChatBox extends Component {
     ref={this.scrollContainerRef}
   >
     <List
-        dataSource={this.state.messages}
+        dataSource={this.props.messages}
         renderItem={(item) => (
         <List.Item
             style={{
@@ -303,21 +270,8 @@ class AiChatBox extends Component {
           <Button>{(this.props.prj && this.props.projects.length > 0 && this.props.projects.find(_prj => _prj.value === this.props.prj)) ? this.props.projects.find(_prj => _prj.value === this.props.prj).label : langTrans("chatbox link project")}</Button>
         </Popover>
       }
-      {this.props.from === "drawer" ? null : 
-        <Popover placement="top" title={langTrans("chatbox link action")} content={
-          <Select 
-            allowClear
-            value={this.state.linkOperator}
-            onChange={ this.handleLinkOperator }
-            style={{width: 200}}
-            options={this.state.linkOperators}
-          />
-        }>
-          <Button>{this.state.linkOperator ? this.state.linkOperators.find(_operator => _operator.value === this.state.linkOperator).label : langTrans("chatbox link action")}</Button>
-        </Popover>
-      }
         <Button onClick={this.clearRecord}>{langTrans("chatbox empty record")}</Button>
-        {this.state.aiModels.length > 1 && this.props.from !== "drawer" ?
+        {this.state.aiModels.length > 0 ?
         <Popover placement="top" title={langTrans("chatbox aimodel select")} content={
           <Select 
             value={this.state.aiModel}
@@ -371,7 +325,9 @@ function mapStateToProps (state) {
       uid: state.device.uuid,
       appVersion: state.device.appVersion,
       messageText: state.nav.messageText,
-      messageCode: state.nav.messageCode
+      messageCode: state.nav.messageCode,
+      messages: state["chat_record"].messages,
+      messageLength: state["chat_record"].messageLength,
     }
 }
 

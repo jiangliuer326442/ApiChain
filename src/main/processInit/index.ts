@@ -14,6 +14,7 @@ import dbInitFunc from './database';
 import mysqlInitFunc from './database/mysql';
 import reloadFunc from './system/reload';
 import restartFunc from './system/restart';
+import aiFunc from './ai';
 
 export default function (mainWindow : BrowserWindow, privateKey : string, publicKey : string, store : Store){
     dbInitFunc(mainWindow);
@@ -29,4 +30,5 @@ export default function (mainWindow : BrowserWindow, privateKey : string, public
     NetworkSendInitFunc(privateKey, store);
     reloadFunc(mainWindow);
     restartFunc();
+    aiFunc(privateKey, store);
 }

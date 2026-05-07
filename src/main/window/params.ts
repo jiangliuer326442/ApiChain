@@ -1,13 +1,11 @@
 import { app } from 'electron';
+import log from 'electron-log';
 import Store from 'electron-store';
 import crypto from 'crypto';
 import fs from 'fs-extra';
 import path from 'path';
 import { setLangWraped } from '../processInit/langguage';
-import { 
-    setLang,
-    getLang,
-} from '../../lang/i18n';
+import { setLangguageModel, cleanLangguageModel } from '../store/config/ai';
 import { getUname } from '../store/config/user';
 import { isFirstLauch } from '../store/config/first';
 import { 
@@ -82,6 +80,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let isAiSupport = false;
     if (isStringEmpty(teamServerErrorMessage)) {
         let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store);
+        log.info("ret", ret);
         if (isStringEmpty(ret[1].teamId)) {
             setClientInfo(CLIENT_TYPE_SINGLE, null, store)
         } else {
@@ -91,7 +90,12 @@ export async function getInitParams(privateKey : string, startupParams : object,
             clientType = CLIENT_TYPE_TEAM;
             isAdmin = ret[1].isAdmin;
             isSuperAdmin = ret[1].isSuperAdmin;
-            isAiSupport = ret[1].isAiSupport;
+            if (ret[1].langguageModel != null) {
+                isAiSupport = true;
+                setLangguageModel(ret[1].langguageModel, store);
+            } else {
+                cleanLangguageModel(store);
+            }
         }
     }
 

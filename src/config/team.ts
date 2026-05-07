@@ -4,6 +4,8 @@ export const CLIENT_TYPE_TEAM = "team";
 
 export const PING_URL = "/ping";
 
+export const TEAM_QUERY_NAME = "/team/get-team-info";
+
 export const TEAM_CREATE_URL = "/team/register";
 
 export const TEAM_JOIN_URL = "/team/join";
@@ -23,8 +25,6 @@ export const TEAM_MEMBER_ADMIN_URL = "/team/set-member-admin";
 export const TEAM_MEMBERS_URL = "/team/members";
 
 export const TEAM_LIST_URL = "/team/teams";
-
-export const TEAM_QUERY_NAME = "/team/getTeamName";
 
 export const TEAM_DISSOLVE_URL = "/team/close-team";
 

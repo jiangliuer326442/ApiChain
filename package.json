@@ -1,13 +1,13 @@
 {
   "name": "ApiChain",
-  "version": "1.2.4",
-  "minServerVersion": "1.2.4",
-  "description": "tool for API documents and unit testing",
+  "version": "1.2.5",
+  "minServerVersion": "1.2.5",
+  "description": "an iteration-centric microservice API management tool. It's designed as a powerful open-source alternative to Postman, Apifox, and Insomnia, focusing on solving the pain points of API document merging, database-level deep assertions, full-link regression testing, and data cleanup in agile development.",
   "keywords": [
-    "postman",
-    "项目接口管理",
-    "迭代文档",
-    "自动化测试"
+    "api-management",
+    "api-documentation",
+    "api-testing",
+    "rest-client"
   ],
   "homepage": "https://apichain.app/",
   "repository": {
@@ -17,14 +17,14 @@
   "license": "UNLICENSED",
   "author": {
     "name": "Mustafa Fang",
-    "email": "fanghailiang2016@gmail.com",
-    "url": "https://blog.csdn.net/fanghailiang2016"
+    "email": "jiangliuer3264@gmail.com",
+    "url": "http://apichain.fanghailiang.cn"
   },
   "contributors": [
     {
       "name": "Mustafa Fang",
-      "email": "fanghailiang2016@gmail.com",
-      "url": "https://blog.csdn.net/fanghailiang2016"
+      "email": "jiangliuer3264@gmail.com",
+      "url": "http://apichain.fanghailiang.cn"
     }
   ],
   "main": "./src/main/main.ts",
@@ -64,6 +64,7 @@
     "js-md5": "^0.8.3",
     "lodash": "^4.17.21",
     "mysql2": "^3.20.0",
+    "openai": "^6.36.0",
     "path-browserify": "^1.0.1",
     "react": "^18.2.0",
     "react-copy-to-clipboard": "^5.1.0",
