@@ -485,7 +485,7 @@ class UnittestStepContainer extends Component {
 
         let requestHead : any = {};
         for (let _key in formRequestHeadData) {
-            if (Object.keys(latestStep).length > 0 && _key in latestStep[unittest_step_request_head]) {
+            if (latestStep != null && Object.keys(latestStep).length > 0 && _key in latestStep[unittest_step_request_head]) {
                 requestHead[_key] = latestStep[unittest_step_request_head][_key];
             } else {
                 requestHead[_key] = formRequestHeadData[_key][TABLE_FIELD_VALUE];

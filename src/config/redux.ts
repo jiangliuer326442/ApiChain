@@ -49,3 +49,9 @@ export const GET_TEMPLATE_TESTS = "get_template_tests";
 export const SHOW_ADD_UNITTEST_MODEL = "show_add_unittest_model";
 
 export const SHOW_EDIT_UNITTEST_MODEL = "show_edit_unittest_model";
+
+export const SET_CHAT_RECORD = "set_chat_record";
+
+export const CACHE_CHAT_RECORD = "cache_chat_record";
+
+export const CLEAR_CHAT_RECORD = "clear_chat_record";

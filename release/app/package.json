@@ -1,13 +1,13 @@
 {
   "name": "ApiChain",
-  "version": "1.2.4",
-  "minServerVersion": "1.2.4",
-  "description": "The iteration-centric microservice API management and full-link deep testing tool, integrating smart document merging, database-level assertions, and AI-powered retrieval in one stop",
+  "version": "1.2.5",
+  "minServerVersion": "1.2.5",
+  "description": "an iteration-centric microservice API management tool. It's designed as a powerful open-source alternative to Postman, Apifox, and Insomnia, focusing on solving the pain points of API document merging, database-level deep assertions, full-link regression testing, and data cleanup in agile development.",
   "license": "MIT",
   "author": {
     "name": "Mustafa Fang",
     "email": "jiangliuer3264@gmail.com",
-    "url": "https://blog.csdn.net/fanghailiang2016"
+    "url": "http://apichain.fanghailiang.cn"
   },
   "main": "./dist/main/main.js",
   "scripts": {

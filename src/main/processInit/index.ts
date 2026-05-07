@@ -30,5 +30,5 @@ export default function (mainWindow : BrowserWindow, privateKey : string, public
     NetworkSendInitFunc(privateKey, store);
     reloadFunc(mainWindow);
     restartFunc();
-    aiFunc(store);
+    aiFunc(privateKey, store);
 }

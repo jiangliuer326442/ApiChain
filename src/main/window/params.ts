@@ -80,6 +80,7 @@ export async function getInitParams(privateKey : string, startupParams : object,
     let isAiSupport = false;
     if (isStringEmpty(teamServerErrorMessage)) {
         let ret = await postRequest(privateKey, TEAM_QUERY_NAME, {}, store);
+        log.info("ret", ret);
         if (isStringEmpty(ret[1].teamId)) {
             setClientInfo(CLIENT_TYPE_SINGLE, null, store)
         } else {
