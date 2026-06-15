@@ -9,6 +9,7 @@ import {
     Descriptions, 
     Tooltip,
     Form, 
+    message,
     Select, 
     Divider, 
     Input, 
@@ -17,6 +18,7 @@ import {
 import { 
     ExportOutlined, 
     Html5Outlined,
+    ShareAltOutlined,
     FileMarkdownOutlined,
 } from '@ant-design/icons';
 import { TinyColor } from '@ctrl/tinycolor';
@@ -161,6 +163,11 @@ class RequestListVersion extends Component {
         })
     }
 
+    handleCopyLink = async () => {
+        await navigator.clipboard.writeText(this.props.clientHost + "#/version_iterator_doc/" + this.props.teamId + "/" + this.state.iteratorId);
+        message.success(langTrans("version doc desc share"));
+    }
+
     render() : ReactNode {
         return (
             <Layout>
@@ -173,7 +180,20 @@ class RequestListVersion extends Component {
                         { title: langTrans("version doc bread1") }, 
                         { title: langTrans("version doc bread2") }
                     ]} />
-                    <Descriptions column={2} title={langTrans("version doc desc title")} items={ [
+                    <Descriptions 
+                     column={2}
+                     title={
+                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {langTrans("version doc desc title")}
+                        <Tooltip title={langTrans("version doc desc subtitle")}>
+                        <ShareAltOutlined
+                            onClick={this.handleCopyLink}
+                            style={{ cursor: 'pointer', fontSize: 16, color: '#666' }}
+                        />
+                        </Tooltip>
+                     </div>
+                     }
+                     items={ [
                         {
                             key: version_iterator_title,
                             label: langTrans("version doc desc1"),
@@ -338,6 +358,7 @@ function mapStateToProps (state) {
         prjs: state.prj.list,
         teamId: state.device.teamId,
         clientType: state.device.clientType,
+        clientHost: state.device.clientHost,
     }
 }
       

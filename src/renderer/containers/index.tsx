@@ -49,11 +49,12 @@ import {
     UNITTEST_STEP_EDIT_ROUTE,
     UNITTEST_TEMPLATE_STEP_EDIT_ROUTE,
     REQUEST_PROJECT_PARAMS,
-    VIP_ITERATOR_LIST_ROUTE,
     ITERATOR_ADD_REQUEST_ROUTE,
     WELCOME_ROUTE 
 } from '@conf/routers';
 import { getStartParams, isStringEmpty, urlDecode } from '@rutil/index';
+import "./css/index.css";
+import createCharactePng from './imgs/create-characte.png';
 
 let argsObject = getStartParams();
 let userCountry = argsObject.userCountry;
@@ -95,7 +96,6 @@ import UnittestListTemplatePage from "@contain/unittest/template";
 import UnittestListProjectPage from "@contain/unittest/project";
 import UnittestExecutorListPage from "@contain/unittest_executor_list";
 import UnittestStepPage from "@contain/unittest/step";
-import VipFunctionPage from "@contain/vip";
 
 class MyRouter extends Component {
 
@@ -210,20 +210,35 @@ class MyRouter extends Component {
                             <Route path={ UNITTEST_STEP_ADD_ROUTE } component={UnittestStepPage} />
                             <Route path={ UNITTEST_STEP_EDIT_ROUTE } component={UnittestStepPage} />
                             <Route path={ UNITTEST_TEMPLATE_STEP_EDIT_ROUTE } component={UnittestStepPage} />
-                            <Route path={ VIP_ITERATOR_LIST_ROUTE } component={VipFunctionPage} />
                             <Route path={ ITERATOR_ADD_REQUEST_ROUTE } component={RequestToSaveContainerPage} />
                             <Route path={ ENVVAR_GLOBAL_LIST_ROUTE } component={EnvVarGlobalPage} />
                             <Route path={ ENVVAR_ITERATOR_LIST_ROUTE } component={EnvVarIteratorPage} />
                             <Route path={ ENVVAR_UNITTEST_LIST_ROUTE } component={EnvVarUnittestPage} />
                             <Route path={ WELCOME_ROUTE } component={HomePage} />
                         </Switch>
-                        {this.props.isAiSupport && !isExcludePath && (<FloatButton 
+                    {
+                        pathname === WELCOME_ROUTE ?
+                        <FloatButton
+                            className='index-float-btn'
+                            style={{ insetInlineEnd: 120}}
+                            icon={
+                                <img
+                                src={createCharactePng}
+                                style={{ width: 50, height: 50, objectFit: 'contain' }}
+                                />
+                            }
+                            tooltip="AI伴侣"
+                            onClick={()=>window.location.href="https://candy.fanghailiang.cn?device_id=" + uuid}
+                        />
+                    :
+                        (this.props.isAiSupport && (<FloatButton 
                             shape="circle"
                             type="primary"
                             style={{ insetInlineEnd: 120 }}
                             icon={<MessageOutlined />}
                             onClick={this.openAiBoxOpenFlg}
-                        />)}
+                        />))
+                    }    
                     </Layout>
                 </Layout>
             </Fragment>

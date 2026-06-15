@@ -276,10 +276,6 @@ class Nav extends Component {
             {
               key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_doc",
               label: <a href={"#/version_iterator_requests/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator doc")}</a >
-            },
-            {
-              key: ITERATOR + "_" + iteration[version_iterator_uuid] + "_vip",
-              label: <a href={"#/version_iterator_vip/" + iteration[version_iterator_uuid] } rel="noopener noreferrer">{langTrans("nav iterator member")}</a >
             }
           ];
           if (clientType === CLIENT_TYPE_TEAM) {
