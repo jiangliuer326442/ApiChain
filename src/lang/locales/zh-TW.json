@@ -131,6 +131,8 @@
     "version doc bread1": "迭代",
     "version doc bread2": "接口列表",
     "version doc desc title": "迭代資訊",
+    "version doc desc subtitle": "複製當前迭代文件連結",
+    "version doc desc share": "迭代文件連結已複製到剪貼板",
     "version doc desc1": "迭代名稱",
     "version doc desc2": "迭代狀態",
     "version doc desc3": "建立人",

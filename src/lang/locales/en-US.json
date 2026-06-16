@@ -158,6 +158,8 @@
     "version doc bread1": "Iteration",
     "version doc bread2": "API List",
     "version doc desc title": "Iteration Info",
+    "version doc desc subtitle": "Copy the link of the current iteration document",
+    "version doc desc share": "The iteration document link has been copied to the clipboard.",
     "version doc desc1": "Iteration Name",
     "version doc desc2": "Iteration Status",
     "version doc desc3": "Creator",

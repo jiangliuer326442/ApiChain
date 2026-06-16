@@ -42,7 +42,7 @@ Modify the database connection parameters in the following command and start the
 
 ```bash
 docker volume create apichain_cache_data;
-docker pull jiangliuer326442/apichain-runner:1.2.4;
+docker pull jiangliuer326442/apichain-runner:1.2.5;
 docker run -d \
 -p 6588:6588 \
 -e DB_HOST=192.168.1.5 \
@@ -54,7 +54,7 @@ docker run -d \
 -e APICHAIN_SUPER_UID=44470bb9b4f8d601f812945fe275e139 \
 -v apichain_cache_data:/opt/cache \
 --name apichain-runner \
-jiangliuer326442/apichain-runner:1.2.4
+jiangliuer326442/apichain-runner:1.2.5
 ```
 
 ### Step 3: Connect Client to Runner

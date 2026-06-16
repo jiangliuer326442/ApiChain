@@ -42,8 +42,6 @@ export const REQUEST_PROJECT_DETAIL_ROUTE = "/project_request/:prj/:method/:uri"
 export const UNITTEST_ITERATOR_LIST_ROUTE = "/version_iterator_tests/:id"
 //单测模板列表
 export const UNITTEST_TEMPLATE_LIST_ROUTE = "/tests_template"
-//会员功能
-export const VIP_ITERATOR_LIST_ROUTE = "/version_iterator_vip/:id"
 //迭代单测执行列表
 export const UNITTEST_ITERATOR_EXECUTOR_LIST_ROUTE = "/unittest_executor_record/:env/:iteratorId/:unitTestId"
 //清理单测数据节点新增

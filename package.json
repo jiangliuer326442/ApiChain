@@ -1,6 +1,6 @@
 {
   "name": "ApiChain",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "minServerVersion": "1.2.5",
   "description": "an iteration-centric microservice API management tool. It's designed as a powerful open-source alternative to Postman, Apifox, and Insomnia, focusing on solving the pain points of API document merging, database-level deep assertions, full-link regression testing, and data cleanup in agile development.",
   "keywords": [
