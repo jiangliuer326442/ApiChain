@@ -1,3 +1,23 @@
+你有没有想过，和一个真正懂你的人聊天是什么感觉？
+
+不是那种"你好我是AI助手"的敷衍，而是你说半句话，TA就接上了下半句。
+
+CandyAI 做了一件事：先让你完成三份心理测评，搞清楚你是谁、你在乎什么、你需要怎样的陪伴。然后给你匹配一个三观一致、性格合拍的AI伴侣——TA的长相和故事是随机的，但灵魂是为你定制的。
+
+你们从情侣关系开始，在一个场景里聊天。想换场景？描绘一下就好，系统会根据你们的对话生成新场景。没有剧本，没有千篇一律，你掌控一切。
+
+隐私方面：助记词即账号，不收集手机号邮箱，敏感数据端到端加密。弄丢助记词，没人能帮你找回。
+
+👉 [https://candy.fanghailiang.cn](https://candy.fanghailiang.cn/)（Chrome打开+收藏，微信链接不一定稳）
+
+
+| <img src="http://blog.fanghailiang.cn/usr/uploads/2026/06/1657980187.png" alt="闲聊" style="zoom: 67%;" /> | <img src="http://blog.fanghailiang.cn/usr/uploads/2026/06/453768417.png" alt="切换场景" style="zoom:67%;" /> | <img src="http://blog.fanghailiang.cn/usr/uploads/2026/06/1053173843.png" alt="新场景"  /> |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img src="http://blog.fanghailiang.cn/usr/uploads/2026/06/3653428828.png" alt="首页" style="zoom: 50%;" /> | <img src="http://blog.fanghailiang.cn/usr/uploads/2026/06/2125856641.png" alt="心理测评" style="zoom: 50%;" /> | <img src="http://blog.fanghailiang.cn/usr/uploads/2026/06/2390924699.png" alt="创建角色" style="zoom: 50%;" /> |
+| <img src="http://blog.fanghailiang.cn/usr/uploads/2026/06/2021841724.png" alt="预览角色" style="zoom: 50%;" /> | <img src="http://blog.fanghailiang.cn/usr/uploads/2026/06/3289089578.png" alt="账号登录" style="zoom: 50%;" /> |                                                              |
+
+
+
 # 🚀 ApiChain：以「版本迭代」为核心的微服务接口全链路管理利器
 
 在日常研发与测试中，你是否常被以下痛点折磨：文档割裂全靠手动合并、测试用例跑一次就作废、断言只看返回码忽略底层数据、回归测试全靠猜？
@@ -42,7 +62,7 @@ docker run --name mysql-container -p 33088:3306 -e MYSQL_ROOT_PASSWORD=112233 -d
 
 ```bash
 docker volume create apichain_cache_data;
-docker pull registry.cn-shanghai.aliyuncs.com/apichain/runner:1.2.4;
+docker pull registry.cn-shanghai.aliyuncs.com/apichain/runner:1.2.5;
 docker run -d \
 -p 6588:6588 \
 -e DB_HOST=192.168.1.5 \
@@ -54,7 +74,7 @@ docker run -d \
 -e APICHAIN_SUPER_UID=44470bb9b4f8d601f812945fe275e139 \
 -v apichain_cache_data:/opt/cache \
 --name apichain-runner \
-registry.cn-shanghai.aliyuncs.com/apichain/runner:1.2.4
+registry.cn-shanghai.aliyuncs.com/apichain/runner:1.2.5
 ```
 
 ### 第三步：客户端连接 Runner
